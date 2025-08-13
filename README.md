@@ -1,4 +1,4 @@
-# LAGD Ising RTL
+LAGD Ising RTL
 =============================
 
 This repository is for the hardware implementation of the Ising LAGD chip.
