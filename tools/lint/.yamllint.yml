@@ -1,0 +1,15 @@
+# Copyright 2024 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+extends: default
+
+rules:
+  document-start: disable
+  comments:
+    min-spaces-from-content: 1
+  line-length:
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+    ignore: |
+      workflows/lint.yml
