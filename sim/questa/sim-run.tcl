@@ -13,7 +13,7 @@ if { [info exists ::env(FORCE_BUILD)] } {
 
 # If OBJ is not defined then search on the environment
 if { ![info exists OBJ] } {
-    if {[info exists ::env(OBJ)]} {
+    if { [info exists ::env(OBJ)] } {
         set OBJ $::env(OBJ)
     } else {
         puts "ERROR: OBJ not defined"
@@ -40,7 +40,7 @@ set IterationLimit 200000
 vsim -quiet \
     -wlf work/${SIM_NAME}.wlf \
     -msgmode both -displaymsgmode both \
-    -L work_lib  \
+    -L work_lib \
     -work ${WLIB} \
     -modelsimini ./modelsim.ini \
     ${OBJ}

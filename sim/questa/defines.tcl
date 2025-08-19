@@ -30,7 +30,7 @@ if { [info exists ::env(SIM_NAME)] } {
 }
 
 if { [info exists ::env(DBG)] } {
-    set DBG [expr {$::env(DBG) == 1}]
+    set DBG [expr { $::env(DBG) == 1 }]
 } else {
     set DBG 0
 }
