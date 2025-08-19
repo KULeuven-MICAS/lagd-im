@@ -32,7 +32,7 @@ jobs:
                         SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
                     # Exclude:
                     #    - third-party libraries
-                    #    - generated headers 
+                    #    - generated headers
                     #        (no license checker support for optional lines)
                     exclude_paths: |
                         third_parties/
@@ -136,13 +136,13 @@ jobs:
         name: Lint Editorconfig
         runs-on: ubuntu-latest
         steps:
-            -   
+            -
                 name: Checkout
                 uses: actions/checkout@v4
-            -   
+            -
                 name: Install EditorConfig Checker
                 uses: editorconfig-checker/action-editorconfig-checker@main
-            -   
+            -
                 name: Run EditorConfig Checker
                 run: editorconfig-checker
 
@@ -152,18 +152,18 @@ jobs:
     tcl-lint:
         runs-on: ubuntu-latest
         steps:
-            -   
+            -
                 name: Checkout
                 uses: actions/checkout@v3
-            -   
+            -
                 name: Install Python
                 uses: actions/setup-python@v5
                 with:
                     python-version: 3.9
                     cache: pip
-            -   
+            -
                 name: Install Python requirements
                 run: pip install -r tools/lint/tclint/requirements.txt
-            -   
+            -
                 name: Run Tcllint
                 run: tclint .  --style-spaces-in-braces --style-line-length 100
