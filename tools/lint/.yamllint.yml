@@ -12,4 +12,4 @@ rules:
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
     ignore: |
-      workflows/lint.yml
+      .github/workflows/lint.yml
