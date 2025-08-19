@@ -29,7 +29,7 @@ foreach file $HDL_FILES {
 
 
 # Optimization and object preparation
-if { $DBG == 1} {
+if { $DBG == 1 } {
     vopt -quiet -work ${WLIB} +acc tb_${SIM_NAME} -o dbg_${SIM_NAME}
     set OBJ "dbg_${SIM_NAME}"
 } else {
@@ -37,6 +37,6 @@ if { $DBG == 1} {
     set OBJ "nodbg_${SIM_NAME}"
 }
 
-if { $BUILD_ONLY == 1} {
+if { $BUILD_ONLY == 1 } {
     quit
 }
