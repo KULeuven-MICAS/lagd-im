@@ -5,14 +5,14 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # Basic build script for QuestaSim
 
-if {[info exists ::env(FORCE_BUILD)]}{
+if {[info exists ::env(FORCE_BUILD)]} {
     set FORCE_BUILD $::env(FORCE_BUILD)
 } else {
     set FORCE_BUILD 1
 }
 
 # If OBJ is not defined then search on the environment
-if {![info exists OBJ]}{
+if {![info exists OBJ]} {
     if {[info exists ::env(OBJ)]} {
         set OBJ $::env(OBJ)
     } else {
