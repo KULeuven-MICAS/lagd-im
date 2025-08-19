@@ -12,5 +12,5 @@ rules:
         max: 100
         allow-non-breakable-words: true
         allow-non-breakable-inline-mappings: true
-    ignore: |
-        workflows/lint.yml
+        ignore: |
+            workflows/lint.yml
