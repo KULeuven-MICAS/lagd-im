@@ -5,11 +5,11 @@
 extends: default
 
 rules:
-  document-start: disable
-  comments:
-    min-spaces-from-content: 1
-  line-length:
-    allow-non-breakable-words: true
-    allow-non-breakable-inline-mappings: true
-    ignore: |
-      .github/workflows/lint.yml
+    document-start: disable
+    comments:
+        min-spaces-from-content: 1
+    line-length:
+        allow-non-breakable-words: true
+        allow-non-breakable-inline-mappings: true
+        ignore: |
+            workflows/lint.yml
