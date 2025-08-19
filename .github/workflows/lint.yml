@@ -19,23 +19,21 @@ jobs:
     lint-license:
         runs-on: ubuntu-latest
         steps:
-        -
-            name: Checkout
-            uses: actions/checkout@v4
-        -
-            name: Check license
-            uses: pulp-platform/pulp-actions/lint-license@v2.4.1
-            with:
-                license: |
-                    Copyright (\d{4}(-\d{4})?\s)?(KU Leuven).
-                    (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
-                    SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
-                # Exclude:
-                #    - third-party libraries
-                #    - generated headers 
-                #        (no license checker support for optional lines)
-                exclude_paths: |
-                    third_parties/
+            -   name: Checkout
+                uses: actions/checkout@v4
+            -   name: Check license
+                uses: pulp-platform/pulp-actions/lint-license@v2.4.1
+                with:
+                    license: |
+                        Copyright (\d{4}(-\d{4})?\s)?(KU Leuven).
+                        (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
+                        SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
+                    # Exclude:
+                    #    - third-party libraries
+                    #    - generated headers 
+                    #        (no license checker support for optional lines)
+                    exclude_paths: |
+                        third_parties/
 
     ################
     # Verible Lint #
@@ -44,11 +42,9 @@ jobs:
         name: Lint Verilog sources
         runs-on: ubuntu-latest
         steps:
-        - 
-            name: Checkout
+        -   name: Checkout
             uses: actions/checkout@v4
-        - 
-            name: Verible linter check
+        -   name: Verible linter check
             uses: chipsalliance/verible-linter-action@main
             with:
                 paths: |
@@ -67,14 +63,12 @@ jobs:
         name: Lint YAML Sources
         runs-on: ubuntu-latest
         steps:
-        - 
-            name: Checkout
+        -   name: Checkout
             uses: actions/checkout@v4
-        - 
-            name: yaml-lint
+        -   name: yaml-lint
             uses: ibiqlik/action-yamllint@v3
             with:
-                config_file: ./tools/lint/.yamllint.yml
+                config_file: tools/lint/.yamllint.yml
 
     ########################
     # Check Python Sources #
@@ -83,16 +77,13 @@ jobs:
         runs-on: ubuntu-latest
         name: Lint Python Sources
         steps:
-        - 
-            name: Check out source repository
+        -   name: Check out source repository
             uses: actions/checkout@v4
-        - 
-            name: Set up Python environment
+        -   name: Set up Python environment
             uses: actions/setup-python@v5
             with:
                 python-version: "3.11"
-        - 
-            name: flake8 Lint
+        -   name: flake8 Lint
             uses: py-actions/flake8@v2
             with:
                 flake8-version: "6.0.0"
@@ -106,11 +97,9 @@ jobs:
         name: Lint C/C++ Sources
         runs-on: ubuntu-latest
         steps:
-        - 
-            name: Checkout
+        -   name: Checkout
             uses: actions/checkout@v4
-        - 
-            name: Clang-format check
+        -   name: Clang-format check
             uses: DoozyX/clang-format-lint-action@v0.16.2
             with:
                 extensions: 'c,h,cpp'
@@ -136,14 +125,11 @@ jobs:
         name: Lint Editorconfig
         runs-on: ubuntu-latest
         steps:
-        - 
-            name: Checkout
+        -   name: Checkout
             uses: actions/checkout@v4
-        - 
-            name: Install EditorConfig Checker
+        -   name: Install EditorConfig Checker
             uses: editorconfig-checker/action-editorconfig-checker@main
-        - 
-            name: Run EditorConfig Checker
+        -   name: Run EditorConfig Checker
             run: editorconfig-checker
 
     ##################
@@ -152,18 +138,14 @@ jobs:
     tcl-lint:
         runs-on: ubuntu-latest
         steps:
-        -
-          name: Checkout
-          uses: actions/checkout@v3
-        -
-          name: Install Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: 3.9
-            cache: pip
-        -
-          name: Install Python requirements
-          run: pip install -r tools/lint/tclint_requirements.txt
-        -
-          name: Run Tcllint
-          run: tclint .  --style-spaces-in-braces --style-line-length 100
+        -   name: Checkout
+            uses: actions/checkout@v3
+        -   name: Install Python
+            uses: actions/setup-python@v5
+            with:
+                python-version: 3.9
+                cache: pip
+        -   name: Install Python requirements
+            run: pip install -r tools/lint/requirements.txt
+        -   name: Run Tcllint
+            run: tclint .  --style-spaces-in-braces --style-line-length 100
