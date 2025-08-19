@@ -49,13 +49,13 @@ jobs:
         steps:
             -
                 name: Checkout
-                uses: actions/checkout@v4
+                uses: actions/checkout@v3
             -
                 name: Verible linter check
                 uses: chipsalliance/verible-linter-action@main
                 with:
                     paths: |
-                        hw
+                        ./hw
                     # exclude_paths: |
                     github_token: ${{ secrets.GITHUB_TOKEN }}
                     fail_on_error: true
