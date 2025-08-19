@@ -19,9 +19,11 @@ jobs:
     lint-license:
         runs-on: ubuntu-latest
         steps:
-            -   name: Checkout
+            -
+                name: Checkout
                 uses: actions/checkout@v4
-            -   name: Check license
+            -
+                name: Check license
                 uses: pulp-platform/pulp-actions/lint-license@v2.4.1
                 with:
                     license: |
@@ -42,19 +44,21 @@ jobs:
         name: Lint Verilog sources
         runs-on: ubuntu-latest
         steps:
-        -   name: Checkout
-            uses: actions/checkout@v4
-        -   name: Verible linter check
-            uses: chipsalliance/verible-linter-action@main
-            with:
-                paths: |
-                    hw
-                #exclude_paths: |
-                github_token: ${{ secrets.GITHUB_TOKEN }}
-                fail_on_error: true
-                reviewdog_reporter: github-check
-                extra_args: "--waiver_files tools/lint/verible.waivers"
-                verible_version: "v0.0-4017-g62aee204"
+            -
+                name: Checkout
+                uses: actions/checkout@v4
+            -
+                name: Verible linter check
+                uses: chipsalliance/verible-linter-action@main
+                with:
+                    paths: |
+                        hw
+                    #exclude_paths: |
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    fail_on_error: true
+                    reviewdog_reporter: github-check
+                    extra_args: "--waiver_files tools/lint/verible.waivers"
+                    verible_version: "v0.0-4017-g62aee204"
 
     ##################
     # Lint YML Files #
@@ -63,12 +67,14 @@ jobs:
         name: Lint YAML Sources
         runs-on: ubuntu-latest
         steps:
-        -   name: Checkout
-            uses: actions/checkout@v4
-        -   name: yaml-lint
-            uses: ibiqlik/action-yamllint@v3
-            with:
-                config_file: tools/lint/.yamllint.yml
+            -
+                name: Checkout
+                uses: actions/checkout@v4
+            -
+                name: yaml-lint
+                uses: ibiqlik/action-yamllint@v3
+                with:
+                    config_file: tools/lint/.yamllint.yml
 
     ########################
     # Check Python Sources #
@@ -77,17 +83,20 @@ jobs:
         runs-on: ubuntu-latest
         name: Lint Python Sources
         steps:
-        -   name: Check out source repository
-            uses: actions/checkout@v4
-        -   name: Set up Python environment
-            uses: actions/setup-python@v5
-            with:
-                python-version: "3.11"
-        -   name: flake8 Lint
-            uses: py-actions/flake8@v2
-            with:
-                flake8-version: "6.0.0"
-                max-line-length: "100"
+            -
+                name: Check out source repository
+                uses: actions/checkout@v4
+            -
+                name: Set up Python environment
+                uses: actions/setup-python@v5
+                with:
+                    python-version: "3.11"
+            -
+                name: flake8 Lint
+                uses: py-actions/flake8@v2
+                with:
+                    flake8-version: "6.0.0"
+                    max-line-length: "100"
 
     ######################
     # Clang-Format Check #
@@ -97,25 +106,27 @@ jobs:
         name: Lint C/C++ Sources
         runs-on: ubuntu-latest
         steps:
-        -   name: Checkout
-            uses: actions/checkout@v4
-        -   name: Clang-format check
-            uses: DoozyX/clang-format-lint-action@v0.16.2
-            with:
-                extensions: 'c,h,cpp'
-                clangFormatVersion: 14
-                style: >
-                    {
-                    IndentWidth: 4,
-                    ColumnLimit: 100,
-                    AlignEscapedNewlines: DontAlign,
-                    SortIncludes: false,
-                    AllowShortFunctionsOnASingleLine: None,
-                    AllowShortIfStatementsOnASingleLine: true,
-                    AllowShortLoopsOnASingleLine: true
-                    }
-                # exclude: |
-                #    ./sw/include/regs/*.h # example
+            -
+                name: Checkout
+                uses: actions/checkout@v4
+            -
+                name: Clang-format check
+                uses: DoozyX/clang-format-lint-action@v0.16.2
+                with:
+                    extensions: 'c,h,cpp'
+                    clangFormatVersion: 14
+                    style: >
+                        {
+                        IndentWidth: 4,
+                        ColumnLimit: 100,
+                        AlignEscapedNewlines: DontAlign,
+                        SortIncludes: false,
+                        AllowShortFunctionsOnASingleLine: None,
+                        AllowShortIfStatementsOnASingleLine: true,
+                        AllowShortLoopsOnASingleLine: true
+                        }
+                    # exclude: |
+                    #    ./sw/include/regs/*.h # example
 
     ######################
     # Lint Editor Config #
@@ -125,12 +136,15 @@ jobs:
         name: Lint Editorconfig
         runs-on: ubuntu-latest
         steps:
-        -   name: Checkout
-            uses: actions/checkout@v4
-        -   name: Install EditorConfig Checker
-            uses: editorconfig-checker/action-editorconfig-checker@main
-        -   name: Run EditorConfig Checker
-            run: editorconfig-checker
+            -   
+                name: Checkout
+                uses: actions/checkout@v4
+            -   
+                name: Install EditorConfig Checker
+                uses: editorconfig-checker/action-editorconfig-checker@main
+            -   
+                name: Run EditorConfig Checker
+                run: editorconfig-checker
 
     ##################
     # Lint TCL Files #
@@ -138,14 +152,18 @@ jobs:
     tcl-lint:
         runs-on: ubuntu-latest
         steps:
-        -   name: Checkout
-            uses: actions/checkout@v3
-        -   name: Install Python
-            uses: actions/setup-python@v5
-            with:
-                python-version: 3.9
-                cache: pip
-        -   name: Install Python requirements
-            run: pip install -r tools/lint/tclint/requirements.txt
-        -   name: Run Tcllint
-            run: tclint .  --style-spaces-in-braces --style-line-length 100
+            -   
+                name: Checkout
+                uses: actions/checkout@v3
+            -   
+                name: Install Python
+                uses: actions/setup-python@v5
+                with:
+                    python-version: 3.9
+                    cache: pip
+            -   
+                name: Install Python requirements
+                run: pip install -r tools/lint/tclint/requirements.txt
+            -   
+                name: Run Tcllint
+                run: tclint .  --style-spaces-in-braces --style-line-length 100
