@@ -33,7 +33,7 @@ if { [info exists ::env(DEFINES)] } {
     # Add +define+ prefix to each define
     # Example: SYN=0 DBG=1 becomes +define+SYN=0 +define+DBG=1
     set defs [split $::env(DEFINES)]
-    set DEFINES [join [lmap def $defs {format "+define+%s" $def}]]
+    set DEFINES [join [lmap def $defs { format "+define+%s" $def } ] " "]
 } else {
     set DEFINES ""
 }
