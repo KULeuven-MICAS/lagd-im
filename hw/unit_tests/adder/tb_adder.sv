@@ -10,11 +10,11 @@ module tb_adder;
     logic signed [7:0] a;
     logic signed [7:0] b;
     logic signed [7:0] expected_output;
-    wire signed [7:0] out;
+    logic signed [7:0] out;
 
     // Module instantiation
-    bitwise_add #(
-        .P(8)
+    adder #(
+        .DATAW(8)
     ) adder1 (
         .a(a),
         .b(b),
@@ -29,22 +29,24 @@ module tb_adder;
 
     // Run tests
     initial begin
+`ifdef DBG
         $dumpfile("tb_adder.vcd");
         $dumpvars(0,tb_adder);
-        $monitor("a = %d  b = %d  out = %d    expected out = %d", a, b, out, expected_output);
-
+`endif
+        $display("Starting adder testbench. Running %0d tests...", NUM_TESTS);
         for (int i = 0; i < NUM_TESTS; i++) begin
             a = test_a[i];
             b = test_b[i];
             expected_output = expected_outputs[i];
             #5;
-            assert(out == expected_output) else $fatal(
-                1, "Test %0d failed: a=%0d, b=%0d, expected_output=%0d, got %0d",
-                i, test_a[i], test_b[i], expected_outputs[i], out);
+            assert (out == expected_output)
+                else $fatal("Test %0d failed: a=%0d, b=%0d, expected_output=%0d, got %0d",
+                            i, test_a[i], test_b[i], expected_outputs[i], out);
+            $write( "Test %0d passed: a=%0d,\t b=%0d,\t expected_output=%0d,\t got %0d\n",
+                i, a, b, expected_output, out);
         end
-
-        #10
+        #10;
+        $display("All tests completed successfully.");
         $finish;
-
-     end
+    end
 endmodule

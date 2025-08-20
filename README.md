@@ -1,17 +1,19 @@
-LAGD Ising RTL
+
+# LAGD Ising RTL
+
 =============================
 
 This repository is for the hardware implementation of the Ising LAGD chip.
 
-###  Getting the sources
+## Getting the sources
 
 To download, run the following code:
 
-    $ git clone --recursive git@github.com:KULeuven-MICAS/lagd-im.git
+   $ git clone --recursive `git@github.com:KULeuven-MICAS/lagd-im.git`
 
-**Warning: git clone takes around 1.2 GB of disk and download size**
+**Warning**: git clone takes around 1.2 GB of disk and download size
 
-### Third-party libraries
+## Third-party libraries
 
 1. [Cheshire](https://github.com/pulp-platform/cheshire) - Pulp Cheshire SoC V0.3.1 (tag=v0.3.1-1-g3d9aefb)
 

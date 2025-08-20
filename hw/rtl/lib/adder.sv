@@ -13,17 +13,17 @@
 module adder #(
     parameter int DATAW = 32
 )(
-    input logic [DATAW-1:0] a,
-    input logic [DATAW-1:0] b,
-    output logic [DATAW-1:0] sum
+    input logic signed [DATAW-1:0] a,
+    input logic signed [DATAW-1:0] b,
+    output logic signed [DATAW-1:0] sum
 );
     logic ovf_positive;
     logic ovf_negative;
-    logic [DATAW:0] sum_temp;
+    logic signed [DATAW:0] sum_temp;
 
     assign sum_temp = a + b;
-    assign ovf_positive = (a[DATAW-1] == 0 && b[DATAW-1] == 0 && sum[DATAW-1] == 1);
-    assign ovf_negative = (a[DATAW-1] == 1 && b[DATAW-1] == 1 && sum[DATAW-1] == 0);
+    assign ovf_positive = (a[DATAW-1] == 0 && b[DATAW-1] == 0 && sum_temp[DATAW-1] == 1);
+    assign ovf_negative = (a[DATAW-1] == 1 && b[DATAW-1] == 1 && sum_temp[DATAW-1] == 0);
 
     always_comb begin
         if (ovf_positive) begin

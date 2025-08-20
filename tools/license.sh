@@ -1,0 +1,1 @@
+source /esat/micas-data/data/design/scripts/questasim_2025.2.rc

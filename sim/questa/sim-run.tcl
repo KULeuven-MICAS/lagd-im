@@ -34,7 +34,7 @@ if { $FORCE_BUILD == 1 } {
 vmap
 
 # Apply the IterationLimit attribute
-set IterationLimit 200000
+# set IterationLimit 20000000
 
 # Run simulation
 vsim -quiet \
@@ -42,7 +42,7 @@ vsim -quiet \
     -msgmode both -displaymsgmode both \
     -L work_lib \
     -work ${WLIB} \
-    -modelsimini ./modelsim.ini \
+    -ini ./modelsim.ini \
     ${OBJ}
 
 run -all

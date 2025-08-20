@@ -17,8 +17,8 @@ NO_GUI ?= 1
 FORCE_BUILD ?= 1
 DEFINES ?=
 
-VSIM_BUILD_SCRIPT = $(SIM_DIR)/questasim/build.tcl
-VSIM_SCRIPT = $(SIM_DIR)/questasim/sim-run.tcl
+VSIM_BUILD_SCRIPT = $(SIM_DIR)/questa/build.tcl
+VSIM_SCRIPT = $(SIM_DIR)/questa/sim-run.tcl
 ifeq ($(DBG), 1)
 	VSIM_OBJ = dbg_${SIM_NAME}
 else
@@ -26,7 +26,8 @@ else
 endif
 
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
-HDL_FILES ?= $(shell python3 ../utils/get_hdl_files.py -f $(HDL_FILES_LIST))
+UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils
+HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST))
 $(info HDL_FILES: $(HDL_FILES))
 
 # VSIM FLAGS
@@ -42,7 +43,7 @@ $(TEST_PATH)/work/work_${SIM_NAME}: $(HDL_FILES) $(VSIM_BUILD_SCRIPT)
 	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT)"
 
 # Questasim run target
-$(TEST_PATH)/work/${SIM_NAME}.wlf: $(TEST_PATH)/work/work_${SIM_NAME} $(TEST_FILES) $(VSIM_SCRIPT)
+$(TEST_PATH)/work/${SIM_NAME}.wlf: $(TEST_PATH)/work/work_${SIM_NAME} $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES)
 	@mkdir -p ./work
 	TEST_PATH=$(TEST_PATH) SIM_NAME=$(SIM_NAME) DBG=$(DBG) FORCE_BUILD=0 \
 	DEFINES=$(DEFINES) HDL_FILE_LIST=$(HDL_FILES_LIST) OBJ=$(VSIM_OBJ) \
