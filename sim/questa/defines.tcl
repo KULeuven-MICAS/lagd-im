@@ -29,16 +29,23 @@ if { [info exists ::env(SIM_NAME)] } {
     quit
 }
 
-if { [info exists ::env(DBG)] } {
-    set DBG [expr { $::env(DBG) == 1 }]
-} else {
-    set DBG 0
-}
-
 if { [info exists ::env(DEFINES)] } {
-    set DEFINES $::env(DEFINES)
+    # Add +define+ prefix to each define
+    # Example: SYN=0 DBG=1 becomes +define+SYN=0 +define+DBG=1
+    set defs [split $::env(DEFINES)]
+    set DEFINES [join [lmap def $defs {format "+define+%s" $def}]]
 } else {
     set DEFINES ""
+}
+
+if { [info exists ::env(DBG)] } {
+    set DBG [expr { $::env(DBG) == 1 }]
+    # If DBG is set, we add it to the DEFINES
+    if { $DBG == 1 } {
+        set DEFINES "${DEFINES} +define+DBG=1"
+    }
+} else {
+    set DBG 0
 }
 
 set WLIB "${TEST_PATH}/work/work_${SIM_NAME}"

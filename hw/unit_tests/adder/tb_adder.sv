@@ -4,6 +4,10 @@
 
 `timescale 1ns / 1ps
 
+`ifndef DBG
+`define DBG 0
+`endif
+
 module tb_adder;
 
     // Testbench signals
@@ -29,10 +33,11 @@ module tb_adder;
 
     // Run tests
     initial begin
-`ifdef DBG
-        $dumpfile("tb_adder.vcd");
-        $dumpvars(0,tb_adder);
-`endif
+        if (`DBG) begin
+            $display("Debug mode enabled. Running with detailed output.");
+            $dumpfile("tb_adder.vcd");
+            $dumpvars(0,tb_adder);
+        end
         $display("Starting adder testbench. Running %0d tests...", NUM_TESTS);
         for (int i = 0; i < NUM_TESTS; i++) begin
             a = test_a[i];

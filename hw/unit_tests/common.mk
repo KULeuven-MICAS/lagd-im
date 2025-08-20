@@ -14,7 +14,6 @@ SIM_NAME ?= $(shell basename $(CURDIR))
 TEST_PATH ?= $(CURDIR)
 DBG ?= 0
 NO_GUI ?= 1
-FORCE_BUILD ?= 1
 DEFINES ?=
 
 VSIM_BUILD_SCRIPT = $(SIM_DIR)/questa/build.tcl
