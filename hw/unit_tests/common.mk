@@ -8,7 +8,7 @@
 PROJECT_ROOT = $(realpath ../../../)
 
 # PATHS
-SIM_DIR = $(PROJECT_ROOT)/sim
+SIM_DIR = $(PROJECT_ROOT)/target/sim
 
 SIM_NAME ?= $(shell basename $(CURDIR))
 TEST_PATH ?= $(CURDIR)

@@ -1,3 +1,4 @@
 [submodule "third_parties/cheshire"]
 	path = third_parties/cheshire
 	url = git@github.com:pulp-platform/cheshire.git
+	ignore = dirty
