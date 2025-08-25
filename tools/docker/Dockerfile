@@ -9,8 +9,11 @@ FROM ubuntu:22.04
 
 RUN apt update
 RUN apt upgrade -y
-RUN apt install -y curl python3 build-essential git cmake pip 
+# Install basic dependencies
+RUN apt install -y curl python3 build-essential git cmake pip
+# Install dependencies for riscv-gnu-toolchain compilation
 RUN apt install -y autoconf automake autotools-dev  libmpc-dev libmpfr-dev libgmp-dev gawk bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+# Additional dependencies for building cheshire and its examples
 RUN apt install -y wget gdisk unzip
 
 # Old riscv-gnu-toolchain used for occamy/hemaia
