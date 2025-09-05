@@ -2,5 +2,9 @@
     "flake8.args": [
         "--max-line-length=100",
         "--max-complexity=10"
-    ]
+    ],
+    "verible.arguments": [
+        "--flagfile=./tools/lint/verible/verible.flags",
+        "--waiver_files=./tools/lint/verible/waiver.rules"
+    ],
 }
