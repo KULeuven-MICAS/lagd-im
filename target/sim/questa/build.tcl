@@ -24,7 +24,7 @@ source ${HDL_FILE_LIST}
 puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
-    vlog -sv -work ${WLIB} ${DEFINES} ${file}
+    vlog -sv -work ${WLIB} {*}${DEFINES} ${file}
 }
 
 
