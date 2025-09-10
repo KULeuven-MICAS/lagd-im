@@ -5,6 +5,7 @@
     ],
     "verible.arguments": [
         "--flagfile=./tools/lint/verible/verible.flags",
-        "--waiver_files=./tools/lint/verible/waiver.rules"
+        "--waiver_files=./tools/lint/verible/verible.waivers",
+        "--file_list_path=./tools/lint/verible/verible.filelist"
     ],
 }

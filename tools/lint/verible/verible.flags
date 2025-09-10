@@ -1,1 +1,1 @@
--I ./hw/rtl/include
+--rules=+line-length=length:100

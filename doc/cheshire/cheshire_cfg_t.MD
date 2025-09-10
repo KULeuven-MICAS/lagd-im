@@ -4,6 +4,8 @@ The `cheshire_cfg_t` SystemVerilog struct defines the configuration parameters f
 The original definition can be found in the [cheshire_cfg_t.sv](../src/cheshire/cheshire_cfg_t.sv) file.
 The original documentation can be found in this link: [cheshire](https://pulp-platform.github.io/cheshire/um/arch/#memory-map).
 
+## Types
+
 ```systemverilog
     // Bit vector types for parameters.
     //We limit range to keep parameters sane.
@@ -16,7 +18,11 @@ The original documentation can be found in this link: [cheshire](https://pulp-pl
     typedef bit [ 9:0] dw_bt;     // data widths
     typedef bit [ 5:0] aw_bt;     // address, ID widths or small buffers
     //❔❔❔❔❔❔❔ why this weird bitwidths ❔❔❔❔❔❔❔❔❔❔
-    
+```
+
+## Configuration Struct
+
+```systemverilog
     // Externally controllable parameters
     typedef struct packed {
         // CVA6 parameters
@@ -178,4 +184,82 @@ The original documentation can be found in this link: [cheshire](https://pulp-pl
         bit         AxiRtCutPaths;
         bit         AxiRtEnableChecks;
     } cheshire_cfg_t;
+```
+
+## Axi types
+
+### `axi_in_t`
+
+The `axi_in_t` struct defines the indices for various AXI masters in the Cheshire architecture.
+The struct contains the following fields:
+
+- `cores`: An array of AXI master indices for the cores
+  Maximum number of cores is determined by the `MaxCoresWidth` parameter (5 bits, allowing up to 32 cores).
+- Individual AXI master indices for various peripherals:
+  - `dbg`: Debug module
+  - `dma`: Direct Memory Access controller
+  - `slink`: Serial Link interface
+  - `vga`: VGA controller
+  - `usb`: USB controller
+  - `ext_base`: first index for external AXI masters
+- `num_in`: Total number of AXI masters, including cores and peripherals.
+
+```systemverilog
+ // AXI Xbar master indices
+  typedef struct packed {
+    aw_bt [2**MaxCoresWidth-1:0] cores;
+    aw_bt dbg;
+    aw_bt dma;
+    aw_bt slink;
+    aw_bt vga;
+    aw_bt usb;
+    aw_bt ext_base;
+    aw_bt num_in;
+  } axi_in_t;
+```
+
+### `arul_t`
+
+The `arul_t` struct defines a generic address rule type for the Cheshire architecture.
+It contains the following fields:
+
+- `idx`: The index of the block.
+- `start`: The start address of the block.
+- `pte`: The end address of the block.
+
+```systemverilog
+  // A generic address rule type (max-width addresses)
+  typedef struct packed {
+    aw_bt   idx;
+    doub_bt start;
+    doub_bt pte;
+  } arul_t;
+```
+
+### `axi_out_t`
+
+The `axi_out_t` struct defines the indices for various AXI slaves in the Cheshire architecture.
+It contains the following fields:
+
+- Individual AXI slave indices for various peripherals
+- `ext_base`: first index for external AXI slaves
+- `num_out`: Total number of AXI slaves, including peripherals and external slaves.
+- `num_rules`: Total number of address rules defined for the AXI slaves.
+  A single out can have multiple address rules.
+- `map`: An array of address rules (`arul_t`).
+
+```systemverilog
+  // AXI Xbar slave indices and map
+  typedef struct packed {
+    aw_bt dbg;
+    aw_bt reg_demux;
+    aw_bt llc;
+    aw_bt spm;
+    aw_bt dma;
+    aw_bt slink;
+    aw_bt ext_base;
+    aw_bt num_out;
+    aw_bt num_rules;
+    arul_t [aw_bt'(-1):0] map;
+  } axi_out_t;
 ```
