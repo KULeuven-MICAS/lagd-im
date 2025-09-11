@@ -61,7 +61,7 @@ jobs:
                     fail_on_error: true
                     reviewdog_reporter: github-check
                     extra_args: >
-                        "--waiver_files=tools/lint/verible.waivers 
+                        "--waiver_files=tools/lint/verible.waivers
                         --flagfile=tools/lint/.verible.flags"
                     verible_version: "v0.0-3318-g8d254167"
 
