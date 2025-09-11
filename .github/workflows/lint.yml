@@ -60,7 +60,7 @@ jobs:
                     github_token: ${{ secrets.GITHUB_TOKEN }}
                     fail_on_error: true
                     reviewdog_reporter: github-check
-                    # extra_args: "--waiver_files tools/lint/verible.waivers"
+                    extra_args: "--waiver_files=tools/lint/verible.waivers --flagfile=tools/lint/.verible.flags"
                     verible_version: "v0.0-3318-g8d254167"
 
     ##################
