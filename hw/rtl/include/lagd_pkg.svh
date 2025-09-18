@@ -15,6 +15,11 @@
 
 package lagd_pkg;
 
+    // Definitions
+    localparam int unsigned SpihNumCs = cheshire_pkg::SpihNumCs;
+    localparam int unsigned SlinkNumChan = cheshire_pkg::SlinkNumChan;
+    localparam int unsigned SlinkNumLanes = cheshire_pkg::SlinkNumLanes;
+
     localparam int unsigned ISING_ISLANDS_MEM_SIZE_B = `NUM_ISING_MEM_BLOCKS * `MEM_BLOCK_SIZE_B;
 
     // LAGD AXI index map /////////////////////////////////////
