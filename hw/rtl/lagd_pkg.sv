@@ -22,23 +22,36 @@ package lagd_pkg;
 
     localparam int unsigned ISING_ISLANDS_MEM_SIZE_B = `NUM_ISING_MEM_BLOCKS * `MEM_BLOCK_SIZE_B;
 
+    localparam int unsigned LAGD_NUM_AXI_SLV = `NUM_ISING_ISLANDS + 2; // +2 for L2 memory and stack memory
+    localparam int unsigned LAGD_NUM_REG_SLV = `NUM_ISING_ISLANDS;
+
     // LAGD AXI index map /////////////////////////////////////
-    typedef enum int unsigned {
-        L2_MEM = 0,
-        LAGD_ISLAND_BASE = 1
+    
+    typedef struct packed {
+        cheshire_pkg::byte_bt L2_MEM,
+        cheshire_pkg::byte_bt CVA6_STACK_MEM, 
+        cheshire_pkg::byte_bt LAGD_ISLAND_BASE
     } lagd_slv_idx_e;
-    localparam lagd_slv_idx_e LagdSlvIdxEnum;
+    
+    localparam lagd_slv_idx_e LagdSlvIdxEnum = '{
+        L2_MEM: 0,
+        CVA6_STACK_MEM: 1,
+        LAGD_ISLAND_BASE: 2
+    };
 
     typedef cheshire_pkg::byte_bt [2**(cheshire_pkg::MaxExtAxiSlvWidth)-1:0] lagd_slv_idx_map_t;
 
-    function automatic lagd_slv_idx_map_t gen_lagd_slv_idx_map(lagd_slv_idx_e Idx);
+    function automatic lagd_slv_idx_map_t gen_lagd_slv_idx_map(lagd_slv_idx_e IdxMap);
         lagd_slv_idx_map_t idx_map;
         // Map slave IDs to islands
         // Slave ID 0 is reserved for L2 memory
-        idx_map[Idx.L2_MEM] = Idx.L2_MEM; // L2 memory
+        idx_map[IdxMap.L2_MEM] = IdxMap.L2_MEM; // L2 memory
+        // Slave ID 1 is reserved for CVA6 stack memory
+        idx_map[IdxMap.CVA6_STACK_MEM] = IdxMap.CVA6_STACK_MEM; // CVA6 stack memory
+        // Islands start from ID 2
         int unsigned idx;
         for (int i = 0; i <= `NUM_ISING_ISLANDS; i++) begin
-            idx = Idx.LAGD_ISLAND_BASE + i;
+            idx = IdxMap.LAGD_ISLAND_BASE + i;
             map[idx] = idx;
         end
         return map;
@@ -54,6 +67,8 @@ package lagd_pkg;
         lagd_slv_addr_map_t addr_map;
         // L2 memory
         addr_map[Idx.L2_MEM] = `L2_MEM_BASE_ADDR;
+        // CVA6 stack memory
+        addr_map[Idx.CVA6_STACK_MEM] = `CVA6_STACK_BASE_ADDR;
         // Ising islands
         int unsigned idx;
         for (int i = 0; i < `NUM_ISING_ISLANDS; i++) begin
@@ -67,6 +82,8 @@ package lagd_pkg;
         lagd_slv_addr_map_t addr_map;
         // L2 memory
         addr_map[Idx.L2_MEM] = `L2_MEM_BASE_ADDR + `L2_MEM_SIZE_B - 1;
+        // CVA6 stack memory
+        addr_map[Idx.CVA6_STACK_MEM] = `CVA6_STACK_BASE_ADDR + `CVA6_STACK_SIZE_B - 1;
         // Ising islands
         localparam int ISING_END_ADDR_OFFSET = `ISING_ISLANDS_BASE_ADDR + ISING_ISLANDS_MEM_SIZE_B;
         for (int i = 0; i < `NUM_ISING_ISLANDS; i++) begin
@@ -81,19 +98,23 @@ package lagd_pkg;
     ////////////////////////////////////////////////////////////
 
     // LAGD Regs index map /////////////////////////////////////
-    typedef enum int unsigned {
-        LAGD_ISLAND_BASE = 0
-    } lagd_reg_idx_e;
-    localparam lagd_reg_idx_e LagdRegIdxEnum;
+
+    typedef struct packed {
+        cheshire_pkg::byte_bt LAGD_ISLAND_BASE
+    } lagd_slv_idx_e;
+    
+    localparam lagd_slv_idx_e LagdRegIdxEnum = '{
+        LAGD_ISLAND_BASE: 0
+    };
 
     typedef cheshire_pkg::byte_bt [2**(cheshire_pkg::MaxExtRegSlvWidth)-1:0] lagd_reg_idx_map_t;
 
-    function automatic lagd_reg_idx_map_t gen_lagd_reg_idx_map(lagd_reg_idx_e Idx);
+    function automatic lagd_reg_idx_map_t gen_lagd_reg_idx_map(lagd_reg_idx_e IdxMap);
         lagd_reg_idx_map_t idx_map;
         // Map reg IDs to islands
         int unsigned idx;
         for (int i = 0; i <= `NUM_ISING_ISLANDS; i++) begin
-            idx = Idx.LAGD_ISLAND_BASE + i;
+            idx = IdxMap.LAGD_ISLAND_BASE + i;
             map[idx] = idx;
         end
         return map;
@@ -150,7 +171,7 @@ package lagd_pkg;
         cfg.NumExtInIntrs = 0;  // No of external interruptible harts (e.g., CPU cores)
         // TODO check the meaning of other parameters
         // Interconnect // TODO check how the User fields are used
-        cfg.AddrWidth = 48;
+        cfg.AddrWidth = `CVA6_ADDR_WIDTH;
         cfg.AxiDataWidth = 64;  // 64-bit AXI data bus (TODO check increase or make another bus?)
         // Real Time Clock reference frequency
         cfg.RtcFreq = 32_768; // 32.768 kHz RTC
@@ -175,9 +196,9 @@ package lagd_pkg;
         // Serial Link parameters are defaults
         // DMA config defaults are defaults
         // External AXI ports
-        cfg.AxiExtNumSlv = `NUM_ISING_ISLANDS + 1; // +1 for L2 memory
-        cfg.AxiExtNumMst = `NUM_ISING_ISLANDS;
-        cfg.AxiExtNumRules = `NUM_ISING_ISLANDS + 1; // +1 for L2 memory
+        cfg.AxiExtNumSlv = LAGD_NUM_AXI_SLV;
+        cfg.AxiExtNumMst = 0;
+        cfg.AxiExtNumRules = LAGD_NUM_AXI_SLV;
         cfg.AxiExtRegionIdx = LagdSlvIdxMap;
         cfg.AxiExtRegionStart = LagdSlvAddrStart;
         cfg.AxiExtRegionEnd = LagdSlvAddrEnd;
@@ -197,9 +218,7 @@ package lagd_pkg;
     ///////////////////////////////////////
 
     // Check that the number of islands can be encoded in the AXI Slave ID width
-    `PACKAGE_ASSERT(cheshire_pkg::MaxExtAxiSlvWidth >= $clog2(`NUM_ISING_ISLANDS + 1))
-    // Check that the number of islands can be encoded in the AXI Master ID width
-    `PACKAGE_ASSERT(cheshire_pkg::MaxExtAxiMstWidth >= $clog2(`NUM_ISING_ISLANDS))
+    `PACKAGE_ASSERT(cheshire_pkg::MaxExtAxiSlvWidth >= $clog2(`NUM_ISING_ISLANDS + 2))
     // Check that the number of islands can be encoded in the Reg Slave ID width
     `PACKAGE_ASSERT(cheshire_pkg::MaxExtRegSlvWidth >= $clog2(`NUM_ISING_ISLANDS))
     // Check that the memory per island is not larger than the maximum allowed

@@ -24,7 +24,7 @@
     `endif
 
     `ifndef L2_MEM_SIZE_B
-        `define L2_MEM_SIZE_B 128*1024
+        `define L2_MEM_SIZE_B 64*1024
     `endif
 
 `endif // LAGD_CONFIG_SVH
