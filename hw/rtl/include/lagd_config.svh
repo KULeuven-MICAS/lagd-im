@@ -9,18 +9,14 @@
 `ifndef LAGD_CONFIG_SVH
 `define LAGD_CONFIG_SVH
 
-    // Number of Ising islands in the system
+    // Number of Ising cores in the system
     // Maximum is 14 (because of AXI ID width limitations)
-    `ifndef NUM_ISING_ISLANDS
-        `define NUM_ISING_ISLANDS 1
+    `ifndef NUM_ISING_CORES
+        `define NUM_ISING_CORES 1
     `endif
 
-    `ifndef MEM_BLOCK_SIZE_B
-        `define MEM_BLOCK_SIZE_B 32*1024
-    `endif
-
-    `ifndef NUM_ISING_MEM_BLOCKS
-        `define NUM_ISING_MEM_BLOCKS 1
+    `ifndef IC_L1_MEM_SIZE_B
+        `define IC_L1_MEM_SIZE_B 32*1024
     `endif
 
     `ifndef L2_MEM_SIZE_B

@@ -4,6 +4,7 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+// Adapted from https://github.com/pulp-platform/cheshire/blob/main/hw/include/cheshire/typedef.svh
 
 `ifndef LAGD_TYPEDEF_SVH_
 `define LAGD_TYPEDEF_SVH_

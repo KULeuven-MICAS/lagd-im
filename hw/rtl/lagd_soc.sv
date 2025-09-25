@@ -6,6 +6,10 @@
 
 // Top-level module for LAGD system-on-chip
 
+`include "lagd_define.svh"
+`include "lagd_config.svh"
+
+
 module lagd_soc import lagd_pkg::*; #(
     // lagd_soc config
     parameter lagd_cfg_t Cfg = default_lagd_cfg,
@@ -54,11 +58,11 @@ module lagd_soc import lagd_pkg::*; #(
     // Wire declarations /////////////////////////////////////
     //////////////////////////////////////////////////////////
     // External AXI interconnect
-    lagd_slv_req_t  [LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_req;
-    lagd_slv_rsp_t  [LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
+    lagd_slv_req_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_req;
+    lagd_slv_rsp_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
     // Register interface
-    lagd_reg_req_t  [LAGD_NUM_REG_SLV-1:0] reg_ext_req;
-    lagd_reg_rsp_t  [LAGD_NUM_REG_SLV-1:0] reg_ext_rsp;
+    lagd_reg_req_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_req;
+    lagd_reg_rsp_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_rsp;
 
     //////////////////////////////////////////////////////////
     // Cheshire instantiation  ///////////////////////////////
@@ -117,14 +121,17 @@ module lagd_soc import lagd_pkg::*; #(
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
     axi_memory_island_wrap #(
-        .AddrWidth          (`CVA6_STACK_ADDR_WIDTH),
-        .NarrowDataWidth    (`CVA6_ADDR_WIDTH),
+        .AddrWidth          (`STACK_ADDR_WIDTH),
+        .NarrowDataWidth    (`LAGD_AXI_DATA_WIDTH),
         .AxiNarrowIdWidth   (`LAGD_AXI_ID_WIDTH),
+        .WideDataWidth      (`LAGD_AXI_DATA_WIDTH),
+        .NumWideBanks       (1), // 1*64bit*2048words = 16kB
 
         .axi_narrow_req_t   (lagd_slv_req_t),
         .axi_narrow_rsp_t   (lagd_slv_rsp_t),
         .NumNarrowReq       (1),
         .NarrowRW           ('0),
+        .WideRW             ('0),
 
         .SpillNarrowReqEntry    (0),
         .SpillNarrowRspEntry    (0),
@@ -134,13 +141,70 @@ module lagd_soc import lagd_pkg::*; #(
         .SpillReqBank (0),
         .SpillRspBank (0),
 
-        .WordsPerBank  (),  //TODO!!!
+        .WordsPerBank  (2048),
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
-        .axi_s_req_i(axi_ext_slv_req[LAGD_AXI_SLV_STACK]),
-        .axi_s_rsp_o(axi_ext_slv_rsp[LAGD_AXI_SLV_STACK])
+        .axi_s_req_i(axi_ext_slv_req[LagdSlvIdxEnum.STACK_MEM]),
+        .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM])
     );
+
+    //////////////////////////////////////////////////////////
+    // L2 SPM  ///////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    axi_memory_island_wrap #(
+        .AddrWidth          (`L2_MEM_ADDR_WIDTH),
+        .NarrowDataWidth    (`LAGD_AXI_DATA_WIDTH),
+        .AxiNarrowIdWidth   (`LAGD_AXI_ID_WIDTH),
+        .WideDataWidth      (`LAGD_AXI_DATA_WIDTH),
+        .NumWideBanks       (`L2_BANKING_FACTOR), // 4*64bit*8192words = 256kB
+
+        .axi_narrow_req_t   (lagd_slv_req_t),
+        .axi_narrow_rsp_t   (lagd_slv_rsp_t),
+        .NumNarrowReq       (1),
+        .NarrowRW           ('0),
+        .WideRW             ('0),
+
+        .SpillNarrowReqEntry    (0),
+        .SpillNarrowRspEntry    (0),
+        .SpillNarrowReqRouted   (0),
+        .SpillNarrowRspRouted   (0),
+
+        .SpillReqBank (0),
+        .SpillRspBank (0),
+
+        .WordsPerBank  (2048),
+    ) i_l2_mem (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+        // AXI slave interface
+        .axi_s_req_i(axi_ext_slv_req[LagdSlvIdxEnum.L2_MEM]),
+        .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM])
+    );
+
+    //////////////////////////////////////////////////////////
+    // Ising cores instantiation ////////////////////////////
+    //////////////////////////////////////////////////////////
+    generate
+        for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
+            ising_core_wrap #(
+                .l1_mem_cfg     (IsingCoreL1MemCfg),
+                .axi_slv_req_t  (lagd_slv_req_t),
+                .axi_slv_rsp_t  (lagd_slv_rsp_t),
+                .reg_slv_req_t  (lagd_reg_req_t),
+                .reg_slv_rsp_t  (lagd_reg_rsp_t)
+            ) i_core (
+                .clk_i      (clk_i),
+                .rst_ni     (rst_ni),
+                // AXI slave interface
+                .axi_s_req_i(axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
+                .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
+                // Register interface
+                .reg_s_req_i(reg_ext_req[i]),
+                .reg_s_rsp_o(reg_ext_rsp[i])
+            );
+        end
+    endgenerate
 
 endmodule
