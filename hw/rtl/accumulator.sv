@@ -8,8 +8,8 @@
 // Sequential accumulator for signed number
 //
 // Parameters:
-// -N: number of inputs
-// -DATAW: bit width of each input
+// -IN_WIDTH: bit width of input
+// -ACCUM_WIDTH: bit width of the accumulator
 
 module accumulator #(
     parameter int IN_WIDTH = 16, // bit width of input
@@ -29,6 +29,10 @@ module accumulator #(
     // Internal signals
     logic signed [ACCUM_WIDTH-1:0] accum_reg; // register to hold the accumulated value
     logic signed [ACCUM_WIDTH-1:0] accum_next; // next value of the accumulator
+    logic overflow; // overflow flag
+    logic data_valid; // output data valid signal
+    logic overflow_reg; // registered overflow flag
+    logic data_valid_reg; // registered data valid signal
 
     // Combinational logic to compute the next value of the accumulator
     always_comb begin
@@ -41,18 +45,19 @@ module accumulator #(
         end
     end
 
-    // Sequential logic to update the accumulator register
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-            accum_reg <= '0; // reset the accumulator
-        end else begin
-            accum_reg <= accum_next; // update the accumulator
-        end
-    end
+    assign overflow = (en_i && valid_i && !clear_i) && 
+            ((accum_reg[ACCUM_WIDTH-1] == $signed(data_i[ACCUM_WIDTH-1])) && 
+                (accum_next[ACCUM_WIDTH-1] != accum_reg[ACCUM_WIDTH-1])); // check for overflow
+    assign data_valid = en_i && valid_i && !clear_i;
 
     // Output assignments
     assign accum_o = accum_reg; // output the accumulated value
-    assign overflow_o = (accum_next > $signed({1'b0, {ACCUM_WIDTH-1{1'b1}}})) || (accum_next < $signed({1'b1, {ACCUM_WIDTH-1{1'b0}}})); // check for overflow
-    assign valid_o = valid_i; // propagate the valid signal
+    assign overflow_o = overflow_reg; // output the overflow flag
+    assign valid_o = data_valid_reg; // output the valid signal
+
+    // Sequential logic
+    `FFL(.__q(accum_reg), .__d(accum_next), .__load(en_i || clear_i), .__reset_value('0), .__clk(clk_i), .__arst_n(rst_ni))
+    `FFL(.__q(overflow_reg), .__d(overflow), .__load(en_i || clear_i), .__reset_value('0), .__clk(clk_i), .__arst_n(rst_ni))
+    `FFL(.__q(data_valid_reg), .__d(data_valid), .__load(en_i || clear_i), .__reset_value('0), .__clk(clk_i), .__arst_n(rst_ni))
 
 endmodule
