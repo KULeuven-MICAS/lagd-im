@@ -5,7 +5,7 @@
 set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
-    "./tb_partial_energy_calc.sv" \
-    "${HDL_PATH}/adder_tree.sv" \
-    "${HDL_PATH}/partial_energy_calc.sv" \
+    "./tb_accumulator.sv" \
+    "${HDL_PATH}/accumulator.sv" \
+    "${HDL_PATH}/../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh" \
 ]
