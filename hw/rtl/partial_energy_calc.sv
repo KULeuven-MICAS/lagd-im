@@ -38,7 +38,6 @@ module partial_energy_calc #(
     localparam int MULTBIT = BITH + SCALING_BIT - 1; // bit width of the multiplier output
 
     // Internal signals
-    logic [DATASPIN-1:0][BITJ-1:0] weight_sm; // weight in signed magnitude format
     logic signed [DATASPIN-1:0][BITJ-1:0] weight_2c; // weight in 2's complement format
     logic masked_bit; // masked bit
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
@@ -53,19 +52,9 @@ module partial_energy_calc #(
     // ========================================================================
     generate
         for (i = 0; i < DATASPIN; i++) begin : weight_unpack
-            assign weight_sm[i] = weight_i[i*BITJ + (BITJ-1) : i*BITJ]; // extract each weight
+            assign weight_2c[i] = weight_i[i*BITJ + (BITJ-1) : i*BITJ]; // extract each weight
         end
     endgenerate
-
-    always_comb begin
-        for (int i = 0; i < DATASPIN; i++) begin
-            if (weight_sm[i][BITJ-1] == 1'b0) begin
-                weight_2c[i] = $signed(weight_sm[i]);
-            end else begin
-                weight_2c[i] = $signed({1'b1, (~weight_sm[i][BITJ-2:0]) + 1'b1});
-            end
-        end
-    end
 
     // ========================================================================
     // Extract masked bit
