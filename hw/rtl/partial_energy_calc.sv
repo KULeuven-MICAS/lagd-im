@@ -20,7 +20,7 @@ module partial_energy_calc #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
     parameter int DATASPIN = 256,
-    parameter int SCALING_BIT = 4,
+    parameter int SCALING_BIT = 5,
     parameter int ENERGY_TOTAL_BIT = 16,
     parameter int DATAJ = DATASPIN * BITJ,
     parameter int SPINIDX_BIT = $clog2(DATASPIN)
@@ -35,12 +35,13 @@ module partial_energy_calc #(
     output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o // output energy value
 );
     // Parameters
-    localparam int MULTBIT = BITH + SCALING_BIT; // bit width of the multiplier output
+    localparam int MULTBIT = BITH + SCALING_BIT - 1; // bit width of the multiplier output
 
     // Internal signals
     logic [DATASPIN-1:0][BITJ-1:0] weight_sm; // weight in signed magnitude format
     logic signed [DATASPIN-1:0][BITJ-1:0] weight_2c; // weight in 2's complement format
     logic masked_bit; // masked bit
+    logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_local; // local energy value
 
@@ -81,10 +82,21 @@ module partial_energy_calc #(
     // ========================================================================
     // Do multiplication
     // ========================================================================
+    // calculate hbias * scaling factor
+    always_comb begin
+        case(hscaling_i)
+            'd1: hbias_scaled = $signed(hbias_i);
+            'd2: hbias_scaled = $signed(hbias_i) << 1;
+            'd4: hbias_scaled = $signed(hbias_i) << 2;
+            'd8: hbias_scaled = $signed(hbias_i) << 3;
+            'd16: hbias_scaled = $signed(hbias_i) << 4;
+            default: hbias_scaled = $signed(hbias_i);
+    end
+
     always_comb begin
         for (int i = 0; i < DATASPIN; i++) begin
             if (spin_mask_i[i]) begin: bias_mult
-            mult_out[i] = $signed(hbias_i) * $signed({1'b0, hscaling_i});
+            mult_out[i] = hbias_scaled;
             end
             else begin: weight_mult
             mult_out[i] = spin_i[i] ? weight_2c[i] : -weight_2c[i];
