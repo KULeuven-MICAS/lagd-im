@@ -30,7 +30,6 @@ module tb_dtformat_converter;
     );
 
     // Testcases
-    // Test patterns for adder tree
     logic signed [N-1:0][DATAW-1:0] test_a[NUM_TESTS] = '{
         {N{4'b0111}}, // all +7
         {N{4'b1111}} // all -7
