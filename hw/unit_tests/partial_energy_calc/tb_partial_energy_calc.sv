@@ -13,10 +13,10 @@ module tb_partial_energy_calc;
     localparam int BITJ = 4;
     localparam int BITH = 4;
     localparam int DATASPIN = 256;
-    localparam int SCALING_BIT = 4;
+    localparam int SCALING_BIT = 5;
     localparam int ENERGY_TOTAL_BIT = 16;
 
-    localparam int NUM_TESTS = 2; // number of test cases
+    localparam int NUM_TESTS = 3; // number of test cases
 
     // Testbench signals
     logic signed [DATASPIN-1:0] spin_i;
@@ -47,27 +47,33 @@ module tb_partial_energy_calc;
     // Test patterns for adder tree
     logic signed [DATASPIN-1:0] test_spin[NUM_TESTS] = '{
         {256{1'd0}}, // All zeros
+        {128{1'b0, 1'b1}}, // Alternating 0 and 1
         {256{1'd1}} // All ones
         };
     logic signed [DATASPIN-1:0] test_spin_mask[NUM_TESTS] = '{
         {{1'b1, 255'd0}}, // mask 1st spin
+        {{1'b0, 1'b1, 254'b0}},
         {{1'b1, 255'd0}}
         };
     logic signed [DATASPIN*BITJ-1:0] test_weight[NUM_TESTS] = '{
         {256{1'b0}}, // All zeros
+        {256{4'b1001}}, // All weights set to -7
         {256{4'b0111}} // All weights set to +7
         };
     logic signed [BITH-1:0] test_hbias[NUM_TESTS] = '{
         'sd0, // Zero bias
+        -'sd7,
         'sd0
         };
     logic signed [SCALING_BIT-1:0] test_hscaling[NUM_TESTS] = '{
         'sd1,
+        'sd16,
         'sd1
         };
     // Expected outputs for each test pattern
     logic signed [ENERGY_TOTAL_BIT-1:0] expected_outputs[NUM_TESTS] = '{
         'sd0,
+        -'sd105,
         'sd1785
         };
 
@@ -88,9 +94,9 @@ module tb_partial_energy_calc;
             expected_output = expected_outputs[i];
             #5;
             assert (out == expected_output)
-                else $fatal("Test %0d failed: expected_output=%0d, got %0d",
+                else $fatal("Test %0d failed: expected_output='h%0h, got 'h%0h",
                             i, expected_outputs[i], out);
-            $write( "Test %0d,\t expected_output=%0d,\t\t got %0d\n",
+            $write( "Test %0d,\t expected_output='h%0h,\t\t got 'h%0h\n",
                 i, expected_output, out);
         end
         #10;
