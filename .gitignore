@@ -214,3 +214,7 @@ transcript
 **.vcd
 **.mti
 **.mpf
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+.bender/*
