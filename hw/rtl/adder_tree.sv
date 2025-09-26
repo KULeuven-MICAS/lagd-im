@@ -29,7 +29,7 @@ module adder_tree #(
     // Assign input data to stage 0
     generate
         for (i = 0; i < N; i++) begin : gen_input_unpack
-            assign stage_data[0][i] = data_i[i*DATAW +: DATAW];
+            assign stage_data[0][i] = $signed(data_i[i*DATAW +: DATAW]);
         end
     endgenerate
 

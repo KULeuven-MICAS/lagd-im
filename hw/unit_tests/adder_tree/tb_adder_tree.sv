@@ -14,7 +14,7 @@ module tb_adder_tree;
     localparam int DATAW = 8; // bit width of each input
     localparam int OUT_WIDTH = $clog2(N) + DATAW; // bit width of the output
 
-    localparam int NUM_TESTS = 4; // number of test cases
+    localparam int NUM_TESTS = 5; // number of test cases
 
     // Testbench signals
     logic signed [N*DATAW-1:0] a;
@@ -36,13 +36,15 @@ module tb_adder_tree;
         {N{8'sd0}}, // All zeros
         {N{8'sd127}}, // All max positive
         {N{-8'sd128}},  // All max negative
-        {N{8'sd64}}
+        {N{8'sd64}},
+        {16'h0790, {(N/2-1){16'h07F9}}}
         };
     logic signed [OUT_WIDTH-1:0] expected_outputs[NUM_TESTS] = '{
         'sd0,
         'sd32512,
         -'sd32768,
-        'sd16384
+        'sd16384,
+        -'sd105
         };
 
     // Run tests
@@ -58,9 +60,9 @@ module tb_adder_tree;
             expected_output = expected_outputs[i];
             #5;
             assert (out == expected_output)
-                else $fatal("Test %0d failed: a=%0d, expected_output=%0d, got %0d",
-                            i, test_a[i], expected_outputs[i], out);
-            $write( "Test %0d,\t expected_output=%0d,\t\t got %0d\n",
+                else $fatal("Test %0d failed: expected_output='h%0h, got 'h%0h",
+                            i, expected_outputs[i], out);
+            $write( "Test %0d,\t expected_output='h%0h,\t\t got 'h%0h\n",
                 i, expected_output, out);
         end
         #10;
