@@ -30,8 +30,8 @@ module partial_energy_calc #(
     input logic [DATASPIN-1:0] spin_i, // input spin data
     input logic [DATASPIN-1:0] spin_mask_i, // spin mask
     input logic [DATAJ-1:0] weight_i, // input weight data
-    input logic [BITH-1:0] hbias_i, // h bias
-    input logic [SCALING_BIT-1:0] hscaling_i, // h scaling factor
+    input logic signed [BITH-1:0] hbias_i, // h bias
+    input logic unsigned [SCALING_BIT-1:0] hscaling_i, // h scaling factor
     output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o // output energy value
 );
     // Parameters
@@ -39,7 +39,9 @@ module partial_energy_calc #(
 
     // Internal signals
     logic signed [DATASPIN-1:0][BITJ-1:0] weight_2c; // weight in 2's complement format
+    logic signed [DATASPIN-1:0][MULTBIT-1:0] weight_2c_extended; // sign extended weight
     logic masked_bit; // masked bit
+    logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_local; // local energy value
@@ -53,6 +55,12 @@ module partial_energy_calc #(
     generate
         for (i = 0; i < DATASPIN; i++) begin : weight_unpack
             assign weight_2c[i] = weight_i[i*BITJ + (BITJ-1) : i*BITJ]; // extract each weight
+        end
+    endgenerate
+    // Sign extension
+    generate
+        for (i = 0; i < DATASPIN; i++) begin : weight_signext
+            assign weight_2c_extended[i] = {{(MULTBIT-BITJ){weight_2c[i][BITJ-1]}}, weight_2c[i]}; // sign extension
         end
     endgenerate
 
@@ -72,14 +80,16 @@ module partial_energy_calc #(
     // Do multiplication
     // ========================================================================
     // calculate hbias * scaling factor
+    assign hbias_extended = {{(MULTBIT-BITH){hbias_i[BITH-1]}}, hbias_i}; // sign extension
     always_comb begin
         case(hscaling_i)
-            'd1: hbias_scaled = $signed(hbias_i);
-            'd2: hbias_scaled = $signed(hbias_i) << 1;
-            'd4: hbias_scaled = $signed(hbias_i) << 2;
-            'd8: hbias_scaled = $signed(hbias_i) << 3;
-            'd16: hbias_scaled = $signed(hbias_i) << 4;
-            default: hbias_scaled = $signed(hbias_i);
+            'd1: hbias_scaled = hbias_extended;
+            'd2: hbias_scaled = hbias_extended << 1;
+            'd4: hbias_scaled = hbias_extended << 2;
+            'd8: hbias_scaled = hbias_extended << 3;
+            'd16: hbias_scaled = hbias_extended << 4;
+            default: hbias_scaled = hbias_extended;
+        endcase
     end
 
     always_comb begin
@@ -88,7 +98,7 @@ module partial_energy_calc #(
             mult_out[i] = hbias_scaled;
             end
             else begin: weight_mult
-            mult_out[i] = spin_i[i] ? weight_2c[i] : -weight_2c[i];
+            mult_out[i] = spin_i[i] ? weight_2c_extended[i] : -weight_2c_extended[i];
             end
         end
     end
