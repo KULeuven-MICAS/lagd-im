@@ -1,8 +1,8 @@
 # !/bin/bash
 
 # Copyright 2025 KU Leuven.
-# Solderpad Hardware License, Version 0.51, see LICENSE for details.
-# SPDX-License-Identifier: SHL-0.51
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
