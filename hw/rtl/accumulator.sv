@@ -11,9 +11,11 @@
 // -IN_WIDTH: bit width of input
 // -ACCUM_WIDTH: bit width of the accumulator
 
+`include "../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
+
 module accumulator #(
     parameter int IN_WIDTH = 16, // bit width of input
-    parameter int ACCUM_WIDTH = 32, // bit width of the accumulator
+    parameter int ACCUM_WIDTH = 32 // bit width of the accumulator
 )(
     input logic clk_i, // input clock signal
     input logic rst_ni, // asynchornous reset, active low
@@ -21,7 +23,7 @@ module accumulator #(
     input logic clear_i, // clear signal
     input logic valid_i, // input valid signal
     input logic signed [IN_WIDTH-1:0] data_i, // input data
-    output logic signed [OUT_WIDTH-1:0] accum_o, // output accumulated value
+    output logic signed [ACCUM_WIDTH-1:0] accum_o, // output accumulated value
     output logic overflow_o, // overflow flag
     output logic valid_o // output valid signal
 );
@@ -56,8 +58,8 @@ module accumulator #(
     assign valid_o = data_valid_reg; // output the valid signal
 
     // Sequential logic
-    `FFL(.__q(accum_reg), .__d(accum_next), .__load(en_i || clear_i), .__reset_value('0), .__clk(clk_i), .__arst_n(rst_ni))
-    `FFL(.__q(overflow_reg), .__d(overflow), .__load(en_i || clear_i), .__reset_value('0), .__clk(clk_i), .__arst_n(rst_ni))
-    `FFL(.__q(data_valid_reg), .__d(data_valid), .__load(en_i || clear_i), .__reset_value('0), .__clk(clk_i), .__arst_n(rst_ni))
+    `FFL(accum_reg, accum_next, (en_i || clear_i), '0, clk_i, rst_ni)
+    `FFL(overflow_reg, overflow, (en_i || clear_i), '0, clk_i, rst_ni)
+    `FFL(data_valid_reg, data_valid, (en_i || clear_i), '0, clk_i, rst_ni)
 
 endmodule

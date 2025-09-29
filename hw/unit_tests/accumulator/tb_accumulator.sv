@@ -8,99 +8,151 @@
 `define DBG 0
 `endif
 
-module tb_partial_energy_calc;
+module tb_accumulator;
 
-    localparam int BITJ = 4;
-    localparam int BITH = 4;
-    localparam int DATASPIN = 256;
-    localparam int SCALING_BIT = 5;
-    localparam int ENERGY_TOTAL_BIT = 16;
+    localparam int IN_WIDTH = 16;
+    localparam int ACCUM_WIDTH = 32;
+    localparam int CLKCYCLE = 2;
 
     localparam int NUM_TESTS = 3; // number of test cases
 
     // Testbench signals
-    logic signed [DATASPIN-1:0] spin_i;
-    logic signed [DATASPIN-1:0] spin_mask_i;
-    logic signed [DATASPIN*BITJ-1:0] weight_i;
-    logic signed [BITH-1:0] hbias_i;
-    logic signed [SCALING_BIT-1:0] hscaling_i;
-    logic signed [ENERGY_TOTAL_BIT-1:0] out;
-    logic signed [ENERGY_TOTAL_BIT-1:0] expected_output;
+    logic signed [IN_WIDTH-1:0] data_i;
+    logic clk_i;
+    logic rst_ni;
+    logic en_i;
+    logic clear_i;
+    logic valid_i;
+    logic signed [ACCUM_WIDTH-1:0] accum_o;
+    logic overflow_o;
+    logic valid_o;
+    logic signed [ACCUM_WIDTH-1:0] expected_output;
+
+    logic clear_test_done;
 
     // Module instantiation
-    partial_energy_calc #(
-        .BITJ(BITJ),
-        .BITH(BITH),
-        .DATASPIN(DATASPIN),
-        .SCALING_BIT(SCALING_BIT),
-        .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT)
+    accumulator #(
+        .IN_WIDTH(IN_WIDTH),
+        .ACCUM_WIDTH(ACCUM_WIDTH)
     ) dut (
-        .spin_i(spin_i),
-        .spin_mask_i(spin_mask_i),
-        .weight_i(weight_i),
-        .hbias_i(hbias_i),
-        .hscaling_i(hscaling_i),
-        .energy_o(out)
+        .data_i(data_i),
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .en_i(en_i),
+        .clear_i(clear_i),
+        .valid_i(valid_i),
+        .accum_o(accum_o),
+        .overflow_o(overflow_o),
+        .valid_o(valid_o)
     );
 
+    // Clock generation
+    initial begin
+        clk_i = 0;
+        forever #(CLKCYCLE/2) clk_i = ~clk_i;
+    end
+
+    // Reset generation
+    initial begin
+        rst_ni = 0;
+        #5;
+        rst_ni = 1;
+    end
+
+    // Flag signal
+    initial begin
+        clear_test_done = 0;
+    end
+
+    // Clear signal test
+    initial begin
+        en_i = 0;
+        clear_i = 0;
+        valid_i = 0;
+        data_i = 'd8;
+        wait (rst_ni == 1);
+        @(posedge clk_i);
+        en_i = 1;
+        clear_i = 0;
+        valid_i = 1;
+        repeat (20) begin
+            @(posedge clk_i);
+            clear_i = ($urandom_range(0, 9) > 5); // ~50% chance to clear
+            #CLKCYCLE;
+        end
+        clear_i = 1;
+        #CLKCYCLE;
+        clear_i = 0;
+        clear_test_done = 1;
+    end
+
+    // Accumulation test
+    // use random data, random valid signal and random enable signal
+    initial begin
+        wait (clear_test_done == 1);
+        @(posedge clk_i);
+        en_i = 1;
+        clear_i = 0;
+        valid_i = 0;
+        repeat (100) begin
+            @(posedge clk_i);
+            data_i = $urandom_range(-32768, 32767); // random signed 16-bit number
+            valid_i = ($urandom_range(0, 9) > 5); // ~50% chance to be valid
+            #CLKCYCLE;
+        end
+        valid_i = 0;
+        en_i = 0;
+    end
+    // Calculate expected output
+    always @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            expected_output <= 0;
+        end else if (clear_i) begin
+            expected_output <= 0;
+        end else if (en_i & valid_i) begin
+            expected_output <= expected_output + data_i;
+        end else begin
+            expected_output <= expected_output;
+        end
+    end
+
+    // Enable signal test
+    
+
     // Testcases
-    // Test patterns for adder tree
-    logic signed [DATASPIN-1:0] test_spin[NUM_TESTS] = '{
-        {256{1'd0}}, // All zeros
-        {128{1'b0, 1'b1}}, // Alternating 0 and 1
-        {256{1'd1}} // All ones
-        };
-    logic signed [DATASPIN-1:0] test_spin_mask[NUM_TESTS] = '{
-        {{1'b1, 255'd0}}, // mask 1st spin
-        {{1'b0, 1'b1, 254'b0}},
-        {{1'b1, 255'd0}}
-        };
-    logic signed [DATASPIN*BITJ-1:0] test_weight[NUM_TESTS] = '{
-        {256{1'b0}}, // All zeros
-        {256{4'b1001}}, // All weights set to -7
-        {256{4'b0111}} // All weights set to +7
-        };
-    logic signed [BITH-1:0] test_hbias[NUM_TESTS] = '{
-        'sd0, // Zero bias
-        -'sd7,
-        'sd0
-        };
-    logic signed [SCALING_BIT-1:0] test_hscaling[NUM_TESTS] = '{
-        'sd1,
-        'sd16,
-        'sd1
-        };
-    // Expected outputs for each test pattern
-    logic signed [ENERGY_TOTAL_BIT-1:0] expected_outputs[NUM_TESTS] = '{
-        'sd0,
-        -'sd105,
-        'sd1785
-        };
+    // logic signed [IN_WIDTH-1:0] data[NUM_TESTS] = '{
+    //     {IN_WIDTH'h7FFF},
+    //     {IN_WIDTH'h0001}, // overflow test
+    //     {IN_WIDTH'h7FFF}
+    //     };
+
 
     // Run tests
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
-            $dumpfile("tb_partial_energy_calc.vcd");
-            $dumpvars(0,tb_partial_energy_calc);
+            $dumpfile("tb_accumulator.vcd");
+            $dumpvars(0,tb_accumulator);
         end
-        $display("Starting testbench. Running %0d tests...", NUM_TESTS);
-        for (int i = 0; i < NUM_TESTS; i++) begin
-            spin_i = test_spin[i];
-            spin_mask_i = test_spin_mask[i];
-            weight_i = test_weight[i];
-            hbias_i = test_hbias[i];
-            hscaling_i = test_hscaling[i];
-            expected_output = expected_outputs[i];
-            #5;
-            assert (out == expected_output)
-                else $fatal("Test %0d failed: expected_output='h%0h, got 'h%0h",
-                            i, expected_outputs[i], out);
-            $write( "Test %0d,\t expected_output='h%0h,\t\t got 'h%0h\n",
-                i, expected_output, out);
-        end
-        #10;
-        $display("All tests (#%0d) completed successfully.", NUM_TESTS);
+        // $display("Starting testbench. Running %0d tests...", NUM_TESTS);
+        // for (int i = 0; i < NUM_TESTS; i++) begin
+        //     data_i = data[i];
+        //     clk_i = clk_i;
+        //     rst_ni = rst_ni;
+        //     en_i = en_i;
+        //     clear_i = clear_i;
+        //     valid_i = valid_i;
+        //     expected_output = expected_outputs[i];
+        //     #5;
+        //     assert (accum_o == expected_output)
+        //         else $fatal("Test %0d failed: expected_output='h%0h, got 'h%0h",
+        //                     i, expected_outputs[i], accum_o);
+        //     $write( "Test %0d,\t expected_output='h%0h,\t\t got 'h%0h\n",
+        //         i, expected_output, accum_o);
+        // end
+        // #10;
+        // $display("All tests (#%0d) completed successfully.", NUM_TESTS);
+        #100;
         $finish;
     end
 endmodule
