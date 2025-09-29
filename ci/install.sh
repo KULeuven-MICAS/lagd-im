@@ -7,7 +7,7 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
 set -e
-PROJECT_DIR= $(realpath $(dirname $0)/..)
+PROJECT_DIR=$(realpath $(dirname $0)/..)
 
 # Check if pixi is installed, if not install it
 if ! command -v pixi &> /dev/null
