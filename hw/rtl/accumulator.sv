@@ -11,7 +11,7 @@
 // -IN_WIDTH: bit width of input
 // -ACCUM_WIDTH: bit width of the accumulator
 
-`include "../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
+`include "./lib/registers.svh"
 
 module accumulator #(
     parameter int IN_WIDTH = 16, // bit width of input

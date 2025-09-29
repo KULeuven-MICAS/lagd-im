@@ -11,7 +11,7 @@
 // - COUNTER_BITWIDTH: bit width of the counter
 // - PIPES: number of pipeline stages
 
-`include "../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
+`include "./lib/registers.svh"
 
 module step_counter #(
     parameter int COUNTER_BITWIDTH = $clog2(256)

@@ -22,11 +22,11 @@ module counter_ctrl #(
     input logic en_i,
     input logic config_valid_i,
     input logic [COUNTER_BITWIDTH-1:0] config_counter_i,
-    output logic config_ready_o,
+    input logic config_ready_i,
 
     input logic recount_en_i,
     input logic step_en_i,
-    output logic q_o,
+    output logic [COUNTER_BITWIDTH-1:0] q_o,
     output logic counter_ready_o,
     output logic counter_overflow_o
 );
@@ -37,11 +37,11 @@ module counter_ctrl #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
-        .load_i(config_valid_i && config_ready_o),
+        .load_i(config_valid_i && config_ready_i),
         .d_i(config_counter_i),
         .recount_en_i(spin_ready_o && spin_valid_i),
         .step_en_i(weight_ready_o && weight_valid_i),
-        .q_o(counter_q),
+        .q_o(q_o),
         .overflow_o(counter_overflow_o),
         .finish_o(counter_ready_o)
     );

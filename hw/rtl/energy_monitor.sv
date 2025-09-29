@@ -16,7 +16,7 @@
 // - ENERGY_TOTAL_BIT: bit precision of total energy value
 // - PIPES: number of pipeline stages for each input path
 
-`include "../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
+`include "./lib/registers.svh"
 
 module energy_monitor #(
     parameter int BITJ = 4,
@@ -57,7 +57,7 @@ module energy_monitor #(
 );
     // pipe all input signals
     logic config_valid_pipe;
-    logic config_counter_pipe;
+    logic [SPINIDX_BIT-1:0] config_counter_pipe;
     logic config_ready_pipe;
 
     logic [DATASPIN-1:0] spin_pipe;
@@ -70,6 +70,13 @@ module energy_monitor #(
     logic weight_valid_pipe;
     logic weight_ready_pipe;
 
+    // internal signals
+    logic [SPINIDX_BIT-1:0] counter_q;
+    logic counter_ready;
+    logic cmpt_done;
+    logic current_spin;
+    logic signed [LOCAL_ENERGY_BIT-1:0] local_energy;
+
     // handshake signals
     logic spin_handshake;
     logic weight_handshake;
@@ -79,7 +86,7 @@ module energy_monitor #(
 
     // pipeline interfaces
     bp_pipe #(
-        .DATAW(COUNTER_BITWIDTH),
+        .DATAW(SPINIDX_BIT),
         .PIPES(PIPES)
     ) u_pipe_config (
         .clk_i(clk_i),
@@ -146,7 +153,7 @@ module energy_monitor #(
         .en_i(en_i),
         .config_valid_i(config_valid_pipe),
         .config_counter_i(config_counter_pipe),
-        .config_ready_o(config_ready_pipe),
+        .config_ready_i(config_ready_pipe),
         .recount_en_i(spin_ready_pipe && spin_valid_pipe),
         .step_en_i(weight_ready_pipe && weight_valid_pipe),
         .q_o(counter_q),
@@ -156,7 +163,7 @@ module energy_monitor #(
 
     // Spin path
     vector_mux #(
-        .DATASPIN(DATASPIN)
+        .DATAWIDTH(DATASPIN)
     ) u_spin_mux (
         .en_i(en_i),
         .idx_i(counter_q),

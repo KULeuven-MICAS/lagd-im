@@ -14,8 +14,6 @@
 // - SCALING_BIT: number of bits of scaling factor for h
 // - LOCAL_ENERGY_BIT: bit precision of local energy value
 
-// `include "third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
-
 module partial_energy_calc #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
@@ -48,18 +46,18 @@ module partial_energy_calc #(
     // Assert that hscaling_i is a power of 2
     always_comb begin
         assert (hscaling_i == 0 || (hscaling_i & (hscaling_i - 1)) == 0)
-            else $error("hscaling_i must be a power of 2 (including 0).");
+            else $error("hscaling_i (%0d) must be a power of 2 (including 0).", hscaling_i);
     end
 
     // Generate variables
     genvar i;
 
     // ========================================================================
-    // Sign conversion of weight
+    // Sign extension of weight
     // ========================================================================
     generate
         for (i = 0; i < DATASPIN; i++) begin : weight_signext
-            assign weight_extended[i] = {{(MULTBIT-BITJ){weight_i[i][BITJ-1]}}, weight_i[i]};
+            assign weight_extended[i] = {{(MULTBIT-BITJ){weight_i[(i+1)*BITJ-1]}}, weight_i[(i+1)*BITJ-1 -: BITJ]};
         end
     endgenerate
 

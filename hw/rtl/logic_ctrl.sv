@@ -10,7 +10,7 @@
 
 // TODO: add debug mode (execution in step)
 
-`include "../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
+`include "./lib/registers.svh"
 
 module logic_ctrl (
     input logic clk_i, // input clock signal
@@ -89,7 +89,7 @@ module logic_ctrl (
                     if (debug_en_i)
                         next_state = COMPUTE; // stay in COMPUTE in debug mode
                     else begin
-                        case(energy_ready_i, counter_ready_i, cmpt_done_i)
+                        case ({energy_ready_i, counter_ready_i, cmpt_done_i})
                             3'b000: next_state = COMPUTE; // wait for the next cmpt_done
                             3'b001: next_state = LOAD;
                             3'b010: next_state = COMPUTE; // wait for the next cmpt_done
