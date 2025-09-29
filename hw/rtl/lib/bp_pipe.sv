@@ -15,8 +15,7 @@
 // - DATAW: number of bits of the input data
 // - PIPES: number of pipeline stages, 0 means pass-through
 
-//`include "assertions.svh"
-`include "registers.svh"
+`include "../../third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
 
 module bp_pipe #(
     parameter int DATAW = 8,
