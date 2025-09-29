@@ -46,7 +46,7 @@ module logic_ctrl (
     assign config_ready_o = (current_state == IDLE);
     assign spin_ready_o = (current_state == IDLE);
     assign weight_ready_o = (current_state == LOAD);
-    assign energy_valid_o = (current_state == COMPUTE) && cmpt_done_i;
+    assign energy_valid_o = (current_state == COMPUTE) && counter_ready_i && cmpt_done_i;
 
     `FFL(current_state, next_state, en_i, SLEEP, clk_i, rst_ni)
 

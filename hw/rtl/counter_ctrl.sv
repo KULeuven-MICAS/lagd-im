@@ -39,8 +39,8 @@ module counter_ctrl #(
         .en_i(en_i),
         .load_i(config_valid_i && config_ready_i),
         .d_i(config_counter_i),
-        .recount_en_i(spin_ready_o && spin_valid_i),
-        .step_en_i(weight_ready_o && weight_valid_i),
+        .recount_en_i(recount_en_i),
+        .step_en_i(step_en_i),
         .q_o(q_o),
         .overflow_o(counter_overflow_o),
         .finish_o(counter_ready_o)
