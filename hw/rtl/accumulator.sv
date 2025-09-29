@@ -58,8 +58,8 @@ module accumulator #(
     assign valid_o = data_valid_reg; // output the valid signal
 
     // Sequential logic
-    `FFL(accum_reg, accum_next, (en_i || clear_i), '0, clk_i, rst_ni)
-    `FFL(overflow_reg, overflow, (en_i || clear_i), '0, clk_i, rst_ni)
-    `FFL(data_valid_reg, data_valid, (en_i || clear_i), '0, clk_i, rst_ni)
+    `FFL(accum_reg, accum_next, en_i, '0, clk_i, rst_ni)
+    `FFL(overflow_reg, overflow, en_i, '0, clk_i, rst_ni)
+    `FFL(data_valid_reg, data_valid, en_i, '0, clk_i, rst_ni)
 
 endmodule
