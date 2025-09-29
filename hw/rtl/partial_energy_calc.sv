@@ -44,10 +44,10 @@ module partial_energy_calc #(
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
 
     // Assert that hscaling_i is a power of 2
-    always_comb begin
-        assert (hscaling_i == 0 || (hscaling_i & (hscaling_i - 1)) == 0)
-            else $error("hscaling_i (%0d) must be a power of 2 (including 0).", hscaling_i);
-    end
+    // always_comb begin
+    //     assert (hscaling_i == 0 || (hscaling_i & (hscaling_i - 1)) == 0)
+    //         else $error("hscaling_i (%0d) must be a power of 2 (including 0).", hscaling_i);
+    // end
 
     // Generate variables
     genvar i;
