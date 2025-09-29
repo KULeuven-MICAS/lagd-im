@@ -4,14 +4,4 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-include ./common.mk
-
-.PHONY: all
-
-all: build
-
-build:
-	$(MAKE) -C hw 
-
-install: 
-	./ci/install.sh
+BENDER ?= pixi run ~/.cargo/bin/bender -d $(PROJECT_ROOT)

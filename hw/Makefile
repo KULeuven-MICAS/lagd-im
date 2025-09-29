@@ -4,14 +4,10 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-include ./common.mk
+PROJECT_ROOT := $(shell realpath ../)
+include $(PROJECT_ROOT)/common.mk
 
-.PHONY: all
+CHS_ROOT := $(shell $(BENDER) path cheshire)
+include $(CHS_ROOT)/cheshire.mk
 
-all: build
-
-build:
-	$(MAKE) -C hw 
-
-install: 
-	./ci/install.sh
+all: chs-hw-all
