@@ -9,10 +9,10 @@ package:
   authors:
     - "Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>"
     - "Jiacong Sun <jiacong.sun@esat.kuleuven.be>"
-  
+
 dependencies:
-  cheshire:       {git: "https://github.com/pulp-platform/cheshire.git",      version: 0.3.1}
-  memory_island:  {git: "https://github.com/pulp-platform/memory_island.git", rev: main}
+  cheshire: {git: "https://github.com/pulp-platform/cheshire.git", version: 0.3.1}
+  memory_island: {git: "https://github.com/pulp-platform/memory_island.git", rev: main}
 
 export_include_dirs:
   - hw/rtl/include
@@ -22,9 +22,9 @@ sources:
   - hw/rtl/lagd_mem_pkg.sv
   - hw/rtl/lagd_soc.sv
 
-  - target: any(simulation, test)
-    files:
-      # - hw/tb/lagd_tb.sv
-  - target: all(fpga, xilinx)
-    files:
-      # - hw/rtl/lagd_fpga.sv
+#  - target: any(simulation, test)
+#    files:
+#      - hw/tb/lagd_tb.sv
+#  - target: all(fpga, xilinx)
+#    files:
+#      - hw/rtl/lagd_fpga.sv

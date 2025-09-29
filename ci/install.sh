@@ -1,5 +1,11 @@
 # !/bin/bash
 
+# Copyright 2025 KU Leuven.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+#
+# Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+
 set -e
 PROJECT_DIR= $(realpath $(dirname $0)/..)
 
@@ -28,6 +34,9 @@ DISTO = ubuntu-18.04
 NIGHTLY = 2022.11.12
 TARGET = riscv64-elf
 
+# Get the riscv-gnu-toolchain for elf target
+# Note: 2022.11.12 is the last version supporting ubuntu-18.04 with glibc 2.27
+# Rocky Linux 8 has glibc 2.28, so it is possible to run without container
 RISCV_GCC_NAME = riscv-gcc-${NIGHTLY}-${DISTO}-${TARGET}
 curl -Ls -o ${RISCV_GCC_NAME}.tar.gz https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${NIGHTLY}/${TARGET}-${DISTO}-nightly-${NIGHTLY}-nightly.tar.gz
 chmod 777 ${RISCV_GCC_NAME}.tar.gz
