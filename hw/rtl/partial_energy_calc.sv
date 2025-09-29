@@ -26,7 +26,6 @@ module partial_energy_calc #(
     )(
     // input logic clk_i, // input clock signal
     // input logic rst_ni, // asynchornous reset, active low
-    input logic en_i, // module enable signal
     input logic [DATASPIN-1:0] spin_i, // input spin data
     input logic [DATASPIN-1:0] current_spin_i,
     input logic [DATAJ-1:0] weight_i, // input weight data
