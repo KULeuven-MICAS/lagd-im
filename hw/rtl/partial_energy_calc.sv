@@ -12,7 +12,7 @@
 // - BITH: bit precision of h
 // - DATASPIN: number of spins
 // - SCALING_BIT: number of bits of scaling factor for h
-// - ENERGY_TOTAL_BIT: bit precision of total energy value
+// - LOCAL_ENERGY_BIT: bit precision of local energy value
 
 // `include "third_parties/cheshire/.bender/git/checkouts/common_cells-7f7ae0f5e6bf7fb5/include/common_cells/registers.svh"
 
@@ -21,7 +21,7 @@ module partial_energy_calc #(
     parameter int BITH = 4,
     parameter int DATASPIN = 256,
     parameter int SCALING_BIT = 5,
-    parameter int ENERGY_TOTAL_BIT = 16,
+    parameter int LOCAL_ENERGY_BIT = 16,
     parameter int DATAJ = DATASPIN * BITJ
     )(
     // input logic clk_i, // input clock signal
@@ -31,7 +31,7 @@ module partial_energy_calc #(
     input logic [DATAJ-1:0] weight_i, // input weight data
     input logic signed [BITH-1:0] hbias_i, // h bias
     input logic unsigned [SCALING_BIT-1:0] hscaling_i, // h scaling factor
-    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o // output energy value
+    output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o // output energy value
 );
     // Parameters
     localparam int MULTBIT = BITH + SCALING_BIT - 1; // bit width of the multiplier output
@@ -43,7 +43,7 @@ module partial_energy_calc #(
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [MULTBIT-1:0] energy_local_wo_hbias; // local energy value without hbias
-    logic signed [ENERGY_TOTAL_BIT-1:0] energy_local; // local energy value
+    logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
 
     // Assert that hscaling_i is a power of 2
     always_comb begin
