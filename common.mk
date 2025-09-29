@@ -5,3 +5,5 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
 BENDER ?= pixi run ~/.cargo/bin/bender -d $(PROJECT_ROOT)
+BENDER_ROOT ?= $(PROJECT_ROOT)/.bender/
+CHS_SW_GCC_BINROOT ?= $(PROJECT_ROOT)/.opt/riscv-gnu-toolchain/bin/

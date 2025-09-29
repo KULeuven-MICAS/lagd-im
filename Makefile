@@ -6,12 +6,12 @@
 
 include ./common.mk
 
-.PHONY: all
+.PHONY: all build install
 
 all: build
 
 build:
-	$(MAKE) -C hw 
+	$(MAKE) -C hw all
 
 install: 
 	./ci/install.sh

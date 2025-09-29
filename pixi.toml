@@ -30,6 +30,7 @@ importlib-metadata = "==6.8.0"
 pathspec = "==0.11.2"
 
 [pypi-dependencies]
+setuptools = "*"
 hjson = "*"
 markdown-grid-tables = "*"
 tclint = "==0.4.2"
