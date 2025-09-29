@@ -43,7 +43,14 @@ module partial_energy_calc #(
     logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
+    logic signed [MULTBIT-1:0] energy_local_wo_hbias; // local energy value without hbias
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_local; // local energy value
+
+    // Assert that hscaling_i is a power of 2
+    always_comb begin
+        assert (hscaling_i == 0 || (hscaling_i & (hscaling_i - 1)) == 0)
+            else $error("hscaling_i must be a power of 2 (including 0).");
+    end
 
     // Generate variables
     genvar i;
@@ -73,14 +80,9 @@ module partial_energy_calc #(
         endcase
     end
 
-    always_comb begin
+    always_comb begin: weight_mult
         for (int i = 0; i < DATASPIN; i++) begin
-            if (spin_mask_i[i]) begin: bias_mult
-            mult_out[i] = hbias_scaled;
-            end
-            else begin: weight_mult
-            mult_out[i] = spin_i[i] ? weight_2c_extended[i] : -weight_2c_extended[i];
-            end
+            mult_out[i] = spin_i[i] ? weight_extended[i] : -weight_extended[i];
         end
     end
 
@@ -92,12 +94,13 @@ module partial_energy_calc #(
         .DATAW(MULTBIT)
     ) u_adder_tree (
         .data_i(mult_out),
-        .sum_o(energy_local)
+        .sum_o(energy_local_wo_hbias)
     );
+    assign energy_local = energy_local_wo_hbias + hbias_scaled;
 
     // ========================================================================
-    // Multiply with masked bit
+    // Multiply with current spin
     // ========================================================================
-    assign energy_o = masked_bit ? energy_local : -energy_local;
+    assign energy_o = current_spin_i ? energy_local : -energy_local;
 
 endmodule
