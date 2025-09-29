@@ -4,7 +4,7 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// Package for LAGD system-wide parameters and types
+// Package for memory configuration and definitions
 
 `include "lagd_config.svh"
 `include "lagd_platform.svh"
