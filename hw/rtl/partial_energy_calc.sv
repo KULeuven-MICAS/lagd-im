@@ -38,8 +38,7 @@ module partial_energy_calc #(
     localparam int MULTBIT = BITH + SCALING_BIT - 1; // bit width of the multiplier output
 
     // Internal signals
-    logic signed [DATASPIN-1:0][BITJ-1:0] weight_2c; // weight in 2's complement format
-    logic signed [DATASPIN-1:0][MULTBIT-1:0] weight_2c_extended; // sign extended weight
+    logic signed [DATASPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
     logic masked_bit; // masked bit
     logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
@@ -50,17 +49,11 @@ module partial_energy_calc #(
     genvar i;
 
     // ========================================================================
-    // Convert weight digits from sign-magnitude to 2's complement
+    // Sign conversion of weight
     // ========================================================================
     generate
-        for (i = 0; i < DATASPIN; i++) begin : weight_unpack
-            assign weight_2c[i] = weight_i[i*BITJ + (BITJ-1) : i*BITJ]; // extract each weight
-        end
-    endgenerate
-    // Sign extension
-    generate
         for (i = 0; i < DATASPIN; i++) begin : weight_signext
-            assign weight_2c_extended[i] = {{(MULTBIT-BITJ){weight_2c[i][BITJ-1]}}, weight_2c[i]}; // sign extension
+            assign weight_extended[i] = {{(MULTBIT-BITJ){weight_i[i][BITJ-1]}}, weight_i[i]};
         end
     endgenerate
 
