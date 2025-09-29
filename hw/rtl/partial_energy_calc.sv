@@ -25,7 +25,7 @@ module partial_energy_calc #(
     // input logic clk_i, // input clock signal
     // input logic rst_ni, // asynchornous reset, active low
     input logic [DATASPIN-1:0] spin_i, // input spin data
-    input logic [DATASPIN-1:0] current_spin_i,
+    input logic current_spin_i,
     input logic [DATAJ-1:0] weight_i, // input weight data
     input logic signed [BITH-1:0] hbias_i, // h bias
     input logic unsigned [SCALING_BIT-1:0] hscaling_i, // h scaling factor
@@ -40,7 +40,7 @@ module partial_energy_calc #(
     logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
-    logic signed [MULTBIT-1:0] energy_local_wo_hbias; // local energy value without hbias
+    logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias; // local energy value without hbias
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
 
     // Assert that hscaling_i is a power of 2
