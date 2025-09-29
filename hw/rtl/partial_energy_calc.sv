@@ -22,9 +22,8 @@ module partial_energy_calc #(
     parameter int DATASPIN = 256,
     parameter int SCALING_BIT = 5,
     parameter int ENERGY_TOTAL_BIT = 16,
-    parameter int DATAJ = DATASPIN * BITJ,
-    parameter int SPINIDX_BIT = $clog2(DATASPIN)
-)(
+    parameter int DATAJ = DATASPIN * BITJ
+    )(
     // input logic clk_i, // input clock signal
     // input logic rst_ni, // asynchornous reset, active low
     input logic [DATASPIN-1:0] spin_i, // input spin data
