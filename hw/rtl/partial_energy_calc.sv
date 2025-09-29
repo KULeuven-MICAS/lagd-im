@@ -58,18 +58,6 @@ module partial_energy_calc #(
     endgenerate
 
     // ========================================================================
-    // Extract masked bit
-    // ========================================================================
-    always_comb begin
-        masked_bit = 1'b0;
-        for (int i = 0; i < DATASPIN; i++) begin
-            if (spin_mask_i[i]) begin
-                masked_bit = spin_i[i];
-            end
-        end
-    end
-
-    // ========================================================================
     // Do multiplication
     // ========================================================================
     // calculate hbias * scaling factor
