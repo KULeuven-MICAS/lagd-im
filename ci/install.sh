@@ -14,6 +14,8 @@ if ! command -v pixi &> /dev/null
 then 
     echo "pixi could not be found, installing it..."
     curl -fsSL https://pixi.sh/install.sh | sh
+    echo "Pixi installed successfully. Please restart your terminal and run the script again."
+    exit 0
 fi
 
 # Install dependencies
