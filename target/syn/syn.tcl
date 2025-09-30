@@ -4,7 +4,7 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-# Synthesis script inspired from 
+# Synthesis script inspired from
 #   https://github.com/rgantonio/digiforge/blob/main/synthoria/syn/dc_syn/dc_syn.tcl
 
 #-----------------------------
@@ -121,8 +121,10 @@ compile_ultra -retime
 report_qor -significant_digits 5 > $report_path/qor.rpt
 
 # Reporting all the timing violations
-report_constraint -all_violators -nosplit -verbose -significant_digits 5 -max_delay > $report_path/constraint_report_setup.rpt
-# report_constraint -all_violators -nosplit -verbose -significant_digits 5 -min_delay > $report_path/constraint_report_hold.rpt
+report_constraint -all_violators -nosplit -verbose -significant_digits 5 -max_delay \
+    > $report_path/constraint_report_setup.rpt
+# report_constraint -all_violators -nosplit -verbose -significant_digits 5 -min_delay \
+    > $report_path/constraint_report_hold.rpt
 
 # Reporting area of the design
 report_area > $report_path/area_report.rpt
