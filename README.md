@@ -13,6 +13,22 @@ To download, run the following code:
 
 **Warning**: git clone takes around 1.2 GB of disk and download size
 
+## Installation
+
+To install the required tools, run the following code:
+
+   $ ./ci/install.sh
+
+This will install the following tools:
+
+1. Pixi (for dependency management)
+   Warning: after installing Pixi, please restart your terminal and run the script again
+   We recommend to install Pixi before running the script
+2. Dependency libraries (see pixi.toml)
+3. Bender (for hardware dependency management)
+4. Hardware dependencies (see Bender.yml)
+5. RISC-V GNU Toolchain (for software compilation)
+
 ## Third-party libraries
 
 1. [Cheshire](https://github.com/pulp-platform/cheshire) - Pulp Cheshire SoC V0.3.1 (tag=v0.3.1-1-g3d9aefb)
