@@ -36,7 +36,6 @@ module partial_energy_calc #(
 
     // Internal signals
     logic signed [DATASPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
-    logic masked_bit; // masked bit
     logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
