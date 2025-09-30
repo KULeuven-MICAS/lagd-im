@@ -16,11 +16,12 @@ module tb_energy_monitor;
     localparam int SCALING_BIT = 5; // bit width of scaling factor
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
-    localparam int PIPES = 1; // number of pipeline stages
+    localparam int PIPES = 0; // number of pipeline stages
 
     localparam int CLKCYCLE = 2;
     localparam int MEM_LATENCY = 1; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
+    localparam bit RANDOM_TEST = 0; // set to 1 for random tests, 0 for fixed tests
     localparam int NUM_TESTS = 1; // number of test cases
 
     // Testbench signals
@@ -45,7 +46,18 @@ module tb_energy_monitor;
     logic counter_overflow_o;
     logic accum_overflow_o;
 
+    logic [DATASPIN-1:0] spin_reg [0:NUM_TESTS-1];
+    logic signed [BITJ-1:0] weight_reg [0:DATASPIN-1];
+    logic signed [BITH-1:0] hbias_reg;
+    logic unsigned [SCALING_BIT-1:0] hscaling_reg;
+    logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
+    logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy;
     int testcase_counter;
+    integer transaction_count;
+
+    initial begin
+        transaction_count = 0;
+    end
 
     initial begin
         testcase_counter = 1;
@@ -118,6 +130,62 @@ module tb_energy_monitor;
         config_valid_i = 0;
     end
 
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            for (int i = 0; i < NUM_TESTS; i++) begin
+                spin_reg[i] = 0;
+            end
+        end
+        else begin
+            if (spin_valid_i && spin_ready_o) begin
+                spin_reg[testcase_counter-1] = spin_i;
+            end
+        end
+    end
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            hbias_reg = 0;
+            hscaling_reg = 1;
+            for (int i = 0; i < DATASPIN; i++) begin
+                weight_reg[i] = 0;
+            end
+        end else begin
+            if (weight_valid_i && weight_ready_o) begin
+                hbias_reg = hbias_i;
+                hscaling_reg = hscaling_i;
+                for (int j = 0; j < DATASPIN; j++) begin
+                    weight_reg[j] = weight_i[j*BITJ +: BITJ];
+                end
+            end
+        end
+    end
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            expected_energy = 0;
+            expected_local_energy = 0;
+        end else begin
+            if (energy_valid_o && energy_ready_i) begin
+                expected_energy = 0;
+                expected_local_energy = 0;
+            end
+            else if (weight_valid_i && weight_ready_o) begin
+                expected_local_energy = 0;
+                for (int j = 0; j < DATASPIN; j++) begin
+                    if (j == transaction_count) begin
+                        expected_local_energy += hbias_i * hscaling_i;
+                    end else begin
+                        expected_local_energy += spin_reg[testcase_counter-1][j] ? weight_i[j] : -weight_i[j];
+                    end
+                end
+                expected_local_energy = spin_reg[testcase_counter-1][transaction_count] ? expected_local_energy : -expected_local_energy;
+                expected_energy += expected_local_energy;
+            end
+        end
+    end
+
+
     // Initial values for debug signal and energy ready signal
     initial begin
         debug_en_i = 0;
@@ -131,6 +199,7 @@ module tb_energy_monitor;
             $dumpfile("tb_energy_monitor.vcd");
             $dumpvars(1,tb_energy_monitor);
             $dumpvars(0, dut.u_counter_ctrl);
+            $dumpvars(1, dut.u_logic_ctrl);
         end
         // $display("Starting energy monitor testbench. Running %0d tests...", NUM_TESTS);
         // for (int i = 0; i < NUM_TESTS; i++) begin
@@ -151,6 +220,35 @@ module tb_energy_monitor;
     // ========================================================================
     // Tasks and functions
     // ========================================================================
+    // Task for scoreboard
+    task automatic check_energy();
+        begin
+            integer correct_count;
+            integer error_count;
+            integer total_count;
+            correct_count = 0;
+            error_count = 0;
+            total_count = 0;
+            wait(rst_ni);
+            forever begin
+                @(posedge clk_i);
+                if (energy_valid_o && energy_ready_i) begin
+                    if (energy_o !== expected_energy) begin
+                    $error("Energy mismatch: received %0d, expected %0d",
+                        energy_o, expected_energy);
+                    error_count = error_count + 1;
+                    end else begin
+                        $display("Energy match: %0d", energy_o);
+                        correct_count = correct_count + 1;
+                    end
+                    total_count = total_count + 1;
+                    $display("Scoreboard: %0d correct, %0d errors, out of %0d total",
+                        correct_count, error_count, total_count);
+                end
+            end
+        end
+    endtask
+
     // Task to handle spin input
     task automatic spin_interface();
         begin
@@ -168,7 +266,10 @@ module tb_energy_monitor;
                 // Generate and send spin data
                 spin_valid_i = 1;
                 for (int i = 0; i < DATASPIN; i++) begin
-                    spin_i[i] = $urandom() % 2;
+                    if (RANDOM_TEST)
+                        spin_i[i] = $urandom() % 2;
+                    else
+                        spin_i[i] = 1'b1;
                 end
 
                 // Wait for handshake
@@ -186,8 +287,6 @@ module tb_energy_monitor;
     task automatic weight_interface();
         begin
             logic signed [BITJ-1:0] weight_temp;
-            integer transaction_count;
-            transaction_count = 0;
 
             weight_valid_i = 0;
             weight_i = 'd0;
@@ -205,13 +304,23 @@ module tb_energy_monitor;
                 // Generate and send weight data
                 weight_valid_i = 1;
                 for (int i = 0; i < DATASPIN; i++) begin
-                    weight_temp = $urandom();
-                    weight_temp = weight_temp[BITJ-1:0];
+                    if (RANDOM_TEST) begin
+                        weight_temp = $urandom();
+                    end else begin
+                        weight_temp = 'd1;
+                    end
                     weight_i[i*BITJ +: BITJ] = weight_temp;
                 end
-                hbias_i = $urandom();
-                hbias_i = hbias_i[BITH-1:0];
-                hscaling_i = 1 << ($urandom() % SCALING_BIT);
+                if (RANDOM_TEST) begin
+                    hbias_i = $urandom();
+                    hbias_i = hbias_i[BITH-1:0];
+                end else begin
+                    hbias_i = 'd1;
+                end
+                if (RANDOM_TEST)
+                    hscaling_i = 1 << ($urandom() % SCALING_BIT);
+                else
+                    hscaling_i = 1;
 
                 // Wait for handshake
                 wait (weight_ready_o);
@@ -233,10 +342,12 @@ module tb_energy_monitor;
         fork
             spin_interface();
             weight_interface();
+            check_energy();
         join_none
     end
     initial begin
         #(1000 * CLKCYCLE);
+        $display("Testbench timeout reached. Ending simulation.");
         $finish;
     end
 
