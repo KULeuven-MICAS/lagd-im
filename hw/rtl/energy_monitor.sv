@@ -70,6 +70,7 @@ module energy_monitor #(
     logic weight_ready_pipe;
 
     // internal signals
+    logic [DATASPIN-1:0] spin_cached;
     logic [SPINIDX_BIT-1:0] counter_q;
     logic counter_ready;
     logic cmpt_done;
@@ -82,6 +83,7 @@ module energy_monitor #(
 
     assign spin_handshake = spin_valid_pipe && spin_ready_pipe;
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
+    assign energy_handshake = energy_valid_o && energy_ready_i;
 
     // pipeline interfaces
     bp_pipe #(
@@ -160,12 +162,24 @@ module energy_monitor #(
     );
 
     // Spin path
+    vector_caching #(
+        .DATAWIDTH(DATASPIN)
+    ) u_spin_cache (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .en_i(en_i),
+        .valid_i(spin_valid_pipe),
+        .ready_o(spin_ready_pipe),
+        .data_i(spin_pipe),
+        .data_o(spin_cached)
+    );
+
     vector_mux #(
         .DATAWIDTH(DATASPIN)
     ) u_spin_mux (
         .en_i(en_i),
         .idx_i(counter_q),
-        .data_i(spin_pipe),
+        .data_i(spin_cached),
         .data_o(current_spin)
     );
 
@@ -176,7 +190,7 @@ module energy_monitor #(
         .SCALING_BIT(SCALING_BIT),
         .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT)
     ) u_partial_energy_calc (
-        .spin_i(spin_pipe),
+        .spin_i(spin_cached),
         .current_spin_i(current_spin),
         .weight_i(weight_pipe),
         .hbias_i(hbias_pipe),
@@ -191,7 +205,7 @@ module energy_monitor #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
-        .clear_i(1'b0), // no clear signal
+        .clear_i(energy_handshake), // clear when the output energy is accepted
         .valid_i(weight_handshake),
         .data_i(local_energy),
         .accum_o(energy_o),
