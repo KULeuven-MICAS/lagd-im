@@ -12,7 +12,7 @@ module tb_energy_monitor;
 
     localparam int BITJ = 4; // J precision
     localparam int BITH = 4; // bias precision
-    localparam int DATASPIN = 256; // number of spins
+    localparam int DATASPIN = 4; // number of spins
     localparam int SCALING_BIT = 5; // bit width of scaling factor
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
@@ -43,17 +43,21 @@ module tb_energy_monitor;
     logic energy_ready_i;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_o;
     logic debug_en_i;
-    logic counter_overflow_o;
     logic accum_overflow_o;
 
     logic [DATASPIN-1:0] spin_reg [0:NUM_TESTS-1];
+    logic signed [BITJ-1:0] weight_expected;
     logic signed [BITJ-1:0] weight_reg [0:DATASPIN-1];
     logic signed [BITH-1:0] hbias_reg;
     logic unsigned [SCALING_BIT-1:0] hscaling_reg;
+    logic expected_valid;
+    logic unsigned [DATASPIN-1:0] expected_spin_counter;
     logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
     logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy;
-    int testcase_counter;
-    integer transaction_count;
+    logic unsigned [31:0] testcase_counter;
+    logic unsigned [ $clog2(DATASPIN)-1 : 0 ] transaction_count;
+
+    assign expected_valid = energy_ready_i;
 
     initial begin
         transaction_count = 0;
@@ -98,7 +102,6 @@ module tb_energy_monitor;
         .energy_ready_i(energy_ready_i),
         .energy_o(energy_o),
         .debug_en_i(debug_en_i),
-        .counter_overflow_o(counter_overflow_o),
         .accum_overflow_o(accum_overflow_o)
     );
 
@@ -145,42 +148,42 @@ module tb_energy_monitor;
 
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
-            hbias_reg = 0;
-            hscaling_reg = 1;
-            for (int i = 0; i < DATASPIN; i++) begin
-                weight_reg[i] = 0;
-            end
-        end else begin
-            if (weight_valid_i && weight_ready_o) begin
-                hbias_reg = hbias_i;
-                hscaling_reg = hscaling_i;
-                for (int j = 0; j < DATASPIN; j++) begin
-                    weight_reg[j] = weight_i[j*BITJ +: BITJ];
-                end
-            end
-        end
-    end
-
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
+            energy_ready_i = 0;
+            expected_spin_counter = 0;
             expected_energy = 0;
             expected_local_energy = 0;
         end else begin
             if (energy_valid_o && energy_ready_i) begin
+                energy_ready_i = 0;
+                expected_spin_counter = 0;
                 expected_energy = 0;
                 expected_local_energy = 0;
+            end
+            else if (expected_spin_counter == DATASPIN) begin
+                energy_ready_i = energy_ready_i;
+                expected_spin_counter = expected_spin_counter;
+                expected_energy = expected_energy;
+                expected_local_energy = expected_local_energy;
             end
             else if (weight_valid_i && weight_ready_o) begin
                 expected_local_energy = 0;
                 for (int j = 0; j < DATASPIN; j++) begin
-                    if (j == transaction_count) begin
+                    if (j == expected_spin_counter) begin
                         expected_local_energy += hbias_i * hscaling_i;
+                        $display("Bias contribution (%0d): %0d * %0d = %0d\n", j, hbias_i, hscaling_i, hbias_i * hscaling_i);
                     end else begin
-                        expected_local_energy += spin_reg[testcase_counter-1][j] ? weight_i[j] : -weight_i[j];
+                        weight_expected = $signed(weight_i[j*BITJ +: BITJ]);
+                        expected_local_energy += spin_reg[testcase_counter-1][j] ? weight_expected : -weight_expected;
+                        $display("Weight contribution (%0d): spin %0d * weight %0d = %0d\n", j, spin_reg[testcase_counter-1][j], weight_expected, spin_reg[testcase_counter-1][j] ? weight_expected : -weight_expected);
                     end
                 end
-                expected_local_energy = spin_reg[testcase_counter-1][transaction_count] ? expected_local_energy : -expected_local_energy;
+                expected_local_energy = spin_reg[testcase_counter-1][expected_spin_counter] ? expected_local_energy : -expected_local_energy;
                 expected_energy += expected_local_energy;
+                expected_spin_counter += 1;
+                if (expected_spin_counter == DATASPIN)
+                    energy_ready_i = 1;
+                else
+                    energy_ready_i = 0;
             end
         end
     end
@@ -189,7 +192,6 @@ module tb_energy_monitor;
     // Initial values for debug signal and energy ready signal
     initial begin
         debug_en_i = 0;
-        energy_ready_i = 1;
     end
 
     // Run tests
@@ -200,6 +202,7 @@ module tb_energy_monitor;
             $dumpvars(1,tb_energy_monitor);
             $dumpvars(0, dut.u_counter_ctrl);
             $dumpvars(1, dut.u_logic_ctrl);
+            $dumpvars(1, dut.u_accumulator);
         end
         // $display("Starting energy monitor testbench. Running %0d tests...", NUM_TESTS);
         // for (int i = 0; i < NUM_TESTS; i++) begin
@@ -287,6 +290,9 @@ module tb_energy_monitor;
     task automatic weight_interface();
         begin
             logic signed [BITJ-1:0] weight_temp;
+            integer spin_idx;
+
+            spin_idx = 0;
 
             weight_valid_i = 0;
             weight_i = 'd0;
@@ -311,6 +317,10 @@ module tb_energy_monitor;
                     end
                     weight_i[i*BITJ +: BITJ] = weight_temp;
                 end
+
+                weight_i[spin_idx*BITJ +: BITJ] = 'd0; // Set self-interaction weight to 0
+                spin_idx = (spin_idx + 1) % DATASPIN;
+
                 if (RANDOM_TEST) begin
                     hbias_i = $urandom();
                     hbias_i = hbias_i[BITH-1:0];
@@ -325,7 +335,7 @@ module tb_energy_monitor;
                 // Wait for handshake
                 wait (weight_ready_o);
                 transaction_count = transaction_count + 1;
-                $display("Weight transactions: %0d\n", transaction_count);
+                // $display("Weight transactions: %0d\n", transaction_count);
                 @(posedge clk_i);
                 weight_valid_i = 0;
                 // Wait before next memory operation

@@ -27,8 +27,7 @@ module counter_ctrl #(
     input logic recount_en_i,
     input logic step_en_i,
     output logic [COUNTER_BITWIDTH-1:0] q_o,
-    output logic counter_ready_o,
-    output logic counter_overflow_o
+    output logic counter_ready_o
 );
 
     step_counter #(
@@ -42,7 +41,6 @@ module counter_ctrl #(
         .recount_en_i(recount_en_i),
         .step_en_i(step_en_i),
         .q_o(q_o),
-        .overflow_o(counter_overflow_o),
         .finish_o(counter_ready_o)
     );
 

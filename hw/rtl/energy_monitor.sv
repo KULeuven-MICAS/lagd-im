@@ -52,7 +52,6 @@ module energy_monitor #(
     output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o, // output energy value
 
     input logic debug_en_i, // debug enable signal
-    output logic counter_overflow_o, // counter overflow signal for debug
     output logic accum_overflow_o // accumulator overflow signal for debug
 );
     // pipe all input signals
@@ -157,7 +156,6 @@ module energy_monitor #(
         .recount_en_i(spin_ready_pipe && spin_valid_pipe),
         .step_en_i(weight_ready_pipe && weight_valid_pipe),
         .q_o(counter_q),
-        .counter_overflow_o(counter_overflow_o), // for debug
         .counter_ready_o(counter_ready)
     );
 

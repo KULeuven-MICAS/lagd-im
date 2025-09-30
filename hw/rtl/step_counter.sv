@@ -24,22 +24,22 @@ module step_counter #(
     input logic recount_en_i,
     input logic step_en_i,
     output logic unsigned [COUNTER_BITWIDTH-1:0] q_o,
-    output logic overflow_o,
     output logic finish_o
 );
     // Internal signals
+    logic finish;
     logic unsigned [COUNTER_BITWIDTH-1:0] counter_reg;
     logic unsigned [COUNTER_BITWIDTH-1:0] counter_next;
 
     assign counter_next = q_o + 1;
 
-    assign finish_o = q_o == counter_reg;
-    assign overflow_o = (en_i && step_en_i && finish_o); // check for overflow
+    assign finish = q_o == counter_reg;
+    `FFL(finish_o, finish, en_i, {1'b0}, clk_i, rst_ni)
 
     // Sequential logic to set the counter target value
     `FFL(counter_reg, d_i, en_i && load_i, {COUNTER_BITWIDTH{1'b1}}, clk_i, rst_ni)
 
     // Sequential logic to update the counter register
-    `FFLARNC(q_o, counter_next, en_i && step_en_i && (q_o < counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
+    `FFLARNC(q_o, counter_next, en_i && step_en_i && (q_o != counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
 
 endmodule
