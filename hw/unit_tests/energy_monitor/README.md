@@ -50,9 +50,9 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 *config_valid_i:* configuration valid input
 
-*config_counter_i:* [$clog2(DATASPIN)-1 : 0] configuration counter input
+*config_counter_i:* [$clog2(DATASPIN)-1 : 0] configuration counter value
 
-*config_ready_o:* configuration ready output
+*config_ready_o:* configuration ready
 
 *spin_valid_i:* spin valid input
 
@@ -64,9 +64,9 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 *weight_i:* [DATASPIN*BITJ-1:0] weight input data
 
-*hbias_i:* signed [BITH-1:0] bias input
+*hbias_i:* [BITH-1:0] signed bias input
 
-*hscaling_i:* unsigned [SCALING_BIT-1:0] scaling factor input
+*hscaling_i:* [SCALING_BIT-1:0] unsigned scaling factor input
 
 *weight_ready_o:* weight ready output
 
@@ -74,11 +74,11 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 *energy_ready_i:* energy ready input
 
-*energy_o:* signed [ENERGY_TOTAL_BIT-1:0] energy output
+*energy_o:* [ENERGY_TOTAL_BIT-1:0] signed energy output
 
 *debug_en_i:* debug enable input
 
-*accum_overflow_o:* accumulator overflow output
+*accum_overflow_o:* accumulator overflow output (for debugging)
 
 ## Testcases
 
@@ -94,10 +94,12 @@ The following testcases have been verified (with default configration except PIP
 | MaxNegValue        | 3 successive tests, all spin, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, NUM_TEST=3 |
 | Random        | 100 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, RANDOM_TEST=1, NUM_TEST=100 |
 
-Test with pipes are tbd.
+**Test with pipes are tbd.**
 
-Test with debugging can be done later on.
+**Test with debugging can be done later on.**
 
 ## Register address
 
-config counter register
+| Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
+|:-----------------------:|:-----------:|:----------------------:|:--:|:--:|
+| config counter          | 8           | config_counter_i       | Y | TBD |
