@@ -12,7 +12,7 @@ $$
 
 In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's complement format. $\sigma_i$ is a 1-bit variable. The scaling factor $h_{sfc}$ is an unsigned integer in the power of 2.
 
-## Configurable Parameters
+## Configurable Module Parameters
 
 *BITJ:* [int] bit precision of each signed weight (default: 4)
 
@@ -28,7 +28,59 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 *PIPES:* [int] the pipeline depth at the interface (default: 1)
 
-## Testcase
+## Testbench parameters
+
+*CLKCYCLE:* clock cycle time (unit: ns)
+
+*MEM_LATENCY:* expected weight memory latency (unit: cycle) per read access
+
+*SPIN_LATENCY:* expected spin latency interval (unit: cycle) for each two *spin_valid_i*
+
+*RANDOM_TEST:* if use random generated data as inputs
+
+*NUM_TEST:* tested number of cases
+
+## Module Interface
+
+*clk_i:* clock input
+
+*rst_ni:* active-low reset input
+
+*en_i:* active-high module enable signal
+
+*config_valid_i:* configuration valid input
+
+*config_counter_i:* [$clog2(DATASPIN)-1 : 0] configuration counter input
+
+*config_ready_o:* configuration ready output
+
+*spin_valid_i:* spin valid input
+
+*spin_i:* [DATASPIN-1:0] spin input data
+
+*spin_ready_o:* spin ready output
+
+*weight_valid_i:* weight valid input
+
+*weight_i:* [DATASPIN*BITJ-1:0] weight input data
+
+*hbias_i:* signed [BITH-1:0] bias input
+
+*hscaling_i:* unsigned [SCALING_BIT-1:0] scaling factor input
+
+*weight_ready_o:* weight ready output
+
+*energy_valid_o:* energy valid output
+
+*energy_ready_i:* energy ready input
+
+*energy_o:* signed [ENERGY_TOTAL_BIT-1:0] energy output
+
+*debug_en_i:* debug enable input
+
+*accum_overflow_o:* accumulator overflow output
+
+## Testcases
 
 The following testcases have been verified (with default configration except PIPES = 0).
 
@@ -42,3 +94,10 @@ The following testcases have been verified (with default configration except PIP
 | MaxNegValue        | 3 successive tests, all spin, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, NUM_TEST=3 |
 | Random        | 100 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, RANDOM_TEST=1, NUM_TEST=100 |
 
+Test with pipes are tbd.
+
+Test with debugging can be done later on.
+
+## Register address
+
+config counter register
