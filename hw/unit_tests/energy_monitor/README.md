@@ -34,11 +34,11 @@ The following testcases have been verified (with default configration except PIP
 
 | Testcase Name | Description                                         | Input Parameters                                               |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
-| S1W1H1        | 3 successive tests, all spin, weight, bias are 1| $\sigma = [1]$, $w = [1]$, $h = [1]$, $h_{sfc} = 1$, $NUM\_TEST=3$ |
-| S0W1H1        | 3 successive tests, all spin are 0, weight/bias are 1 | $\sigma = [0]$, $w = [1]$, $h = [1]$, $h_{sfc} = 1$, $NUM\_TEST=3$ |
-| S0W0H0        | 3 successive tests, all spin are 0, weight/bias are -1 | $\sigma = [0]$, $w = [-1]$, $h = [-1]$, $h_{sfc} = 1$, $NUM\_TEST=3$ |
-| S1W0H0        | 3 successive tests, all spin, weight, bias are -1 | $\sigma = [0]$, $w = [-1]$, $h = [-1]$, $h_{sfc} = 1$, $NUM\_TEST=3$ |
-| MaxPosValue        | 3 successive tests, all spin, weight, bias are in positive maximum | $\sigma = [1]$, $w = [7]$, $h = [7]$, $h_{sfc} = 16$, $NUM\_TEST=3$ |
-| MaxNegValue        | 3 successive tests, all spin, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, $NUM\_TEST=3$ |
-| Random        | 100 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, $NUM\_TEST=100$ |
+| S1W1H1        | 3 successive tests, all spin, weight, bias are 1| $\sigma = [1]$, $w = [1]$, $h = [1]$, $h_{sfc} = 1$, NUM_TEST=3 |
+| S0W1H1        | 3 successive tests, all spin are 0, weight/bias are 1 | $\sigma = [0]$, $w = [1]$, $h = [1]$, $h_{sfc} = 1$, NUM_TEST=3 |
+| S0W0H0        | 3 successive tests, all spin are 0, weight/bias are -1 | $\sigma = [0]$, $w = [-1]$, $h = [-1]$, $h_{sfc} = 1$, NUM_TEST=3 |
+| S1W0H0        | 3 successive tests, all spin, weight, bias are -1 | $\sigma = [0]$, $w = [-1]$, $h = [-1]$, $h_{sfc} = 1$, NUM_TEST=3 |
+| MaxPosValue        | 3 successive tests, all spin, weight, bias are in positive maximum | $\sigma = [1]$, $w = [7]$, $h = [7]$, $h_{sfc} = 16$, NUM_TEST=3 |
+| MaxNegValue        | 3 successive tests, all spin, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, NUM_TEST=3 |
+| Random        | 100 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, RANDOM_TEST=1, NUM_TEST=100 |
 
