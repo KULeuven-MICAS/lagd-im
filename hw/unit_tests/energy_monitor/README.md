@@ -82,7 +82,7 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 ## Testcases
 
-The following testcases have been verified (with default configration except PIPES = 0).
+### The following testcases have been verified (with default configration except PIPES = 0).
 
 | Testcase Name | Description                                         | Input Parameters                                               |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
@@ -94,7 +94,11 @@ The following testcases have been verified (with default configration except PIP
 | MaxNegValue        | 3 successive tests, all spin, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, NUM_TEST=3 |
 | Random        | 100 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, RANDOM_TEST=1, NUM_TEST=100 |
 
-**Test with pipes are tbd.**
+### The following testcases have been verified with pipes.
+
+| Testcase Name | Description                                         | Input Parameters                                               |
+|:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
+| Random        | 100 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, RANDOM_TEST=1, NUM_TEST=100, PIPES=1 |
 
 **Test with debugging can be done later on.**
 
