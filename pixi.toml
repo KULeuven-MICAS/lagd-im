@@ -24,6 +24,7 @@ yapf = "*"
 mkdocs = "*"
 mkdocs-material = "*"
 flatdict = "*"
+git-crypt = "*"
 
 # Exstra dependencies for tclint
 importlib-metadata = "==6.8.0"
