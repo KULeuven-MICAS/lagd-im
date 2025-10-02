@@ -38,8 +38,8 @@ jobs:
                     #    - generated headers
                     #        (no license checker support for optional lines)
                     exclude_paths: |
-                        third_parties/
-                        target/syn/tech/tsmc7ff/
+                        third_parties/*
+                        target/syn/tech/tsmc7ff/*
 
     ################
     # Verible Lint #
@@ -173,5 +173,5 @@ jobs:
             -
                 name: Run Tcllint
                 run: >
-                    tclint .  --style-spaces-in-braces --style-line-length 100 
+                    tclint .  --style-spaces-in-braces --style-line-length 100
                     --exclude target/syn/tech/tsmc7ff/
