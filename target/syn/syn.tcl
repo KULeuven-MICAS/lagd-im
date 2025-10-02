@@ -55,7 +55,6 @@ file mkdir $report_path
 set flist_path ${FILE_LIST}
 set sdc_constraints_path ${SDC_CONSTRAINTS}
 
-
 #-----------------------------
 # 1 Technology setup
 #-----------------------------

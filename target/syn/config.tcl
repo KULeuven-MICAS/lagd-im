@@ -5,6 +5,7 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # Defines default values for synthesis parameters
 
+puts "--------------------------------------------------------------------------------"
 puts "Synthesis configuration parameters:"
 
 # WORK_DIR: Directory where synthesis intermediate files are stored
@@ -66,3 +67,5 @@ if { [info exists ::env(SYN_TLE)] } {
     set SYN_TLE "system_top"
 }
 puts "\tSYN_TLE: $SYN_TLE"
+
+puts "--------------------------------------------------------------------------------"
