@@ -10,7 +10,7 @@
 
 // TODO: add debug mode (execution in step)
 
-`include "./lib/registers.svh"
+`include "../lib/registers.svh"
 
 module logic_ctrl (
     input logic clk_i, // input clock signal

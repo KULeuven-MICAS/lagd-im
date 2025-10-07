@@ -11,7 +11,7 @@
 // - COUNTER_BITWIDTH: bit width of the counter
 // - PIPES: number of pipeline stages
 
-`include "./lib/registers.svh"
+`include "../lib/registers.svh"
 
 module counter_ctrl #(
     parameter int COUNTER_BITWIDTH = $clog2(256),

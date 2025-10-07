@@ -6,5 +6,5 @@ set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
     "./tb_accumulator.sv" \
-    "${HDL_PATH}/accumulator.sv" \
+    "${HDL_PATH}/energy_monitor/accumulator.sv" \
 ]

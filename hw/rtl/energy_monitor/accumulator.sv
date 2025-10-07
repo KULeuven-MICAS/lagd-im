@@ -11,7 +11,7 @@
 // -IN_WIDTH: bit width of input
 // -ACCUM_WIDTH: bit width of the accumulator
 
-`include "./lib/registers.svh"
+`include "../lib/registers.svh"
 
 module accumulator #(
     parameter int IN_WIDTH = 16, // bit width of input

@@ -16,7 +16,7 @@
 // - ENERGY_TOTAL_BIT: bit precision of total energy value
 // - PIPES: number of pipeline stages for each input path
 
-`include "./lib/registers.svh"
+`include "../lib/registers.svh"
 
 module energy_monitor #(
     parameter int BITJ = 4,

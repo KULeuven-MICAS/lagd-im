@@ -10,7 +10,7 @@
 // Parameters:
 // - DATAWIDTH: data width
 
-`include "./lib/registers.svh"
+`include "../lib/registers.svh"
 
 module vector_caching #(
     parameter int DATAWIDTH = 256

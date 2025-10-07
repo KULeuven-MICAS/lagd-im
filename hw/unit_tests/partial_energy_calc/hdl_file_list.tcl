@@ -6,6 +6,6 @@ set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
     "./tb_partial_energy_calc.sv" \
-    "${HDL_PATH}/adder_tree.sv" \
-    "${HDL_PATH}/partial_energy_calc.sv" \
+    "${HDL_PATH}/energy_monitor/adder_tree.sv" \
+    "${HDL_PATH}/energy_monitor/partial_energy_calc.sv" \
 ]
