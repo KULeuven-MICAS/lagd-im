@@ -116,17 +116,6 @@ module tb_accumulator;
         end
     end
 
-    // Enable signal test
-    
-
-    // Testcases
-    // logic signed [IN_WIDTH-1:0] data[NUM_TESTS] = '{
-    //     {IN_WIDTH'h7FFF},
-    //     {IN_WIDTH'h0001}, // overflow test
-    //     {IN_WIDTH'h7FFF}
-    //     };
-
-
     // Run tests
     initial begin
         if (`DBG) begin
@@ -134,24 +123,6 @@ module tb_accumulator;
             $dumpfile("tb_accumulator.vcd");
             $dumpvars(0,tb_accumulator);
         end
-        // $display("Starting testbench. Running %0d tests...", NUM_TESTS);
-        // for (int i = 0; i < NUM_TESTS; i++) begin
-        //     data_i = data[i];
-        //     clk_i = clk_i;
-        //     rst_ni = rst_ni;
-        //     en_i = en_i;
-        //     clear_i = clear_i;
-        //     valid_i = valid_i;
-        //     expected_output = expected_outputs[i];
-        //     #5;
-        //     assert (accum_o == expected_output)
-        //         else $fatal("Test %0d failed: expected_output='h%0h, got 'h%0h",
-        //                     i, expected_outputs[i], accum_o);
-        //     $write( "Test %0d,\t expected_output='h%0h,\t\t got 'h%0h\n",
-        //         i, expected_output, accum_o);
-        // end
-        // #10;
-        // $display("All tests (#%0d) completed successfully.", NUM_TESTS);
         #100;
         $finish;
     end
