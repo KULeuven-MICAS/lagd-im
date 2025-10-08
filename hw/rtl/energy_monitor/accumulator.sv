@@ -48,7 +48,7 @@ module accumulator #(
     end
 
     assign overflow = (en_i && valid_i && !clear_i) && 
-            ((accum_reg[ACCUM_WIDTH-1] == $signed(data_i[ACCUM_WIDTH-1])) && 
+            ((accum_reg[ACCUM_WIDTH-1] == $signed(data_i[IN_WIDTH-1])) && 
                 (accum_next[ACCUM_WIDTH-1] != accum_reg[ACCUM_WIDTH-1])); // check for overflow
     assign data_valid = en_i && valid_i && !clear_i;
 
