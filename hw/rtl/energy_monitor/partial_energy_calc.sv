@@ -24,7 +24,7 @@ module partial_energy_calc #(
     )(
     // input logic clk_i, // input clock signal
     // input logic rst_ni, // asynchornous reset, active low
-    input logic [DATASPIN-1:0] spin_i, // input spin data
+    input logic [DATASPIN-1:0] spin_vector_i, // input spin data
     input logic current_spin_i,
     input logic [DATAJ-1:0] weight_i, // input weight data
     input logic signed [BITH-1:0] hbias_i, // h bias
@@ -78,7 +78,7 @@ module partial_energy_calc #(
 
     always_comb begin: weight_mult
         for (int i = 0; i < DATASPIN; i++) begin
-            mult_out[i] = spin_i[i] ? weight_extended[i] : -weight_extended[i];
+            mult_out[i] = spin_vector_i[i] ? weight_extended[i] : -weight_extended[i];
         end
     end
 

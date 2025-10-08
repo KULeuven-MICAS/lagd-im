@@ -190,7 +190,7 @@ module energy_monitor #(
         .SCALING_BIT(SCALING_BIT),
         .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT)
     ) u_partial_energy_calc (
-        .spin_i(spin_cached),
+        .spin_vector_i(spin_cached),
         .current_spin_i(current_spin),
         .weight_i(weight_pipe),
         .hbias_i(hbias_pipe),

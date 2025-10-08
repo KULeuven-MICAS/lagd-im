@@ -19,7 +19,7 @@ module tb_partial_energy_calc;
     localparam int NUM_TESTS = 3; // number of test cases
 
     // Testbench signals
-    logic signed [DATASPIN-1:0] spin_i;
+    logic signed [DATASPIN-1:0] spin_vector_i;
     logic signed current_spin_i;
     logic signed [DATASPIN*BITJ-1:0] weight_i;
     logic signed [BITH-1:0] hbias_i;
@@ -35,7 +35,7 @@ module tb_partial_energy_calc;
         .SCALING_BIT(SCALING_BIT),
         .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT)
     ) dut (
-        .spin_i(spin_i),
+        .spin_vector_i(spin_vector_i),
         .current_spin_i(current_spin_i),
         .weight_i(weight_i),
         .hbias_i(hbias_i),
@@ -85,7 +85,7 @@ module tb_partial_energy_calc;
         end
         $display("Starting testbench. Running %0d tests...", NUM_TESTS);
         for (int i = 0; i < NUM_TESTS; i++) begin
-            spin_i = test_spin[i];
+            spin_vector_i = test_spin[i];
             current_spin_i = test_current_spin[i];
             weight_i = test_weight[i];
             hbias_i = test_hbias[i];
