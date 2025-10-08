@@ -44,12 +44,12 @@ module tb_partial_energy_calc;
     );
 
     // Testcases
-    logic signed [DATASPIN-1:0] test_spin[NUM_TESTS] = '{
+    logic [DATASPIN-1:0] test_spin[NUM_TESTS] = '{
         {256{1'd0}}, // All zeros
-        {128{1'b0, 1'b1}}, // Alternating 0 and 1
+        {128{2'b01}}, // Alternating 0 and 1
         {256{1'd1}} // All ones
         };
-    logic signed test_current_spin[NUM_TESTS] = '{
+    logic test_current_spin[NUM_TESTS] = '{
         1'b0, // mask 1st spin
         1'b0,
         1'b1
