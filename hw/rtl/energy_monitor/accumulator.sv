@@ -52,9 +52,7 @@ module accumulator #(
 
     // Combinational logic to compute the next value of the accumulator
     always_comb begin
-        if (clear_i) begin
-            accum_n = '0; // clear the accumulator
-        end else if (en_i && valid_i) begin
+        if (en_i && valid_i) begin
             accum_n = accum_reg + data_i; // accumulate the input data
         end else begin
             accum_n = accum_reg; // hold the current value
@@ -67,13 +65,13 @@ module accumulator #(
     assign data_valid = en_i && valid_i && !clear_i;
 
     // Output assignments
-    assign accum_o = accum_reg; // output the accumulated value
-    assign overflow_o = overflow_reg; // output the overflow flag
-    assign valid_o = data_valid_reg; // output the valid signal
+    assign accum_o = accum_reg;
+    assign overflow_o = overflow_reg;
+    assign valid_o = data_valid_reg;
 
     // Sequential logic
-    `FFL(accum_reg, accum_n, en_i, '0, clk_i, rst_ni)
-    `FFL(overflow_reg, overflow, en_i, '0, clk_i, rst_ni)
-    `FFL(data_valid_reg, data_valid, en_i, '0, clk_i, rst_ni)
+    `FFLARNC(accum_reg, accum_n, en_i, clear_i, '0, clk_i, rst_ni)
+    `FFLARNC(overflow_reg, overflow, en_i, clear_i, '0, clk_i, rst_ni)
+    `FFLARNC(data_valid_reg, data_valid, en_i, clear_i, '0, clk_i, rst_ni)
 
 endmodule
