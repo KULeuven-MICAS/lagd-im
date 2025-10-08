@@ -15,8 +15,6 @@ module dtformat_converter #(
     parameter int N = 256,
     parameter int DATAW = 4
 )(
-    // input logic clk_i, // input clock signal
-    // input logic rst_ni, // asynchornous reset, active low
     input logic [N-1:0][DATAW-1:0] data_2c_i, // data in 2's complement format
     output logic [N-1:0][DATAW-1:0] data_sm_o // data in signed magnitude format
 );
