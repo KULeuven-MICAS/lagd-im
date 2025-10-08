@@ -24,7 +24,7 @@ module tb_energy_monitor;
     localparam int MEM_LATENCY = 1; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
     localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
-    localparam int NUM_TESTS = 10; // number of test cases
+    localparam int NUM_TESTS = 100; // number of test cases
 
     // Testbench internal signals
     logic clk_i;
@@ -255,61 +255,6 @@ module tb_energy_monitor;
 
     assign energy_ready_i = expected_energy_ready[testcase_counter-1];
     assign expected_energy_testcase = expected_energy[testcase_counter-1];
-
-    // always_ff @(posedge clk_i or negedge rst_ni) begin
-    //     if (!rst_ni) begin
-    //         energy_ready_i = 0;
-    //     end
-    //     else begin
-    //         if (expected_energy_ready[testcase_counter-1]) begin
-    //             energy_ready_i = 1;
-    //         end else begin
-    //             energy_ready_i = 0;
-    //         end
-    //     end
-    // end
-
-    // always_ff @(posedge clk_i or negedge rst_ni) begin
-    //     if (!rst_ni) begin
-    //         energy_ready_i = 0;
-    //         expected_spin_counter = 0;
-    //         expected_energy = 0;
-    //         expected_local_energy = 0;
-    //     end else begin
-    //         if (energy_valid_o && energy_ready_i) begin
-    //             energy_ready_i = 0;
-    //             expected_spin_counter = 0;
-    //             expected_energy = 0;
-    //             expected_local_energy = 0;
-    //         end
-    //         else if (expected_spin_counter == DATASPIN) begin
-    //             energy_ready_i = energy_ready_i;
-    //             expected_spin_counter = expected_spin_counter;
-    //             expected_energy = expected_energy;
-    //             expected_local_energy = expected_local_energy;
-    //         end
-    //         else if (weight_valid_i && weight_ready_o) begin
-    //             expected_local_energy = 0;
-    //             for (int j = 0; j < DATASPIN; j++) begin
-    //                 if (j == expected_spin_counter) begin
-    //                     expected_local_energy += hbias_i * $signed({1'b0, hscaling_i});
-    //                     // $display("Bias contribution (%0d): %0d * %0d = %0d\n", j, hbias_i, hscaling_i, hbias_i * hscaling_i);
-    //                 end else begin
-    //                     weight_expected = $signed(weight_i[j*BITJ +: BITJ]);
-    //                     expected_local_energy += spin_reg[testcase_counter-1][j] ? weight_expected : -weight_expected;
-    //                     // $display("Weight contribution (%0d): spin %0d * weight %0d = %0d\n", j, spin_reg[testcase_counter-1][j], weight_expected, spin_reg[testcase_counter-1][j] ? weight_expected : -weight_expected);
-    //                 end
-    //             end
-    //             expected_local_energy = spin_reg[testcase_counter-1][expected_spin_counter] ? expected_local_energy : -expected_local_energy;
-    //             expected_energy += expected_local_energy;
-    //             expected_spin_counter += 1;
-    //             if (expected_spin_counter == DATASPIN)
-    //                 energy_ready_i = 1;
-    //             else
-    //                 energy_ready_i = 0;
-    //         end
-    //     end
-    // end
 
     // ========================================================================
     // Tasks and functions

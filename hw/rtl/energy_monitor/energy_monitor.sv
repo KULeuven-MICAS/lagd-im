@@ -15,6 +15,39 @@
 // - LOCAL_ENERGY_BIT: bit precision of partial energy value
 // - ENERGY_TOTAL_BIT: bit precision of total energy value
 // - PIPES: number of pipeline stages for each input path
+//
+// Port definitions:
+// - clk_i: input clock signal
+// - rst_ni: asynchornous reset, active low
+// - en_i: module enable signal
+// - config_valid_i: input config valid signal
+// - config_counter_i: configuration counter
+// - config_ready_o: output config ready signal
+// - spin_valid_i: input spin valid signal
+// - spin_i: input spin data
+// - spin_ready_o: output spin ready signal
+// - weight_valid_i: input weight valid signal
+// - weight_i: input weight data
+// - hbias_i: h bias
+// - hscaling_i: h scaling factor
+// - weight_ready_o: output weight ready signal
+// - energy_valid_o: output energy valid signal
+// - energy_ready_i: input energy ready signal
+// - energy_o: output energy value
+// - debug_en_i: debug enable signal
+// - accum_overflow_o: accumulator overflow signal for debug
+//
+// Case tested:
+// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPES=0
+// -- All spins are 1, all weights are +1, hbias=+1, hscaling=1, 3 same cases
+// -- All spins are 0, all weights are +1, hbias=+1, hscaling=1, 3 same cases
+// -- All spins are 0, all weights are -1, hbias=-1, hscaling=1, 3 same cases
+// -- All spins are 1, all weights are -1, hbias=-1, hscaling=1, 3 same cases
+// -- All spins are 1, all weights are +7, hbias=+7, hscaling=16, 3 same cases
+// -- All spins are 0, all weights are -7, hbias=-7, hscaling=16, 3 same cases
+// -- All spins and weights are random, hbias and hscaling are random, 100 different cases
+// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPES=1
+// -- All spins and weights are random, hbias and hscaling are random, 100 different cases
 
 `include "../lib/registers.svh"
 
@@ -29,30 +62,30 @@ module energy_monitor #(
     parameter int DATAJ = DATASPIN * BITJ,
     parameter int SPINIDX_BIT = $clog2(DATASPIN)
 )(
-    input logic clk_i, // input clock signal
-    input logic rst_ni, // asynchornous reset, active low
-    input logic en_i, // module enable signal
+    input logic clk_i,
+    input logic rst_ni,
+    input logic en_i,
 
-    input logic config_valid_i, // input config valid signal
-    input logic [SPINIDX_BIT-1:0] config_counter_i, // configuration counter
-    output logic config_ready_o, // output config ready signal
+    input logic config_valid_i,
+    input logic [SPINIDX_BIT-1:0] config_counter_i,
+    output logic config_ready_o,
 
-    input logic spin_valid_i, // input spin valid signal
-    input logic [DATASPIN-1:0] spin_i, // input spin data
-    output logic spin_ready_o, // output spin ready signal
+    input logic spin_valid_i,
+    input logic [DATASPIN-1:0] spin_i,
+    output logic spin_ready_o,
 
-    input logic weight_valid_i, // input weight valid signal
-    input logic [DATAJ-1:0] weight_i, // input weight data
-    input logic signed [BITH-1:0] hbias_i, // h bias
-    input logic unsigned [SCALING_BIT-1:0] hscaling_i, // h scaling factor
-    output logic weight_ready_o, // output weight ready signal
+    input logic weight_valid_i,
+    input logic [DATAJ-1:0] weight_i,
+    input logic signed [BITH-1:0] hbias_i,
+    input logic unsigned [SCALING_BIT-1:0] hscaling_i,
+    output logic weight_ready_o,
 
-    output logic energy_valid_o, // output energy valid signal
-    input logic energy_ready_i, // input energy ready signal
-    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o, // output energy value
+    output logic energy_valid_o,
+    input logic energy_ready_i,
+    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o,
 
-    input logic debug_en_i, // debug enable signal
-    output logic accum_overflow_o // accumulator overflow signal for debug
+    input logic debug_en_i,
+    output logic accum_overflow_o
 );
     // pipe all input signals
     logic config_valid_pipe;
@@ -168,8 +201,7 @@ module energy_monitor #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
-        .valid_i(spin_valid_pipe),
-        .ready_o(spin_ready_pipe),
+        .spin_handshake_i(spin_handshake),
         .data_i(spin_pipe),
         .data_o(spin_cached)
     );

@@ -18,14 +18,13 @@ module vector_caching #(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
-    input logic valid_i,
-    input logic ready_o,
+    input logic spin_handshake_i,
     input logic [DATAWIDTH-1:0] data_i,
     output logic [DATAWIDTH-1:0] data_o
 );
     logic [DATAWIDTH-1:0] data_cached;
     logic data_handshake;
-    assign data_handshake = en_i & valid_i & ready_o;
+    assign data_handshake = en_i & spin_handshake_i;
     assign data_o = (data_handshake) ? data_i : data_cached;
 
     `FFLARNC(data_cached, data_i, data_handshake, !en_i, 'd0, clk_i, rst_ni)

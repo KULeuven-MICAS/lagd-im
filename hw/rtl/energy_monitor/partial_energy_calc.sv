@@ -13,6 +13,17 @@
 // - DATASPIN: number of spins
 // - SCALING_BIT: number of bits of scaling factor for h
 // - LOCAL_ENERGY_BIT: bit precision of local energy value
+//
+// Port definitions:
+// - spin_vector_i: input spin data
+// - current_spin_i: current spin value
+// - weight_i: input weight data
+// - hbias_i: h bias
+// - hscaling_i: h scaling factor (must be a power of 2, including 0)
+// - energy_o: output energy value
+//
+// Case tested:
+// - None
 
 module partial_energy_calc #(
     parameter int BITJ = 4,
@@ -22,14 +33,12 @@ module partial_energy_calc #(
     parameter int LOCAL_ENERGY_BIT = 16,
     parameter int DATAJ = DATASPIN * BITJ
     )(
-    // input logic clk_i, // input clock signal
-    // input logic rst_ni, // asynchornous reset, active low
-    input logic [DATASPIN-1:0] spin_vector_i, // input spin data
+    input logic [DATASPIN-1:0] spin_vector_i,
     input logic current_spin_i,
-    input logic [DATAJ-1:0] weight_i, // input weight data
-    input logic signed [BITH-1:0] hbias_i, // h bias
-    input logic unsigned [SCALING_BIT-1:0] hscaling_i, // h scaling factor
-    output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o // output energy value
+    input logic [DATAJ-1:0] weight_i,
+    input logic signed [BITH-1:0] hbias_i,
+    input logic unsigned [SCALING_BIT-1:0] hscaling_i,
+    output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o
 );
     // Parameters
     localparam int MULTBIT = BITH + SCALING_BIT - 1; // bit width of the multiplier output

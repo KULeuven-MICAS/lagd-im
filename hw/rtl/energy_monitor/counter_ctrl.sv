@@ -10,6 +10,21 @@
 // Parameters:
 // - COUNTER_BITWIDTH: bit width of the counter
 // - PIPES: number of pipeline stages
+//
+// Port definitions:
+// - clk_i: input clock signal
+// - rst_ni: asynchronous reset, active low
+// - en_i: module enable signal
+// - config_valid_i: input config valid signal
+// - config_counter_i: configuration counter value
+// - config_ready_i: input config ready signal
+// - recount_en_i: recount enable signal
+// - step_en_i: step enable signal
+// - q_o: counter output
+// - counter_ready_o: counter ready signal
+//
+// Case tested:
+// - None
 
 `include "../lib/registers.svh"
 

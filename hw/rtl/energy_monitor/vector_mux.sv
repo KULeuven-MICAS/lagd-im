@@ -9,6 +9,16 @@
 //
 // Parameters:
 // - DATAWIDTH: data width
+// - IDX_BIT: bit width of the index
+//
+// Port definitions:
+// - en_i: enable signal
+// - data_i: input data vector
+// - idx_i: index to select the bit from the input data vector
+// - data_o: output data bit
+//
+// Case tested:
+// - None
 
 module vector_mux #(
     parameter int DATAWIDTH = 256,

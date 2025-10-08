@@ -7,32 +7,52 @@
 // Module description:
 // Logic FSM for the energy monitor module.
 //
+// Parameters:
+// - None
+//
+// Port definitions:
+// - clk_i: input clock signal
+// - rst_ni: asynchornous reset, active low
+// - en_i: module enable signal
+// - config_valid_i: input config valid signal
+// - config_ready_o: output config ready signal
+// - spin_valid_i: input spin valid signal
+// - spin_ready_o: output spin ready signal
+// - weight_valid_i: input weight valid signal
+// - weight_ready_o: output weight ready signal
+// - counter_ready_i: counter ready signal
+// - cmpt_done_i: computation done signal
+// - energy_valid_o: output energy valid signal
+// - energy_ready_i: input energy ready signal
+// - debug_en_i: debug step signal
+//
+// Case tested:
+// - None
 
-// TODO: add debug mode (execution in step)
 
 `include "../lib/registers.svh"
 
 module logic_ctrl (
-    input logic clk_i, // input clock signal
-    input logic rst_ni, // asynchornous reset, active low
-    input logic en_i, // module enable signal
+    input logic clk_i,
+    input logic rst_ni,
+    input logic en_i,
 
-    input logic config_valid_i, // input config valid signal
-    output logic config_ready_o, // output config ready signal
+    input logic config_valid_i,
+    output logic config_ready_o,
 
-    input logic spin_valid_i, // input spin valid signal
-    output logic spin_ready_o, // output spin ready signal
+    input logic spin_valid_i,
+    output logic spin_ready_o,
 
-    input logic weight_valid_i, // input weight valid signal
-    output logic weight_ready_o, // output weight ready signal
+    input logic weight_valid_i,
+    output logic weight_ready_o,
 
-    input logic counter_ready_i, // counter ready signal
-    input logic cmpt_done_i, // computation done signal
+    input logic counter_ready_i,
+    input logic cmpt_done_i,
 
-    output logic energy_valid_o, // output energy valid signal
-    input logic energy_ready_i, // input energy ready signal
+    output logic energy_valid_o,
+    input logic energy_ready_i,
 
-    input logic debug_en_i // debug step signal
+    input logic debug_en_i
 );
     // State enumeration
     typedef enum logic [1:0] {
