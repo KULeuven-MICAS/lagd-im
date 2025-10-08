@@ -5,7 +5,7 @@
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 //
 // Module description:
-// Incrimental step counter.
+// Incremental step counter.
 //
 // Parameters:
 // - COUNTER_BITWIDTH: bit width of the counter

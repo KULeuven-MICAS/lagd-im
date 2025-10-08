@@ -155,7 +155,7 @@ module tb_energy_monitor;
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile("tb_energy_monitor.vcd");
             $dumpvars(1, tb_energy_monitor);
-                #(2000 * CLKCYCLE); // In avoid of generating too large VCD files
+                #(2000 * CLKCYCLE); // To avoid generating too large VCD files
                 $display("Testbench timeout reached. Ending simulation.");
                 $finish;
         end
