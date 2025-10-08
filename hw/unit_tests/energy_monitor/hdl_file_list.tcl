@@ -7,7 +7,7 @@ set HDL_PATH ../../rtl
 set HDL_FILES [ list \
     "./tb_energy_monitor.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
-    "${HDL_PATH}/energy_monitor/lib/bp_pipe.sv" \
+    "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/energy_monitor/counter_ctrl.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
     "${HDL_PATH}/energy_monitor/step_counter.sv" \
