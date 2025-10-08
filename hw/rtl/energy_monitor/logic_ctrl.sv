@@ -58,14 +58,17 @@ module logic_ctrl (
     typedef enum logic [1:0] {
         SLEEP = 2'b00,
         IDLE = 2'b01,
-        LOAD = 2'b10,
-        COMPUTE = 2'b11
+        COMPUTE = 2'b10
     } state_t;
     state_t current_state, next_state;
 
+    logic weight_handshake;
+
+    assign weight_handshake = weight_valid_i && weight_ready_o;
+
     assign config_ready_o = (current_state == IDLE);
     assign spin_ready_o = (current_state == IDLE);
-    assign weight_ready_o = (current_state == LOAD);
+    assign weight_ready_o = (current_state == COMPUTE) && (!counter_ready_i);
     assign energy_valid_o = (current_state == COMPUTE) && counter_ready_i && cmpt_done_i;
 
     `FFL(current_state, next_state, en_i, SLEEP, clk_i, rst_ni)
@@ -86,18 +89,6 @@ module logic_ctrl (
                         next_state = IDLE; // stay in IDLE in debug mode
                     else begin
                         if (spin_valid_i && spin_ready_o)
-                            next_state = LOAD;
-                    end
-                end
-            end
-            LOAD: begin
-                if (!en_i) begin
-                    next_state = SLEEP;
-                end else begin
-                    if (debug_en_i)
-                        next_state = LOAD; // stay in LOAD in debug mode
-                    else begin
-                        if (weight_valid_i && weight_ready_o)
                             next_state = COMPUTE;
                     end
                 end
@@ -109,13 +100,13 @@ module logic_ctrl (
                     if (debug_en_i)
                         next_state = COMPUTE; // stay in COMPUTE in debug mode
                     else begin
-                        case ({energy_ready_i, counter_ready_i, cmpt_done_i})
+                        case ({energy_ready_i, counter_ready_i, weight_handshake})
                             3'b000: next_state = COMPUTE; // wait for the next cmpt_done
-                            3'b001: next_state = LOAD;
+                            3'b001: next_state = COMPUTE;
                             3'b010: next_state = COMPUTE; // wait for the next cmpt_done
                             3'b011: next_state = COMPUTE; // wait for energy_ready_i
                             3'b100: next_state = COMPUTE;
-                            3'b101: next_state = LOAD;
+                            3'b101: next_state = COMPUTE;
                             3'b110: next_state = COMPUTE; // wait for the next cmpt_done
                             3'b111: next_state = IDLE;
                             default: next_state = SLEEP;

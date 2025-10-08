@@ -188,8 +188,8 @@ module energy_monitor #(
         .config_valid_i(config_valid_pipe),
         .config_counter_i(config_counter_pipe),
         .config_ready_i(config_ready_pipe),
-        .recount_en_i(spin_ready_pipe && spin_valid_pipe),
-        .step_en_i(weight_ready_pipe && weight_valid_pipe),
+        .recount_en_i(spin_handshake),
+        .step_en_i(weight_handshake),
         .q_o(counter_q),
         .counter_ready_o(counter_ready)
     );

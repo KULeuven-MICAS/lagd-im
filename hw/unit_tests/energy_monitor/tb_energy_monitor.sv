@@ -21,7 +21,7 @@ module tb_energy_monitor;
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
-    localparam int MEM_LATENCY = 1; // latency of memories in cycles
+    localparam int MEM_LATENCY = 0; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
     localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
     localparam int NUM_TESTS = 100; // number of test cases
@@ -154,7 +154,7 @@ module tb_energy_monitor;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile("tb_energy_monitor.vcd");
-            $dumpvars(1, tb_energy_monitor);
+            $dumpvars(2, tb_energy_monitor);
                 #(2000 * CLKCYCLE); // To avoid generating too large VCD files
                 $display("Testbench timeout reached. Ending simulation.");
                 $finish;

@@ -19,7 +19,8 @@
 // - recount_en_i: recount enable signal
 // - step_en_i: step enable signal
 // - q_o: counter output
-// - finish_o: finish signal, goes high when the counter reaches the target value
+// - last_o: last signal, goes high when the counter reaches the target value
+// - finish_o: finish signal, remains high when the counter reaches the target value + 1
 //
 // Case tested:
 // - None
@@ -40,19 +41,20 @@ module step_counter #(
     output logic finish_o
 );
     // Internal signals
+    logic overflow;
     logic finish;
     logic unsigned [COUNTER_BITWIDTH-1:0] counter_reg;
-    logic unsigned [COUNTER_BITWIDTH-1:0] counter_next;
+    logic unsigned [COUNTER_BITWIDTH-1:0] counter_n;
 
-    assign counter_next = q_o + 1;
+    assign counter_n = q_o + 1;
 
-    assign finish = q_o == counter_reg;
-    `FFL(finish_o, finish, en_i, {1'b0}, clk_i, rst_ni)
+    assign finish_o = overflow;
 
     // Sequential logic to set the counter target value
     `FFL(counter_reg, d_i, en_i && load_i, {COUNTER_BITWIDTH{1'b1}}, clk_i, rst_ni)
 
     // Sequential logic to update the counter register
-    `FFLARNC(q_o, counter_next, en_i && step_en_i && (q_o != counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
+    `FFLARNC(q_o, counter_n, en_i && step_en_i && (q_o != counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
+    `FFLARNC(overflow, 1'b1, en_i && step_en_i && (q_o == counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
 
 endmodule
