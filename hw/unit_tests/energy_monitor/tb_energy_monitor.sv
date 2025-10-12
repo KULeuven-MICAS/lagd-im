@@ -24,7 +24,7 @@ module tb_energy_monitor;
     localparam int MEM_LATENCY = 0; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
     localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
-    localparam int NUM_TESTS = 100; // number of test cases
+    localparam int NUM_TESTS = 1_000_000; // number of test cases
 
     // Testbench internal signals
     logic clk_i;
@@ -49,6 +49,9 @@ module tb_energy_monitor;
 
     logic [DATASPIN-1:0] spin_reg [0:NUM_TESTS-1];
     logic signed [BITJ-1:0] weight_expected;
+    logic [DATASPIN*BITJ-1:0] weight_stored;
+    logic signed [BITH-1:0] hbias_stored;
+    logic unsigned [SCALING_BIT-1:0] hscaling_stored;
     logic expected_valid;
     logic unsigned [ $clog2(DATASPIN) : 0 ] expected_spin_counter;
     logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
@@ -56,6 +59,7 @@ module tb_energy_monitor;
     logic unsigned [31:0] testcase_counter;
     logic unsigned [ $clog2(DATASPIN)-1 : 0 ] transaction_count;
 
+    integer spin_idx;
     integer correct_count;
     integer error_count;
     integer total_count;
@@ -154,15 +158,16 @@ module tb_energy_monitor;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile("tb_energy_monitor.vcd");
+            $dumpvars(2, weight_interface);
             $dumpvars(2, tb_energy_monitor);
                 #(2000 * CLKCYCLE); // To avoid generating too large VCD files
                 $display("Testbench timeout reached. Ending simulation.");
                 $finish;
         end
         else begin
-            #(200000 * CLKCYCLE);
-            $display("Testbench timeout reached. Ending simulation.");
-            $finish;
+            // #(200000 * CLKCYCLE);
+            // $display("Testbench timeout reached. Ending simulation.");
+            // $finish;
         end
     end
 
@@ -206,20 +211,19 @@ module tb_energy_monitor;
                 for (int j = 0; j < DATASPIN; j++) begin
                     if (j == expected_spin_counter) begin
                         expected_local_energy += hbias_i * $signed({1'b0, hscaling_i});
-                        // $display("Bias contribution (%0d): %0d * %0d = %0d\n", j, hbias_i, hscaling_i, hbias_i * hscaling_i);
                     end else begin
                         weight_expected = $signed(weight_i[j*BITJ +: BITJ]);
                         expected_local_energy += spin_reg[testcase_counter-1][j] ? weight_expected : -weight_expected;
-                        // $display("Weight contribution (%0d): spin %0d * weight %0d = %0d\n", j, spin_reg[testcase_counter-1][j], weight_expected, spin_reg[testcase_counter-1][j] ? weight_expected : -weight_expected);
                     end
                 end
                 expected_local_energy = spin_reg[testcase_counter-1][expected_spin_counter] ? expected_local_energy : -expected_local_energy;
                 expected_energy += expected_local_energy;
                 expected_spin_counter += 1;
-                if (expected_spin_counter == DATASPIN)
+                if (expected_spin_counter == DATASPIN) begin
                     energy_ready_i = 1;
-                else
+                end else begin
                     energy_ready_i = 0;
+                end
             end
         end
     end
@@ -294,8 +298,6 @@ module tb_energy_monitor;
     task automatic weight_interface();
         begin
             logic signed [BITJ-1:0] weight_temp;
-            integer spin_idx;
-
             spin_idx = 0;
 
             weight_valid_i = 0;
@@ -305,48 +307,59 @@ module tb_energy_monitor;
             wait(rst_ni);
 
             forever begin
-                // Wait for config to complete if it's active
+                // Wait for config to complete
                 if (config_valid_i) begin
                     wait (!config_valid_i);
-                    @(posedge clk_i); // Wait one more cycle after config
+                    @(posedge clk_i);
                 end
-
-                // Generate and send weight data
-                weight_valid_i = 1;
+            
+                // Prepare weight data but do NOT assert yet
                 for (int i = 0; i < DATASPIN; i++) begin
-                    if (RANDOM_TEST) begin
-                        weight_temp = $urandom();
-                    end else begin
-                        weight_temp = 'b1001;
-                    end
+                    if (RANDOM_TEST) weight_temp = $urandom();
+                    else weight_temp = 'b1001;
                     weight_i[i*BITJ +: BITJ] = weight_temp;
                 end
-
-                weight_i[spin_idx*BITJ +: BITJ] = 'd0; // Set self-interaction weight to 0
-                spin_idx = (spin_idx + 1) % DATASPIN;
-
-                if (RANDOM_TEST) begin
-                    hbias_i = $urandom();
-                    hbias_i = hbias_i[BITH-1:0];
-                end else begin
-                    hbias_i = 'b1001;
-                end
+                weight_i[spin_idx*BITJ +: BITJ] = 'd0;
+            
                 if (RANDOM_TEST)
-                    hscaling_i = 1 << ($urandom() % SCALING_BIT);
+                    hbias_i = $urandom_range(0, (1<<BITH)-1);
                 else
-                    hscaling_i = 'd16;
-
-                // Wait for handshake
-                wait (weight_ready_o);
-                transaction_count = transaction_count + 1;
-                // $display("Weight transactions: %0d\n", transaction_count);
-                @(posedge clk_i);
-                weight_valid_i = 0;
-                // Wait before next memory operation
-                repeat(MEM_LATENCY) @(posedge clk_i);
+                    hbias_i = 'b1001;
+            
+                hscaling_i = RANDOM_TEST ? (1 << ($urandom() % SCALING_BIT)) : 'd16;
+            
+                // Now assert valid and wait for a handshake
+                weight_valid_i = 1;
+                do @(posedge clk_i);
+                while (!(weight_valid_i && weight_ready_o));
+            
+                // Handshake occurred here — safe to update next data next cycle
+                spin_idx = (spin_idx + 1) % DATASPIN;
+                transaction_count++;
+            
+                // Deassert valid if you want to insert latency
+                if (MEM_LATENCY > 0) begin
+                    weight_valid_i = 0;
+                    repeat(MEM_LATENCY) @(posedge clk_i);
+                end
             end
         end
     endtask
+
+    // always_ff @(posedge clk_i) begin
+    //     if (!rst_ni) begin
+    //         spin_idx <= 0;
+    //         transaction_count <= 0;
+    //     end else begin
+    //     if (weight_valid_i && weight_ready_o) begin
+    //         weight_i <= weight_stored;
+    //         hbias_i <= hbias_stored;
+    //         hscaling_i <= hscaling_stored;
+    //         spin_idx <= (spin_idx + 1) % DATASPIN;
+    //         transaction_count <= transaction_count + 1;
+    //         end
+    //     end
+    // end
 
     // ========================================================================
     // Testbench task and timer setup

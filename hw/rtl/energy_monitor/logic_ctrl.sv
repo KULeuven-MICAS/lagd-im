@@ -63,13 +63,20 @@ module logic_ctrl (
     state_t current_state, next_state;
 
     logic weight_handshake;
+    logic energy_valid_comb;
+    logic energy_valid_reg;
+    logic energy_handshake;
 
     assign weight_handshake = weight_valid_i && weight_ready_o;
+    assign energy_handshake = energy_valid_o && energy_ready_i;
 
-    assign config_ready_o = (current_state == IDLE);
-    assign spin_ready_o = (current_state == IDLE);
-    assign weight_ready_o = (current_state == COMPUTE) && (!counter_ready_i);
-    assign energy_valid_o = (current_state == COMPUTE) && counter_ready_i && cmpt_done_i;
+    assign config_ready_o = (current_state == IDLE) && !debug_en_i;
+    assign spin_ready_o = (current_state == IDLE) && !debug_en_i && (!config_valid_i);
+    assign weight_ready_o = (current_state == COMPUTE) && (!counter_ready_i) && (!debug_en_i);
+    assign energy_valid_comb = (current_state == COMPUTE) && counter_ready_i && cmpt_done_i;
+
+    `FFLARNC(energy_valid_reg, 1'b1, energy_valid_comb, energy_ready_i, 1'b0, clk_i, rst_ni)
+    assign energy_valid_o = energy_valid_comb || energy_valid_reg;
 
     `FFL(current_state, next_state, en_i, SLEEP, clk_i, rst_ni)
 
@@ -100,17 +107,10 @@ module logic_ctrl (
                     if (debug_en_i)
                         next_state = COMPUTE; // stay in COMPUTE in debug mode
                     else begin
-                        case ({energy_ready_i, counter_ready_i, weight_handshake})
-                            3'b000: next_state = COMPUTE; // wait for the next cmpt_done
-                            3'b001: next_state = COMPUTE;
-                            3'b010: next_state = COMPUTE; // wait for the next cmpt_done
-                            3'b011: next_state = COMPUTE; // wait for energy_ready_i
-                            3'b100: next_state = COMPUTE;
-                            3'b101: next_state = COMPUTE;
-                            3'b110: next_state = COMPUTE; // wait for the next cmpt_done
-                            3'b111: next_state = IDLE;
-                            default: next_state = SLEEP;
-                        endcase
+                        if (energy_handshake)
+                            next_state = IDLE;
+                        else
+                            next_state = COMPUTE;
                     end
                 end
             end

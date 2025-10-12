@@ -107,3 +107,9 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 | Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
 |:-----------------------:|:-----------:|:----------------------:|:--:|:--:|
 | config counter          | 8           | config_counter_i       | Y | TBD |
+
+
+## Further Improvement TBD
+
+- Currently one spin is calculated per cycle (totally #SPIN+1 cycles). It needs to be configured with multiple spins per cycle.
+- Currently weight fetching happens after the spin handshake. It can also happen in parallel so can save one cycle per iteration.
