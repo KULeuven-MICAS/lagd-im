@@ -6,7 +6,7 @@
 //
 // Module description:
 //
-// energy_maintainer
+// energy_fifo_maintainer
 // Maintains a small FIFO of energy totals and coordinates with a spin
 // value path to decide whether an incoming spin should be forwarded,
 // held, or deemed unnecessary ("push none") based on energy comparisons.
@@ -42,7 +42,7 @@
 `include "../lib/registers.svh"
 `include "../lib/fifo_v3.sv"
 
-module energy_maintainer #(
+module energy_fifo_maintainer #(
     parameter int DATASPIN = 256,
     parameter int SPIN_DEPTH = 2,
     parameter int ENERGY_TOTAL_BIT = 32,
