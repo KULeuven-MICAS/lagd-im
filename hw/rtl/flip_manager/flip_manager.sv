@@ -97,11 +97,11 @@ module flip_manager #(
     assign cmpt_stop_comb = cmpt_stop_i & icon_finish;
 
     // Instantiate energy maintainer
-    energy_maintainer #(
+    energy_fifo_maintainer #(
         .DATASPIN(DATASPIN),
         .SPIN_DEPTH(SPIN_DEPTH),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT)
-    ) energy_maintainer_inst (
+    ) energy_fifo_maintainer_inst (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),

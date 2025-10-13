@@ -12,6 +12,7 @@
 //
 // Following changes made by Jiacong Sun <jiacong.sun@kuleuven.be>
 // - Comment out an include line which does not exist in the project
+// - Remove the assertion lines to avoid errors during compilation
 // - Remove testmode_i signal which is a floating signal
 // - Add push_none_i signal to disable push operation when needed (pointer and status counter still update in this case)
 // - Add RESET_VALUE parameter to set the reset value of the fifo
@@ -147,7 +148,7 @@ module fifo_v3 #(
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if(~rst_ni) begin
             if (RESET_VALUE != 0) begin
-                mem_q <= {FifoDepth{1'b0, (DATA_WIDTH-1){1'b1}}};
+                mem_q <= {FifoDepth{dtype'({1'b0, {(DATA_WIDTH-1){1'b1}}})}};
             end else begin
                 mem_q <= {FifoDepth{dtype'('0)}};
             end
@@ -155,15 +156,5 @@ module fifo_v3 #(
             mem_q <= mem_n;
         end
     end
-
-`ifndef COMMON_CELLS_ASSERTS_OFF
-    `ASSERT_INIT(depth_0, DEPTH > 0, "DEPTH must be greater than 0.")
-
-    `ASSERT(full_write, full_o |-> ~push_i, clk_i, !rst_ni,
-            "Trying to push new data although the FIFO is full.")
-
-    `ASSERT(empty_read, empty_o |-> ~pop_i, clk_i, !rst_ni,
-            "Trying to pop data although the FIFO is empty.")
-`endif
 
 endmodule // fifo_v3

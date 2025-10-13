@@ -47,7 +47,7 @@ module tb_flip_manager;
 
     // Module instantiation
     flip_manager #(
-        .DATA_WIDTH(DATASPIN),
+        .DATASPIN(DATASPIN),
         .SPIN_DEPTH(SPIN_DEPTH),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
         .FLIP_ICON_DEPTH(FLIP_ICON_DEPTH),
@@ -97,9 +97,10 @@ module tb_flip_manager;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile("tb_flip_manager.vcd");
-                #(2000 * CLKCYCLE); // To avoid generating too large VCD files
-                $display("Testbench timeout reached. Ending simulation.");
-                $finish;
+            $dumpvars(2, tb_flip_manager);
+            #(2000 * CLKCYCLE); // To avoid generating too large VCD files
+            $display("Testbench timeout reached. Ending simulation.");
+            $finish;
         end
         else begin
             // #(200000 * CLKCYCLE);

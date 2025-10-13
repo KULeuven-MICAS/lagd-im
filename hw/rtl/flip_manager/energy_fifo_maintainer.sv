@@ -73,7 +73,6 @@ module energy_fifo_maintainer #(
     // Internal signals
     logic fifo_full;
     logic fifo_empty;
-    logic cmpt_status_reg;
     logic fifo_pop_comb;
     logic fifo_push_comb;
     logic fifo_push_non_comb;
@@ -93,7 +92,7 @@ module energy_fifo_maintainer #(
         .FALL_THROUGH(1'b0),
         .DATA_WIDTH(ENERGY_TOTAL_BIT),
         .DEPTH(SPIN_DEPTH),
-        .RESET_VALUE(1),
+        .RESET_VALUE(1)
     ) energy_fifo (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -126,8 +125,7 @@ module energy_fifo_maintainer #(
     assign spin_push_none_o = spin_push_none_comb | spin_push_non_reg;
 
     // Sequential logic
-    `FFLARNC(cmpt_status_reg, 1'b1, cmpt_en_i & en_i, cmpt_stop_i | flush_i, 1'b0, clk_i, rst_ni);
-    `FFL(spin_reg, spin_i, spin_handshake_p, DATASPIN{1'b0}, clk_i, rst_ni);
+    `FFL(spin_reg, spin_i, spin_handshake_p, 'd0, clk_i, rst_ni);
     `FFLARNC(spin_reg_full, 1'b1, spin_handshake_p, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
     `FFLARNC(spin_valid_reg, 1'b1, spin_valid_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
     `FFLARNC(spin_push_non_reg, 1'b1, spin_push_none_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
