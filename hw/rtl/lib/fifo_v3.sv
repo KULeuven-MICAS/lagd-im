@@ -9,13 +9,13 @@
 // specific language governing permissions and limitations under the License.
 //
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
-
+//
 // Following changes made by Jiacong Sun <jiacong.sun@kuleuven.be>
 // - Comment out an include line which does not exist in the project
 // - Remove testmode_i signal which is a floating signal
 // - Add push_none_i signal to disable push operation when needed (pointer and status counter still update in this case)
 // - Add RESET_VALUE parameter to set the reset value of the fifo
-
+//
 // `include "common_cells/assertions.svh"
 
 module fifo_v3 #(
