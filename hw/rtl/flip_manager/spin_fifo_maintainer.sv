@@ -23,7 +23,7 @@
 //     * FIFO is not empty,
 //     * completion is enabled (cmpt_en_i) or completion status latched,
 //     * and cmpt_stop_i is low.
-// - A completion status register (cmpt_status_o) is set when cmpt_en_i && en_i,
+// - A completion status register (cmpt_busy_o) is set when cmpt_en_i && en_i,
 //   and cleared by cmpt_stop_i or flush_i.
 // - flush_i is forwarded to the FIFO to clear its contents.
 // 
@@ -33,11 +33,12 @@
 // - flush_i       : flush FIFO and related state
 // - cmpt_en_i     : arm/set completion status when asserted with en_i
 // - cmpt_stop_i   : clear completion status and inhibit pops
+// - host_readout_i: allow pops regardless of completion status (for host readout)
 // - spin_push_valid_i, spin_push_i : input push handshake and data
 // - spin_push_ready_o               : push-ready from FIFO
 // - spin_pop_valid_o, spin_pop_o    : output pop handshake and data
 // - spin_pop_ready_i                : downstream ready for pop
-// - cmpt_status_o                   : latched completion status
+// - cmpt_busy_o                   : latched completion status
 // - debug_fifo_usage_o              : FIFO usage count (debug)
 //
 // Case tested:
@@ -59,6 +60,7 @@ module spin_fifo_maintainer #(
 
     input logic cmpt_en_i,
     input logic cmpt_stop_i,
+    input logic host_readout_i,
 
     input logic spin_push_valid_i,
     input logic [DATASPIN-1:0] spin_push_i,
@@ -68,16 +70,17 @@ module spin_fifo_maintainer #(
     output logic spin_pop_valid_o,
     output logic [DATASPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
-    output logic cmpt_status_o,
+    output logic cmpt_busy_o,
     output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o
 );
 
     // Internal signals
     logic fifo_full;
     logic fifo_empty;
-    logic cmpt_status_reg;
+    logic cmpt_busy_reg;
     logic fifo_pop_comb;
     logic fifo_push_comb;
+    logic within_cmpt;
 
     // FIFO to store the spins
     fifo_v3 #(
@@ -100,14 +103,16 @@ module spin_fifo_maintainer #(
     );
 
     // Control logic
-    assign spin_pop_valid_o = en_i & ~fifo_empty & (cmpt_en_i | cmpt_status_reg) & ~cmpt_stop_i;
+    // assign within_cmpt = (cmpt_en_i | cmpt_busy_reg) & ~cmpt_stop_i;
+    assign within_cmpt = cmpt_busy_reg & ~cmpt_stop_i;
+    assign spin_pop_valid_o = en_i & ~fifo_empty & (within_cmpt | host_readout_i);
     assign fifo_pop_comb = spin_pop_valid_o & spin_pop_ready_i;
     assign spin_push_ready_o = ~fifo_full & en_i;
     assign fifo_push_comb = spin_push_valid_i & spin_push_ready_o;
 
-    assign cmpt_status_o = cmpt_status_reg;
+    assign cmpt_busy_o = cmpt_busy_reg;
 
     // Sequential logic
-    `FFLARNC(cmpt_status_reg, 1'b1, cmpt_en_i & en_i, cmpt_stop_i | flush_i, 1'b0, clk_i, rst_ni);
+    `FFLARNC(cmpt_busy_reg, 1'b1, cmpt_en_i & en_i, cmpt_stop_i | flush_i, 1'b0, clk_i, rst_ni);
 
 endmodule

@@ -43,3 +43,5 @@ This module maintains the flipping operation for each trail.
 
 
 ## Further Improvement TBD
+
+- The energy fifo can not be read out from the configure channel yet.

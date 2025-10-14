@@ -4,40 +4,60 @@
 
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 //
-// Module description:
-// Flip manager module.
+// Flip manager
+// Manages spin configuration, buffering, energy-maintenance and flip engine interface.
+// Coordinates three sub-modules: energy_fifo_maintainer, spin_fifo_maintainer and flip_engine.
 //
 // Parameters:
-// - BITJ: bit precision of J
-// - BITH: bit precision of h
-// - DATASPIN: number of spins
-// - SCALING_BIT: number of bits of scaling factor for h
-// - LOCAL_ENERGY_BIT: bit precision of partial energy value
-// - ENERGY_TOTAL_BIT: bit precision of total energy value
-// - PIPES: number of pipeline stages for each input path
+// - DATASPIN: width of a spin vector (number of spins per word)
+// - SPIN_DEPTH: depth (entries) of internal spin FIFOs
+// - ENERGY_TOTAL_BIT: bit-width of the total energy value
+// - FLIP_ICON_DEPTH: depth of flip icon memory
+// - FLIP_ICON_ADDR_DEPTH: address width for flip icon memory (usually $clog2(FLIP_ICON_DEPTH))
+// - PIPES: number of pipeline stages for input paths (unused in current implementation)
 //
-// Port definitions:
-// - clk_i: input clock signal
-// - rst_ni: asynchornous reset, active low
-// - en_i: module enable signal
-// - config_valid_i: input config valid signal
-// - config_counter_i: configuration counter
-// - config_ready_o: output config ready signal
-// - spin_valid_i: input spin valid signal
-// - spin_i: input spin data
-// - spin_ready_o: output spin ready signal
-// - weight_valid_i: input weight valid signal
-// - weight_i: input weight data
-// - hbias_i: h bias
-// - hscaling_i: h scaling factor
-// - weight_ready_o: output weight ready signal
-// - energy_valid_o: output energy valid signal
-// - energy_ready_i: input energy ready signal
-// - energy_o: output energy value
-// - debug_en_i: debug enable signal
-// - accum_overflow_o: accumulator overflow signal for debug
+// Ports:
+// - clk_i, rst_ni: clock and active-low async reset
+// - en_i: module enable
+// - flush_i: synchronous flush/clear
 //
-// Case tested:
+// Completion/control interface:
+// - cmpt_en_i: completion mode enable
+// - cmpt_idle_o: completion finished indicator
+//
+// Spin configuration input (configuration or energy-maintainer driven):
+// - spin_configure_valid_i: config push valid
+// - spin_configure_i: config spin vector (DATASPIN bits)
+// - spin_configure_push_none_i: config push-none indicator
+// - spin_configure_ready_o: config ready
+//
+// Spin output (flipped spins from flip_engine):
+// - spin_pop_valid_o: popped/flipped spin valid
+// - spin_pop_o: popped/flipped spin vector (DATASPIN bits)
+// - spin_pop_ready_i: consumer ready for popped spin
+//
+// Spin input (direct spin stream for energy maintainer):
+// - spin_valid_i: incoming spin valid
+// - spin_i: incoming spin vector
+// - spin_ready_o: source ready
+//
+// Energy input (for energy FIFO maintainer):
+// - energy_valid_i: energy input valid
+// - energy_ready_o: energy input ready
+// - energy_i: signed total energy value (ENERGY_TOTAL_BIT bits)
+//
+// Flip memory interface:
+// - flip_ren_o: read enable to flip icon memory
+// - flip_raddr_o: read address to flip icon memory (FLIP_ICON_ADDR_DEPTH bits)
+// - flip_rdata_i: read data from flip icon memory (DATASPIN bits)
+//
+// Debug:
+// - debug_cmpt_stop_i: request to stop completion processing
+// - debug_flip_disable_i: disable flipping for debug
+//
+// Notes:
+// - This module arbitrates between configuration-driven pushes and energy-driven pushes into the spin FIFO.
+// - It exposes FIFO usage debug signals from submodules (debug_*_fifo_usage).
 
 `include "../lib/registers.svh"
 
@@ -55,7 +75,8 @@ module flip_manager #(
     input logic flush_i,
 
     input logic cmpt_en_i,
-    input logic cmpt_stop_i,
+    output logic cmpt_idle_o,
+    input logic host_readout_i,
 
     input logic spin_configure_valid_i,
     input logic [DATASPIN-1:0] spin_configure_i,
@@ -78,14 +99,15 @@ module flip_manager #(
     output logic [FLIP_ICON_ADDR_DEPTH-1:0] flip_raddr_o,
     input logic [DATASPIN-1:0] flip_rdata_i,
 
+    input logic debug_cmpt_stop_i,
     input logic debug_flip_disable_i
 );
     // Internal signals
-    logic cmpt_status;
+    logic cmpt_busy;
     logic [($clog2(SPIN_DEPTH))-1:0] debug_spin_fifo_usage, debug_energy_fifo_usage;
     logic spin_pop_valid_p;
     logic [DATASPIN-1:0] spin_pop_p;
-    logic spin_pop_ready_n;
+    logic spin_pop_ready_p;
     logic spin_maintainer_push;
     logic [DATASPIN-1:0] spin_maintainer_income;
     logic spin_maintainer_push_from_en;
@@ -95,18 +117,26 @@ module flip_manager #(
     logic spin_maintainer_push_none;
     logic cmpt_stop_comb;
     logic icon_finish;
+    logic fifo_full_and_idle_comb;
+    logic fifo_full_and_idle_reg;
 
     logic spin_pop_handshake;
     logic energy_handshake;
 
-    assign spin_configure_ready_o = cmpt_status ? 1'b0 : spin_maintainer_push_ready;
-    assign spin_maintainer_push = cmpt_status ? spin_maintainer_push_from_en : spin_configure_valid_i;
-    assign spin_maintainer_income = cmpt_status ? spin_maintainer_income_from_en : spin_configure_i;
-    assign spin_maintainer_push_none = cmpt_status ? spin_maintainer_push_none_from_en : spin_configure_push_none_i;
+    assign spin_configure_ready_o = spin_maintainer_push_ready & cmpt_idle_o;
+    assign spin_maintainer_push = cmpt_busy ? spin_maintainer_push_from_en : spin_configure_valid_i;
+    assign spin_maintainer_income = cmpt_busy ? spin_maintainer_income_from_en : spin_configure_i;
+    assign spin_maintainer_push_none = cmpt_busy ? spin_maintainer_push_none_from_en : spin_configure_push_none_i;
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
-    assign energy_handshake = energy_valid_i & energy_ready_o;
-    assign cmpt_stop_comb = cmpt_stop_i & icon_finish;
+    assign energy_handshake = energy_valid_i & energy_ready_o & (~cmpt_idle_o);
+    assign cmpt_stop_comb = debug_cmpt_stop_i | icon_finish;
+
+    assign cmpt_idle_o = ~cmpt_busy;
+    // assign fifo_full_and_idle_comb = ~(cmpt_busy | spin_maintainer_push_ready);
+    // assign cmpt_idle_o = fifo_full_and_idle_comb ? fifo_full_and_idle_comb : fifo_full_and_idle_reg;
+
+    // `FFLARNC(fifo_full_and_idle_reg, 1'b1, fifo_full_and_idle_comb & en_i, cmpt_en_i | flush_i, 1'b0, clk_i, rst_ni);
 
     // Instantiate energy maintainer
     energy_fifo_maintainer #(
@@ -142,14 +172,15 @@ module flip_manager #(
         .flush_i(flush_i),
         .cmpt_en_i(cmpt_en_i),
         .cmpt_stop_i(cmpt_stop_comb),
+        .host_readout_i(host_readout_i),
         .spin_push_valid_i(spin_maintainer_push),
         .spin_push_i(spin_maintainer_income),
         .spin_push_none_i(spin_maintainer_push_none),
         .spin_push_ready_o(spin_maintainer_push_ready),
         .spin_pop_valid_o(spin_pop_valid_p),
         .spin_pop_o(spin_pop_p),
-        .spin_pop_ready_i(spin_pop_ready_n),
-        .cmpt_status_o(cmpt_status),
+        .spin_pop_ready_i(spin_pop_ready_p),
+        .cmpt_busy_o(cmpt_busy),
         .debug_fifo_usage_o(debug_spin_fifo_usage)
     );
 
@@ -166,7 +197,7 @@ module flip_manager #(
         .flush_i(flush_i),
         .prev_spin_valid_i(spin_pop_valid_p),
         .prev_spin_i(spin_pop_p),
-        .prev_spin_ready_o(spin_pop_ready_n),
+        .prev_spin_ready_o(spin_pop_ready_p),
         .flipped_spin_ready_i(spin_pop_ready_i),
         .flipped_spin_o(spin_pop_o),
         .flipped_spin_valid_o(spin_pop_valid_o),

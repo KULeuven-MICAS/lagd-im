@@ -125,6 +125,7 @@ module energy_fifo_maintainer #(
     assign spin_push_none_o = spin_push_none_comb | spin_push_non_reg;
 
     // Sequential logic
+    `FFLARNC(spin_ready_o, 1'b0, spin_handshake_p, spin_handshake_n | flush_i, 1'b1, clk_i, rst_ni);
     `FFL(spin_reg, spin_i, spin_handshake_p, 'd0, clk_i, rst_ni);
     `FFLARNC(spin_reg_full, 1'b1, spin_handshake_p, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
     `FFLARNC(spin_valid_reg, 1'b1, spin_valid_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);

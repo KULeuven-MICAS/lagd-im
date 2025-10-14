@@ -117,7 +117,8 @@ module flip_engine #(
 
     assign prev_spin_ready_o = en_i & flipped_spin_ready_i;
     assign flipped_spin_valid_comb = en_i & prev_spin_handshake;
-    assign flipped_spin_valid_o = flipped_spin_valid_comb ? flipped_spin_valid_comb : flipped_spin_valid_reg;
+    assign flipped_spin_valid_o = en_i & prev_spin_valid_i;
+    // assign flipped_spin_valid_o = flipped_spin_valid_comb ? flipped_spin_valid_comb : flipped_spin_valid_reg;
 
     assign flip_ren_p = en_i & (cmpt_en_i | prev_spin_handshake) & (~flush_i) & (~debug_flip_disable_i);
     assign icon_finish_o = (flip_raddr_reg == (FLIP_ICON_DEPTH - 1)) && flip_ren_o;
@@ -125,7 +126,7 @@ module flip_engine #(
 
     // Sequential logic
     `FFLARNC(flipped_spin_reg, flipped_spin_comb, en_i & prev_spin_handshake, flush_i, 'd0, clk_i, rst_ni);
-    `FFLARNC(flipped_spin_valid_reg, 1'b1, flipped_spin_valid_comb, flush_i | (flipped_spin_handshake & (~prev_spin_handshake)), 1'b0, clk_i, rst_ni);
+    // `FFLARNC(flipped_spin_valid_reg, 1'b1, flipped_spin_valid_comb, flush_i | (flipped_spin_handshake & (~prev_spin_handshake)), 1'b0, clk_i, rst_ni);
     `FFLARNC(flip_raddr_reg, flip_raddr_n, flip_ren_o, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_ren_n, flip_ren_p, en_i, flush_i, 1'b0, clk_i, rst_ni);
     `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni);
