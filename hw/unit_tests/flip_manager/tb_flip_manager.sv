@@ -284,12 +284,12 @@ module tb_flip_manager;
                 spin_pop_ready_analog = 0;
                 transaction_count_analog_rx++;
                 // Wait for spin_valid_i to become active (analog TX response)
-                // repeat (2) @(posedge clk_i);
+                // repeat (2) @(posedge clk_i); // this causes a report of a combinational loop in the terminal, to be debugged
                 do begin
                     $display("Time=%t: spin_valid_i: %b", $time, spin_valid_i);
                     @(posedge clk_i);
                 end
-                while (!spin_valid_i);
+                while (!spin_valid_i); // this loop never ends, to be debugged
             end
         end
     endtask
