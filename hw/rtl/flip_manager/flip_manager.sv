@@ -57,6 +57,11 @@ module flip_manager #(
     input logic cmpt_en_i,
     input logic cmpt_stop_i,
 
+    input logic spin_configure_valid_i,
+    input logic [DATASPIN-1:0] spin_configure_i,
+    input logic spin_configure_push_none_i,
+    output logic spin_configure_ready_o,
+
     output logic spin_pop_valid_o,
     output logic [DATASPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
@@ -76,21 +81,28 @@ module flip_manager #(
     input logic debug_flip_disable_i
 );
     // Internal signals
-    logic debug_cmpt_status;
+    logic cmpt_status;
     logic [($clog2(SPIN_DEPTH))-1:0] debug_spin_fifo_usage, debug_energy_fifo_usage;
     logic spin_pop_valid_p;
     logic [DATASPIN-1:0] spin_pop_p;
     logic spin_pop_ready_n;
     logic spin_maintainer_push;
     logic [DATASPIN-1:0] spin_maintainer_income;
+    logic spin_maintainer_push_from_en;
+    logic [DATASPIN-1:0] spin_maintainer_income_from_en;
+    logic spin_maintainer_push_none_from_en;
     logic spin_maintainer_push_ready;
     logic spin_maintainer_push_none;
     logic cmpt_stop_comb;
     logic icon_finish;
 
-    // handshake signals
     logic spin_pop_handshake;
     logic energy_handshake;
+
+    assign spin_configure_ready_o = cmpt_status ? 1'b0 : spin_maintainer_push_ready;
+    assign spin_maintainer_push = cmpt_status ? spin_maintainer_push_from_en : spin_configure_valid_i;
+    assign spin_maintainer_income = cmpt_status ? spin_maintainer_income_from_en : spin_configure_i;
+    assign spin_maintainer_push_none = cmpt_status ? spin_maintainer_push_none_from_en : spin_configure_push_none_i;
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
     assign energy_handshake = energy_valid_i & energy_ready_o;
@@ -106,9 +118,9 @@ module flip_manager #(
         .rst_ni(rst_ni),
         .en_i(en_i),
         .flush_i(flush_i),
-        .spin_valid_o(spin_maintainer_push),
-        .spin_o(spin_maintainer_income),
-        .spin_push_none_o(spin_maintainer_push_none),
+        .spin_valid_o(spin_maintainer_push_from_en),
+        .spin_o(spin_maintainer_income_from_en),
+        .spin_push_none_o(spin_maintainer_push_none_from_en),
         .spin_ready_i(spin_maintainer_push_ready),
         .spin_valid_i(spin_valid_i),
         .spin_i(spin_i),
@@ -137,7 +149,7 @@ module flip_manager #(
         .spin_pop_valid_o(spin_pop_valid_p),
         .spin_pop_o(spin_pop_p),
         .spin_pop_ready_i(spin_pop_ready_n),
-        .debug_cmpt_status_o(debug_cmpt_status),
+        .cmpt_status_o(cmpt_status),
         .debug_fifo_usage_o(debug_spin_fifo_usage)
     );
 

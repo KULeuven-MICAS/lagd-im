@@ -23,7 +23,7 @@
 //     * FIFO is not empty,
 //     * completion is enabled (cmpt_en_i) or completion status latched,
 //     * and cmpt_stop_i is low.
-// - A completion status register (debug_cmpt_status_o) is set when cmpt_en_i && en_i,
+// - A completion status register (cmpt_status_o) is set when cmpt_en_i && en_i,
 //   and cleared by cmpt_stop_i or flush_i.
 // - flush_i is forwarded to the FIFO to clear its contents.
 // 
@@ -37,7 +37,7 @@
 // - spin_push_ready_o               : push-ready from FIFO
 // - spin_pop_valid_o, spin_pop_o    : output pop handshake and data
 // - spin_pop_ready_i                : downstream ready for pop
-// - debug_cmpt_status_o             : latched completion status (debug)
+// - cmpt_status_o                   : latched completion status
 // - debug_fifo_usage_o              : FIFO usage count (debug)
 //
 // Case tested:
@@ -68,7 +68,7 @@ module spin_fifo_maintainer #(
     output logic spin_pop_valid_o,
     output logic [DATASPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
-    output logic debug_cmpt_status_o,
+    output logic cmpt_status_o,
     output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o
 );
 
@@ -93,7 +93,7 @@ module spin_fifo_maintainer #(
         .empty_o(fifo_empty),
         .usage_o(debug_fifo_usage_o),
         .data_i(spin_push_i),
-        .push_none_i(push_none_i),
+        .push_none_i(spin_push_none_i),
         .push_i(fifo_push_comb),
         .data_o(spin_pop_o),
         .pop_i(fifo_pop_comb)
@@ -105,7 +105,7 @@ module spin_fifo_maintainer #(
     assign spin_push_ready_o = ~fifo_full & en_i;
     assign fifo_push_comb = spin_push_valid_i & spin_push_ready_o;
 
-    assign debug_cmpt_status_o = cmpt_status_reg;
+    assign cmpt_status_o = cmpt_status_reg;
 
     // Sequential logic
     `FFLARNC(cmpt_status_reg, 1'b1, cmpt_en_i & en_i, cmpt_stop_i | flush_i, 1'b0, clk_i, rst_ni);
