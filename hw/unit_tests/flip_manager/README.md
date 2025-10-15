@@ -45,3 +45,5 @@ This module maintains the flipping operation for each trail.
 ## Further Improvement TBD
 
 - The energy fifo can not be read out from the configure channel yet.
+- flush_i should be added to energy monitor as well.
+- interface should be exposed to the host so that host can take over the flipping process.
