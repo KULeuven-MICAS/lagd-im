@@ -14,4 +14,11 @@
     typedef bit [((cond) ? 0 : -1) : 0] static_assertion_at_line_`__LINE__; \
     /* verilator lint_off UNUSED */
 
+`define STATIC_ASSERT(cond, msg) \
+    /* verilator lint_off GENUNNAMED */ \
+    initial if (!(cond)) begin \
+        $error msg; \
+    end \
+    /* verilator lint_on GENUNNAMED */
+
 `endif // LAGD_PLATFORM_SVH
