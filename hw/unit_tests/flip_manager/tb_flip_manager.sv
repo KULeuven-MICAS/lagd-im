@@ -51,7 +51,7 @@ module tb_flip_manager;
     logic flip_ren_o;
     logic [$clog2(FLIP_ICON_DEPTH)-1:0] flip_raddr_o;
     logic [DATASPIN-1:0] flip_rdata_i;
-    logic debug_flip_disable_i;
+    logic flip_disable_i;
     logic host_readout_i;
     logic spin_pop_ready_host;
     logic spin_pop_ready_analog;
@@ -77,7 +77,22 @@ module tb_flip_manager;
 
     assign spin_push_handshake = spin_valid_i & spin_ready_o;
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
-    assign spin_pop_ready_i = spin_pop_ready_host ? spin_pop_ready_host : spin_pop_ready_analog;
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            spin_pop_ready_i <= 0;
+        end else begin
+            if (spin_pop_ready_host) begin
+                spin_pop_ready_i <= 1;
+            end else if (spin_pop_ready_analog) begin
+                spin_pop_ready_i <= 1;
+            end else begin
+                spin_pop_ready_i <= 0;
+            end
+        end
+    end
+
+    // assign spin_pop_ready_i = spin_pop_ready_host ? spin_pop_ready_host : spin_pop_ready_analog;
 
     initial begin
         en_i = 1;
@@ -115,7 +130,7 @@ module tb_flip_manager;
         .flip_ren_o(flip_ren_o),
         .flip_raddr_o(flip_raddr_o),
         .flip_rdata_i(flip_rdata_i),
-        .debug_flip_disable_i(debug_flip_disable_i)
+        .flip_disable_i(flip_disable_i)
     );
 
     // Clock generation
@@ -186,8 +201,8 @@ module tb_flip_manager;
                     end
                     // check FIFO content
                     if (configure_counter > 0) begin
-                        if (dut.spin_fifo_maintainer_inst.spin_fifo.mem_n[configure_counter-1] !== spin_configure_prev) begin
-                            $display("Error: FIFO content mismatch at time %t: expected %h, got %h", $time, spin_configure_prev, dut.spin_fifo_maintainer_inst.spin_fifo.mem_n[configure_counter-1]);
+                        if (dut.u_spin_fifo_maintainer.spin_fifo.mem_n[configure_counter-1] !== spin_configure_prev) begin
+                            $display("Error: FIFO content mismatch at time %t: expected %h, got %h", $time, spin_configure_prev, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[configure_counter-1]);
                             @(posedge clk_i);
                             $finish;
                         end
@@ -276,21 +291,30 @@ module tb_flip_manager;
                 @(posedge clk_i);
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
-            forever begin
-                while (spin_pop_ready_host) @(posedge clk_i); // give priority to host readout
-                spin_pop_ready_analog = 1;
-                do @(posedge clk_i);
-                while (!spin_pop_valid_o);
-                spin_pop_ready_analog = 0;
-                transaction_count_analog_rx++;
-                // Wait for spin_valid_i to become active (analog TX response)
-                // repeat (2) @(posedge clk_i); // this causes a report of a combinational loop in the terminal, to be debugged
-                do begin
-                    $display("Time=%t: spin_valid_i: %b", $time, spin_valid_i);
-                    @(posedge clk_i);
-                end
-                while (!spin_valid_i); // this loop never ends, to be debugged
-            end
+            spin_pop_ready_analog = 1;
+            // forever begin
+            //     while (spin_pop_ready_host) @(posedge clk_i); // give priority to host readout
+            //     spin_pop_ready_analog = 1;
+            //     repeat (1) @(posedge clk_i);
+            //     spin_pop_ready_analog = 0;
+            //     repeat (2) @(posedge clk_i);
+
+            //     // do begin
+            //     //     @(posedge clk_i);
+            //     //     spin_pop_ready_analog = 1;
+            //     // end
+            //     // while (!spin_pop_valid_o);
+            //     // spin_pop_ready_analog = 0;
+            //     transaction_count_analog_rx++;
+
+            //     // Wait for spin_valid_i to become active (analog TX response)
+            //     // repeat (2) @(posedge clk_i); // this causes a report of a combinational loop in the terminal, to be debugged
+            //     // do begin
+            //     //     @(posedge clk_i);
+            //     //     $display("Time=%t: spin_valid_i: %b", $time, spin_valid_i);
+            //     // end
+            //     // while (!spin_valid_i); // this loop never ends, to be debugged
+            // end
         end
     endtask
 
@@ -340,7 +364,7 @@ module tb_flip_manager;
                 readout_count_host = 0;
                 cmpt_en_i = 0;
                 debug_cmpt_stop_i = 0;
-                debug_flip_disable_i = 0;
+                flip_disable_i = 0;
                 host_readout_i = 0;
                 spin_pop_ready_host = 0;
                 @(posedge clk_i);
@@ -359,23 +383,23 @@ module tb_flip_manager;
 
                 // read out the FIFO content
                 host_readout_i = 1;
-                debug_flip_disable_i = 1; // disable flipping during host readout
+                flip_disable_i = 1; // disable flipping during host readout
                 spin_pop_ready_host = 1;
                 while (readout_count_host < SPIN_DEPTH) begin
                     do @(posedge clk_i);
                     while (!spin_pop_valid_o);
                     spin_read_out_host = spin_pop_o;
                     // check FIFO content
-                    if (spin_read_out_host !== dut.spin_fifo_maintainer_inst.spin_fifo.mem_n[readout_count_host]) begin
+                    if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host]) begin
                         // note: this check fails if SPIN_DEPTH % DATASPIN != 0
-                        $display("Error: Host readout FIFO content mismatch at time %t: expected %h, got %h", $time, dut.spin_fifo_maintainer_inst.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
+                        $display("Error: Host readout FIFO content mismatch at time %t: expected %h, got %h", $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
                             @(posedge clk_i);
                             $finish;
                     end
                     readout_count_host++;
                 end
                 host_readout_i = 0;
-                debug_flip_disable_i = 0;
+                flip_disable_i = 0;
                 spin_pop_ready_host = 0;
                 readout_count_host = 0;
                 cmpt_en_i = 0;
