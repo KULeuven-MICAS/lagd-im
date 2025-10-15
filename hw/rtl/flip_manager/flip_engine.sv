@@ -12,7 +12,7 @@
 //   and for output flipped spins (flipped_spin_*).
 // - Stream flip icons from a read-port (flip_raddr_o / flip_rdata_i) and expose
 //   a completion indicator when the address space has been exhausted (icon_finish_o).
-// - Support a debug bypass (debug_flip_disable_i) that forwards prev_spin_i
+// - Support a debug bypass (flip_disable_i) that forwards prev_spin_i
 //   unchanged to flipped_spin_o and disables icon reads.
 //
 // Parameters:
@@ -25,7 +25,7 @@
 //   completes, the module produces a flipped spin on flipped_spin_o with a corresponding
 //   flipped_spin_valid_o valid result. Downstream acceptance is governed by
 //   flipped_spin_ready_i.
-// - If debug_flip_disable_i is high the module bypasses the XOR and forwards
+// - If flip_disable_i is high the module bypasses the XOR and forwards
 //   prev_spin_i directly to the output; flip-icon reads are inhibited.
 // - flip icons are fetched from the external memory via flip_ren_o / flip_raddr_o.
 //   flip_raddr_reg increments on each acknowledged read; it wraps to zero when it
@@ -33,7 +33,7 @@
 //   read (flip_ren_o while flip_raddr_reg == FLIP_ICON_DEPTH-1).
 // - flip reads are enabled (flip_ren_p -> flip_ren_o) when en_i is set and either
 //   cmpt_en_i is asserted or a new input spin handshake occurs, provided flush_i
-//   and debug_flip_disable_i are not asserted.
+//   and flip_disable_i are not asserted.
 // - flush_i clears internal registered state and inhibits activity.
 //
 // Ports (summary):
@@ -51,7 +51,7 @@
 // - flip_raddr_o          : read address to flip-icon memory
 // - flip_rdata_i          : read data from flip-icon memory
 // - icon_finish_o         : asserted when final flip-icon entry is read
-// - debug_flip_disable_i  : bypass flipping and inhibit icon reads
+// - flip_disable_i  : bypass flipping and inhibit icon reads
 //
 // Notes:
 // - Internal state (flipped data, valid flag, read address, and a registered
@@ -86,7 +86,7 @@ module flip_engine #(
 
     output logic icon_finish_o,
 
-    input logic debug_flip_disable_i
+    input logic flip_disable_i
 );
 
     // Internal signals
@@ -104,7 +104,7 @@ module flip_engine #(
     logic [DATASPIN-1:0] flip_rdata_reg;
 
     // Data logic
-    assign flipped_spin_comb = debug_flip_disable_i ? prev_spin_i : (prev_spin_i ^ flip_icon);
+    assign flipped_spin_comb = flip_disable_i ? prev_spin_i : (prev_spin_i ^ flip_icon);
     assign flipped_spin_o = (en_i & prev_spin_handshake) ? flipped_spin_comb : flipped_spin_reg;
 
     assign flip_raddr_n = (flip_raddr_reg == (FLIP_ICON_DEPTH - 1)) ? 'd0 : (flip_raddr_reg + 1'b1);
@@ -116,11 +116,11 @@ module flip_engine #(
     assign flipped_spin_handshake = flipped_spin_valid_o && flipped_spin_ready_i;
 
     assign prev_spin_ready_o = en_i & flipped_spin_ready_i;
-    assign flipped_spin_valid_comb = en_i & prev_spin_handshake;
+    // assign flipped_spin_valid_comb = en_i & prev_spin_handshake;
     assign flipped_spin_valid_o = en_i & prev_spin_valid_i;
     // assign flipped_spin_valid_o = flipped_spin_valid_comb ? flipped_spin_valid_comb : flipped_spin_valid_reg;
 
-    assign flip_ren_p = en_i & (cmpt_en_i | prev_spin_handshake) & (~flush_i) & (~debug_flip_disable_i);
+    assign flip_ren_p = en_i & (cmpt_en_i | prev_spin_handshake) & (~flush_i) & (~flip_disable_i);
     assign icon_finish_o = (flip_raddr_reg == (FLIP_ICON_DEPTH - 1)) && flip_ren_o;
     assign flip_ren_o = flip_ren_p;
 
