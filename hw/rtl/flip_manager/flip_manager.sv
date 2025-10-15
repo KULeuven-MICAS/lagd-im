@@ -53,7 +53,7 @@
 //
 // Debug:
 // - debug_cmpt_stop_i: request to stop completion processing
-// - debug_flip_disable_i: disable flipping for debug
+// - flip_disable_i: disable flipping
 //
 // Notes:
 // - This module arbitrates between configuration-driven pushes and energy-driven pushes into the spin FIFO.
@@ -100,7 +100,7 @@ module flip_manager #(
     input logic [DATASPIN-1:0] flip_rdata_i,
 
     input logic debug_cmpt_stop_i,
-    input logic debug_flip_disable_i
+    input logic flip_disable_i
 );
     // Internal signals
     logic cmpt_busy;
@@ -143,7 +143,7 @@ module flip_manager #(
         .DATASPIN(DATASPIN),
         .SPIN_DEPTH(SPIN_DEPTH),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT)
-    ) energy_fifo_maintainer_inst (
+    ) u_energy_fifo_maintainer (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
@@ -165,7 +165,7 @@ module flip_manager #(
     spin_fifo_maintainer #(
         .SPIN_DEPTH(SPIN_DEPTH),
         .DATASPIN(DATASPIN)
-    ) spin_fifo_maintainer_inst (
+    ) u_spin_fifo_maintainer (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
@@ -189,7 +189,7 @@ module flip_manager #(
         .DATASPIN(DATASPIN),
         .FLIP_ICON_DEPTH(FLIP_ICON_DEPTH),
         .FLIP_ICON_ADDR_DEPTH(FLIP_ICON_ADDR_DEPTH)
-    ) flip_engine_inst (
+    ) u_flip_engine (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
@@ -205,7 +205,7 @@ module flip_manager #(
         .flip_raddr_o(flip_raddr_o),
         .flip_rdata_i(flip_rdata_i),
         .icon_finish_o(icon_finish),
-        .debug_flip_disable_i(debug_flip_disable_i)
+        .flip_disable_i(flip_disable_i)
     );
 
 endmodule
