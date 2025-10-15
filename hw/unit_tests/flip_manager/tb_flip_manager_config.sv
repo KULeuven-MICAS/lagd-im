@@ -46,7 +46,7 @@ module tb_flip_manager;
     logic flip_ren_o;
     logic [$clog2(FLIP_ICON_DEPTH)-1:0] flip_raddr_o;
     logic [DATASPIN-1:0] flip_rdata_i;
-    logic debug_flip_disable_i;
+    logic flip_disable_i;
     logic host_readout_i;
 
     logic configure_test_done;
@@ -63,7 +63,7 @@ module tb_flip_manager;
         energy_valid_i = 0;
         energy_i = '0;
         flip_rdata_i = '0;
-        debug_flip_disable_i = 0;
+        flip_disable_i = 0;
     end
 
     // Module instantiation
@@ -99,7 +99,7 @@ module tb_flip_manager;
         .flip_ren_o(flip_ren_o),
         .flip_raddr_o(flip_raddr_o),
         .flip_rdata_i(flip_rdata_i),
-        .debug_flip_disable_i(debug_flip_disable_i)
+        .flip_disable_i(flip_disable_i)
     );
 
     // Clock generation
