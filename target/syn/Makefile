@@ -12,7 +12,7 @@ SYN_ARGS ?= --target syn
 
 TECH ?= tsmc7ff
 
-.PHONY: all clean gen-sram
+.PHONY: all clean tech
 
 all: inputs/lagd-flist.tcl gen-sram
 
@@ -24,4 +24,4 @@ tech:
 
 clean:
 	rm -f inputs/lagd-flist.tcl
-	$(MAKE) -C $(SRAM_MAKE_DIR) all
+	$(MAKE) -C ./tech/$(TECH) clean
