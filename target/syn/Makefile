@@ -8,7 +8,7 @@ PROJECT_ROOT := $(shell realpath ../../)
 include $(PROJECT_ROOT)/common.mk
 
 SYN_TOOL ?= synopsys
-SYN_ARGS ?= --target syn
+SYN_ARGS ?= --target syn --target tech_cells_generic_exclude_tc_sram
 
 TECH ?= tsmc7ff
 

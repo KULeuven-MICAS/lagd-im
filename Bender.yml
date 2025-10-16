@@ -18,9 +18,13 @@ export_include_dirs:
   - hw/rtl/include
 
 sources:
-  - hw/rtl/lagd_pkg.sv
-  - hw/rtl/lagd_mem_pkg.sv
-  - hw/rtl/lagd_soc.sv
+  - target: all(tech_cells_generic_exclude_tc_sram)
+    files:
+    - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
+  - files:
+    - hw/rtl/lagd_pkg.sv
+    - hw/rtl/lagd_mem_pkg.sv
+    - hw/rtl/lagd_soc.sv
 
 #  - target: any(simulation, test)
 #    files:
