@@ -59,7 +59,7 @@ set sdc_constraints_path ${SDC_CONSTRAINTS}
 # 1 Technology setup
 #-----------------------------
 
-source tech/${TECH_NODE}/setup.tcl
+source tech/${TECH_NODE}/${TECH_NODE}-setup.tcl
 
 #-----------------------------
 
