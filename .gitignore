@@ -218,3 +218,5 @@ transcript
 !.pixi/config.toml
 .bender/*
 .opt/
+
+.svf

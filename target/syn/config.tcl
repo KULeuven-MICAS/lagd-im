@@ -64,7 +64,7 @@ puts "\tTECH_NODE: $TECH_NODE"
 if { [info exists ::env(SYN_TLE)] } {
     set SYN_TLE $::env(SYN_TLE)
 } else {
-    set SYN_TLE "system_top"
+    set SYN_TLE "lagd_soc"
 }
 puts "\tSYN_TLE: $SYN_TLE"
 
