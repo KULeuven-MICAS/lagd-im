@@ -1,3 +1,9 @@
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+
 #-----------------------------
 # Set design rules
 #-----------------------------
@@ -10,7 +16,7 @@ set_max_fanout 32 [current_design]
 
 # Core clock ------------------------------------------------------------------------
 set core_clock_period 2.0
-set core_clock_period_half [expr $core_clock_period / 2.0]
+set core_clock_period_half [expr {$core_clock_period / 2.0}]
 create_clock [get_pins lagd_soc/clk_i] \
     -period $core_clock_period -name CORE_CLK -waveform "0 $core_clock_period_half"
 
@@ -19,33 +25,33 @@ create_clock [get_pins lagd_soc/clk_i] \
 # ------------------------------------------------------------------------------------
 # JTAG clock -------------------------------------------------------------------------
 set jtag_clock_period 6.0
-set jtag_clock_period_half [expr $jtag_clock_period / 2.0]
+set jtag_clock_period_half [expr {$jtag_clock_period / 2.0}]
 create_clock [get_ports pad_jtag_tck_i] \
     -period $jtag_clock_period -name JTAG_CLK -waveform "0 $jtag_clock_period_half"
 # ------------------------------------------------------------------------------------
 # SPI clock --------------------------------------------------------------------------
 set spi_clock_period 6.0
-set spi_clock_period_half [expr $spi_clock_period / 2.0]
+set spi_clock_period_half [expr {$spi_clock_period / 2.0}]
 create_clock [get_ports pad_spis_sck_i] \
     -period $spi_clock_period -name SPI_CLK -waveform "0 $spi_clock_period_half"
 # ------------------------------------------------------------------------------------
 # VIRTUTAL clock ---------------------------------------------------------------------
 set virt_clock_period 10.0
-set virt_clock_period_half [expr $virt_clock_period / 2.0]
-create_clock -period $virt_clock_period  -name VIRT_CLK -waveform "0 $virt_clock_period_half"
+set virt_clock_period_half [expr {$virt_clock_period / 2.0}]
+create_clock -period $virt_clock_period -name VIRT_CLK -waveform "0 $virt_clock_period_half"
 # ------------------------------------------------------------------------------------
 
 #-----------------------------
 # Setup and hold time uncertainties
 #-----------------------------
 set_clock_uncertainty 0.10 -setup [get_clocks CORE_CLK]
-set_clock_uncertainty 0.05 -hold  [get_clocks CORE_CLK]
+set_clock_uncertainty 0.05 -hold [get_clocks CORE_CLK]
 
 set_clock_uncertainty 0.10 -setup [get_clocks JTAG_CLK]
-set_clock_uncertainty 0.05 -hold  [get_clocks JTAG_CLK]
+set_clock_uncertainty 0.05 -hold [get_clocks JTAG_CLK]
 
 set_clock_uncertainty 0.10 -setup [get_clocks SPI_CLK]
-set_clock_uncertainty 0.05 -hold  [get_clocks SPI_CLK]
+set_clock_uncertainty 0.05 -hold [get_clocks SPI_CLK]
 
 #-----------------------------
 # Clock transition
@@ -78,37 +84,37 @@ set input_delay_denum 10.0
 set output_delay_denum 10.0
 
 # JTAG assignments
-set jtag_clk_input_delay  [expr $jtag_clock_period / $input_delay_denum] 
-set jtag_clk_output_delay [expr $jtag_clock_period / $output_delay_denum]
+set jtag_clk_input_delay [expr {$jtag_clock_period / $input_delay_denum}]
+set jtag_clk_output_delay [expr {$jtag_clock_period / $output_delay_denum}]
 
-set_input_delay  -max $jtag_clk_input_delay  -clock JTAG_CLK  [get_ports pad_jtag_*_i]
-set_output_delay -max $jtag_clk_output_delay -clock JTAG_CLK  [get_ports pad_jtag_*_o]
+set_input_delay -max $jtag_clk_input_delay -clock JTAG_CLK [get_ports pad_jtag_*_i]
+set_output_delay -max $jtag_clk_output_delay -clock JTAG_CLK [get_ports pad_jtag_*_o]
 
 # SPI assignments
-set spi_clk_input_delay  [expr $spi_clock_period / $input_delay_denum] 
-set spi_clk_output_delay [expr $spi_clock_period / $output_delay_denum]
+set spi_clk_input_delay [expr {$spi_clock_period / $input_delay_denum}]
+set spi_clk_output_delay [expr {$spi_clock_period / $output_delay_denum}]
 
-set_input_delay   -max $spi_clk_input_delay   -clock SPI_CLK  [get_ports pad_spis_csb_i]
-set_input_delay   -max $spi_clk_input_delay   -clock SPI_CLK  [get_ports pad_spis_sd_io]
-set_output_delay  -max $spi_clk_output_delay  -clock SPI_CLK  [get_ports pad_spis_sd_io]
+set_input_delay -max $spi_clk_input_delay -clock SPI_CLK [get_ports pad_spis_csb_i]
+set_input_delay -max $spi_clk_input_delay -clock SPI_CLK [get_ports pad_spis_sd_io]
+set_output_delay -max $spi_clk_output_delay -clock SPI_CLK [get_ports pad_spis_sd_io]
 
 # Virtual clocks
 # These go through synchronizers anyway
 # Although timing won't be checked after all
-set virt_clk_input_delay  [expr $virt_clock_period / $input_delay_denum] 
-set virt_clk_output_delay [expr $virt_clock_period / $output_delay_denum]
+set virt_clk_input_delay [expr {$virt_clock_period / $input_delay_denum}] 
+set virt_clk_output_delay [expr {$virt_clock_period / $output_delay_denum}]
 
-set_input_delay  -max $virt_clk_input_delay    -clock VIRT_CLK  [get_ports pad_uart_*i]
-set_output_delay -max $virt_clk_output_delay   -clock VIRT_CLK  [get_ports pad_uart_*o]
+set_input_delay -max $virt_clk_input_delay -clock VIRT_CLK [get_ports pad_uart_*i]
+set_output_delay -max $virt_clk_output_delay -clock VIRT_CLK [get_ports pad_uart_*o]
 
-set_input_delay  -max $virt_clk_input_delay    -clock VIRT_CLK  [get_ports pad_rtc_i]
+set_input_delay -max $virt_clk_input_delay -clock VIRT_CLK [get_ports pad_rtc_i]
 
 # Jtag ports are also asynchronous but specify completely here
 # This is well controlled from the outside not within
-set_input_delay  -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_trst_ni]
-set_input_delay  -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_tms_i]
-set_input_delay  -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_tdi_i]
-set_output_delay -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_tdo_o]
+set_input_delay -max $virt_clk_output_delay -clock VIRT_CLK [get_ports pad_jtag_trst_ni]
+set_input_delay -max $virt_clk_output_delay -clock VIRT_CLK [get_ports pad_jtag_tms_i]
+set_input_delay -max $virt_clk_output_delay -clock VIRT_CLK [get_ports pad_jtag_tdi_i]
+set_output_delay -max $virt_clk_output_delay -clock VIRT_CLK [get_ports pad_jtag_tdo_o]
 
 #-----------------------------
 # Debug false paths
