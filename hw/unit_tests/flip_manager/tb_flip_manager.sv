@@ -292,29 +292,19 @@ module tb_flip_manager;
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
             spin_pop_ready_analog = 1;
-            // forever begin
-            //     while (spin_pop_ready_host) @(posedge clk_i); // give priority to host readout
-            //     spin_pop_ready_analog = 1;
-            //     repeat (1) @(posedge clk_i);
-            //     spin_pop_ready_analog = 0;
-            //     repeat (2) @(posedge clk_i);
+            forever begin
+                while (spin_pop_ready_host) @(posedge clk_i); // give priority to host readout
+                do begin
+                    spin_pop_ready_analog = 1;
+                    @(posedge clk_i);
+                end
+                while (!spin_pop_valid_o);
+                spin_pop_ready_analog = 0;
+                transaction_count_analog_rx++;
 
-            //     // do begin
-            //     //     @(posedge clk_i);
-            //     //     spin_pop_ready_analog = 1;
-            //     // end
-            //     // while (!spin_pop_valid_o);
-            //     // spin_pop_ready_analog = 0;
-            //     transaction_count_analog_rx++;
-
-            //     // Wait for spin_valid_i to become active (analog TX response)
-            //     // repeat (2) @(posedge clk_i); // this causes a report of a combinational loop in the terminal, to be debugged
-            //     // do begin
-            //     //     @(posedge clk_i);
-            //     //     $display("Time=%t: spin_valid_i: %b", $time, spin_valid_i);
-            //     // end
-            //     // while (!spin_valid_i); // this loop never ends, to be debugged
-            // end
+                // Wait for spin_valid_i to become active (analog TX response)
+                wait(spin_valid_i);
+            end
         end
     endtask
 
