@@ -83,3 +83,53 @@ set jtag_clk_output_delay [expr $jtag_clock_period / $output_delay_denum]
 
 set_input_delay  -max $jtag_clk_input_delay  -clock JTAG_CLK  [get_ports pad_jtag_*_i]
 set_output_delay -max $jtag_clk_output_delay -clock JTAG_CLK  [get_ports pad_jtag_*_o]
+
+# SPI assignments
+set spi_clk_input_delay  [expr $spi_clock_period / $input_delay_denum] 
+set spi_clk_output_delay [expr $spi_clock_period / $output_delay_denum]
+
+set_input_delay   -max $spi_clk_input_delay   -clock SPI_CLK  [get_ports pad_spis_csb_i]
+set_input_delay   -max $spi_clk_input_delay   -clock SPI_CLK  [get_ports pad_spis_sd_io]
+set_output_delay  -max $spi_clk_output_delay  -clock SPI_CLK  [get_ports pad_spis_sd_io]
+
+# Virtual clocks
+# These go through synchronizers anyway
+# Although timing won't be checked after all
+set virt_clk_input_delay  [expr $virt_clock_period / $input_delay_denum] 
+set virt_clk_output_delay [expr $virt_clock_period / $output_delay_denum]
+
+set_input_delay  -max $virt_clk_input_delay    -clock VIRT_CLK  [get_ports pad_uart_*i]
+set_output_delay -max $virt_clk_output_delay   -clock VIRT_CLK  [get_ports pad_uart_*o]
+
+set_input_delay  -max $virt_clk_input_delay    -clock VIRT_CLK  [get_ports pad_rtc_i]
+
+# Jtag ports are also asynchronous but specify completely here
+# This is well controlled from the outside not within
+set_input_delay  -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_trst_ni]
+set_input_delay  -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_tms_i]
+set_input_delay  -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_tdi_i]
+set_output_delay -max $virt_clk_output_delay  -clock VIRT_CLK  [get_ports pad_jtag_tdo_o]
+
+#-----------------------------
+# Debug false paths
+#-----------------------------
+
+# Add false path on async inputs #TODO
+# 
+
+
+#-----------------------------
+# Set don't touch
+#-----------------------------
+
+# Remove optimizations on some blocks
+
+#-----------------------------
+# Reset false paths
+#-----------------------------
+
+#-----------------------------
+# Don't use cells
+# Use carefully, but this was cherry-picked
+# for correct purposes
+#-----------------------------
