@@ -10,7 +10,7 @@ include $(PROJECT_ROOT)/common.mk
 SYN_TOOL ?= synopsys
 SYN_ARGS += -t syn # General synthesis - local 
 SYN_ARGS += -t tech_cells_generic_exclude_tc_sram # Integrate SRAM macros
-SYN_ARGS ++ -t rtl -t cva6 -t cv64a6_imafdchsclic_sv39_wb # Targets needed by Cheshire (sim)
+SYN_ARGS += -t rtl -t cva6 -t cv64a6_imafdchsclic_sv39_wb # Targets needed by Cheshire (sim)
 
 TECH ?= tsmc7ff
 
