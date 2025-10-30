@@ -35,18 +35,18 @@ package lagd_pkg;
 
     function automatic lagd_slv_idx_map_t gen_lagd_slv_idx_map(lagd_slv_idx_e IdxMap);
         lagd_slv_idx_map_t idx_map;
+        int unsigned idx;
         // Map slave IDs to cores
         // Slave ID 0 is reserved for L2 memory
         idx_map[IdxMap.L2_MEM] = IdxMap.L2_MEM; // L2 memory
         // Slave ID 1 is reserved for CVA6 stack memory
         idx_map[IdxMap.STACK_MEM] = IdxMap.STACK_MEM; // CVA6 stack memory
         // cores start from ID 2
-        int unsigned idx;
         for (int i = 0; i <= `NUM_ISING_CORES; i++) begin
             idx = IdxMap.ISING_CORES_BASE + i;
-            map[idx] = idx;
+            idx_map[idx] = idx;
         end
-        return map;
+        return idx_map;
     endfunction : gen_lagd_slv_idx_map
 
     localparam lagd_slv_idx_map_t LagdSlvIdxMap = gen_lagd_slv_idx_map(LagdSlvIdxEnum);
@@ -57,12 +57,12 @@ package lagd_pkg;
 
     function automatic lagd_slv_addr_map_t gen_lagd_slv_start_addr(lagd_slv_idx_e Idx);
         lagd_slv_addr_map_t addr_map;
+        int unsigned idx;
         // L2 memory
         addr_map[Idx.L2_MEM] = `L2_MEM_BASE_ADDR;
         // CVA6 stack memory
         addr_map[Idx.STACK_MEM] = `STACK_BASE_ADDR;
         // Ising cores
-        int unsigned idx;
         for (int i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = Idx.ISING_CORES_BASE + i;
             addr_map[idx] = `IC_MEM_BASE_ADDR + (i)*`IC_L1_MEM_LIMIT - 1;
@@ -72,6 +72,7 @@ package lagd_pkg;
 
     function automatic lagd_slv_addr_map_t gen_lagd_slv_end_addr(lagd_slv_idx_e Idx);
         lagd_slv_addr_map_t addr_map;
+        int unsigned idx;
         // L2 memory
         addr_map[Idx.L2_MEM] = `L2_MEM_BASE_ADDR + `L2_MEM_SIZE_B - 1;
         // CVA6 stack memory
@@ -92,7 +93,7 @@ package lagd_pkg;
     // LAGD Regs index map /////////////////////////////////////
 
     typedef struct packed {
-        cheshire_pkg::byte_bt ISING_CORES_BASE
+        cheshire_pkg::byte_bt ISING_CORES_BASE;
     } lagd_slv_idx_e;
     
     localparam lagd_slv_idx_e LagdRegIdxEnum = '{
@@ -112,7 +113,7 @@ package lagd_pkg;
         return map;
     endfunction : gen_lagd_slv_idx_map
 
-    localparam lagd_slv_idx_map_t LagdSlvIdxMap = gen_lagd_slv_idx_map(LagdRegIdxEnum);
+    localparam lagd_slv_idx_map_t LagdRegIdxMap = gen_lagd_reg_idx_map(LagdRegIdxEnum);
     ////////////////////////////////////////////////////////////
 
     // LAGD Regs address map ///////////////////////////////////
