@@ -94,9 +94,9 @@ package lagd_pkg;
 
     typedef struct packed {
         cheshire_pkg::byte_bt ISING_CORES_BASE;
-    } lagd_slv_idx_e;
+    } lagd_reg_idx_e;
     
-    localparam lagd_slv_idx_e LagdRegIdxEnum = '{
+    localparam lagd_reg_idx_e LagdRegIdxEnum = '{
         ISING_CORES_BASE: 0
     };
 
