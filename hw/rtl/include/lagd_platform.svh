@@ -17,7 +17,7 @@
 `define STATIC_ASSERT(cond, msg) \
     /* verilator lint_off GENUNNAMED */ \
     initial if (!(cond)) begin \
-        $error msg; \
+        $error(msg); \
     end \
     /* verilator lint_on GENUNNAMED */
 
