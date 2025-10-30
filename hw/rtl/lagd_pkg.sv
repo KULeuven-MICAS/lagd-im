@@ -20,9 +20,9 @@ package lagd_pkg;
     // LAGD AXI index map /////////////////////////////////////
     
     typedef struct packed {
-        cheshire_pkg::byte_bt L2_MEM,
-        cheshire_pkg::byte_bt STACK_MEM, 
-        cheshire_pkg::byte_bt ISING_CORES_BASE
+        cheshire_pkg::byte_bt L2_MEM;
+        cheshire_pkg::byte_bt STACK_MEM; 
+        cheshire_pkg::byte_bt ISING_CORES_BASE;
     } lagd_slv_idx_e;
     
     localparam lagd_slv_idx_e LagdSlvIdxEnum = '{
