@@ -108,12 +108,12 @@ package lagd_pkg;
         int unsigned idx;
         for (int i = 0; i <= `NUM_ISING_CORES; i++) begin
             idx = IdxMap.ISING_CORES_BASE + i;
-            map[idx] = idx;
+            idx_map[idx] = idx;
         end
-        return map;
-    endfunction : gen_lagd_slv_idx_map
+        return idx_map;
+    endfunction : gen_lagd_reg_idx_map
 
-    localparam lagd_slv_idx_map_t LagdRegIdxMap = gen_lagd_reg_idx_map(LagdRegIdxEnum);
+    localparam lagd_reg_idx_map_t LagdRegIdxMap = gen_lagd_reg_idx_map(LagdRegIdxEnum);
     ////////////////////////////////////////////////////////////
 
     // LAGD Regs address map ///////////////////////////////////
@@ -149,9 +149,9 @@ package lagd_pkg;
     function automatic cheshire_pkg::cheshire_cfg_t gen_cheshire_cfg();
         cheshire_pkg::cheshire_cfg_t cfg = cheshire_pkg::DefaultCfg;
         // CVA6 parameters
-        cfg.Cva6RASDepth = ariane_pkg::ArianeDefaultCfg.RASDepth;
-        cfg.Cva6BTBEntries = ariane_pkg::ArianeDefaultCfg.BTBEntries;
-        cfg.Cva6BHTEntries = ariane_pkg::ArianeDefaultCfg.BHTEntries;
+        //cfg.Cva6RASDepth = ariane_pkg::ArianeDefaultCfg.RASDepth; // default cfg not present in checkedout cva6 repo
+        //cfg.Cva6BTBEntries = ariane_pkg::ArianeDefaultCfg.BTBEntries; // default cfg not present in checkedout cva6 repo
+        //cfg.Cva6BHTEntries = ariane_pkg::ArianeDefaultCfg.BHTEntries; // default cfg not present in checkedout cva6 repo
         cfg.Cva6NrPMPEntries = 0;
         cfg.Cva6ExtCieLength = 'h1000_0000;
         cfg.Cva6ExtCieOnTop = 1'b0;
@@ -165,7 +165,7 @@ package lagd_pkg;
         // TODO check the meaning of other parameters
         // Interconnect // TODO check how the User fields are used
         cfg.AddrWidth = `CVA6_ADDR_WIDTH;
-        cfg.AxiDataWidth = `AXI_DATA_WIDTH;  // 64-bit AXI data bus (TODO check increase or make another bus?)
+        cfg.AxiDataWidth = `LAGD_AXI_DATA_WIDTH;  // 64-bit AXI data bus
         // Real Time Clock reference frequency
         cfg.RtcFreq = 32_768; // 32.768 kHz RTC
         // Features
