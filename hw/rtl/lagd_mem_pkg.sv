@@ -10,6 +10,9 @@
 `include "lagd_platform.svh"
 `include "lagd_define.svh"
 
+`define MAX_NUM_NARROW_REQ 32
+`define MAX_NUM_WIDE_REQ   16
+
 package lagd_mem_pkg;
 
     typedef struct packed {
@@ -29,9 +32,9 @@ package lagd_mem_pkg;
         int unsigned NumWideReq;
 
         /// Indicates corresponding narrow requestor supports read/write (0 for read-only/write-only)
-        bit [NumNarrowReq-1:0] NarrowRW;
+        bit [`MAX_NUM_NARROW_REQ-1:0] NarrowRW;
         /// Indicates corresponding narrow requestor supports read/write (0 for read-only/write-only)
-        bit [  NumWideReq-1:0] WideRW;
+        bit [`MAX_NUM_WIDE_REQ-1:0] WideRW;
 
         /// Spill Narrow
         int unsigned SpillNarrowReqEntry;
