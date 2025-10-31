@@ -43,7 +43,7 @@ package lagd_pkg;
         idx_map[IdxMap.STACK_MEM] = IdxMap.STACK_MEM; // CVA6 stack memory
         // cores start from ID 2
         for (int i = 0; i <= `NUM_ISING_CORES; i++) begin
-            idx = IdxMap.ISING_CORES_BASE + i;
+            idx = $unsigned(IdxMap.ISING_CORES_BASE + i);
             idx_map[idx] = idx;
         end
         return idx_map;
@@ -64,8 +64,8 @@ package lagd_pkg;
         addr_map[Idx.STACK_MEM] = `STACK_BASE_ADDR;
         // Ising cores
         for (int i = 0; i < `NUM_ISING_CORES; i++) begin
-            idx = Idx.ISING_CORES_BASE + i;
-            addr_map[idx] = `IC_MEM_BASE_ADDR + (i)*`IC_L1_MEM_LIMIT - 1;
+            idx = $unsigned(Idx.ISING_CORES_BASE + i);
+            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (i)*`IC_L1_MEM_LIMIT - 1);
         end
         return addr_map;
     endfunction : gen_lagd_slv_start_addr
@@ -78,10 +78,10 @@ package lagd_pkg;
         // CVA6 stack memory
         addr_map[Idx.STACK_MEM] = `STACK_BASE_ADDR + `STACK_SIZE_B - 1;
         // Ising cores
-        localparam int ISING_END_ADDR_OFFSET = `IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B;
+        localparam int unsigned ISING_END_ADDR_OFFSET = `IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B;
         for (int i = 0; i < `NUM_ISING_CORES; i++) begin
-            idx = Idx.ISING_CORES_BASE + i;
-            addr_map[idx] = ISING_END_ADDR_OFFSET + (i)*`IC_L1_MEM_LIMIT - 1;
+            idx = $unsigned(Idx.ISING_CORES_BASE + i);
+            addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i)*`IC_L1_MEM_LIMIT - 1);
         end
         return addr_map;
     endfunction : gen_lagd_slv_end_addr
@@ -107,7 +107,7 @@ package lagd_pkg;
         // Map reg IDs to cores
         int unsigned idx;
         for (int i = 0; i <= `NUM_ISING_CORES; i++) begin
-            idx = IdxMap.ISING_CORES_BASE + i;
+            idx = $unsigned(IdxMap.ISING_CORES_BASE + i);
             idx_map[idx] = idx;
         end
         return idx_map;
@@ -125,8 +125,8 @@ package lagd_pkg;
         // Ising cores registers
         int unsigned idx;
         for (int i = 0; i < `NUM_ISING_CORES; i++) begin
-            idx = Idx.ISING_CORES_BASE + i;
-            addr_map[idx] = `IC_REGS_BASE_ADDR + (i)*`IC_NUM_REGS;
+            idx = $unsigned(Idx.ISING_CORES_BASE + i);
+            addr_map[idx] = $unsigned(`IC_REGS_BASE_ADDR + (i)*`IC_NUM_REGS);
         end
         return addr_map;
     endfunction : gen_lagd_reg_start_addr
@@ -135,7 +135,7 @@ package lagd_pkg;
         lagd_reg_addr_map_t addr_map;
         // Ising cores registers
         for (int i = 0; i < `NUM_ISING_CORES; i++) begin
-            addr_map[i] = `IC_REGS_BASE_ADDR + (i+1)*`IC_NUM_REGS - 1;
+            addr_map[i] = $unsigned(`IC_REGS_BASE_ADDR + (i+1)*`IC_NUM_REGS - 1);
         end
         return addr_map;
     endfunction : gen_lagd_reg_end_addr
@@ -189,9 +189,9 @@ package lagd_pkg;
         // Serial Link parameters are defaults
         // DMA config defaults are defaults
         // External AXI ports
-        cfg.AxiExtNumSlv = `LAGD_NUM_AXI_SLV;
+        cfg.AxiExtNumSlv = $unsigned(`LAGD_NUM_AXI_SLV);
         cfg.AxiExtNumMst = 0;
-        cfg.AxiExtNumRules = `LAGD_NUM_AXI_SLV;
+        cfg.AxiExtNumRules = $unsigned(`LAGD_NUM_AXI_SLV);
         cfg.AxiExtRegionIdx = LagdSlvIdxMap;
         cfg.AxiExtRegionStart = LagdSlvAddrStart;
         cfg.AxiExtRegionEnd = LagdSlvAddrEnd;

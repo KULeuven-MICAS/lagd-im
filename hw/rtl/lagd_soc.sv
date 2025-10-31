@@ -8,11 +8,13 @@
 
 `include "lagd_define.svh"
 `include "lagd_config.svh"
+`include "lagd_typedef.svh"
 
 
 module lagd_soc import lagd_pkg::*; #(
     // lagd_soc config
-    parameter lagd_cfg_t Cfg = default_lagd_cfg,
+    parameter NUM_AXI_SLV = `LAGD_NUM_AXI_SLV,
+    parameter NUM_REG_SLV = `LAGD_NUM_REG_SLV,
 ) (
     input logic         clk_i,
     input logic         rtc_i,  // Real Time clock input reference
@@ -58,11 +60,11 @@ module lagd_soc import lagd_pkg::*; #(
     // Wire declarations /////////////////////////////////////
     //////////////////////////////////////////////////////////
     // External AXI interconnect
-    lagd_slv_req_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_req;
-    lagd_slv_rsp_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
+    lagd_slv_req_t  [NUM_AXI_SLV-1:0] axi_ext_slv_req;
+    lagd_slv_rsp_t  [NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
     // Register interface
-    lagd_reg_req_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_req;
-    lagd_reg_rsp_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_rsp;
+    lagd_reg_req_t  [NUM_REG_SLV-1:0] reg_ext_req;
+    lagd_reg_rsp_t  [NUM_REG_SLV-1:0] reg_ext_rsp;
 
     //////////////////////////////////////////////////////////
     // Cheshire instantiation  ///////////////////////////////
@@ -121,27 +123,27 @@ module lagd_soc import lagd_pkg::*; #(
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
     axi_memory_island_wrap #(
-        .AddrWidth          (`STACK_ADDR_WIDTH),
-        .NarrowDataWidth    (`LAGD_AXI_DATA_WIDTH),
-        .AxiNarrowIdWidth   (`LAGD_AXI_ID_WIDTH),
-        .WideDataWidth      (`LAGD_AXI_DATA_WIDTH),
-        .NumWideBanks       (1), // 1*64bit*2048words = 16kB
+        .AddrWidth          (lagd_mem_pkg::CVA6StackMemCfg.AddrWidth),
+        .NarrowDataWidth    (lagd_mem_pkg::CVA6StackMemCfg.NarrowDataWidth),
+        .AxiNarrowIdWidth   (lagd_mem_pkg::CVA6StackMemCfg.AxiNarrowIdWidth),
+        .WideDataWidth      (lagd_mem_pkg::CVA6StackMemCfg.WideDataWidth),
+        .NumWideBanks       (lagd_mem_pkg::CVA6StackMemCfg.NumWideBanks),
 
         .axi_narrow_req_t   (lagd_slv_req_t),
         .axi_narrow_rsp_t   (lagd_slv_rsp_t),
-        .NumNarrowReq       (1),
-        .NarrowRW           ('0),
-        .WideRW             ('0),
+        .NumNarrowReq       (lagd_mem_pkg::CVA6StackMemCfg.NumNarrowReq),
+        .NarrowRW           (lagd_mem_pkg::CVA6StackMemCfg.NarrowRW),
+        .WideRW             (lagd_mem_pkg::CVA6StackMemCfg.WideRW),
 
-        .SpillNarrowReqEntry    (0),
-        .SpillNarrowRspEntry    (0),
-        .SpillNarrowReqRouted   (0),
-        .SpillNarrowRspRouted   (0),
+        .SpillNarrowReqEntry    (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowReqEntry),
+        .SpillNarrowRspEntry    (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowRspEntry),
+        .SpillNarrowReqRouted   (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowReqRouted),
+        .SpillNarrowRspRouted   (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowRspRouted),
 
-        .SpillReqBank (0),
-        .SpillRspBank (0),
+        .SpillReqBank (lagd_mem_pkg::CVA6StackMemCfg.SpillReqBank),
+        .SpillRspBank (lagd_mem_pkg::CVA6StackMemCfg.SpillRspBank),
 
-        .WordsPerBank  (2048),
+        .WordsPerBank  (lagd_mem_pkg::CVA6StackMemCfg.WordsPerBank),
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
@@ -154,27 +156,27 @@ module lagd_soc import lagd_pkg::*; #(
     // L2 SPM  ///////////////////////////////////////////////
     //////////////////////////////////////////////////////////
     axi_memory_island_wrap #(
-        .AddrWidth          (`L2_MEM_ADDR_WIDTH),
-        .NarrowDataWidth    (`LAGD_AXI_DATA_WIDTH),
-        .AxiNarrowIdWidth   (`LAGD_AXI_ID_WIDTH),
-        .WideDataWidth      (`LAGD_AXI_DATA_WIDTH),
-        .NumWideBanks       (`L2_BANKING_FACTOR), // 4*64bit*8192words = 256kB
+        .AddrWidth          (lagd_mem_pkg::L2MemCfg.AddrWidth),
+        .NarrowDataWidth    (lagd_mem_pkg::L2MemCfg.NarrowDataWidth),
+        .AxiNarrowIdWidth   (lagd_mem_pkg::L2MemCfg.AxiNarrowIdWidth),
+        .WideDataWidth      (lagd_mem_pkg::L2MemCfg.WideDataWidth),
+        .NumWideBanks       (lagd_mem_pkg::L2MemCfg.NumWideBanks),
 
         .axi_narrow_req_t   (lagd_slv_req_t),
         .axi_narrow_rsp_t   (lagd_slv_rsp_t),
-        .NumNarrowReq       (1),
-        .NarrowRW           ('0),
-        .WideRW             ('0),
+        .NumNarrowReq       (lagd_mem_pkg::L2MemCfg.NumNarrowReq),
+        .NarrowRW           (lagd_mem_pkg::L2MemCfg.NarrowRW),
+        .WideRW             (lagd_mem_pkg::L2MemCfg.WideRW),
 
-        .SpillNarrowReqEntry    (0),
-        .SpillNarrowRspEntry    (0),
-        .SpillNarrowReqRouted   (0),
-        .SpillNarrowRspRouted   (0),
+        .SpillNarrowReqEntry    (lagd_mem_pkg::L2MemCfg.SpillNarrowReqEntry),
+        .SpillNarrowRspEntry    (lagd_mem_pkg::L2MemCfg.SpillNarrowRspEntry),
+        .SpillNarrowReqRouted   (lagd_mem_pkg::L2MemCfg.SpillNarrowReqRouted),
+        .SpillNarrowRspRouted   (lagd_mem_pkg::L2MemCfg.SpillNarrowRspRouted),
 
-        .SpillReqBank (0),
-        .SpillRspBank (0),
+        .SpillReqBank (lagd_mem_pkg::L2MemCfg.SpillReqBank),
+        .SpillRspBank (lagd_mem_pkg::L2MemCfg.SpillRspBank),
 
-        .WordsPerBank  (2048),
+        .WordsPerBank  (lagd_mem_pkg::L2MemCfg.WordsPerBank),
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
