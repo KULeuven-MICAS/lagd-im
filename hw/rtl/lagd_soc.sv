@@ -50,7 +50,7 @@ module lagd_soc import lagd_pkg::*; (
 );
 
     // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, Cfg.cheshire_cfg)
+    `LAGD_TYPEDEF_ALL(lagd_, CheshireCfg)
 
     //////////////////////////////////////////////////////////
     // Wire declarations /////////////////////////////////////
@@ -66,7 +66,7 @@ module lagd_soc import lagd_pkg::*; (
     // Cheshire instantiation  ///////////////////////////////
     //////////////////////////////////////////////////////////
     cheshire_soc #(
-        .Cfg                (Cfg.cheshire_cfg),
+        .Cfg                (CheshireCfg),
         .axi_ext_slv_req_t  (lagd_axi_slv_req_t),
         .axi_ext_slv_rsp_t  (lagd_axi_slv_rsp_t),
         .reg_ext_req_t      (lagd_reg_req_t),

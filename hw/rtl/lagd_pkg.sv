@@ -74,11 +74,11 @@ package lagd_pkg;
         lagd_slv_addr_map_t addr_map;
         int unsigned idx;
         // L2 memory
-        addr_map[Idx.L2_MEM] = `L2_MEM_BASE_ADDR + `L2_MEM_SIZE_B - 1;
+        addr_map[Idx.L2_MEM] = $unsigned(`L2_MEM_BASE_ADDR + `L2_MEM_SIZE_B - 1);
         // CVA6 stack memory
-        addr_map[Idx.STACK_MEM] = `STACK_BASE_ADDR + `STACK_SIZE_B - 1;
+        addr_map[Idx.STACK_MEM] = $unsigned(`STACK_BASE_ADDR + `STACK_SIZE_B - 1);
         // Ising cores
-        localparam int unsigned ISING_END_ADDR_OFFSET = `IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B;
+        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B);
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i)*`IC_L1_MEM_LIMIT - 1);
