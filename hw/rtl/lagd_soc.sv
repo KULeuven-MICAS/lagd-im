@@ -11,11 +11,7 @@
 `include "lagd_typedef.svh"
 
 
-module lagd_soc import lagd_pkg::*; #(
-    // lagd_soc config
-    parameter NUM_AXI_SLV = `LAGD_NUM_AXI_SLV,
-    parameter NUM_REG_SLV = `LAGD_NUM_REG_SLV,
-) (
+module lagd_soc import lagd_pkg::*; (
     input logic         clk_i,
     input logic         rtc_i,  // Real Time clock input reference
     input logic         rst_ni,
@@ -60,11 +56,11 @@ module lagd_soc import lagd_pkg::*; #(
     // Wire declarations /////////////////////////////////////
     //////////////////////////////////////////////////////////
     // External AXI interconnect
-    lagd_axi_slv_req_t  [NUM_AXI_SLV-1:0] axi_ext_slv_req;
-    lagd_axi_slv_rsp_t  [NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
+    lagd_axi_slv_req_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_req;
+    lagd_axi_slv_rsp_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
     // Register interface
-    lagd_reg_req_t  [NUM_REG_SLV-1:0] reg_ext_req;
-    lagd_reg_rsp_t  [NUM_REG_SLV-1:0] reg_ext_rsp;
+    lagd_reg_req_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_req;
+    lagd_reg_rsp_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_rsp;
 
     //////////////////////////////////////////////////////////
     // Cheshire instantiation  ///////////////////////////////
@@ -82,11 +78,11 @@ module lagd_soc import lagd_pkg::*; #(
         .boot_mode_i    (boot_mode_i),
         .rtc_i          (rtc_i),
         // External AXI crosbar ports
-        .axi_ext_slv_req_o  (lagd_ext_slv_req),
-        .axi_ext_slv_rsp_i  (lagd_ext_slv_rsp),
+        .axi_ext_slv_req_o  (axi_ext_slv_req),
+        .axi_ext_slv_rsp_i  (axi_ext_slv_rsp),
         // Register interface
-        .reg_ext_req_o  (lagd_reg_ext_req),
-        .reg_ext_rsp_i  (lagd_reg_ext_rsp),
+        .reg_ext_req_o  (reg_ext_req),
+        .reg_ext_rsp_i  (reg_ext_rsp),
         // JTAG interface
         .jtag_tck_i     (jtag_tck_i),
         .jtag_trst_ni   (jtag_trst_ni),
