@@ -60,8 +60,8 @@ module lagd_soc import lagd_pkg::*; #(
     // Wire declarations /////////////////////////////////////
     //////////////////////////////////////////////////////////
     // External AXI interconnect
-    lagd_slv_req_t  [NUM_AXI_SLV-1:0] axi_ext_slv_req;
-    lagd_slv_rsp_t  [NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
+    lagd_axi_slv_req_t  [NUM_AXI_SLV-1:0] axi_ext_slv_req;
+    lagd_axi_slv_rsp_t  [NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
     // Register interface
     lagd_reg_req_t  [NUM_REG_SLV-1:0] reg_ext_req;
     lagd_reg_rsp_t  [NUM_REG_SLV-1:0] reg_ext_rsp;
@@ -71,8 +71,8 @@ module lagd_soc import lagd_pkg::*; #(
     //////////////////////////////////////////////////////////
     cheshire_soc #(
         .Cfg                (Cfg.cheshire_cfg),
-        .axi_ext_slv_req_t  (lagd_slv_req_t),
-        .axi_ext_slv_rsp_t  (lagd_slv_rsp_t),
+        .axi_ext_slv_req_t  (lagd_axi_slv_req_t),
+        .axi_ext_slv_rsp_t  (lagd_axi_slv_rsp_t),
         .reg_ext_req_t      (lagd_reg_req_t),
         .reg_ext_rsp_t      (lagd_reg_rsp_t)
     ) i_cheshire_soc (
@@ -129,8 +129,8 @@ module lagd_soc import lagd_pkg::*; #(
         .WideDataWidth      (lagd_mem_pkg::CVA6StackMemCfg.WideDataWidth),
         .NumWideBanks       (lagd_mem_pkg::CVA6StackMemCfg.NumWideBanks),
 
-        .axi_narrow_req_t   (lagd_slv_req_t),
-        .axi_narrow_rsp_t   (lagd_slv_rsp_t),
+        .axi_narrow_req_t   (lagd_axi_slv_req_t),
+        .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t),
         .NumNarrowReq       (lagd_mem_pkg::CVA6StackMemCfg.NumNarrowReq),
         .NarrowRW           (lagd_mem_pkg::CVA6StackMemCfg.NarrowRW),
         .WideRW             (lagd_mem_pkg::CVA6StackMemCfg.WideRW),
@@ -162,8 +162,8 @@ module lagd_soc import lagd_pkg::*; #(
         .WideDataWidth      (lagd_mem_pkg::L2MemCfg.WideDataWidth),
         .NumWideBanks       (lagd_mem_pkg::L2MemCfg.NumWideBanks),
 
-        .axi_narrow_req_t   (lagd_slv_req_t),
-        .axi_narrow_rsp_t   (lagd_slv_rsp_t),
+        .axi_narrow_req_t   (lagd_axi_slv_req_t),
+        .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t),
         .NumNarrowReq       (lagd_mem_pkg::L2MemCfg.NumNarrowReq),
         .NarrowRW           (lagd_mem_pkg::L2MemCfg.NarrowRW),
         .WideRW             (lagd_mem_pkg::L2MemCfg.WideRW),
@@ -192,8 +192,8 @@ module lagd_soc import lagd_pkg::*; #(
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
             ising_core_wrap #(
                 .l1_mem_cfg     (IsingCoreL1MemCfg),
-                .axi_slv_req_t  (lagd_slv_req_t),
-                .axi_slv_rsp_t  (lagd_slv_rsp_t),
+                .axi_slv_req_t  (lagd_axi_slv_req_t),
+                .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
                 .reg_slv_req_t  (lagd_reg_req_t),
                 .reg_slv_rsp_t  (lagd_reg_rsp_t)
             ) i_core (
