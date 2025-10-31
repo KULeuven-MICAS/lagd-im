@@ -42,8 +42,8 @@ package lagd_pkg;
         // Slave ID 1 is reserved for CVA6 stack memory
         idx_map[IdxMap.STACK_MEM] = IdxMap.STACK_MEM; // CVA6 stack memory
         // cores start from ID 2
-        for (int i = 0; i <= `NUM_ISING_CORES; i++) begin
-            idx = $unsigned(IdxMap.ISING_CORES_BASE + i);
+        for (int unsigned i = 0; i <= `NUM_ISING_CORES; i++) begin
+            idx = $unsigned(IdxMap.ISING_CORES_BASE) + i;
             idx_map[idx] = idx;
         end
         return idx_map;
@@ -63,7 +63,7 @@ package lagd_pkg;
         // CVA6 stack memory
         addr_map[Idx.STACK_MEM] = `STACK_BASE_ADDR;
         // Ising cores
-        for (int i = 0; i < `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (i)*`IC_L1_MEM_LIMIT - 1);
         end
@@ -79,7 +79,7 @@ package lagd_pkg;
         addr_map[Idx.STACK_MEM] = `STACK_BASE_ADDR + `STACK_SIZE_B - 1;
         // Ising cores
         localparam int unsigned ISING_END_ADDR_OFFSET = `IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B;
-        for (int i = 0; i < `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i)*`IC_L1_MEM_LIMIT - 1);
         end
@@ -106,7 +106,7 @@ package lagd_pkg;
         lagd_reg_idx_map_t idx_map;
         // Map reg IDs to cores
         int unsigned idx;
-        for (int i = 0; i <= `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i <= `NUM_ISING_CORES; i++) begin
             idx = $unsigned(IdxMap.ISING_CORES_BASE + i);
             idx_map[idx] = idx;
         end
@@ -124,7 +124,7 @@ package lagd_pkg;
         lagd_reg_addr_map_t addr_map;
         // Ising cores registers
         int unsigned idx;
-        for (int i = 0; i < `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(`IC_REGS_BASE_ADDR + (i)*`IC_NUM_REGS);
         end
@@ -134,7 +134,7 @@ package lagd_pkg;
     function automatic lagd_reg_addr_map_t gen_lagd_reg_end_addr(lagd_reg_idx_e Idx);
         lagd_reg_addr_map_t addr_map;
         // Ising cores registers
-        for (int i = 0; i < `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             addr_map[i] = $unsigned(`IC_REGS_BASE_ADDR + (i+1)*`IC_NUM_REGS - 1);
         end
         return addr_map;

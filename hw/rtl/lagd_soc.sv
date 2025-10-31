@@ -172,7 +172,7 @@ module lagd_soc import lagd_pkg::*; (
         .SpillReqBank (lagd_mem_pkg::L2MemCfg.SpillReqBank),
         .SpillRspBank (lagd_mem_pkg::L2MemCfg.SpillRspBank),
 
-        .WordsPerBank  (lagd_mem_pkg::L2MemCfg.WordsPerBank),
+        .WordsPerBank  (lagd_mem_pkg::L2MemCfg.WordsPerBank)
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
@@ -187,7 +187,7 @@ module lagd_soc import lagd_pkg::*; (
     generate
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
             ising_core_wrap #(
-                .l1_mem_cfg     (IsingCoreL1MemCfg),
+                .l1_mem_cfg     (lagd_mem_pkg::IsingCoreL1MemCfg),
                 .axi_slv_req_t  (lagd_axi_slv_req_t),
                 .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
                 .reg_slv_req_t  (lagd_reg_req_t),
