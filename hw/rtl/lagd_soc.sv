@@ -36,8 +36,8 @@ module lagd_soc import lagd_pkg::*; #(
     output logic  uart_dtr_no, // open,
     input  logic  uart_cts_ni,
     input  logic  uart_dsr_ni, // =1,
-    input  logic  uart_dcd_ni  // =1,
-    input  logic  uart_rin_ni  // =1,
+    input  logic  uart_dcd_ni,  // =1,
+    input  logic  uart_rin_ni,  // =1,
     // SPI host interface
     output logic                  spih_sck_o,
     output logic                  spih_sck_en_o,
@@ -143,7 +143,7 @@ module lagd_soc import lagd_pkg::*; #(
         .SpillReqBank (lagd_mem_pkg::CVA6StackMemCfg.SpillReqBank),
         .SpillRspBank (lagd_mem_pkg::CVA6StackMemCfg.SpillRspBank),
 
-        .WordsPerBank  (lagd_mem_pkg::CVA6StackMemCfg.WordsPerBank),
+        .WordsPerBank  (lagd_mem_pkg::CVA6StackMemCfg.WordsPerBank)
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
