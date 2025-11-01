@@ -75,7 +75,7 @@ source $flist_path
 
 # Elaborate to check and see the synthesizability of the design
 # Also check for latches at this point
-elaborate system_top
+elaborate $SYN_TLE
 
 # Apply the defined named rules to the design
 change_names -rules verilog -hierarchy
