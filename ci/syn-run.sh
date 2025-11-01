@@ -73,4 +73,5 @@ mkdir -p "${TMP_DIR}"
 CMD="$ENV_VARS dc_shell -f ${PROJECT_ROOT}/target/syn/syn.tcl"
 echo "Running synthesis with command:"
 echo "${CMD}"
-cd "${TMP_DIR}" && eval $CMD
+cd "${TMP_DIR}" && eval $CMD > ${TMP_DIR}/syn_run.log 2>&1
+echo "[INFO] ./ci/syn-run.sh: Synthesis completed. Log available at ${TMP_DIR}/syn_run.log"
