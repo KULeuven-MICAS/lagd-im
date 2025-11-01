@@ -105,7 +105,7 @@ set_fix_multiple_port_nets -all -buffer_constants
 # 4. Set special rules for the design
 #------------------------------------
 
-source ./inputs/lagd-special-rules.tcl
+#source ./inputs/lagd-special-rules.tcl
 
 #------------------------------------
 # 5. Compile the design
