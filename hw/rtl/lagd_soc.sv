@@ -81,8 +81,8 @@ module lagd_soc import lagd_pkg::*; (
         .axi_ext_slv_req_o  (axi_ext_slv_req),
         .axi_ext_slv_rsp_i  (axi_ext_slv_rsp),
         // Register interface
-        .reg_ext_req_o  (reg_ext_req),
-        .reg_ext_rsp_i  (reg_ext_rsp),
+        .reg_ext_slv_req_o  (reg_ext_req),
+        .reg_ext_slv_rsp_i  (reg_ext_rsp),
         // JTAG interface
         .jtag_tck_i     (jtag_tck_i),
         .jtag_trst_ni   (jtag_trst_ni),
@@ -144,8 +144,8 @@ module lagd_soc import lagd_pkg::*; (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
-        .axi_s_req_i(axi_ext_slv_req[LagdSlvIdxEnum.STACK_MEM]),
-        .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM])
+        .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.STACK_MEM]),
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM])
     );
 
     //////////////////////////////////////////////////////////
@@ -177,8 +177,8 @@ module lagd_soc import lagd_pkg::*; (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
-        .axi_s_req_i(axi_ext_slv_req[LagdSlvIdxEnum.L2_MEM]),
-        .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM])
+        .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.L2_MEM]),
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM])
     );
 
     //////////////////////////////////////////////////////////
