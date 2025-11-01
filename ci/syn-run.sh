@@ -7,7 +7,6 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # syn-run.sh - Run synthesis flow
 # List of parameters:
-#   PROJECT_ROOT
 #   TECH_NODE
 #   SYN_TLE
 #   RUN_ID
@@ -46,7 +45,6 @@ PROJECT_ROOT=$(realpath "${SCRIPT_DIR}/..")
 
 ENV_VARS="PROJECT_ROOT=${PROJECT_ROOT}"
 
-# Parse args: --VAR=value or --env-file=...
 for i in "$@"; do
   case $i in
     --help|-h)
