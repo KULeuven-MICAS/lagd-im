@@ -219,4 +219,4 @@ transcript
 .bender/*
 .opt/
 
-.svf
+*.svf
