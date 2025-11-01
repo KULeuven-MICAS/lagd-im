@@ -222,3 +222,4 @@ transcript
 # Design compiler generated files
 *.svf
 alib-52/* */
+runs/*
