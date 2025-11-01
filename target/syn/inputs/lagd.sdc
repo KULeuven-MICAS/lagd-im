@@ -17,7 +17,7 @@ set_max_fanout 32 [current_design]
 # Core clock ------------------------------------------------------------------------
 set core_clock_period 2.0
 set core_clock_period_half [expr { $core_clock_period / 2.0 } ]
-create_clock [get_pins lagd_soc/clk_i] \
+create_clock [get_pins clk_i] \
     -period $core_clock_period -name CORE_CLK -waveform "0 $core_clock_period_half"
 
 # Add this constraint to ensure that the CLK gen is used
