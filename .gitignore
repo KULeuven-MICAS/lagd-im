@@ -219,4 +219,6 @@ transcript
 .bender/*
 .opt/
 
+# Design compiler generated files
 *.svf
+alib-52/* */
