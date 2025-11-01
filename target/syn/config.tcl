@@ -19,7 +19,7 @@ if { [info exists ::env(WORK_DIR)] } {
 puts "\tWORK_DIR: $WORK_DIR"
 
 # RUN_ID: Identifier for the synthesis run
-# Default: lagd-syn
+# Default: [get_curr_time]
 # Used to create output directories and files
 if { [info exists ::env(RUN_ID)] } {
     set RUN_ID $::env(RUN_ID)
