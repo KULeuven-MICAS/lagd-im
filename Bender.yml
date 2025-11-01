@@ -15,7 +15,7 @@ dependencies:
   cheshire: {git: "https://github.com/pulp-platform/cheshire.git", version: 0.3.1}
   memory_island: {git: "https://github.com/pulp-platform/memory_island.git", rev: main}
   register_interface: {git: "https://github.com/pulp-platform/register_interface.git",
-    version: 0.4.5}
+                      version: 0.4.5}
 
 export_include_dirs:
   - hw/rtl/include
