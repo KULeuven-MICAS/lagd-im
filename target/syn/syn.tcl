@@ -38,11 +38,11 @@ define_name_rules verilog \
 #-----------------------------
 # 0.b Paths
 #-----------------------------
-
+source ./common/utils.tcl
 source ./config.tcl
 
 set workdir_path ${WORK_DIR}
-set output_path "./output/${SYN_TLE}-${TECH_NODE}-${RUN_ID}}"
+set output_path "./output/${SYN_TLE}-${TECH_NODE}-${RUN_ID}"
 file mkdir $output_path
 
 set log_path "$output_path/logs"

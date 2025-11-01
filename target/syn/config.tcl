@@ -24,7 +24,7 @@ puts "\tWORK_DIR: $WORK_DIR"
 if { [info exists ::env(RUN_ID)] } {
     set RUN_ID $::env(RUN_ID)
 } else {
-    set RUN_ID "lagd-syn"
+    set RUN_ID [get_curr_time]
 }
 puts "\tRUN_ID: $RUN_ID"
 
