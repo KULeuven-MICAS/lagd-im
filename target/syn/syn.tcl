@@ -42,7 +42,7 @@ source ./common/utils.tcl
 source ./config.tcl
 
 set workdir_path ${WORK_DIR}
-set output_path "./output/${SYN_TLE}-${TECH_NODE}-${RUN_ID}"
+set output_path ${RUN_DIR}
 file mkdir $output_path
 
 set log_path "$output_path/logs"

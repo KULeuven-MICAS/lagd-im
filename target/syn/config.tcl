@@ -4,49 +4,30 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # Defines default values for synthesis parameters
+# List of parameters:
+#   PROJECT_ROOT
+#   TECH_NODE
+#   SYN_TLE
+#   RUN_ID
+#   RUN_DIR
+#   WORK_DIR
+#   DESIGN_INPUTS_DIR
+#   HDL_FILE_LIST
+#   SDC_CONSTRAINTS
 
 puts "--------------------------------------------------------------------------------"
 puts "Synthesis configuration parameters:"
 
-# WORK_DIR: Directory where synthesis intermediate files are stored
-# Default: ./work
-# Used to spawn synthesis in a clean directory or parallel synthesis runs
-if { [info exists ::env(WORK_DIR)] } {
-    set WORK_DIR $::env(WORK_DIR)
+# PROJECT_ROOT: Root directory of the project
+# Default: ../../ (from target/syn/)../)
+# Used to resolve relative paths
+if { [info exists ::env(PROJECT_ROOT)] } {
+    set PROJECT_ROOT $::env(PROJECT_ROOT)
 } else {
-    set WORK_DIR "./work"
+    set this_file_dir [file dirname [file normalize [info script]]]
+    set PROJECT_ROOT [file normalize [file join $this_file_dir ../../]]
 }
-puts "\tWORK_DIR: $WORK_DIR"
-
-# RUN_ID: Identifier for the synthesis run
-# Default: [get_curr_time]
-# Used to create output directories and files
-if { [info exists ::env(RUN_ID)] } {
-    set RUN_ID $::env(RUN_ID)
-} else {
-    set RUN_ID [get_curr_time]
-}
-puts "\tRUN_ID: $RUN_ID"
-
-# FILE_LIST: File containing the list of source files to be synthesized
-# Default: ./inputs/lagd-flist.tcl
-# Used to specify the Verilog files for synthesis
-if { [info exists ::env(FILE_LIST)] } {
-    set FILE_LIST $::env(FILE_LIST)
-} else {
-    set FILE_LIST "./inputs/lagd-flist.tcl"
-}
-puts "\tFILE_LIST: $FILE_LIST"
-
-# SDC_CONSTRAINTS: File containing the SDC constraints for synthesis
-# Default: ./inputs/lagd-constraints.sdc
-# Used to specify timing and other constraints
-if { [info exists ::env(SDC_CONSTRAINTS)] } {
-    set SDC_CONSTRAINTS $::env(SDC_CONSTRAINTS)
-} else {
-    set SDC_CONSTRAINTS "./inputs/lagd.sdc"
-}
-puts "\tSDC_CONSTRAINTS: $SDC_CONSTRAINTS"
+puts "\tPROJECT_ROOT: $PROJECT_ROOT"
 
 # TECH_NODE: Technology node for synthesis
 # Default: tsmc7ff
@@ -67,5 +48,65 @@ if { [info exists ::env(SYN_TLE)] } {
     set SYN_TLE "lagd_soc"
 }
 puts "\tSYN_TLE: $SYN_TLE"
+
+# RUN_ID: Identifier for the synthesis run
+# Default: [get_curr_time]
+# Used to create output directories and files
+if { [info exists ::env(RUN_ID)] } {
+    set RUN_ID $::env(RUN_ID)
+} else {
+    set RUN_ID [get_curr_time]
+}
+puts "\tRUN_ID: $RUN_ID"
+
+# RUN_DIR: Directory where the synthesis is run
+# Default: $PROJECT_ROOT/runs/
+# Used to organize multiple synthesis runs
+if { [info exists ::env(RUN_DIR)] } {
+    set RUN_DIR $::env(RUN_DIR)
+} else {
+    set RUN_DIR $PROJECT_ROOT/runs/${SYN_TLE}-${TECH_NODE}-${RUN_ID}
+}
+puts "\tRUN_DIR: $RUN_DIR"
+
+# WORK_DIR: Directory where synthesis intermediate files are stored
+# Default: $RUN_DIR/work
+# Used to spawn synthesis in a clean directory or parallel synthesis runs
+if { [info exists ::env(WORK_DIR)] } {
+    set WORK_DIR $::env(WORK_DIR)
+} else {
+    set WORK_DIR $RUN_DIR/work
+}
+puts "\tWORK_DIR: $WORK_DIR"
+
+# DESIGN_INPUTS_DIR: Directory containing design input files
+# Default: $PROJECT_ROOT/target/syn/inputs
+# Used to locate source files and constraints
+if { [info exists ::env(DESIGN_INPUTS_DIR)] } {
+    set DESIGN_INPUTS_DIR $::env(DESIGN_INPUTS_DIR)
+} else {
+    set DESIGN_INPUTS_DIR "$PROJECT_ROOT/target/syn/inputs"
+}
+puts "\tDESIGN_INPUTS_DIR: $DESIGN_INPUTS_DIR"
+
+# HDL_FILE_LIST: File containing the list of source files to be synthesized
+# Default: $DESIGN_INPUTS_DIR/lagd-flist.tcl
+# Used to specify the Verilog files for synthesis
+if { [info exists ::env(HDL_FILE_LIST)] } {
+    set HDL_FILE_LIST $::env(HDL_FILE_LIST)
+} else {
+    set HDL_FILE_LIST "$DESIGN_INPUTS_DIR/lagd-flist.tcl"
+}
+puts "\tHDL_FILE_LIST: $HDL_FILE_LIST"
+
+# SDC_CONSTRAINTS: File containing the SDC constraints for synthesis
+# Default: $DESIGN_INPUTS_DIR/lagd.sdc
+# Used to specify timing and other constraints
+if { [info exists ::env(SDC_CONSTRAINTS)] } {
+    set SDC_CONSTRAINTS $::env(SDC_CONSTRAINTS)
+} else {
+    set SDC_CONSTRAINTS "$DESIGN_INPUTS_DIR/lagd.sdc"
+}
+puts "\tSDC_CONSTRAINTS: $SDC_CONSTRAINTS"
 
 puts "--------------------------------------------------------------------------------"
