@@ -64,7 +64,7 @@ set log_file "$log_path/${RUN_ID}_synthesis.log"
 set report_path "$output_path/reports"
 file mkdir $report_path
 
-set flist_path ${FILE_LIST}
+set flist_path ${HDL_FILE_LIST}
 set sdc_constraints_path ${SDC_CONSTRAINTS}
 
 #-----------------------------
