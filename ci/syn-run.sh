@@ -67,8 +67,10 @@ for i in "$@"; do
 done
 
 # source /esat/micas-data/software/scripts/syn_vU-2022.12-SP2.rc
+TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
+mkdir -p "${TMP_DIR}"
 
 CMD="$ENV_VARS dc_shell -f ${PROJECT_ROOT}/target/syn/syn.tcl"
 echo "Running synthesis with command:"
 echo "${CMD}"
-eval $CMD
+cd "${TMP_DIR}" && eval $CMD
