@@ -5,7 +5,6 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # Defines default values for synthesis parameters
 # List of parameters:
-#   PROJECT_ROOT
 #   TECH_NODE
 #   SYN_TLE
 #   RUN_ID
@@ -17,17 +16,6 @@
 
 puts "--------------------------------------------------------------------------------"
 puts "Synthesis configuration parameters:"
-
-# PROJECT_ROOT: Root directory of the project
-# Default: ../../ (from target/syn/)../)
-# Used to resolve relative paths
-if { [info exists ::env(PROJECT_ROOT)] } {
-    set PROJECT_ROOT $::env(PROJECT_ROOT)
-} else {
-    set this_file_dir [file dirname [file normalize [info script]]]
-    set PROJECT_ROOT [file normalize [file join $this_file_dir ../../]]
-}
-puts "\tPROJECT_ROOT: $PROJECT_ROOT"
 
 # TECH_NODE: Technology node for synthesis
 # Default: tsmc7ff

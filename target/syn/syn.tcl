@@ -7,6 +7,18 @@
 # Synthesis script inspired from
 #   https://github.com/rgantonio/digiforge/blob/main/synthoria/syn/dc_syn/dc_syn.tcl
 
+# PROJECT_ROOT: Root directory of the project
+# Default: ../../ (from target/syn/))
+# Used to resolve relative paths
+if { [info exists ::env(PROJECT_ROOT)] } {
+    set PROJECT_ROOT $::env(PROJECT_ROOT)
+} else {
+    set this_file_dir [file dirname [file normalize [info script]]]
+    set PROJECT_ROOT [file normalize [file join $this_file_dir ../../]]
+}
+puts "\tPROJECT_ROOT: $PROJECT_ROOT"
+set SYN_ROOT $PROJECT_ROOT/target/syn
+
 #-----------------------------
 # 0.a Setup steps
 #-----------------------------
@@ -38,8 +50,8 @@ define_name_rules verilog \
 #-----------------------------
 # 0.b Paths
 #-----------------------------
-source ./common/utils.tcl
-source ./config.tcl
+source ${SYN_ROOT}/common/utils.tcl
+source ${SYN_ROOT}/config.tcl
 
 set workdir_path ${WORK_DIR}
 set output_path ${RUN_DIR}
