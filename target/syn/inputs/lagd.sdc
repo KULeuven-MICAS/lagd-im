@@ -17,7 +17,7 @@ set_max_fanout 32 [current_design]
 # Core clock ------------------------------------------------------------------------
 set core_clock_period 2.0
 set core_clock_period_half [expr { $core_clock_period / 2.0 } ]
-create_clock [get_pins clk_i] \
+create_clock [get_ports clk_i] \
     -period $core_clock_period -name CORE_CLK -waveform "0 $core_clock_period_half"
 
 # Add this constraint to ensure that the CLK gen is used
@@ -26,13 +26,13 @@ create_clock [get_pins clk_i] \
 # JTAG clock -------------------------------------------------------------------------
 set jtag_clock_period 6.0
 set jtag_clock_period_half [expr { $jtag_clock_period / 2.0 } ]
-create_clock [get_ports pad_jtag_tck_i] \
+create_clock [get_ports jtag_tck_i] \
     -period $jtag_clock_period -name JTAG_CLK -waveform "0 $jtag_clock_period_half"
 # ------------------------------------------------------------------------------------
 # SPI clock --------------------------------------------------------------------------
 set spi_clock_period 6.0
 set spi_clock_period_half [expr { $spi_clock_period / 2.0 } ]
-create_clock [get_ports pad_spis_sck_i] \
+create_clock [get_ports spis_sck_i] \
     -period $spi_clock_period -name SPI_CLK -waveform "0 $spi_clock_period_half"
 # ------------------------------------------------------------------------------------
 # VIRTUTAL clock ---------------------------------------------------------------------
