@@ -125,7 +125,7 @@ set_fix_multiple_port_nets -all -buffer_constants
 # 5. Compile the design
 #------------------------------------
 
-compile_ultra 
+compile
 # -retime
 
 #-----------------------------

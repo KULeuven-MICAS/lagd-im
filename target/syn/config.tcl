@@ -95,7 +95,7 @@ if { [info exists ::env(SDC_CONSTRAINTS)] } {
 } else {
     set SDC_CONSTRAINTS "$DESIGN_INPUTS_DIR/lagd.sdc"
 }
-set SDC_CONSTRAINTS_PATH [file normalize $SDC_CONSTRAINTS]
+set SDC_CONSTRAINTS_PATH [file dirname [file normalize $SDC_CONSTRAINTS]]
 puts "\tSDC_CONSTRAINTS: $SDC_CONSTRAINTS"
 
 puts "--------------------------------------------------------------------------------"
