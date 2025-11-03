@@ -23,10 +23,10 @@ set output_delay_denum 10.0
 #-----------------------------
 # Declare clocks
 #-----------------------------
-source ./sdc/lagd_core_clk.sdc
-source ./sdc/lagd_jtag_clk.sdc
-#source ./sdc/lagd_spi_clk.sdc
-source ./sdc/lagd_virt_clk.sdc
+source ${SDC_CONSTRAINTS_PATH}/sdc/lagd_core_clk.sdc
+source ${SDC_CONSTRAINTS_PATH}/sdc/lagd_jtag_clk.sdc
+# source ${SDC_CONSTRAINTS_PATH}/sdc/lagd_spi_clk.sdc
+source ${SDC_CONSTRAINTS_PATH}/sdc/lagd_virt_clk.sdc
 
 #-----------------------------
 # Path groups
