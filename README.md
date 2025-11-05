@@ -22,6 +22,8 @@ To install the required tools, run the following code:
 This will install the following tools:
 
 1. Pixi (for dependency management)
+   Warning: after installing Pixi, please restart your terminal and run the script again
+   We recommend to install Pixi before running the script
 2. Dependency libraries (see pixi.toml)
 3. Bender (for hardware dependency management)
 4. Hardware dependencies (see Bender.yml)
