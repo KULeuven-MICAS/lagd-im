@@ -27,14 +27,16 @@ package memory_island_pkg;
         int unsigned AxiWideIdWidth;
 
         /// Number of Narrow Ports
-        int unsigned NumNarrowReq;
+        int unsigned NumAxiNarrowReq;
+        int unsigned NumDirectNarrowReq;
         /// Number of Wide Ports
-        int unsigned NumWideReq;
+        int unsigned NumAxiWideReq;
+        int unsigned NumDirectWideReq;
 
         /// Indicates corresponding narrow requestor supports read/write (0 for read-only/write-only)
-        bit [`MAX_NUM_NARROW_REQ-1:0] NarrowRW;
+        bit [`MAX_NUM_NARROW_REQ-1:0] AxiNarrowRW;
         /// Indicates corresponding narrow requestor supports read/write (0 for read-only/write-only)
-        bit [`MAX_NUM_WIDE_REQ-1:0] WideRW;
+        bit [`MAX_NUM_WIDE_REQ-1:0] AxiWideRW;
 
         /// Spill Narrow
         int unsigned SpillNarrowReqEntry;
