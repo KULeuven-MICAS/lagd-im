@@ -57,6 +57,7 @@
 `define MEM_TYPEDEF_RSP_CHAN_T(__rsp_chan_t, __data_t) \
   typedef struct packed { \
     __data_t data;        \
+    logic    valid;       \
   } __rsp_chan_t;
 
 `define MEM_TYPEDEF_REQ_T(__req_t, __req_chan_t) \

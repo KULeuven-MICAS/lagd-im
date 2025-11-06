@@ -61,6 +61,14 @@ module memory_island_wrap import memory_island_pkg::*; #(
     assign mem_wide_rsp = {mem_wide_rsp_to_axi, mem_wide_rsp_i};
     assign mem_wide_req = {mem_wide_req_from_axi, mem_wide_req_i};
 
+    localparam int unsigned NarrowMemRspLatency = Cfg.SpillNarrowReqEntry +
+        Cfg.SpillNarrowReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
+        Cfg.SpillNarrowRspRouted + Cfg.SpillNarrowRspEntry + Cfg.BankAccessLatency;
+
+    localparam int unsigned WideMemRspLatency = Cfg.SpillWideReqEntry +
+        Cfg.SpillWideReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
+        Cfg.SpillWideRspRouted + Cfg.SpillWideRspEntry + Cfg.BankAccessLatency;
+
     // ------------
     // Axi to mem adapters
     // ------------
@@ -68,12 +76,16 @@ module memory_island_wrap import memory_island_pkg::*; #(
     for (genvar i = 0; i < Cfg.NumAxiNarrowReq; i++) begin: axi_narrow_adapter
         localparam int unsigned id = i + $countones(Cfg.NarrowRW[i:0]);
         axi_to_mem_adapter #(
-            .Cfg(Cfg),
-            .RW(Cfg.NarrowRW[i]),
             .axi_req_t(axi_narrow_req_t),
             .axi_rsp_t(axi_narrow_rsp_t),
             .mem_req_t(mem_narrow_req_t),
-            .mem_rsp_t(mem_narrow_rsp_t)
+            .mem_rsp_t(mem_narrow_rsp_t),
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.NarrowDataWidth),
+            .IdWidth(Cfg.AxiNarrowIdWidth),
+            .MemDataWidth(Cfg.NarrowDataWidth),
+            .BufDepth(1 + NarrowMemRspLatency),
+            .ReadWrite(Cfg.NarrowRW[i])
         ) i_axi_to_mem_adapter_narrow (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -86,12 +98,16 @@ module memory_island_wrap import memory_island_pkg::*; #(
     for (genvar i = 0; i < Cfg.NumAxiWideReq; i++) begin: axi_wide_adapter
         localparam int unsigned id = i + $countones(Cfg.WideRW[i:0]);
         axi_to_mem_adapter #(
-            .Cfg(Cfg),
-            .RW(Cfg.WideRW[i]),
             .axi_req_t(axi_wide_req_t),
             .axi_rsp_t(axi_wide_rsp_t),
             .mem_req_t(mem_wide_req_t),
-            .mem_rsp_t(mem_wide_rsp_t)
+            .mem_rsp_t(mem_wide_rsp_t),
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.WideDataWidth),
+            .IdWidth(Cfg.AxiWideIdWidth),
+            .MemDataWidth(Cfg.WideDataWidth),
+            .BufDepth(1 + WideMemRspLatency),
+            .ReadWrite(Cfg.WideRW[i])
         ) i_axi_to_mem_adapter_wide (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -103,11 +119,11 @@ module memory_island_wrap import memory_island_pkg::*; #(
     end
 
     memory_island_core #(
-        .Cfg(Cfg),
         .mem_narrow_req_t(mem_narrow_req_t),
         .mem_narrow_rsp_t(mem_narrow_rsp_t),
         .mem_wide_req_t(mem_wide_req_t),
-        .mem_wide_rsp_t(mem_wide_rsp_t)
+        .mem_wide_rsp_t(mem_wide_rsp_t),
+        .Cfg(Cfg)
     ) i_memory_island_core (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -116,5 +132,4 @@ module memory_island_wrap import memory_island_pkg::*; #(
         .mem_wide_req_i(mem_wide_req),
         .mem_wide_rsp_o(mem_wide_rsp)
     );
-
 endmodule
