@@ -7,7 +7,7 @@
 // Module description:
 // Wrapper for memory island module
 
-// This module was inspired by 
+// The entire memory island was inspired by:
 // https://github.com/pulp-platform/memory_island
 
 module memory_island_wrap import memory_island_pkg::*; #(
@@ -132,4 +132,4 @@ module memory_island_wrap import memory_island_pkg::*; #(
         .mem_wide_req_i(mem_wide_req),
         .mem_wide_rsp_o(mem_wide_rsp)
     );
-endmodule
+endmodule : memory_island_wrap

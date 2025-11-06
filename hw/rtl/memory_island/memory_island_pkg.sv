@@ -39,17 +39,15 @@ package memory_island_pkg;
         bit [`MAX_NUM_WIDE_REQ-1:0] AxiWideRW;
 
         /// Spill Narrow
-        int unsigned SpillNarrowReqEntry;
-        int unsigned SpillNarrowRspEntry;
+        int unsigned SpillAxiNarrowReqEntry;
+        int unsigned SpillAxiNarrowRspEntry;
         int unsigned SpillNarrowReqRouted;
         int unsigned SpillNarrowRspRouted;
         /// Spill Wide
-        int unsigned SpillWideReqEntry;
-        int unsigned SpillWideRspEntry;
+        int unsigned SpillAxiWideReqEntry;
+        int unsigned SpillAxiWideRspEntry;
         int unsigned SpillWideReqRouted;
         int unsigned SpillWideRspRouted;
-        int unsigned SpillWideReqSplit;
-        int unsigned SpillWideRspSplit;
         /// Spill at Bank
         int unsigned SpillReqBank;
         int unsigned SpillRspBank;
