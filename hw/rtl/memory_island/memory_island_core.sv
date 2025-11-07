@@ -28,4 +28,7 @@ module memory_island_core import memory_island_pkg::*; #(
     output mem_wide_rsp_t [NumWideReq-1:0] mem_wide_rsp_o
 );
 
+    // Wide interconnect
+    
+
 endmodule : memory_island_core

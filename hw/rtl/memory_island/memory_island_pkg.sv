@@ -52,16 +52,9 @@ package memory_island_pkg;
         int unsigned SpillReqBank;
         int unsigned SpillRspBank;
 
-        /// Relinquish narrow priority after x cycles, 0 for never. Requires SpillNarrowReqRouted==0.
-        int unsigned WidePriorityWait;
-
         /// Banking Factor for the Wide Ports (power of 2)
-        int unsigned NumWideBanks;
-        /// Extra multiplier for the Narrow banking factor (baseline is WideWidth/NarrowWidth) (power of 2)
-        int unsigned NarrowExtraBF;
-        /// Words per memory bank. (Total number of banks is (WideWidth/NarrowWidth)*NumWideBanks)
+        int unsigned NumNarrowBanks;
         int unsigned WordsPerBank;
-        /// Number of cycles a memory macro takes to respond to a read request
         int unsigned BankAccessLatency;
     } mem_cfg_t;
-endpackage : lagd_mem_pkg
+endpackage : memory_island_pkg
