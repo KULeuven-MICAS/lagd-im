@@ -41,26 +41,31 @@ module memory_island_wrap import memory_island_pkg::*; #(
     output mem_wide_rsp_t [Cfg.NumDirectWideReq-1:0] mem_wide_rsp_o
 );
 
-    localparam int unsigned rw_narrow_reqs = Cfg.NumDirectNarrowReq + $countones(Cfg.NarrowRW);
-    mem_narrow_req_t [rw_narrow_reqs-1:0] mem_narrow_req_from_axi, mem_narrow_req_from_axi_q1;
-    mem_narrow_rsp_t [rw_narrow_reqs-1:0] mem_narrow_rsp_to_axi, mem_narrow_rsp_to_axi_q1;
+    // Narrow AXI requests and responses for adapter and spilling
+    localparam int unsigned axi_rw_narrow_reqs = Cfg.NumAxiNarrowReq + $countones(Cfg.NarrowRW);
+    mem_narrow_req_t [axi_rw_narrow_reqs-1:0] mem_narrow_req_from_axi, mem_narrow_req_from_axi_q1;
+    mem_narrow_rsp_t [axi_rw_narrow_reqs-1:0] mem_narrow_rsp_to_axi, mem_narrow_rsp_to_axi_q1;
 
-    localparam int unsigned rw_wide_reqs = Cfg.NumDirectWideReq + $countones(Cfg.WideRW);
-    mem_wide_req_t [rw_wide_reqs-1:0] mem_wide_req_from_axi, mem_wide_req_from_axi_q1;
-    mem_wide_rsp_t [rw_wide_reqs-1:0] mem_wide_rsp_to_axi, mem_wide_rsp_to_axi_q1;
+    // Wide AXI requests and responses for adapter and spilling
+    localparam int unsigned axi_rw_wide_reqs = Cfg.NumAxiWideReq + $countones(Cfg.WideRW);
+    mem_wide_req_t [axi_rw_wide_reqs-1:0] mem_wide_req_from_axi, mem_wide_req_from_axi_q1;
+    mem_wide_rsp_t [axi_rw_wide_reqs-1:0] mem_wide_rsp_to_axi, mem_wide_rsp_to_axi_q1;
 
-    localparam int unsigned total_narrow_reqs = rw_narrow_reqs + Cfg.NumDirectNarrowReq;
+    // Full memory island requests and responses narrow
+    localparam int unsigned total_narrow_reqs = axi_rw_narrow_reqs + Cfg.NumDirectNarrowReq;
     mem_narrow_req_t [total_narrow_reqs-1:0] mem_narrow_req;
     mem_narrow_rsp_t [total_narrow_reqs-1:0] mem_narrow_rsp;
-    assign mem_narrow_rsp = {mem_narrow_rsp_to_axi, mem_narrow_rsp_i};
-    assign mem_narrow_req = {mem_narrow_req_from_axi, mem_narrow_req_i};
+    assign mem_narrow_rsp = {mem_narrow_rsp_to_axi_q1, mem_narrow_rsp_i};
+    assign mem_narrow_req = {mem_narrow_req_from_axi_q1, mem_narrow_req_i};
 
-    localparam int unsigned total_wide_reqs = rw_wide_reqs + Cfg.NumDirectWideReq;
+    // Full memory island requests and responses wide
+    localparam int unsigned total_wide_reqs = axi_rw_wide_reqs + Cfg.NumDirectWideReq;
     mem_wide_req_t [total_wide_reqs-1:0] mem_wide_req;
     mem_wide_rsp_t [total_wide_reqs-1:0] mem_wide_rsp;
     assign mem_wide_rsp = {mem_wide_rsp_to_axi_q1, mem_wide_rsp_i};
     assign mem_wide_req = {mem_wide_req_from_axi_q1, mem_wide_req_i};
 
+    // Spill latencies
     localparam int unsigned NarrowMemRspLatency = Cfg.SpillNarrowReqEntry +
         Cfg.SpillNarrowReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
         Cfg.SpillNarrowRspRouted + Cfg.SpillNarrowRspEntry + Cfg.BankAccessLatency;
@@ -160,6 +165,10 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .read_ready_o()
         );
     end
+
+    // ------------
+    // Memory island core
+    // ------------
 
     memory_island_core #(
         .mem_narrow_req_t(mem_narrow_req_t),
