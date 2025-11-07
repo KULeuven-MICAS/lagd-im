@@ -42,12 +42,12 @@ module memory_island_wrap import memory_island_pkg::*; #(
 );
 
     localparam int unsigned rw_narrow_reqs = Cfg.NumDirectNarrowReq + $countones(Cfg.NarrowRW);
-    mem_narrow_req_t [rw_narrow_reqs-1:0] mem_narrow_req_from_axi;
-    mem_narrow_rsp_t [rw_narrow_reqs-1:0] mem_narrow_rsp_to_axi;
+    mem_narrow_req_t [rw_narrow_reqs-1:0] mem_narrow_req_from_axi, mem_narrow_req_from_axi_q1;
+    mem_narrow_rsp_t [rw_narrow_reqs-1:0] mem_narrow_rsp_to_axi, mem_narrow_rsp_to_axi_q1;
 
     localparam int unsigned rw_wide_reqs = Cfg.NumDirectWideReq + $countones(Cfg.WideRW);
-    mem_wide_req_t [rw_wide_reqs-1:0] mem_wide_req_from_axi;
-    mem_wide_rsp_t [rw_wide_reqs-1:0] mem_wide_rsp_to_axi;
+    mem_wide_req_t [rw_wide_reqs-1:0] mem_wide_req_from_axi, mem_wide_req_from_axi_q1;
+    mem_wide_rsp_t [rw_wide_reqs-1:0] mem_wide_rsp_to_axi, mem_wide_rsp_to_axi_q1;
 
     localparam int unsigned total_narrow_reqs = rw_narrow_reqs + Cfg.NumDirectNarrowReq;
     mem_narrow_req_t [total_narrow_reqs-1:0] mem_narrow_req;
@@ -58,8 +58,8 @@ module memory_island_wrap import memory_island_pkg::*; #(
     localparam int unsigned total_wide_reqs = rw_wide_reqs + Cfg.NumDirectWideReq;
     mem_wide_req_t [total_wide_reqs-1:0] mem_wide_req;
     mem_wide_rsp_t [total_wide_reqs-1:0] mem_wide_rsp;
-    assign mem_wide_rsp = {mem_wide_rsp_to_axi, mem_wide_rsp_i};
-    assign mem_wide_req = {mem_wide_req_from_axi, mem_wide_req_i};
+    assign mem_wide_rsp = {mem_wide_rsp_to_axi_q1, mem_wide_rsp_i};
+    assign mem_wide_req = {mem_wide_req_from_axi_q1, mem_wide_req_i};
 
     localparam int unsigned NarrowMemRspLatency = Cfg.SpillNarrowReqEntry +
         Cfg.SpillNarrowReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
@@ -91,8 +91,8 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .rst_ni(rst_ni),
             .axi_req_i(axi_narrow_req_i[i]),
             .axi_rsp_o(axi_narrow_rsp_o[i]),
-            .mem_req_o(mem_narrow_req_i[id-:1+Cfg.NarrowRW[i]]),
-            .mem_rsp_i(mem_narrow_rsp_o[id-:1+Cfg.NarrowRW[i]])
+            .mem_req_o(mem_narrow_req_from_axi[id-:1+Cfg.NarrowRW[i]]),
+            .mem_rsp_i(mem_narrow_rsp_to_axi[id-:1+Cfg.NarrowRW[i]])
         );
     end
     for (genvar i = 0; i < Cfg.NumAxiWideReq; i++) begin: axi_wide_adapter
@@ -113,8 +113,51 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .rst_ni(rst_ni),
             .axi_req_i(axi_wide_req_i[i]),
             .axi_rsp_o(axi_wide_rsp_o[i]),
-            .mem_req_o(mem_wide_req_i[id-:1+Cfg.WideRW[i]]),
-            .mem_rsp_i(mem_wide_rsp_o[id-:1+Cfg.WideRW[i]])
+            .mem_req_o(mem_wide_req_from_axi[id-:1+Cfg.WideRW[i]]),
+            .mem_rsp_i(mem_wide_rsp_to_axi[id-:1+Cfg.WideRW[i]])
+        );
+    end
+
+    // ------------
+    // Add entry spilling here
+    // ------------
+    for (genvar i = 0; i < rw_narrow_reqs; i++) begin: spill_narrow_entry
+        mem_multicut #(
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.NarrowDataWidth),
+            .NumCutsReq(Cfg.SpillAxiNarrowReqEntry),
+            .NumCutsRsp(Cfg.SpillAxiNarrowRspEntry),
+            .mem_req_t(mem_narrow_req_t),
+            .mem_rsp_t(mem_narrow_rsp_t)
+        ) u_spill_narrow_entry (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .req_i(mem_narrow_req_from_axi[i]),
+            .req_o(mem_narrow_req_from_axi_q1[i]),
+            .rsp_i(mem_narrow_rsp_to_axi[i]),
+            .rsp_o(mem_narrow_rsp_to_axi_q1[i]),
+            .read_ready_i(1'b1),
+            .read_ready_o()
+        );
+    end
+
+    for (genvar i = 0; i < rw_wide_reqs; i++) begin: spill_wide_entry
+        mem_multicut #(
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.WideDataWidth),
+            .NumCutsReq(Cfg.SpillAxiWideReqEntry),
+            .NumCutsRsp(Cfg.SpillAxiWideRspEntry),
+            .mem_req_t(mem_wide_req_t),
+            .mem_rsp_t(mem_wide_rsp_t)
+        ) u_spill_wide_entry (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .req_i(mem_wide_req_from_axi[i]),
+            .req_o(mem_wide_req_from_axi_q1[i]),
+            .rsp_i(mem_wide_rsp_to_axi[i]),
+            .rsp_o(mem_wide_rsp_to_axi_q1[i]),
+            .read_ready_i(1'b1),
+            .read_ready_o()
         );
     end
 
