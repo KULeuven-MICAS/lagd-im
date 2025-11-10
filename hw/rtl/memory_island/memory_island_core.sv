@@ -28,7 +28,71 @@ module memory_island_core import memory_island_pkg::*; #(
     output mem_wide_rsp_t [NumWideReq-1:0] mem_wide_rsp_o
 );
 
+    // TODO: add buffer instances here to allow for variable latency
+    // possibly in-order and out-of-order variants
+
+    // -------------
+    // Interconnects
+    // -------------
     // Wide interconnect
+    localparam int unsigned NumWideBanks = Cfg.NumNarrowBanks * Cfg.NarrowDataWidth / Cfg.WideDataWidth;
+    mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks;
+    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks;
+
+    tcdm_interconnect_wrap #(
+        .NumIn(NumWideReq),
+        .NumOut(NumWideBanks),
+        .AddrWidth(Cfg.AddrWidth),
+        .DataWidth(Cfg.WideDataWidth),
+        .BankingFactor(NumWideBanks),
+        .AccessLatency(Cfg.BankAccessLatency),
+        .ReqType(mem_wide_req_t),
+        .RspType(mem_wide_rsp_t)
+    ) i_wide_interco (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+
+        .mem_req_i(mem_wide_req_i),
+        .mem_rsp_o(mem_wide_rsp_o),
+
+        .mem_rsp_o(mem_wide_req_to_banks),
+        .mem_rsp_i(mem_wide_rsp_from_banks)
+    );
+
+    // Narrow interconnect
+    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks;
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks;
+
+    tcdm_interconnect_wrap #(
+        .NumIn(NumNarrowReq),
+        .NumOut(Cfg.NumNarrowBanks),
+        .AddrWidth(Cfg.AddrWidth),
+        .DataWidth(Cfg.NarrowDataWidth),
+        .BankingFactor(Cfg.NumNarrowBanks),
+        .AccessLatency(Cfg.BankAccessLatency),
+        .ReqType(mem_narrow_req_t),
+        .RspType(mem_narrow_rsp_t)
+    ) i_narrow_interco (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+
+        .mem_req_i(mem_narrow_req_i),
+        .mem_rsp_o(mem_narrow_rsp_o),
+
+        .mem_req_o(mem_narrow_req_to_banks),
+        .mem_rsp_i(mem_narrow_rsp_from_banks)
+    );
+
+    // ------------
+    // Asserts
+    // ------------
+    // Banking factor must be a power of 2
+    `STATIC_ASSERT($clog2(Cfg.NumNarrowBanks) == $clog2(Cfg.NumNarrowBanks & -Cfg.NumNarrowBanks),
+        "Banking factor must be a power of 2");
+
+    // Wide banking factor must be a multiple of narrow banking factor
+    `STATIC_ASSERT((Cfg.NumNarrowBanks * Cfg.NarrowDataWidth) % Cfg.WideDataWidth == 0,
+        "Wide banking factor must be a multiple of narrow banking factor");
     
 
 endmodule : memory_island_core

@@ -77,7 +77,6 @@ module memory_island_wrap import memory_island_pkg::*; #(
     // ------------
     // Axi to mem adapters
     // ------------
-
     for (genvar i = 0; i < Cfg.NumAxiNarrowReq; i++) begin: axi_narrow_adapter
         localparam int unsigned id = i + $countones(Cfg.NarrowRW[i:0]);
         axi_to_mem_adapter #(
@@ -169,7 +168,6 @@ module memory_island_wrap import memory_island_pkg::*; #(
     // ------------
     // Memory island core
     // ------------
-
     memory_island_core #(
         .mem_narrow_req_t(mem_narrow_req_t),
         .mem_narrow_rsp_t(mem_narrow_rsp_t),
