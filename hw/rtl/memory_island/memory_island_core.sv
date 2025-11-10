@@ -84,6 +84,51 @@ module memory_island_core import memory_island_pkg::*; #(
     );
 
     // ------------
+    // Post route spilling
+    // ------------
+    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: spill_narrow_routed
+        mem_multicut #(
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.NarrowDataWidth),
+            .NumCutsReq(Cfg.SpillNarrowReqRouted),
+            .NumCutsRsp(Cfg.SpillNarrowRspRouted),
+            .mem_req_t(mem_narrow_req_t),
+            .mem_rsp_t(mem_narrow_rsp_t)
+        ) u_spill_narrow_routed (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .req_i(mem_narrow_req_to_banks[i]),
+            .req_o(mem_narrow_req_to_banks_q1[i]),
+            .rsp_i(mem_narrow_rsp_from_banks_q1[i]),
+            .rsp_o(mem_narrow_rsp_from_banks[i]),
+            .read_ready_i(1'b1),
+            .read_ready_o()
+        );
+    end
+
+    for (genvar i = 0; i < NumWideBanks; i++) begin: spill_wide_routed
+        mem_multicut #(
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.WideDataWidth),
+            .NumCutsReq(Cfg.SpillWideReqRouted),
+            .NumCutsRsp(Cfg.SpillWideRspRouted),
+            .mem_req_t(mem_wide_req_t),
+            .mem_rsp_t(mem_wide_rsp_t)
+        ) u_spill_wide_routed (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .req_i(mem_wide_req_to_banks[i]),
+            .req_o(mem_wide_req_to_banks_q1[i]),
+            .rsp_i(mem_wide_rsp_from_banks_q1[i]),
+            .rsp_o(mem_wide_rsp_from_banks[i]),
+            .read_ready_i(1'b1),
+            .read_ready_o()
+        );
+    end
+
+    
+
+    // ------------
     // Asserts
     // ------------
     // Banking factor must be a power of 2

@@ -123,7 +123,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
     end
 
     // ------------
-    // Add entry spilling here
+    // Entry spilling
     // ------------
     for (genvar i = 0; i < rw_narrow_reqs; i++) begin: spill_narrow_entry
         mem_multicut #(
