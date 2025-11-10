@@ -6,6 +6,8 @@
 
 // Module description:
 
+// TODO: get the addr and data widths from the mem_req_t and mem_rsp_t types
+
 module tcdm_interconnect_wrap #(
     parameter int unsigned NumIn = 4,
     parameter int unsigned NumOut = 4,

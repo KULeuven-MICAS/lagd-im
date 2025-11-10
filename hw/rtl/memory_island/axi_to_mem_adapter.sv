@@ -4,7 +4,7 @@
 
 // Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-module axi_to_mem_adapter import memory_island_pkg::*; #(
+module axi_to_mem_adapter #(
     parameter type axi_req_t = logic,
     parameter type axi_rsp_t = logic,
     parameter type mem_req_t = logic,

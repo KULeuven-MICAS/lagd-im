@@ -90,7 +90,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .MemDataWidth(Cfg.NarrowDataWidth),
             .BufDepth(1 + NarrowMemRspLatency),
             .ReadWrite(Cfg.NarrowRW[i])
-        ) i_axi_to_mem_adapter_narrow (
+        ) u_axi_to_mem_adapter_narrow (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .axi_req_i(axi_narrow_req_i[i]),
@@ -112,7 +112,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .MemDataWidth(Cfg.WideDataWidth),
             .BufDepth(1 + WideMemRspLatency),
             .ReadWrite(Cfg.WideRW[i])
-        ) i_axi_to_mem_adapter_wide (
+        ) u_axi_to_mem_adapter_wide (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .axi_req_i(axi_wide_req_i[i]),
