@@ -1,0 +1,3 @@
+[submodule "target/syn"]
+	path = target/syn
+	url = git@github.com:KULeuven-MICAS/lagd-syn.git
