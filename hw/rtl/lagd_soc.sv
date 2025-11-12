@@ -188,6 +188,7 @@ module lagd_soc import lagd_pkg::*; (
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
             ising_core_wrap #(
                 .l1_mem_cfg     (lagd_mem_pkg::IsingCoreL1MemCfg),
+                .logic_cfg      (ising_logic_pkg::IsingLogicCfg),
                 .axi_slv_req_t  (lagd_axi_slv_req_t),
                 .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
                 .reg_slv_req_t  (lagd_reg_req_t),
