@@ -42,7 +42,7 @@ package lagd_pkg;
         // Slave ID 1 is reserved for CVA6 stack memory
         idx_map[IdxMap.STACK_MEM] = IdxMap.STACK_MEM; // CVA6 stack memory
         // cores start from ID 2
-        for (int unsigned i = 0; i <= `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(IdxMap.ISING_CORES_BASE) + i;
             idx_map[idx] = idx;
         end
@@ -65,7 +65,7 @@ package lagd_pkg;
         // Ising cores
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
-            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (i)*`IC_L1_MEM_LIMIT - 1);
+            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (i)*`IC_L1_MEM_LIMIT);
         end
         return addr_map;
     endfunction : gen_lagd_slv_start_addr
@@ -81,7 +81,7 @@ package lagd_pkg;
         localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B);
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
-            addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i)*`IC_L1_MEM_LIMIT - 1);
+            addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i+1)*`IC_L1_MEM_LIMIT - 1);
         end
         return addr_map;
     endfunction : gen_lagd_slv_end_addr
@@ -106,7 +106,7 @@ package lagd_pkg;
         lagd_reg_idx_map_t idx_map;
         // Map reg IDs to cores
         int unsigned idx;
-        for (int unsigned i = 0; i <= `NUM_ISING_CORES; i++) begin
+        for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(IdxMap.ISING_CORES_BASE + i);
             idx_map[idx] = idx;
         end
