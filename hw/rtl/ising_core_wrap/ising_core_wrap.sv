@@ -119,7 +119,6 @@ module ising_core_wrap #(
         .direct_rsp_i(drt_s_rsp_load),
         // Register interface
         .mode_select_i(mode_select),
-        // TODO: to be defined
         // Analog macro interface
         .weight_load_en_o(analog_wen),
         .weight_load_addr_o(analog_waddr),
