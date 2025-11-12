@@ -182,6 +182,12 @@ module memory_island_core import memory_island_pkg::*; #(
     end
 
     // ------------
+    // Arbitration
+    // ------------
+
+    
+
+    // ------------
     // Asserts
     // ------------
     // Banking factor must be a power of 2
