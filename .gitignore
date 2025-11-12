@@ -73,7 +73,6 @@ docs/_build/
 
 # PyBuilder
 .pybuilder/
-target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -218,4 +217,10 @@ transcript
 .pixi/*
 !.pixi/config.toml
 .bender/*
-.opt/*
+.opt/
+
+# Design compiler generated files
+*.svf
+alib-52/
+runs/
+.dc-tmp/
