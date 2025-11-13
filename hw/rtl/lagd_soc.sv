@@ -12,41 +12,41 @@
 
 
 module lagd_soc import lagd_pkg::*; (
-    input logic         clk_i,
-    input logic         rtc_i,  // Real Time clock input reference
-    input logic         rst_ni,
-    input logic         test_mode_i,
-    input logic [1:0]   boot_mode_i,
+    input logic clk_i,
+    input logic rtc_i,  // Real Time clock input reference
+    input logic rst_ni,
+    input logic test_mode_i,
+    input logic [1:0] boot_mode_i,
     // JTAG interface
-    input  logic  jtag_tck_i,
-    input  logic  jtag_trst_ni,
-    input  logic  jtag_tms_i,
-    input  logic  jtag_tdi_i,
-    output logic  jtag_tdo_o,
-    output logic  jtag_tdo_oe_o,
+    input logic jtag_tck_i,
+    input logic jtag_trst_ni,
+    input logic jtag_tms_i,
+    input logic jtag_tdi_i,
+    output logic jtag_tdo_o,
+    output logic jtag_tdo_oe_o,
     // UART interface
-    output logic  uart_tx_o,
-    input  logic  uart_rx_i,
+    output logic uart_tx_o,
+    input  logic uart_rx_i,
     // UART modem flow control
-    output logic  uart_rts_no,
-    output logic  uart_dtr_no, // open,
-    input  logic  uart_cts_ni,
-    input  logic  uart_dsr_ni, // =1,
-    input  logic  uart_dcd_ni,  // =1,
-    input  logic  uart_rin_ni,  // =1,
+    output logic uart_rts_no,
+    output logic uart_dtr_no, // open,
+    input logic uart_cts_ni,
+    input logic uart_dsr_ni, // =1,
+    input logic uart_dcd_ni,  // =1,
+    input logic uart_rin_ni,  // =1,
     // SPI host interface
-    output logic                  spih_sck_o,
-    output logic                  spih_sck_en_o,
-    output logic [SpihNumCs-1:0]  spih_csb_o,
-    output logic [SpihNumCs-1:0]  spih_csb_en_o,
-    output logic [ 3:0]           spih_sd_o,
-    output logic [ 3:0]           spih_sd_en_o,
-    input  logic [ 3:0]           spih_sd_i,
+    output logic spih_sck_o,
+    output logic spih_sck_en_o,
+    output logic [SpihNumCs-1:0] spih_csb_o,
+    output logic [SpihNumCs-1:0] spih_csb_en_o,
+    output logic [ 3:0] spih_sd_o,
+    output logic [ 3:0] spih_sd_en_o,
+    input logic [ 3:0] spih_sd_i,
     // Serial link interface
-    input  logic [SlinkNumChan-1:0]                     slink_rcv_clk_i,
-    output logic [SlinkNumChan-1:0]                     slink_rcv_clk_o,
-    input  logic [SlinkNumChan-1:0][SlinkNumLanes-1:0]  slink_i,
-    output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0]  slink_o
+    input logic [SlinkNumChan-1:0] slink_rcv_clk_i,
+    output logic [SlinkNumChan-1:0] slink_rcv_clk_o,
+    input logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_i,
+    output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_o
 );
 
     // defines axi and register interface types
@@ -119,27 +119,27 @@ module lagd_soc import lagd_pkg::*; (
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
     axi_memory_island_wrap #(
-        .AddrWidth          (lagd_mem_pkg::CVA6StackMemCfg.AddrWidth),
-        .NarrowDataWidth    (lagd_mem_pkg::CVA6StackMemCfg.NarrowDataWidth),
-        .AxiNarrowIdWidth   (lagd_mem_pkg::CVA6StackMemCfg.AxiNarrowIdWidth),
-        .WideDataWidth      (lagd_mem_pkg::CVA6StackMemCfg.WideDataWidth),
-        .NumWideBanks       (lagd_mem_pkg::CVA6StackMemCfg.NumWideBanks),
+        .AddrWidth          (lagd_mem_cfg_pkg::CVA6StackMemCfg.AddrWidth),
+        .NarrowDataWidth    (lagd_mem_cfg_pkg::CVA6StackMemCfg.NarrowDataWidth),
+        .AxiNarrowIdWidth   (lagd_mem_cfg_pkg::CVA6StackMemCfg.AxiNarrowIdWidth),
+        .WideDataWidth      (lagd_mem_cfg_pkg::CVA6StackMemCfg.WideDataWidth),
+        .NumWideBanks       (lagd_mem_cfg_pkg::CVA6StackMemCfg.NumWideBanks),
 
         .axi_narrow_req_t   (lagd_axi_slv_req_t),
         .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t),
-        .NumNarrowReq       (lagd_mem_pkg::CVA6StackMemCfg.NumNarrowReq),
-        .NarrowRW           (lagd_mem_pkg::CVA6StackMemCfg.NarrowRW),
-        .WideRW             (lagd_mem_pkg::CVA6StackMemCfg.WideRW),
+        .NumNarrowReq       (lagd_mem_cfg_pkg::CVA6StackMemCfg.NumNarrowReq),
+        .NarrowRW           (lagd_mem_cfg_pkg::CVA6StackMemCfg.NarrowRW),
+        .WideRW             (lagd_mem_cfg_pkg::CVA6StackMemCfg.WideRW),
 
-        .SpillNarrowReqEntry    (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowReqEntry),
-        .SpillNarrowRspEntry    (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowRspEntry),
-        .SpillNarrowReqRouted   (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowReqRouted),
-        .SpillNarrowRspRouted   (lagd_mem_pkg::CVA6StackMemCfg.SpillNarrowRspRouted),
+        .SpillNarrowReqEntry    (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowReqEntry),
+        .SpillNarrowRspEntry    (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowRspEntry),
+        .SpillNarrowReqRouted   (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowReqRouted),
+        .SpillNarrowRspRouted   (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowRspRouted),
 
-        .SpillReqBank (lagd_mem_pkg::CVA6StackMemCfg.SpillReqBank),
-        .SpillRspBank (lagd_mem_pkg::CVA6StackMemCfg.SpillRspBank),
+        .SpillReqBank (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillReqBank),
+        .SpillRspBank (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillRspBank),
 
-        .WordsPerBank  (lagd_mem_pkg::CVA6StackMemCfg.WordsPerBank)
+        .WordsPerBank  (lagd_mem_cfg_pkg::CVA6StackMemCfg.WordsPerBank)
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
@@ -152,27 +152,27 @@ module lagd_soc import lagd_pkg::*; (
     // L2 SPM  ///////////////////////////////////////////////
     //////////////////////////////////////////////////////////
     axi_memory_island_wrap #(
-        .AddrWidth          (lagd_mem_pkg::L2MemCfg.AddrWidth),
-        .NarrowDataWidth    (lagd_mem_pkg::L2MemCfg.NarrowDataWidth),
-        .AxiNarrowIdWidth   (lagd_mem_pkg::L2MemCfg.AxiNarrowIdWidth),
-        .WideDataWidth      (lagd_mem_pkg::L2MemCfg.WideDataWidth),
-        .NumWideBanks       (lagd_mem_pkg::L2MemCfg.NumWideBanks),
+        .AddrWidth          (lagd_mem_cfg_pkg::L2MemCfg.AddrWidth),
+        .NarrowDataWidth    (lagd_mem_cfg_pkg::L2MemCfg.NarrowDataWidth),
+        .AxiNarrowIdWidth   (lagd_mem_cfg_pkg::L2MemCfg.AxiNarrowIdWidth),
+        .WideDataWidth      (lagd_mem_cfg_pkg::L2MemCfg.WideDataWidth),
+        .NumWideBanks       (lagd_mem_cfg_pkg::L2MemCfg.NumWideBanks),
 
         .axi_narrow_req_t   (lagd_axi_slv_req_t),
         .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t),
-        .NumNarrowReq       (lagd_mem_pkg::L2MemCfg.NumNarrowReq),
-        .NarrowRW           (lagd_mem_pkg::L2MemCfg.NarrowRW),
-        .WideRW             (lagd_mem_pkg::L2MemCfg.WideRW),
+        .NumNarrowReq       (lagd_mem_cfg_pkg::L2MemCfg.NumNarrowReq),
+        .NarrowRW           (lagd_mem_cfg_pkg::L2MemCfg.NarrowRW),
+        .WideRW             (lagd_mem_cfg_pkg::L2MemCfg.WideRW),
 
-        .SpillNarrowReqEntry    (lagd_mem_pkg::L2MemCfg.SpillNarrowReqEntry),
-        .SpillNarrowRspEntry    (lagd_mem_pkg::L2MemCfg.SpillNarrowRspEntry),
-        .SpillNarrowReqRouted   (lagd_mem_pkg::L2MemCfg.SpillNarrowReqRouted),
-        .SpillNarrowRspRouted   (lagd_mem_pkg::L2MemCfg.SpillNarrowRspRouted),
+        .SpillNarrowReqEntry    (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowReqEntry),
+        .SpillNarrowRspEntry    (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowRspEntry),
+        .SpillNarrowReqRouted   (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowReqRouted),
+        .SpillNarrowRspRouted   (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowRspRouted),
 
-        .SpillReqBank (lagd_mem_pkg::L2MemCfg.SpillReqBank),
-        .SpillRspBank (lagd_mem_pkg::L2MemCfg.SpillRspBank),
+        .SpillReqBank (lagd_mem_cfg_pkg::L2MemCfg.SpillReqBank),
+        .SpillRspBank (lagd_mem_cfg_pkg::L2MemCfg.SpillRspBank),
 
-        .WordsPerBank  (lagd_mem_pkg::L2MemCfg.WordsPerBank)
+        .WordsPerBank  (lagd_mem_cfg_pkg::L2MemCfg.WordsPerBank)
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
@@ -187,7 +187,7 @@ module lagd_soc import lagd_pkg::*; (
     generate
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
             ising_core_wrap #(
-                .l1_mem_cfg     (lagd_mem_pkg::IsingCoreL1MemCfg),
+                .l1_mem_cfg     (lagd_mem_cfg_pkg::IsingCoreL1MemCfg),
                 .axi_slv_req_t  (lagd_axi_slv_req_t),
                 .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
                 .reg_slv_req_t  (lagd_reg_req_t),

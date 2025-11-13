@@ -228,11 +228,10 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     localparam int unsigned BankWordAddrWidth = Cfg.AddrWidth - $clog2(Cfg.NumNarrowBanks) -
         $clog2(Cfg.NarrowDataWidth/8);
-    localparam int unsigned WordsPerBank = 1 << BankWordAddrWidth;
     localparam int unsigned AddressWideWordBit = $clog2(Cfg.NumNarrowBanks) + $clog2(Cfg.NarrowDataWidth/8);
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
         tc_sram(
-            .NumWords(WordsPerBank),
+            .NumWords(Cfg.WordsPerBank),
             .DataWidth(Cfg.NarrowDataWidth)
         ) u_bank (
             .clk_i(clk_i),
