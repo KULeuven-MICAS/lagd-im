@@ -25,6 +25,16 @@ sources:
     files:
       - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
   - files:
+      - hw/rtl/memory_island/axi_to_mem_adapter.sv
+      - hw/rtl/memory_island/mem_req_multicut.sv
+      - hw/rtl/memory_island/mem_rsp_multicut.sv
+      - hw/rtl/memory_island/mem_multicut.sv
+      - hw/rtl/memory_island/tcdm_interco_wrap.sv
+      - hw/rtl/memory_island/wide_narrow_arbiter.sv
+      - hw/rtl/memory_island/wide_to_narrow_splitter.sv
+      - hw/rtl/memory_island/memory_island_pkg.sv
+      - hw/rtl/memory_island/memory_island_core.sv
+      - hw/rtl/memory_island/memory_island_wrap.sv
       - hw/rtl/lagd_pkg.sv
       - hw/rtl/lagd_mem_pkg.sv
       - hw/rtl/lagd_soc.sv
