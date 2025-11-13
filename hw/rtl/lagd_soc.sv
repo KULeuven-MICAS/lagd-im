@@ -118,67 +118,43 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    axi_memory_island_wrap #(
-        .AddrWidth          (lagd_mem_cfg_pkg::CVA6StackMemCfg.AddrWidth),
-        .NarrowDataWidth    (lagd_mem_cfg_pkg::CVA6StackMemCfg.NarrowDataWidth),
-        .AxiNarrowIdWidth   (lagd_mem_cfg_pkg::CVA6StackMemCfg.AxiNarrowIdWidth),
-        .WideDataWidth      (lagd_mem_cfg_pkg::CVA6StackMemCfg.WideDataWidth),
-        .NumWideBanks       (lagd_mem_cfg_pkg::CVA6StackMemCfg.NumWideBanks),
-
+    memory_island_wrap #(
+        .Cfg(lagd_mem_cfg_pkg::CVA6StackMemCfg),
         .axi_narrow_req_t   (lagd_axi_slv_req_t),
-        .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t),
-        .NumNarrowReq       (lagd_mem_cfg_pkg::CVA6StackMemCfg.NumNarrowReq),
-        .NarrowRW           (lagd_mem_cfg_pkg::CVA6StackMemCfg.NarrowRW),
-        .WideRW             (lagd_mem_cfg_pkg::CVA6StackMemCfg.WideRW),
-
-        .SpillNarrowReqEntry    (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowReqEntry),
-        .SpillNarrowRspEntry    (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowRspEntry),
-        .SpillNarrowReqRouted   (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowReqRouted),
-        .SpillNarrowRspRouted   (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillNarrowRspRouted),
-
-        .SpillReqBank (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillReqBank),
-        .SpillRspBank (lagd_mem_cfg_pkg::CVA6StackMemCfg.SpillRspBank),
-
-        .WordsPerBank  (lagd_mem_cfg_pkg::CVA6StackMemCfg.WordsPerBank)
+        .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t)
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
         .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.STACK_MEM]),
-        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM])
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM]),
+        .axi_wide_req_i('0),
+        .axi_wide_rsp_o(),
+        .mem_narrow_req_i('0),
+        .mem_narrow_rsp_o(),
+        .mem_wide_req_i('0),
+        .mem_wide_rsp_o()
     );
 
     //////////////////////////////////////////////////////////
     // L2 SPM  ///////////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    axi_memory_island_wrap #(
-        .AddrWidth          (lagd_mem_cfg_pkg::L2MemCfg.AddrWidth),
-        .NarrowDataWidth    (lagd_mem_cfg_pkg::L2MemCfg.NarrowDataWidth),
-        .AxiNarrowIdWidth   (lagd_mem_cfg_pkg::L2MemCfg.AxiNarrowIdWidth),
-        .WideDataWidth      (lagd_mem_cfg_pkg::L2MemCfg.WideDataWidth),
-        .NumWideBanks       (lagd_mem_cfg_pkg::L2MemCfg.NumWideBanks),
-
+    memory_island_wrap #(
+        .Cfg(lagd_mem_cfg_pkg::L2MemCfg),
         .axi_narrow_req_t   (lagd_axi_slv_req_t),
-        .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t),
-        .NumNarrowReq       (lagd_mem_cfg_pkg::L2MemCfg.NumNarrowReq),
-        .NarrowRW           (lagd_mem_cfg_pkg::L2MemCfg.NarrowRW),
-        .WideRW             (lagd_mem_cfg_pkg::L2MemCfg.WideRW),
-
-        .SpillNarrowReqEntry    (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowReqEntry),
-        .SpillNarrowRspEntry    (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowRspEntry),
-        .SpillNarrowReqRouted   (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowReqRouted),
-        .SpillNarrowRspRouted   (lagd_mem_cfg_pkg::L2MemCfg.SpillNarrowRspRouted),
-
-        .SpillReqBank (lagd_mem_cfg_pkg::L2MemCfg.SpillReqBank),
-        .SpillRspBank (lagd_mem_cfg_pkg::L2MemCfg.SpillRspBank),
-
-        .WordsPerBank  (lagd_mem_cfg_pkg::L2MemCfg.WordsPerBank)
+        .axi_narrow_rsp_t   (lagd_axi_slv_rsp_t)
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
         .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.L2_MEM]),
-        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM])
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM]),
+        .axi_wide_req_i('0),
+        .axi_wide_rsp_o(),
+        .mem_narrow_req_i('0),
+        .mem_narrow_rsp_o(),
+        .mem_wide_req_i('0),
+        .mem_wide_rsp_o()
     );
 
     //////////////////////////////////////////////////////////
