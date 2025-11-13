@@ -4,6 +4,9 @@
 
 // Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+// TODO:
+// Add address field definitions on top
+
 module memory_island_core import memory_island_pkg::*; #(
     parameter type mem_narrow_req_t = logic,
     parameter type mem_narrow_rsp_t = logic,
@@ -223,8 +226,24 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     // Banks instances
     // ------------
+    localparam int unsigned BankWordAddrWidth = Cfg.AddrWidth - $clog2(Cfg.NumNarrowBanks) -
+        $clog2(Cfg.NarrowDataWidth/8);
+    localparam int unsigned WordsPerBank = 1 << BankWordAddrWidth;
+    localparam int unsigned AddressWideWordBit = $clog2(Cfg.NumNarrowBanks) + $clog2(Cfg.NarrowDataWidth/8);
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
-        tc_sram(TODO)
+        tc_sram(
+            .NumWords(WordsPerBank),
+            .DataWidth(Cfg.NarrowDataWidth)
+        ) u_bank (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .req_i(bank_req_q1[i].q_valid),
+            .addr_i(bank_req_q1[i].q.addr[AddressWideWordBit-1 -: BankWordAddrWidth]),
+            .we_i(bank_req_q1[i].q.write),
+            .wdata_i(bank_req_q1[i].q.data),
+            .be_i(bank_req_q1[i].q.strb),
+            .rdata_o(bank_rsp_q1[i].p.data)
+        );
     end
 
     // ------------
