@@ -132,6 +132,25 @@ module memory_island_core import memory_island_pkg::*; #(
     end
 
     // ------------
+    // Narrow wide arbitration
+    // ------------
+    wide_narrow_arbiter #(
+        .NumNarrowBanks(Cfg.NumNarrowBanks),
+        .NumWideBanks(NumWideBanks),
+        .mem_narrow_req_t(mem_narrow_req_t),
+        .mem_narrow_rsp_t(mem_narrow_rsp_t),
+        .mem_wide_req_t(mem_wide_req_t),
+        .mem_wide_rsp_t(mem_wide_rsp_t)
+    ) u_narrow_wide_arbiter (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .mem_narrow_req_i(mem_narrow_req_to_banks_q1),
+        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1),
+        .mem_wide_req_i(mem_wide_req_to_banks_q1),
+        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1)
+    );
+
+    // ------------
     // Wide request splitting
     // ------------
     localparam int unsigned WideToNarrowFactor = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
@@ -156,36 +175,6 @@ module memory_island_core import memory_island_pkg::*; #(
             .bank_rsp_i(mem_wide_split_rsp[i])
         );
     end
-
-    mem_narrow_req_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_req_q1;
-    mem_narrow_rsp_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_rsp_q1;
-    for (genvar i = 0; i < NumWideBanks; i++) begin: spill_wide_split
-        for (genvar j = 0; j < WideToNarrowFactor; j++) begin: spill_each_split
-            mem_multicut #(
-                .AddrWidth(Cfg.AddrWidth),
-                .DataWidth(Cfg.NarrowDataWidth),
-                .NumCutsReq(Cfg.SpillWideReqSplit),
-                .NumCutsRsp(Cfg.SpillWideRspSplit),
-                .mem_req_t(mem_narrow_req_t),
-                .mem_rsp_t(mem_narrow_rsp_t)
-            ) u_spill_wide_split (
-                .clk_i(clk_i),
-                .rst_ni(rst_ni),
-                .req_i(mem_wide_split_req[i][j]),
-                .req_o(mem_wide_split_req_q1[i][j]),
-                .rsp_i(mem_wide_split_rsp_q1[i][j]),
-                .rsp_o(mem_wide_split_rsp[i][j]),
-                .read_ready_i(1'b1),
-                .read_ready_o()
-            );
-        end
-    end
-
-    // ------------
-    // Arbitration
-    // ------------
-
-    
 
     // ------------
     // Asserts

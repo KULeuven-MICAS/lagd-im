@@ -48,8 +48,6 @@ package memory_island_pkg;
         int unsigned SpillAxiWideRspEntry;
         int unsigned SpillWideReqRouted;
         int unsigned SpillWideRspRouted;
-        int unsigned SpillWideReqSplit;
-        int unsigned SpillWideRspSplit;
 
         /// Spill at Bank
         int unsigned SpillReqBank;
