@@ -177,6 +177,57 @@ module memory_island_core import memory_island_pkg::*; #(
     end
 
     // ------------
+    // Bank access multiplexer
+    // ------------
+    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req;
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp;
+
+    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: bank_access_mux
+        if (mem_narrow_rsp_from_banks_q1[i].q_ready) begin : narrow_bank_access
+            // Narrow access
+            assign bank_req[i] = mem_narrow_req_to_banks_q1[i];
+            assign mem_narrow_rsp_from_banks_q1[i].p = bank_rsp[i].p;
+        end else begin : wide_bank_access
+            localparam int unsigned wide_bank_idx = i / WideToNarrowFactor;
+            localparam int unsigned narrow_part_idx = i % WideToNarrowFactor;
+            assign bank_req[i] = mem_wide_split_req[wide_bank_idx][narrow_part_idx];
+            assign mem_wide_split_rsp[wide_bank_idx][narrow_part_idx].p = bank_rsp[i].p;
+        end
+    end
+    
+    // ------------
+    // Banks multicut
+    // ------------
+    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req_q1;
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp_q1;
+    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks_multicut
+        mem_multicut #(
+            .AddrWidth(Cfg.AddrWidth),
+            .DataWidth(Cfg.NarrowDataWidth),
+            .NumCutsReq(Cfg.SpillReqBank),
+            .NumCutsRsp(Cfg.SpillRspBank),
+            .mem_req_t(mem_narrow_req_t),
+            .mem_rsp_t(mem_narrow_rsp_t)
+        ) u_banks_multicut (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .req_i(bank_req[i]),
+            .req_o(bank_req_q1[i]),
+            .rsp_i(bank_rsp_q1[i]),
+            .rsp_o(bank_rsp[i]),
+            .read_ready_i(1'b1),
+            .read_ready_o()
+        );
+    end
+
+    // ------------
+    // Banks instances
+    // ------------
+    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
+        tc_sram(TODO)
+    end
+
+    // ------------
     // Asserts
     // ------------
     // Banking factor must be a power of 2
