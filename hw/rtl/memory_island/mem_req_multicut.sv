@@ -20,7 +20,7 @@ module mem_req_multicut #(
     input logic rst_ni,
 
     input mem_req_t req_i,
-    output mem_req_t req_o
+    output mem_req_t req_o,
 
     input logic ready_i,
     output logic ready_o
