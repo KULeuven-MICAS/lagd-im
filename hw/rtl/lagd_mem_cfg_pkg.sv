@@ -10,8 +10,8 @@
 `include "lagd_platform.svh"
 `include "lagd_define.svh"
 
-package lagd_mem_pkg;
-    localparam mem_cfg_t L2MemCfg = '{
+package lagd_mem_cfg_pkg;
+    localparam memory_island_pkg::mem_cfg_t L2MemCfg = '{
         AddrWidth : `L2_MEM_ADDR_WIDTH,
         NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth : `LAGD_AXI_DATA_WIDTH,
@@ -38,7 +38,7 @@ package lagd_mem_pkg;
         BankAccessLatency : 1
     };
 
-    localparam mem_cfg_t CVA6StackMemCfg = '{
+    localparam memory_island_pkg::mem_cfg_t CVA6StackMemCfg = '{
         AddrWidth : `STACK_ADDR_WIDTH,
         NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth : `LAGD_AXI_DATA_WIDTH,
@@ -66,7 +66,7 @@ package lagd_mem_pkg;
         BankAccessLatency : 1
     };
 
-    localparam mem_cfg_t IsingCoreL1MemCfg = '{
+    localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfg = '{
         AddrWidth : $clog2(`IC_L1_MEM_SIZE_B),
         NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth : `LAGD_AXI_DATA_WIDTH,
@@ -93,4 +93,4 @@ package lagd_mem_pkg;
         BankAccessLatency : 1
     };
 
-endpackage : lagd_mem_pkg
+endpackage : lagd_mem_cfg_pkg
