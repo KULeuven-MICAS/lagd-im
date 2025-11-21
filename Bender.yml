@@ -36,7 +36,7 @@ sources:
       - hw/rtl/memory_island/memory_island_core.sv
       - hw/rtl/memory_island/memory_island_wrap.sv
       - hw/rtl/lagd_pkg.sv
-      - hw/rtl/lagd_mem_pkg.sv
+      - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
 
 #  - target: any(simulation, test)
