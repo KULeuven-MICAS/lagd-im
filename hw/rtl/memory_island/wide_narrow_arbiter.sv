@@ -15,7 +15,7 @@ module wide_narrow_arbiter #(
     parameter type mem_narrow_req_t = logic,
     parameter type mem_narrow_rsp_t = logic,
     parameter type mem_wide_req_t = logic,
-    parameter type mem_wide_rsp_t = logic,
+    parameter type mem_wide_rsp_t = logic
 
 ) (
     input logic clk_i,
