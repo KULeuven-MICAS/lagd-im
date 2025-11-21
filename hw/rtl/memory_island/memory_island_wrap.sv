@@ -66,11 +66,11 @@ module memory_island_wrap import memory_island_pkg::*; #(
     assign mem_wide_req = {mem_wide_req_from_axi_q1, mem_wide_req_i};
 
     // Spill latencies
-    localparam int unsigned NarrowMemRspLatency = Cfg.SpillNarrowReqEntry +
+    localparam int unsigned NarrowMemRspLatency = Cfg.SpillAxiNarrowReqEntry +
         Cfg.SpillNarrowReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
         Cfg.SpillNarrowRspRouted + Cfg.SpillNarrowRspEntry + Cfg.BankAccessLatency;
 
-    localparam int unsigned WideMemRspLatency = Cfg.SpillWideReqEntry +
+    localparam int unsigned WideMemRspLatency = Cfg.SpillAxiWideReqEntry +
         Cfg.SpillWideReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
         Cfg.SpillWideRspRouted + Cfg.SpillWideRspEntry + Cfg.BankAccessLatency;
 
