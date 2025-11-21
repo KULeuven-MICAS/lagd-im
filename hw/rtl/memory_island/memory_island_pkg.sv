@@ -58,4 +58,34 @@ package memory_island_pkg;
         int unsigned WordsPerBank;
         int unsigned BankAccessLatency;
     } mem_cfg_t;
+
+function mem_cfg_t default_mem_cfg();
+    mem_cfg_t cfg;
+    cfg.AddrWidth = 32;
+    cfg.NarrowDataWidth = 32;
+    cfg.WideDataWidth = 32;
+    cfg.AxiNarrowIdWidth = 4;
+    cfg.AxiWideIdWidth = 4;
+    cfg.NumAxiNarrowReq = 0;
+    cfg.NumDirectNarrowReq = 0;
+    cfg.NumAxiWideReq = 0;
+    cfg.NumDirectWideReq = 0;
+    cfg.AxiNarrowRW = '0;
+    cfg.AxiWideRW = '0;
+    cfg.SpillAxiNarrowReqEntry = 0;
+    cfg.SpillAxiNarrowRspEntry = 0;
+    cfg.SpillNarrowReqRouted = 0;
+    cfg.SpillNarrowRspRouted = 0;
+    cfg.SpillAxiWideReqEntry = 0;
+    cfg.SpillAxiWideRspEntry = 0;
+    cfg.SpillWideReqRouted = 0;
+    cfg.SpillWideRspRouted = 0;
+    cfg.SpillReqBank = 0;
+    cfg.SpillRspBank = 0;
+    cfg.NumNarrowBanks = 1;
+    cfg.WordsPerBank = 1024;
+    cfg.BankAccessLatency = 1;
+    return cfg;
+endfunction : default_mem_cfg
+
 endpackage : memory_island_pkg
