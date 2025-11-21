@@ -123,7 +123,65 @@ package lagd_mem_pkg;
         BankAccessLatency   : 1
     };
 
-    localparam mem_cfg_t IsingCoreL1MemCfg = '{
+    localparam mem_cfg_t IsingCoreL1MemCfgJ = '{
+        AddrWidth           : $clog2(`IC_L1_MEM_SIZE_B),
+        NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
+        NumNarrowReq        : 1,
+        NumWideReq          : 0,
+        NarrowRW            : '0,
+        WideRW              : '0,
+        SpillNarrowReqEntry : 0,
+        SpillNarrowRspEntry : 0,
+        SpillNarrowReqRouted: 0,
+        SpillNarrowRspRouted: 0,
+        SpillWideReqEntry   : 0,
+        SpillWideRspEntry   : 0,
+        SpillWideReqRouted  : 0,
+        SpillWideRspRouted  : 0,
+        SpillWideReqSplit   : 0,
+        SpillWideRspSplit   : 0,
+        SpillReqBank        : 0,
+        SpillRspBank        : 0,
+        WidePriorityWait    : 0,
+        NumWideBanks        : `IC_L1_BANKING_FACTOR,
+        NarrowExtraBF       : 1,
+        WordsPerBank        : 2048,
+        BankAccessLatency   : 1
+    };
+
+    localparam mem_cfg_t IsingCoreL1MemCfgH = '{
+        AddrWidth           : $clog2(`IC_L1_MEM_SIZE_B),
+        NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
+        NumNarrowReq        : 1,
+        NumWideReq          : 0,
+        NarrowRW            : '0,
+        WideRW              : '0,
+        SpillNarrowReqEntry : 0,
+        SpillNarrowRspEntry : 0,
+        SpillNarrowReqRouted: 0,
+        SpillNarrowRspRouted: 0,
+        SpillWideReqEntry   : 0,
+        SpillWideRspEntry   : 0,
+        SpillWideReqRouted  : 0,
+        SpillWideRspRouted  : 0,
+        SpillWideReqSplit   : 0,
+        SpillWideRspSplit   : 0,
+        SpillReqBank        : 0,
+        SpillRspBank        : 0,
+        WidePriorityWait    : 0,
+        NumWideBanks        : `IC_L1_BANKING_FACTOR,
+        NarrowExtraBF       : 1,
+        WordsPerBank        : 2048,
+        BankAccessLatency   : 1
+    };
+
+    localparam mem_cfg_t IsingCoreL1MemCfgFlip = '{
         AddrWidth           : $clog2(`IC_L1_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `LAGD_AXI_DATA_WIDTH,

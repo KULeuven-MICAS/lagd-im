@@ -7,7 +7,9 @@
 // Ising core wrapper
 
 module ising_core_wrap #(
-    parameter mem_cfg_t l1_mem_cfg = '0,
+    parameter mem_cfg_t l1_mem_cfg_j = '0,
+    parameter mem_cfg_t l1_mem_cfg_h = '0,
+    parameter mem_cfg_t l1_mem_cfg_flip = '0,
     parameter ising_logic_cfg_t logic_cfg = '0,
     parameter type = axi_slv_req_t = logic,
     parameter type = axi_slv_rsp_t = logic,
@@ -39,6 +41,34 @@ module ising_core_wrap #(
     //////////////////////////////////////////////////////////
     // L1 memory, with narrow and direct access //////////////
     //////////////////////////////////////////////////////////
+
+    memory_axi_mux #(
+        .AddrWidth          (l1_mem_cfg_j.AddrWidth),
+        .NarrowDataWidth    (l1_mem_cfg_j.NarrowDataWidth),
+        .AxiNarrowIdWidth   (l1_mem_cfg_j.AxiNarrowIdWidth),
+        .WideDataWidth      (l1_mem_cfg_j.WideDataWidth),
+        .NumWideBanks       (l1_mem_cfg_j.NumWideBanks),
+
+        .axi_narrow_req_t   (axi_slv_req_t),
+        .axi_narrow_rsp_t   (axi_slv_rsp_t),
+        .NumNarrowReq       (l1_mem_cfg_j.NumNarrowReq),
+        .NarrowRW           (l1_mem_cfg_j.NarrowRW),
+        .WideRW             (l1_mem_cfg_j.WideRW)
+    ) i_l1_mem_axi_mux (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+        // AXI slave interface
+        .axi_narrow_req_i(axi_s_req_i),
+        .axi_narrow_rsp_o(axi_s_rsp_o),
+        // AXI master interface
+        .axi_narrow_req_j_o(axi_s_req_j),
+        .axi_narrow_rsp_j_i(axi_s_rsp_j),
+        .axi_narrow_req_h_o(axi_s_req_h),
+        .axi_narrow_rsp_h_i(axi_s_rsp_h),
+        .axi_narrow_req_flip_o(axi_s_req_flip),
+        .axi_narrow_rsp_flip_i(axi_s_rsp_flip),
+    );
+
     // TODO: parameters and interface are to be defined
     memory_island_wrap #(
         .AddrWidth          (l1_mem_cfg.AddrWidth),
@@ -62,15 +92,81 @@ module ising_core_wrap #(
         .SpillRspBank (l1_mem_cfg.SpillRspBank),
 
         .WordsPerBank  (l1_mem_cfg.WordsPerBank)
-    ) i_l1_mem (
+    ) i_l1_mem_j (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
-        .axi_narrow_req_i(axi_s_req_i),
-        .axi_narrow_rsp_o(axi_s_rsp_o),
+        .axi_narrow_req_i(axi_s_req_j),
+        .axi_narrow_rsp_o(axi_s_rsp_j),
         // Direct access slave interface
-        .direct_req_i(drt_s_req),
-        .direct_rsp_o(drt_s_rsp)
+        .direct_req_i(drt_s_req_j),
+        .direct_rsp_o(drt_s_rsp_j)
+    );
+
+    memory_island_wrap #(
+    .AddrWidth          (l1_mem_cfg.AddrWidth),
+    .NarrowDataWidth    (l1_mem_cfg.NarrowDataWidth),
+    .AxiNarrowIdWidth   (l1_mem_cfg.AxiNarrowIdWidth),
+    .WideDataWidth      (l1_mem_cfg.WideDataWidth),
+    .NumWideBanks       (l1_mem_cfg.NumWideBanks),
+
+    .axi_narrow_req_t   (axi_slv_req_t),
+    .axi_narrow_rsp_t   (axi_slv_rsp_t),
+    .NumNarrowReq       (l1_mem_cfg.NumNarrowReq),
+    .NarrowRW           (l1_mem_cfg.NarrowRW),
+    .WideRW             (l1_mem_cfg.WideRW),
+
+    .SpillNarrowReqEntry    (l1_mem_cfg.SpillNarrowReqEntry),
+    .SpillNarrowRspEntry    (l1_mem_cfg.SpillNarrowRspEntry),
+    .SpillNarrowReqRouted   (l1_mem_cfg.SpillNarrowReqRouted),
+    .SpillNarrowRspRouted   (l1_mem_cfg.SpillNarrowRspRouted),
+
+    .SpillReqBank (l1_mem_cfg.SpillReqBank),
+    .SpillRspBank (l1_mem_cfg.SpillRspBank),
+
+    .WordsPerBank  (l1_mem_cfg.WordsPerBank)
+    ) i_l1_mem_h (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+        // AXI slave interface
+        .axi_narrow_req_i(axi_s_req_h),
+        .axi_narrow_rsp_o(axi_s_rsp_h),
+        // Direct access slave interface
+        .direct_req_i(drt_s_req_h),
+        .direct_rsp_o(drt_s_rsp_h)
+    );
+
+    memory_island_wrap #(
+    .AddrWidth          (l1_mem_cfg.AddrWidth),
+    .NarrowDataWidth    (l1_mem_cfg.NarrowDataWidth),
+    .AxiNarrowIdWidth   (l1_mem_cfg.AxiNarrowIdWidth),
+    .WideDataWidth      (l1_mem_cfg.WideDataWidth),
+    .NumWideBanks       (l1_mem_cfg.NumWideBanks),
+
+    .axi_narrow_req_t   (axi_slv_req_t),
+    .axi_narrow_rsp_t   (axi_slv_rsp_t),
+    .NumNarrowReq       (l1_mem_cfg.NumNarrowReq),
+    .NarrowRW           (l1_mem_cfg.NarrowRW),
+    .WideRW             (l1_mem_cfg.WideRW),
+
+    .SpillNarrowReqEntry    (l1_mem_cfg.SpillNarrowReqEntry),
+    .SpillNarrowRspEntry    (l1_mem_cfg.SpillNarrowRspEntry),
+    .SpillNarrowReqRouted   (l1_mem_cfg.SpillNarrowReqRouted),
+    .SpillNarrowRspRouted   (l1_mem_cfg.SpillNarrowRspRouted),
+
+    .SpillReqBank (l1_mem_cfg.SpillReqBank),
+    .SpillRspBank (l1_mem_cfg.SpillRspBank),
+
+    .WordsPerBank  (l1_mem_cfg.WordsPerBank)
+    ) i_l1_mem_flip (
+        .clk_i      (clk_i),
+        .rst_ni     (rst_ni),
+        // AXI slave interface
+        .axi_narrow_req_i(axi_s_req_flip),
+        .axi_narrow_rsp_o(axi_s_rsp_flip),
+        // Direct access slave interface
+        .direct_req_i(drt_s_req_flip),
+        .direct_rsp_o(drt_s_rsp_flip)
     );
 
     //////////////////////////////////////////////////////////
