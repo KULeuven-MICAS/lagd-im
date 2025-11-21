@@ -17,9 +17,9 @@ module memory_island_core import memory_island_pkg::*; #(
     
     // Derived parameters - do not touch
     parameter int unsigned NumNarrowReq = Cfg.NumDirectNarrowReq + $countones(Cfg.NarrowRW) +
-        NumAxiNarrowReq,
+        Cfg.NumAxiNarrowReq,
     parameter int unsigned NumWideReq = Cfg.NumDirectWideReq + $countones(Cfg.WideRW) +
-        NumAxiWideReq
+        Cfg.NumAxiWideReq
 )(
     input logic clk_i,
     input logic rst_ni,
@@ -58,7 +58,7 @@ module memory_island_core import memory_island_pkg::*; #(
         .mem_req_i(mem_wide_req_i),
         .mem_rsp_o(mem_wide_rsp_o),
 
-        .mem_rsp_o(mem_wide_req_to_banks),
+        .mem_req_o(mem_wide_req_to_banks),
         .mem_rsp_i(mem_wide_rsp_from_banks)
     );
 
