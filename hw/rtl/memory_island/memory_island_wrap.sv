@@ -68,12 +68,11 @@ module memory_island_wrap import memory_island_pkg::*; #(
     // Spill latencies
     localparam int unsigned NarrowMemRspLatency = Cfg.SpillAxiNarrowReqEntry +
         Cfg.SpillNarrowReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
-        Cfg.SpillNarrowRspRouted + Cfg.SpillNarrowRspEntry + Cfg.BankAccessLatency;
+        Cfg.SpillNarrowRspRouted + Cfg.SpillAxiNarrowRspEntry + Cfg.BankAccessLatency;
 
     localparam int unsigned WideMemRspLatency = Cfg.SpillAxiWideReqEntry +
         Cfg.SpillWideReqRouted + Cfg.SpillReqBank + Cfg.SpillRspBank +
-        Cfg.SpillWideRspRouted + Cfg.SpillWideRspEntry + Cfg.BankAccessLatency;
-
+        Cfg.SpillWideRspRouted + Cfg.SpillAxiWideRspEntry + Cfg.BankAccessLatency;
     // ------------
     // Axi to mem adapters
     // ------------
