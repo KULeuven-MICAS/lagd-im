@@ -42,12 +42,12 @@ module memory_island_wrap import memory_island_pkg::*; #(
 );
 
     // Narrow AXI requests and responses for adapter and spilling
-    localparam int unsigned axi_rw_narrow_reqs = Cfg.NumAxiNarrowReq + $countones(Cfg.NarrowRW);
+    localparam int unsigned axi_rw_narrow_reqs = Cfg.NumAxiNarrowReq + $countones(Cfg.AxiNarrowRW);
     mem_narrow_req_t [axi_rw_narrow_reqs-1:0] mem_narrow_req_from_axi, mem_narrow_req_from_axi_q1;
     mem_narrow_rsp_t [axi_rw_narrow_reqs-1:0] mem_narrow_rsp_to_axi, mem_narrow_rsp_to_axi_q1;
 
     // Wide AXI requests and responses for adapter and spilling
-    localparam int unsigned axi_rw_wide_reqs = Cfg.NumAxiWideReq + $countones(Cfg.WideRW);
+    localparam int unsigned axi_rw_wide_reqs = Cfg.NumAxiWideReq + $countones(Cfg.AxiWideRW);
     mem_wide_req_t [axi_rw_wide_reqs-1:0] mem_wide_req_from_axi, mem_wide_req_from_axi_q1;
     mem_wide_rsp_t [axi_rw_wide_reqs-1:0] mem_wide_rsp_to_axi, mem_wide_rsp_to_axi_q1;
 
@@ -78,7 +78,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
     // Axi to mem adapters
     // ------------
     for (genvar i = 0; i < Cfg.NumAxiNarrowReq; i++) begin: axi_narrow_adapter
-        localparam int unsigned id = i + $countones(Cfg.NarrowRW[i:0]);
+        localparam int unsigned id = i + $countones(Cfg.AxiNarrowRW[i:0]);
         axi_to_mem_adapter #(
             .axi_req_t(axi_narrow_req_t),
             .axi_rsp_t(axi_narrow_rsp_t),
@@ -89,18 +89,18 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .IdWidth(Cfg.AxiNarrowIdWidth),
             .MemDataWidth(Cfg.NarrowDataWidth),
             .BufDepth(1 + NarrowMemRspLatency),
-            .ReadWrite(Cfg.NarrowRW[i])
+            .ReadWrite(Cfg.AxiNarrowRW[i])
         ) u_axi_to_mem_adapter_narrow (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .axi_req_i(axi_narrow_req_i[i]),
             .axi_rsp_o(axi_narrow_rsp_o[i]),
-            .mem_req_o(mem_narrow_req_from_axi[id-:1+Cfg.NarrowRW[i]]),
-            .mem_rsp_i(mem_narrow_rsp_to_axi[id-:1+Cfg.NarrowRW[i]])
+            .mem_req_o(mem_narrow_req_from_axi[id-:1+Cfg.AxiNarrowRW[i]]),
+            .mem_rsp_i(mem_narrow_rsp_to_axi[id-:1+Cfg.AxiNarrowRW[i]])
         );
     end
     for (genvar i = 0; i < Cfg.NumAxiWideReq; i++) begin: axi_wide_adapter
-        localparam int unsigned id = i + $countones(Cfg.WideRW[i:0]);
+        localparam int unsigned id = i + $countones(Cfg.AxiWideRW[i:0]);
         axi_to_mem_adapter #(
             .axi_req_t(axi_wide_req_t),
             .axi_rsp_t(axi_wide_rsp_t),
@@ -111,14 +111,14 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .IdWidth(Cfg.AxiWideIdWidth),
             .MemDataWidth(Cfg.WideDataWidth),
             .BufDepth(1 + WideMemRspLatency),
-            .ReadWrite(Cfg.WideRW[i])
+            .ReadWrite(Cfg.AxiWideRW[i])
         ) u_axi_to_mem_adapter_wide (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .axi_req_i(axi_wide_req_i[i]),
             .axi_rsp_o(axi_wide_rsp_o[i]),
-            .mem_req_o(mem_wide_req_from_axi[id-:1+Cfg.WideRW[i]]),
-            .mem_rsp_i(mem_wide_rsp_to_axi[id-:1+Cfg.WideRW[i]])
+            .mem_req_o(mem_wide_req_from_axi[id-:1+Cfg.AxiWideRW[i]]),
+            .mem_rsp_i(mem_wide_rsp_to_axi[id-:1+Cfg.AxiWideRW[i]])
         );
     end
 
