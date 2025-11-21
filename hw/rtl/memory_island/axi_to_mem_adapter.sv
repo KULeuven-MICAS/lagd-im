@@ -93,7 +93,7 @@ module axi_to_mem_adapter #(
                 .busy_o(),
                 .axi_req_i(axi_req_i),
                 .axi_resp_o(axi_rsp_o),
-                .mem_req_o({mem_req_o[0].q_valid}),
+                .mem_req_o(mem_req_o[0].q_valid),
                 .mem_gnt_i(mem_rsp_i[0].q_ready),
                 .mem_addr_o(mem_req_o[0].q.addr),
                 .mem_wdata_o(mem_req_o[0].q.data),
