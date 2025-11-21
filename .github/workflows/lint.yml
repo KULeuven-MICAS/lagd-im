@@ -146,7 +146,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - uses: editorconfig-checker/action-editorconfig-checker@main
-            - run: editorconfig-checker
+            - run: editorconfig-checker -v
 
     ##################
     # Lint TCL Files #
