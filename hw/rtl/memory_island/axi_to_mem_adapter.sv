@@ -22,8 +22,8 @@ module axi_to_mem_adapter #(
     input axi_req_t axi_req_i,
     output axi_rsp_t axi_rsp_o,
 
-    input mem_rsp_t [ReadWrite:0] mem_rsp_i,
-    output mem_req_t [ReadWrite:0] mem_req_o
+    input mem_rsp_t [1:0] mem_rsp_i,
+    output mem_req_t [1:0] mem_req_o
 );
 
     generate
