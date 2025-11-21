@@ -142,17 +142,11 @@ jobs:
     # Detect trailing whitespaces, missing new lines and wrong file encodings.
     editorconfig-lint:
         name: Lint Editorconfig
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-20.04
         steps:
-            -
-                name: Checkout
-                uses: actions/checkout@v4
-            -
-                name: Install EditorConfig Checker
-                uses: editorconfig-checker/action-editorconfig-checker@main
-            -
-                name: Run EditorConfig Checker
-                run: editorconfig-checker
+            - uses: actions/checkout@v4
+            - uses: editorconfig-checker/action-editorconfig-checker@main
+            - run: editorconfig-checker
 
     ##################
     # Lint TCL Files #
