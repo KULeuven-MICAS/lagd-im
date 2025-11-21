@@ -146,7 +146,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - uses: editorconfig-checker/action-editorconfig-checker@main
-            - run: editorconfig-checker -v -config ./tools/lint/ ./
+            - run: editorconfig-checker -v -format github-actions
 
     ##################
     # Lint TCL Files #
