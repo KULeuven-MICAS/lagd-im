@@ -60,7 +60,6 @@ package lagd_mem_cfg_pkg;
         SpillWideRspRouted : 0,
         SpillReqBank : 0,
         SpillRspBank : 0,
-        WidePriorityWait : 0,
         NumNarrowBanks : 1,
         WordsPerBank : 2048,
         BankAccessLatency : 1
