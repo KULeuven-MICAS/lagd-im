@@ -34,6 +34,7 @@ module ising_core_wrap #(
     logic direct_rsp_t drt_s_rsp_load;
     logic direct_req_t drt_s_req_compute;
     logic direct_rsp_t drt_s_rsp_compute;
+    logic [logic_cfg.NumSpin-1:0] spin_regfile;
 
     //////////////////////////////////////////////////////////
     // L1 memory, with narrow and direct access //////////////
@@ -86,7 +87,8 @@ module ising_core_wrap #(
         .reg_s_req_i    (reg_s_req_i),
         .reg_s_rsp_o    (reg_s_rsp_o),
         // Internal register interface
-        .mode_select_o(mode_select)
+        .mode_select_o(mode_select),
+        .spin_regfile_o(spin_regfile)
     );
 
     //////////////////////////////////////////////////////////
@@ -141,6 +143,7 @@ module ising_core_wrap #(
         .direct_rsp_i(drt_s_rsp_compute),
         // Register interface
         .mode_select_i(mode_select),
+        .spin_regfile_i(spin_regfile),
         // Analog macro interface
         .spin_wen_o(analog_spin_wen),
         .wr_spin_o(analog_wr_spin),
