@@ -45,22 +45,19 @@ module wide_narrow_arbiter #(
     end
 
     logic [NumNarrowBanks-1:0] wide_valid_split;
-    always_comb begin : wide_valid_splitting
-        for (int unsigned i = 0; i < NumNarrowBanks; i++) begin
-            localparam int unsigned wide_idx = i / NarrowPerWide;
-            wide_valid_split[i] = mem_wide_req_i[wide_idx].valid;
-        end
+    for (genvar i = 0; i < NumNarrowBanks; i++) begin : wide_valid_splitting
+        localparam int unsigned wide_idx = i / NarrowPerWide;
+        assign wide_valid_split[i] = mem_wide_req_i[wide_idx].valid;
     end
 
     logic [NumWideBanks-1:0] narrow_valid_merged;
-    always_comb begin : narrow_valid_merging
-        for (int unsigned j = 0; j < NumWideBanks; j++) begin
-            narrow_valid_merged[j] = 1'b0;
-            for (int unsigned k = 0; k < NarrowPerWide; k++) begin
-                localparam int unsigned narrow_idx = j * NarrowPerWide + k;
-                narrow_valid_merged[j] |= mem_narrow_req_i[narrow_idx].valid;
-            end
+    logic [NumNarrowBanks-1:0] narrow_valid_unpacked;
+    for (genvar j = 0; j < NumWideBanks; j++) begin : narrow_valid_merging_gen
+        for (genvar k = 0; k < NarrowPerWide; k++) begin
+            localparam int unsigned narrow_idx = j * NarrowPerWide + k;
+            assign narrow_valid_unpacked[narrow_idx] = mem_narrow_req_i[narrow_idx].valid;
         end
+        assign narrow_valid_merged[j] = |narrow_valid_unpacked[j * NarrowPerWide +: NarrowPerWide];
     end
 
     // Narrow/Wide arbitration: blocks drives granting signals
