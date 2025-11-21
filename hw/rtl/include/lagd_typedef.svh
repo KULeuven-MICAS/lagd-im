@@ -40,7 +40,7 @@
     localparam type __prefix``user_t = logic [__cheshire_cfg.AxiUserWidth-1:0]; \
     `LAGD_TYPEDEF_AXI(__prefix``axi, __prefix``addr_t, __prefix``data_t, \
         __prefix``strb_t, __prefix``user_t, __cheshire_cfg) \
-    `LAGD_TYPEDEF_REG(__prefix``reg, __prefix``addr_t)
+    `LAGD_TYPEDEF_REG(__prefix``reg, __prefix``addr_t) \
     `MEM_TYPEDEF_ALL(__prefix``mem, __prefix``addr_t, __prefix``data_t, \
         __prefix``strb_t, __prefix``user_t)
 
