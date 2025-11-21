@@ -16,9 +16,9 @@ module memory_island_core import memory_island_pkg::*; #(
     parameter mem_cfg_t Cfg = default_mem_cfg(),
     
     // Derived parameters - do not touch
-    parameter int unsigned NumNarrowReq = Cfg.NumDirectNarrowReq + $countones(Cfg.NarrowRW) +
+    parameter int unsigned NumNarrowReq = Cfg.NumDirectNarrowReq + $countones(Cfg.AxiNarrowRW) +
         Cfg.NumAxiNarrowReq,
-    parameter int unsigned NumWideReq = Cfg.NumDirectWideReq + $countones(Cfg.WideRW) +
+    parameter int unsigned NumWideReq = Cfg.NumDirectWideReq + $countones(Cfg.AxiWideRW) +
         Cfg.NumAxiWideReq
 )(
     input logic clk_i,
