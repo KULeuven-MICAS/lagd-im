@@ -124,7 +124,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
     // ------------
     // Entry spilling
     // ------------
-    for (genvar i = 0; i < rw_narrow_reqs; i++) begin: spill_narrow_entry
+    for (genvar i = 0; i < axi_rw_narrow_reqs; i++) begin: spill_narrow_entry
         mem_multicut #(
             .AddrWidth(Cfg.AddrWidth),
             .DataWidth(Cfg.NarrowDataWidth),
@@ -144,7 +144,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
         );
     end
 
-    for (genvar i = 0; i < rw_wide_reqs; i++) begin: spill_wide_entry
+    for (genvar i = 0; i < axi_rw_wide_reqs; i++) begin: spill_wide_entry
         mem_multicut #(
             .AddrWidth(Cfg.AddrWidth),
             .DataWidth(Cfg.WideDataWidth),
