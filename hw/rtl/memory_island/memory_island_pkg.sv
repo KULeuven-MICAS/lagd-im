@@ -59,7 +59,7 @@ package memory_island_pkg;
         int unsigned BankAccessLatency;
     } mem_cfg_t;
 
-function mem_cfg_t default_mem_cfg();
+function automatic mem_cfg_t default_mem_cfg();
     mem_cfg_t cfg;
     cfg.AddrWidth = 32;
     cfg.NarrowDataWidth = 32;
