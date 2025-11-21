@@ -142,7 +142,7 @@ jobs:
     # Detect trailing whitespaces, missing new lines and wrong file encodings.
     editorconfig-lint:
         name: Lint Editorconfig
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
             - uses: editorconfig-checker/action-editorconfig-checker@main
