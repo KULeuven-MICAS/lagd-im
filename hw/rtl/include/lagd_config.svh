@@ -27,16 +27,4 @@
         `define NUM_SPIN 256
     `endif
 
-    `ifndef BIT_J
-        `define BIT_J 4
-    `endif
-
-    `ifndef BIT_H
-        `define BIT_H 4
-    `endif
-
-    `ifndef FLIP_ICON_DEPTH
-        `define FLIP_ICON_DEPTH 1024
-    `endif
-
 `endif // LAGD_CONFIG_SVH

@@ -42,5 +42,9 @@
     `define IC_L1_BANKING_FACTOR `IC_L1_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core
+    // Ising analog macro
+    `define BIT_J 4
+    `define BIT_H 4
+    `define FLIP_ICON_DEPTH 1024
 
 `endif // LAGD_DEFINE_SVH
