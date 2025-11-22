@@ -1,0 +1,8 @@
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = ascii
+
+[*.md]
+charset = utf-8
