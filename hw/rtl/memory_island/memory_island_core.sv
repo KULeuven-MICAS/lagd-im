@@ -187,13 +187,14 @@ module memory_island_core import memory_island_pkg::*; #(
 
     always_comb begin : bank_access_mux
         for (int unsigned i = 0; i < Cfg.NumNarrowBanks; i++) begin
+            automatic int unsigned wide_bank_idx = i / WideToNarrowFactor;
+            automatic int unsigned narrow_part_idx = i % WideToNarrowFactor;
+
             bank_req[i] = '0;
             if (mem_narrow_rsp_from_banks_q1[i].q_ready) begin
-                banck_req[i] = mem_narrow_req_to_banks_q1[i];
+                bank_req[i] = mem_narrow_req_to_banks_q1[i];
                 mem_narrow_rsp_from_banks_q1[i].p = bank_rsp[i].p;
             end else begin : wide_bank_access
-                localparam int unsigned wide_bank_idx = i / WideToNarrowFactor;
-                localparam int unsigned narrow_part_idx = i % WideToNarrowFactor;
                 bank_req[i] = mem_wide_split_req[wide_bank_idx][narrow_part_idx];
                 mem_wide_split_rsp[wide_bank_idx][narrow_part_idx].p = bank_rsp[i].p;
             end
