@@ -229,9 +229,9 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     // Banks instances
     // ------------
-    localparam int unsigned BankWordAddrWidth = Cfg.AddrWidth - $clog2(Cfg.NumNarrowBanks) -
-        $clog2(Cfg.NarrowDataWidth/8);
-    localparam int unsigned AddressWideWordBit = $clog2(Cfg.NumNarrowBanks) + $clog2(Cfg.NarrowDataWidth/8);
+    // localparam int unsigned BankWordAddrWidth = Cfg.AddrWidth - $clog2(Cfg.NumNarrowBanks) -
+    //     $clog2(Cfg.NarrowDataWidth/8);
+    // localparam int unsigned AddressWideWordBit = $clog2(Cfg.NumNarrowBanks) + $clog2(Cfg.NarrowDataWidth/8);
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
         tc_sram #(
             .NumWords(Cfg.WordsPerBank),
@@ -240,7 +240,7 @@ module memory_island_core import memory_island_pkg::*; #(
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .req_i(bank_req_q1[i].q_valid),
-            .addr_i(bank_req_q1[i].q.addr[AddressWideWordBit-1 -: BankWordAddrWidth]),
+            .addr_i(bank_req_q1[i].q.addr),
             .we_i(bank_req_q1[i].q.write),
             .wdata_i(bank_req_q1[i].q.data),
             .be_i(bank_req_q1[i].q.strb),
