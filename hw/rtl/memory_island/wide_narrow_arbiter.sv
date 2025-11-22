@@ -47,7 +47,7 @@ module wide_narrow_arbiter #(
     logic [NumNarrowBanks-1:0] wide_valid_split;
     for (genvar i = 0; i < NumNarrowBanks; i++) begin : wide_valid_splitting
         localparam int unsigned wide_idx = i / NarrowPerWide;
-        assign wide_valid_split[i] = mem_wide_req_i[wide_idx].valid;
+        assign wide_valid_split[i] = mem_wide_req_i[wide_idx].q_valid;
     end
 
     logic [NumWideBanks-1:0] narrow_valid_merged;

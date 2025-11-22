@@ -42,15 +42,16 @@ module memory_island_core import memory_island_pkg::*; #(
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks;
 
+    // TODO fix AddrMemWidth parameter
     tcdm_interconnect_wrap #(
         .NumIn(NumWideReq),
         .NumOut(NumWideBanks),
         .AddrWidth(Cfg.AddrWidth),
         .DataWidth(Cfg.WideDataWidth),
-        .BankingFactor(NumWideBanks),
+        .AddrMemWidth(Cfg.AddrWidth),
         .AccessLatency(Cfg.BankAccessLatency),
-        .ReqType(mem_wide_req_t),
-        .RspType(mem_wide_rsp_t)
+        .mem_req_t(mem_wide_req_t),
+        .mem_rsp_t(mem_wide_rsp_t)
     ) u_wide_interco (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -71,10 +72,10 @@ module memory_island_core import memory_island_pkg::*; #(
         .NumOut(Cfg.NumNarrowBanks),
         .AddrWidth(Cfg.AddrWidth),
         .DataWidth(Cfg.NarrowDataWidth),
-        .BankingFactor(Cfg.NumNarrowBanks),
+        .AddrMemWidth(Cfg.AddrWidth),
         .AccessLatency(Cfg.BankAccessLatency),
-        .ReqType(mem_narrow_req_t),
-        .RspType(mem_narrow_rsp_t)
+        .mem_req_t(mem_narrow_req_t),
+        .mem_rsp_t(mem_narrow_rsp_t)
     ) i_narrow_interco (
         .clk_i(clk_i),
         .rst_ni(rst_ni),

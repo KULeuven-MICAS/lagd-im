@@ -78,10 +78,10 @@ module axi_to_mem_adapter #(
         end else begin : ro_adapter
             axi_to_mem #(
                 .axi_req_t(axi_req_t),
-                .axi_rsp_t(axi_rsp_t),
+                .axi_resp_t(axi_rsp_t),
                 .AddrWidth(AddrWidth),
                 .IdWidth(IdWidth),
-                .MemDataWidth(MemDataWidth),
+                .DataWidth(MemDataWidth),
                 .BufDepth(BufDepth),
                 .NumBanks    (1),
                 .HideStrb    (1'b0),
