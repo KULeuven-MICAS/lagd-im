@@ -144,9 +144,15 @@ jobs:
         name: Lint Editorconfig
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
-            - uses: editorconfig-checker/action-editorconfig-checker@main
-            - run: editorconfig-checker -v -format github-actions
+            -
+                name: Checkout
+                uses: actions/checkout@v4
+            -
+                name: Get Editconfig
+                uses: editorconfig-checker/action-editorconfig-checker@main
+            -
+                name: Run Editconfig
+                run: editorconfig-checker -v -format github-actions
 
     ##################
     # Lint TCL Files #
