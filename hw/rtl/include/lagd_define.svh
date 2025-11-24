@@ -39,9 +39,6 @@
     // L1 memory per core
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
     `define IC_L1_WORDS_PER_BANK 2048
-    `define IC_L1_J_BANKING_FACTOR `L1_J_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
-    `define IC_L1_H_BANKING_FACTOR `L1_H_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
-    `define IC_L1_FLIP_BANKING_FACTOR `L1_FLIP_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core
     // Ising analog macro
