@@ -148,11 +148,11 @@ jobs:
                 name: Checkout
                 uses: actions/checkout@v4
             -
-                name: Install EditorConfig Checker
+                name: Get Editconfig
                 uses: editorconfig-checker/action-editorconfig-checker@main
             -
-                name: Run EditorConfig Checker
-                run: editorconfig-checker
+                name: Run Editconfig
+                run: editorconfig-checker -v -format github-actions
 
     ##################
     # Lint TCL Files #
