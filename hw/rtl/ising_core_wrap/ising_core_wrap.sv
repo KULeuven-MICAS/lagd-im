@@ -71,102 +71,60 @@ module ising_core_wrap #(
 
     // TODO: parameters and interface are to be defined
     memory_island_wrap #(
-        .AddrWidth          (l1_mem_cfg.AddrWidth),
-        .NarrowDataWidth    (l1_mem_cfg.NarrowDataWidth),
-        .AxiNarrowIdWidth   (l1_mem_cfg.AxiNarrowIdWidth),
-        .WideDataWidth      (l1_mem_cfg.WideDataWidth),
-        .NumWideBanks       (l1_mem_cfg.NumWideBanks),
-
-        .axi_narrow_req_t   (axi_slv_req_t),
-        .axi_narrow_rsp_t   (axi_slv_rsp_t),
-        .NumNarrowReq       (l1_mem_cfg.NumNarrowReq),
-        .NarrowRW           (l1_mem_cfg.NarrowRW),
-        .WideRW             (l1_mem_cfg.WideRW),
-
-        .SpillNarrowReqEntry    (l1_mem_cfg.SpillNarrowReqEntry),
-        .SpillNarrowRspEntry    (l1_mem_cfg.SpillNarrowRspEntry),
-        .SpillNarrowReqRouted   (l1_mem_cfg.SpillNarrowReqRouted),
-        .SpillNarrowRspRouted   (l1_mem_cfg.SpillNarrowRspRouted),
-
-        .SpillReqBank (l1_mem_cfg.SpillReqBank),
-        .SpillRspBank (l1_mem_cfg.SpillRspBank),
-
-        .WordsPerBank  (l1_mem_cfg.WordsPerBank)
+        .mem_cfg_t  (l1_mem_cfg_j)
     ) i_l1_mem_j (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
-        // AXI slave interface
+        // AXI slave narrow interface
         .axi_narrow_req_i(axi_s_req_j),
         .axi_narrow_rsp_o(axi_s_rsp_j),
-        // Direct access slave interface
-        .direct_req_i(drt_s_req_j),
-        .direct_rsp_o(drt_s_rsp_j)
+        // AXI slave wide interface
+        .axi_wide_req_i(),
+        .axi_wide_rsp_o(),
+        // Direct slave narrow interface
+        .mem_narrow_req_i(),
+        .mem_narrow_rsp_o(),
+        // Direct slave wide interface
+        .mem_wide_req_i(drt_s_req_j),
+        .mem_wide_rsp_o(drt_s_rsp_j)
     );
 
     memory_island_wrap #(
-    .AddrWidth          (l1_mem_cfg.AddrWidth),
-    .NarrowDataWidth    (l1_mem_cfg.NarrowDataWidth),
-    .AxiNarrowIdWidth   (l1_mem_cfg.AxiNarrowIdWidth),
-    .WideDataWidth      (l1_mem_cfg.WideDataWidth),
-    .NumWideBanks       (l1_mem_cfg.NumWideBanks),
-
-    .axi_narrow_req_t   (axi_slv_req_t),
-    .axi_narrow_rsp_t   (axi_slv_rsp_t),
-    .NumNarrowReq       (l1_mem_cfg.NumNarrowReq),
-    .NarrowRW           (l1_mem_cfg.NarrowRW),
-    .WideRW             (l1_mem_cfg.WideRW),
-
-    .SpillNarrowReqEntry    (l1_mem_cfg.SpillNarrowReqEntry),
-    .SpillNarrowRspEntry    (l1_mem_cfg.SpillNarrowRspEntry),
-    .SpillNarrowReqRouted   (l1_mem_cfg.SpillNarrowReqRouted),
-    .SpillNarrowRspRouted   (l1_mem_cfg.SpillNarrowRspRouted),
-
-    .SpillReqBank (l1_mem_cfg.SpillReqBank),
-    .SpillRspBank (l1_mem_cfg.SpillRspBank),
-
-    .WordsPerBank  (l1_mem_cfg.WordsPerBank)
+    .mem_cfg_t      (l1_mem_cfg_h)
     ) i_l1_mem_h (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
-        // AXI slave interface
+        // AXI slave narrow interface
         .axi_narrow_req_i(axi_s_req_h),
         .axi_narrow_rsp_o(axi_s_rsp_h),
-        // Direct access slave interface
-        .direct_req_i(drt_s_req_h),
-        .direct_rsp_o(drt_s_rsp_h)
+        // AXI slave wide interface
+        .axi_wide_req_i(),
+        .axi_wide_rsp_o(),
+        // Direct slave narrow interface
+        .mem_narrow_req_i(),
+        .mem_narrow_rsp_o(),
+        // Direct slave wide interface
+        .mem_wide_req_i(drt_s_req_h),
+        .mem_wide_rsp_o(drt_s_rsp_h)
     );
 
     memory_island_wrap #(
-    .AddrWidth          (l1_mem_cfg.AddrWidth),
-    .NarrowDataWidth    (l1_mem_cfg.NarrowDataWidth),
-    .AxiNarrowIdWidth   (l1_mem_cfg.AxiNarrowIdWidth),
-    .WideDataWidth      (l1_mem_cfg.WideDataWidth),
-    .NumWideBanks       (l1_mem_cfg.NumWideBanks),
-
-    .axi_narrow_req_t   (axi_slv_req_t),
-    .axi_narrow_rsp_t   (axi_slv_rsp_t),
-    .NumNarrowReq       (l1_mem_cfg.NumNarrowReq),
-    .NarrowRW           (l1_mem_cfg.NarrowRW),
-    .WideRW             (l1_mem_cfg.WideRW),
-
-    .SpillNarrowReqEntry    (l1_mem_cfg.SpillNarrowReqEntry),
-    .SpillNarrowRspEntry    (l1_mem_cfg.SpillNarrowRspEntry),
-    .SpillNarrowReqRouted   (l1_mem_cfg.SpillNarrowReqRouted),
-    .SpillNarrowRspRouted   (l1_mem_cfg.SpillNarrowRspRouted),
-
-    .SpillReqBank (l1_mem_cfg.SpillReqBank),
-    .SpillRspBank (l1_mem_cfg.SpillRspBank),
-
-    .WordsPerBank  (l1_mem_cfg.WordsPerBank)
+    .mem_cfg_t      (l1_mem_cfg_flip)
     ) i_l1_mem_flip (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
-        // AXI slave interface
+        // AXI slave narrow interface
         .axi_narrow_req_i(axi_s_req_flip),
         .axi_narrow_rsp_o(axi_s_rsp_flip),
-        // Direct access slave interface
-        .direct_req_i(drt_s_req_flip),
-        .direct_rsp_o(drt_s_rsp_flip)
+        // AXI slave wide interface
+        .axi_wide_req_i(),
+        .axi_wide_rsp_o(),
+        // Direct slave narrow interface
+        .mem_narrow_req_i(),
+        .mem_narrow_rsp_o(),
+        // Direct slave wide interface
+        .mem_wide_req_i(drt_s_req_flip),
+        .mem_wide_rsp_o(drt_s_rsp_flip)
     );
 
     //////////////////////////////////////////////////////////
@@ -212,9 +170,12 @@ module ising_core_wrap #(
     ) i_digital_weight_load_macro (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        // L1 memory master interface
-        .direct_req_o(drt_s_req_load),
-        .direct_rsp_i(drt_s_rsp_load),
+        // J memory master interface
+        .mem_wide_req_j_o(drt_s_req_load_j),
+        .mem_wide_rsp_j_i(drt_s_rsp_load_j),
+        // H memory master interface
+        .mem_wide_req_h_o(drt_s_req_load_h),
+        .mem_wide_rsp_h_i(drt_s_rsp_load_h),
         // Register interface
         .mode_select_i(mode_select),
         // Analog macro interface
@@ -234,9 +195,15 @@ module ising_core_wrap #(
     ) i_digital_compute_macro (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        // L1 memory master interface
-        .direct_req_o(drt_s_req_compute),
-        .direct_rsp_i(drt_s_rsp_compute),
+        // J memory master interface
+        .mem_wide_req_j_o(drt_s_req_compute_j),
+        .mem_wide_rsp_j_i(drt_s_rsp_compute_j),
+        // H memory master interface
+        .mem_wide_req_h_o(drt_s_req_compute_h),
+        .mem_wide_rsp_h_i(drt_s_rsp_compute_h),
+        // Flip memory master interface
+        .mem_wide_req_flip_o(drt_s_req_flip),
+        .mem_wide_rsp_flip_i(drt_s_rsp_flip),
         // Register interface
         .mode_select_i(mode_select),
         .spin_regfile_i(spin_regfile),
@@ -251,30 +218,45 @@ module ising_core_wrap #(
 
     always_comb begin
         case(mode_select)
-            2'b00: begin
-                drt_s_req = '0;
-                drt_s_rsp_load = '0;
-                drt_s_rsp_compute = '0;
+            2'b00: begin: idle_mode
+                drt_s_req_j = '0;
+                drt_s_req_h = '0;
+                drt_s_rsp_load_j = '0;
+                drt_s_rsp_load_h = '0;
+                drt_s_rsp_compute_j = '0;
+                drt_s_rsp_compute_h = '0;
             end
-            2'b01: begin
-                drt_s_req = drt_s_req_load;
-                drt_s_rsp_load = drt_s_rsp;
-                drt_s_rsp_compute = '0;
+            2'b01: begin: load_mode
+                drt_s_req_j = drt_s_req_load_j;
+                drt_s_req_h = drt_s_req_load_h;
+                drt_s_rsp_load_j = drt_s_rsp_j;
+                drt_s_rsp_load_h = drt_s_rsp_h;
+                drt_s_rsp_compute_j = '0;
+                drt_s_rsp_compute_h = '0;
             end
-            2'b10: begin
-                drt_s_req = drt_s_req_compute;
-                drt_s_rsp_load = '0;
-                drt_s_rsp_compute = drt_s_rsp;
+            2'b10: begin: compute_mode
+                drt_s_req_j = drt_s_req_compute_j;
+                drt_s_req_h = drt_s_req_compute_h;
+                drt_s_rsp_load_j = '0;
+                drt_s_rsp_load_h = '0;
+                drt_s_rsp_compute_j = drt_s_rsp_j;
+                drt_s_rsp_compute_h = drt_s_rsp_h;
             end
-            2'b11: begin
-                drt_s_req = drt_s_req_compute;
-                drt_s_rsp_load = '0;
-                drt_s_rsp_compute = drt_s_rsp;
+            2'b11: begin: debug_mode // same as compute mode
+                drt_s_req_j = drt_s_req_compute_j;
+                drt_s_req_h = drt_s_req_compute_h;
+                drt_s_rsp_load_j = '0;
+                drt_s_rsp_load_h = '0;
+                drt_s_rsp_compute_j = drt_s_rsp_j;
+                drt_s_rsp_compute_h = drt_s_rsp_h;
             end
-            default: begin
-                drt_s_req = '0;
-                drt_s_rsp_load = '0;
-                drt_s_rsp_compute = '0;
+            default: begin // same as idle mode
+                drt_s_req_j = '0;
+                drt_s_req_h = '0;
+                drt_s_rsp_load_j = '0;
+                drt_s_rsp_load_h = '0;
+                drt_s_rsp_compute_j = '0;
+                drt_s_rsp_compute_h = '0;
             end
         endcase
     end
