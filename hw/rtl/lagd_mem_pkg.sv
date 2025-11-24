@@ -126,7 +126,7 @@ package lagd_mem_pkg;
     localparam mem_cfg_t IsingCoreL1MemCfgJ = '{
         AddrWidth           : $clog2(`L1_J_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
-        WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `IC_L1_J_MEM_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
         AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
         NumAxiNarrowReq : 1,
@@ -153,7 +153,7 @@ package lagd_mem_pkg;
     localparam mem_cfg_t IsingCoreL1MemCfgH = '{
         AddrWidth           : $clog2(`L1_H_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
-        WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `IC_L1_H_MEM_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
         AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
         NumAxiNarrowReq : 1,
@@ -180,7 +180,7 @@ package lagd_mem_pkg;
     localparam mem_cfg_t IsingCoreL1MemCfgFlip = '{
         AddrWidth           : $clog2(`L1_FLIP_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
-        WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `IC_L1_FLIP_MEM_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
         AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
         NumAxiNarrowReq : 1,
