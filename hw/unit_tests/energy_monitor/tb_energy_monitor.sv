@@ -8,7 +8,23 @@
 `define DBG 0
 `endif
 
+`define S1W1H1_TEST 000
+`define S0W1H1_TEST 001
+`define S0W0H0_TEST 010
+`define S1W0H0_TEST 011
+`define MaxPosValue_TEST 100
+`define MaxNegValue_TEST 101
+`define RANDOM_TEST 110
+
+
 module tb_energy_monitor;
+
+    // Testbench parameters
+    localparam int test_mode = `RANDOM_TEST; // select test mode
+    localparam int NUM_TESTS = 1_000_000; // number of test cases
+    localparam int CLKCYCLE = 2; // clock cycle in ns
+    localparam int MEM_LATENCY = 1; // latency of memories in cycles
+    localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
 
     // Module parameters
     localparam int BITJ = 4; // J precision
@@ -18,13 +34,6 @@ module tb_energy_monitor;
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int PIPES = 0; // number of pipeline stages
-
-    // Testbench parameters
-    localparam int CLKCYCLE = 2;
-    localparam int MEM_LATENCY = 0; // latency of memories in cycles
-    localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
-    localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
-    localparam int NUM_TESTS = 1_000_000; // number of test cases
 
     // Testbench internal signals
     logic clk_i;
@@ -245,14 +254,14 @@ module tb_energy_monitor;
                     testcase_counter, energy_o, expected_energy);
                 error_count = error_count + 1;
                 end else begin
-                    $display("Testcase [%0d] Energy match: 'd%0d", testcase_counter, energy_o);
+                    // $display("Testcase [%0d] Energy match: 'd%0d", testcase_counter, energy_o);
                     correct_count = correct_count + 1;
                 end
                 total_count = total_count + 1;
                 if (total_count == NUM_TESTS) begin
                     $display("----------------------------------------");
-                    $display("Scoreboard [Time %0d ns]: %0d correct, %0d errors, out of %0d total",
-                        $time, correct_count, error_count, total_count);
+                    $display("Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+                        $time, correct_count, total_count, error_count, total_count);
                     $display("----------------------------------------");
                 end
                 @(posedge clk_i);
@@ -277,10 +286,16 @@ module tb_energy_monitor;
                 // Generate and send spin data
                 spin_valid_i = 1;
                 for (int i = 0; i < DATASPIN; i++) begin
-                    if (RANDOM_TEST)
-                        spin_i[i] = $urandom() % 2;
-                    else
-                        spin_i[i] = 1'b0;
+                    case(test_mode)
+                        `S1W1H1_TEST: spin_i[i] = 1'b1;
+                        `S0W1H1_TEST: spin_i[i] = 1'b0;
+                        `S0W0H0_TEST: spin_i[i] = 1'b0;
+                        `S1W0H0_TEST: spin_i[i] = 1'b1;
+                        `MaxPosValue_TEST: spin_i[i] = 1'b1;
+                        `MaxNegValue_TEST: spin_i[i] = 1'b0;
+                        `RANDOM_TEST: spin_i[i] = $urandom() % 2;
+                        default: spin_i[i] = 1'b0;
+                    endcase
                 end
 
                 // Wait for handshake
@@ -315,18 +330,41 @@ module tb_energy_monitor;
             
                 // Prepare weight data but do NOT assert yet
                 for (int i = 0; i < DATASPIN; i++) begin
-                    if (RANDOM_TEST) weight_temp = $urandom();
-                    else weight_temp = 'b1001;
+                    case(test_mode)
+                        `S1W1H1_TEST: weight_temp = {{(BITJ-1){1'b0}},1'b1}; // +1
+                        `S0W1H1_TEST: weight_temp = {{(BITJ-1){1'b0}},1'b1}; // +1
+                        `S0W0H0_TEST: weight_temp = {(BITJ){1'b1}}; // -1
+                        `S1W0H0_TEST: weight_temp = {(BITJ){1'b1}}; // -1
+                        `MaxPosValue_TEST: weight_temp = (1 << (BITJ-1)) - 1; // Max positive value
+                        `MaxNegValue_TEST: weight_temp = -(1 << (BITJ-1)); // Max negative value
+                        `RANDOM_TEST: weight_temp = $urandom();
+                        default: weight_temp = 'd0;
+                    endcase
                     weight_i[i*BITJ +: BITJ] = weight_temp;
                 end
                 weight_i[spin_idx*BITJ +: BITJ] = 'd0;
             
-                if (RANDOM_TEST)
-                    hbias_i = $urandom_range(0, (1<<BITH)-1);
-                else
-                    hbias_i = 'b1001;
-            
-                hscaling_i = RANDOM_TEST ? (1 << ($urandom() % SCALING_BIT)) : 'd16;
+                case(test_mode)
+                    `S1W1H1_TEST: hbias_i = {{(BITH-1){1'b0}},1'b1}; // +1
+                    `S0W1H1_TEST: hbias_i = {{(BITH-1){1'b0}},1'b1}; // +1
+                    `S0W0H0_TEST: hbias_i = {(BITH){1'b1}}; // -1
+                    `S1W0H0_TEST: hbias_i = {(BITH){1'b1}}; // -1
+                    `MaxPosValue_TEST: hbias_i = (1 << (BITH-1)) - 1; // Max positive value
+                    `MaxNegValue_TEST: hbias_i = -(1 << (BITH-1)); // Max negative value
+                    `RANDOM_TEST: hbias_i = $urandom();
+                    default: hbias_i = 'd0;
+                endcase
+
+                case(test_mode)
+                    `S1W1H1_TEST: hscaling_i = 'd1;
+                    `S0W1H1_TEST: hscaling_i = 'd1;
+                    `S0W0H0_TEST: hscaling_i = 'd1;
+                    `S1W0H0_TEST: hscaling_i = 'd1;
+                    `MaxPosValue_TEST: hscaling_i = 'd16;
+                    `MaxNegValue_TEST: hscaling_i = 'd16;
+                    `RANDOM_TEST: hscaling_i = (1 << ($urandom() % SCALING_BIT));
+                    default: hscaling_i = 'd1;
+                endcase
             
                 // Now assert valid and wait for a handshake
                 weight_valid_i = 1;
@@ -345,21 +383,6 @@ module tb_energy_monitor;
             end
         end
     endtask
-
-    // always_ff @(posedge clk_i) begin
-    //     if (!rst_ni) begin
-    //         spin_idx <= 0;
-    //         transaction_count <= 0;
-    //     end else begin
-    //     if (weight_valid_i && weight_ready_o) begin
-    //         weight_i <= weight_stored;
-    //         hbias_i <= hbias_stored;
-    //         hscaling_i <= hscaling_stored;
-    //         spin_idx <= (spin_idx + 1) % DATASPIN;
-    //         transaction_count <= transaction_count + 1;
-    //         end
-    //     end
-    // end
 
     // ========================================================================
     // Testbench task and timer setup
