@@ -31,7 +31,43 @@ module memory_island_core import memory_island_pkg::*; #(
     output mem_wide_rsp_t [NumWideReq-1:0] mem_wide_rsp_o
 );
 
-    // TODO: add buffer instances here to allow for variable latency
+    // Address Wide Requests: 
+        // GlobalBits _ InBankAddr _ WideBankSel _ BankSel _ Offset/Strobe
+        //          |            |             |         |---------------- AddrBankWordBit
+        //          |            |             |-------------------------- AddrWideWordBit
+        //          |            |---------------------------------------- AddrWideBankBit
+        //          |----------------------------------------------------- AddrTopBit
+        //
+        //                        <----------->                            WideBankAddrWidth
+        //                                      <------->                  WideBankSelWidth
+        //
+        // Wide interco: AddrWideBankBit -> AddrWideWordBit (WideBankAddrWidth len) for routing
+
+    // Address Narrow Requests: 
+        // GlobalBits _ InBankAddr _ BankSel _ Offset/Strobe
+        //          |            |         |---------------- AddrBankWordBit
+        //          |            |-------------------------- AddrWideBankBit
+        //          |--------------------------------------- AddrTopBit
+        //
+        //                        <----------->              NarrowBankAddrWidth
+        //
+        // Narrow interco: AddrWideBankBit -> AddrBankWordBit for routing
+
+    // Address Pseudo-Wide Requests:
+        // (hierarchical version, not implemented yet, as of ETH original repo): 
+        // GlobalBits _ InBankAddr _ PseudoWideBankSel _ BankSel _ Offset/Strobe
+        //          |            |                   |         |------------- AddrBankWordBit
+        //          |            |                   |----------------------- AddrPseudoWideWordBit
+        //          |            |------------------------------------------- AddrPseudoWideBankBit
+        //          |-------------------------------------------------------- AddrTopBit
+        //
+        //                        <----------------->                         PseudoWideBankAddrWidth
+        //                                            <------->               PseudoWideBankSelWidth
+        //
+        // Interco: AddrPseudoWideBankBit -> AddrPseudoWideWordBit 
+        //      (PseudoWideBankAddrWidth len) for routing
+
+    // TODO: add buffer instances here to allow for decoupling/variable latency
     // possibly in-order and out-of-order variants
 
     // -------------
