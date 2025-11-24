@@ -38,7 +38,8 @@ jobs:
                     #    - generated headers
                     #        (no license checker support for optional lines)
                     exclude_paths: |
-                        third_parties/
+                        third_parties/*
+                        target/syn/tech/tsmc7ff/*
 
     ################
     # Verible Lint #
@@ -102,6 +103,8 @@ jobs:
                 with:
                     flake8-version: "6.0.0"
                     max-line-length: "100"
+                    exclude: "target/syn/tech/tsmc7ff/*"
+
 
     ######################
     # Clang-Format Check #
@@ -145,11 +148,11 @@ jobs:
                 name: Checkout
                 uses: actions/checkout@v4
             -
-                name: Install EditorConfig Checker
+                name: Get Editconfig
                 uses: editorconfig-checker/action-editorconfig-checker@main
             -
-                name: Run EditorConfig Checker
-                run: editorconfig-checker
+                name: Run Editconfig
+                run: editorconfig-checker -v -format github-actions
 
     ##################
     # Lint TCL Files #
@@ -171,4 +174,6 @@ jobs:
                 run: pip install -r tools/lint/tclint/requirements.txt
             -
                 name: Run Tcllint
-                run: tclint .  --style-spaces-in-braces --style-line-length 100
+                run: >
+                    tclint .  --style-spaces-in-braces --style-line-length 100
+                    --exclude target/syn/tech/tsmc7ff/

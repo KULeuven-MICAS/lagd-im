@@ -1,6 +1,6 @@
 # Copyright 2025 KU Leuven.
-# Solderpad Hardware License, Version 0.51, see LICENSE for details.
-# SPDX-License-Identifier: SHL-0.51
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
@@ -11,16 +11,23 @@ package:
     - "Jiacong Sun <jiacong.sun@esat.kuleuven.be>"
 
 dependencies:
+  axi: {git: "https://github.com/pulp-platform/axi.git", version: 0.39.8}
   cheshire: {git: "https://github.com/pulp-platform/cheshire.git", version: 0.3.1}
   memory_island: {git: "https://github.com/pulp-platform/memory_island.git", rev: main}
+  register_interface: {git: "https://github.com/pulp-platform/register_interface.git",
+                       version: 0.4.5}
 
 export_include_dirs:
   - hw/rtl/include
 
 sources:
-  - hw/rtl/lagd_pkg.sv
-  - hw/rtl/lagd_mem_pkg.sv
-  - hw/rtl/lagd_soc.sv
+  - target: all(tech_cells_generic_exclude_tc_sram)
+    files:
+      - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
+  - files:
+      - hw/rtl/lagd_pkg.sv
+      - hw/rtl/lagd_mem_pkg.sv
+      - hw/rtl/lagd_soc.sv
 
 #  - target: any(simulation, test)
 #    files:
