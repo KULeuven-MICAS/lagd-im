@@ -521,7 +521,7 @@ module tb_energy_monitor;
                 do @(posedge clk_i);
                 while (!(weight_valid_i && weight_ready_o));
             
-                // Handshake occurred here — safe to update next data next cycle
+                // Handshake occurred here - safe to update next data next cycle
                 spin_idx = (spin_idx + 1) % DATASPIN;
                 transaction_count++;
             
