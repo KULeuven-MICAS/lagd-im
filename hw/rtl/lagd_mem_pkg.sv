@@ -124,7 +124,7 @@ package lagd_mem_pkg;
     };
 
     localparam mem_cfg_t IsingCoreL1MemCfgJ = '{
-        AddrWidth           : $clog2(`IC_L1_MEM_SIZE_B),
+        AddrWidth           : $clog2(`L1_J_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
@@ -146,14 +146,14 @@ package lagd_mem_pkg;
         SpillReqBank        : 0,
         SpillRspBank        : 0,
         WidePriorityWait    : 0,
-        NumWideBanks        : `IC_L1_BANKING_FACTOR,
+        NumWideBanks        : `IC_L1_J_BANKING_FACTOR,
         NarrowExtraBF       : 1,
         WordsPerBank        : 2048,
         BankAccessLatency   : 1
     };
 
     localparam mem_cfg_t IsingCoreL1MemCfgH = '{
-        AddrWidth           : $clog2(`IC_L1_MEM_SIZE_B),
+        AddrWidth           : $clog2(`L1_H_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
@@ -175,14 +175,14 @@ package lagd_mem_pkg;
         SpillReqBank        : 0,
         SpillRspBank        : 0,
         WidePriorityWait    : 0,
-        NumWideBanks        : `IC_L1_BANKING_FACTOR,
+        NumWideBanks        : `IC_L1_H_BANKING_FACTOR,
         NarrowExtraBF       : 1,
         WordsPerBank        : 2048,
         BankAccessLatency   : 1
     };
 
     localparam mem_cfg_t IsingCoreL1MemCfgFlip = '{
-        AddrWidth           : $clog2(`IC_L1_MEM_SIZE_B),
+        AddrWidth           : $clog2(`L1_FLIP_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `LAGD_AXI_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
@@ -204,7 +204,7 @@ package lagd_mem_pkg;
         SpillReqBank        : 0,
         SpillRspBank        : 0,
         WidePriorityWait    : 0,
-        NumWideBanks        : `IC_L1_BANKING_FACTOR,
+        NumWideBanks        : `IC_L1_FLIP_BANKING_FACTOR,
         NarrowExtraBF       : 1,
         WordsPerBank        : 2048,
         BankAccessLatency   : 1

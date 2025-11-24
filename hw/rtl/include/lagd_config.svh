@@ -15,8 +15,16 @@
         `define NUM_ISING_CORES 1
     `endif
 
-    `ifndef IC_L1_MEM_SIZE_B
-        `define IC_L1_MEM_SIZE_B 32*1024
+    `ifndef L1_J_MEM_SIZE_B
+        `define L1_J_MEM_SIZE_B 32*1024
+    `endif
+
+    `ifndef L1_H_MEM_SIZE_B
+        `define L1_H_MEM_SIZE_B 128
+    `endif
+
+    `ifndef L1_FLIP_MEM_SIZE_B
+        `define L1_FLIP_MEM_SIZE_B 32*1024
     `endif
 
     `ifndef L2_MEM_SIZE_B
