@@ -20,12 +20,12 @@ module ising_core_wrap #(
     input logic rst_ni,
 
     // AXI slave interface
-    input axi_slv_req_t axi_s_req_i,
-    output axi_slv_rsp_t axi_s_rsp_o,
+    input lagd_axi_slv_req_t axi_s_req_i,
+    output lagd_axi_slv_rsp_t axi_s_rsp_o,
 
     // Register slave interface
-    input reg_slv_req_t reg_s_req_i,
-    output reg_slv_rsp_t reg_s_rsp_o
+    input lagd_reg_req_t reg_s_req_i,
+    output lagd_reg_rsp_t reg_s_rsp_o
 );
 
     // Internal signals
@@ -42,19 +42,12 @@ module ising_core_wrap #(
     // L1 memory, with narrow and direct access //////////////
     //////////////////////////////////////////////////////////
 
-    memory_axi_mux #(
-        .AddrWidth          (l1_mem_cfg_j.AddrWidth),
-        .NarrowDataWidth    (l1_mem_cfg_j.NarrowDataWidth),
-        .AxiNarrowIdWidth   (l1_mem_cfg_j.AxiNarrowIdWidth),
-        .WideDataWidth      (l1_mem_cfg_j.WideDataWidth),
-        .NumWideBanks       (l1_mem_cfg_j.NumWideBanks),
-
-        .axi_narrow_req_t   (axi_slv_req_t),
-        .axi_narrow_rsp_t   (axi_slv_rsp_t),
-        .NumNarrowReq       (l1_mem_cfg_j.NumNarrowReq),
-        .NarrowRW           (l1_mem_cfg_j.NarrowRW),
-        .WideRW             (l1_mem_cfg_j.WideRW)
-    ) i_l1_mem_axi_mux (
+    lagd_axi_xbar #(
+        .AXI_ADDR_WIDTH   (`LAGD_AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH   (`LAGD_AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH     (`LAGD_AXI_ID_WIDTH),
+        .AXI_USER_WIDTH   (0)
+    ) i_l1_mem_axi_xbar (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
@@ -69,7 +62,6 @@ module ising_core_wrap #(
         .axi_narrow_rsp_flip_i(axi_s_rsp_flip),
     );
 
-    // TODO: parameters and interface are to be defined
     memory_island_wrap #(
         .mem_cfg_t  (l1_mem_cfg_j)
     ) i_l1_mem_j (
@@ -130,7 +122,7 @@ module ising_core_wrap #(
     //////////////////////////////////////////////////////////
     //Register interface /////////////////////////////////////
     //////////////////////////////////////////////////////////
-    // TODO: parameters and interface are to be defined
+    // TODO: more registers to be added
     reg_interface_wrap #(
         .reg_slv_req_t    (reg_slv_req_t),
         .reg_slv_rsp_t    (reg_slv_rsp_t)
