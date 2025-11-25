@@ -11,9 +11,9 @@
 `include "axi/src/axi_xbar.sv"
 
 module lagd_axi_xbar #(
-    parameter AXI_ADDR_WIDTH = 32,
-    parameter AXI_DATA_WIDTH = 32,
-    parameter AXI_ID_WIDTH   = 4,
+    parameter AXI_ADDR_WIDTH = 64,
+    parameter AXI_DATA_WIDTH = 64,
+    parameter AXI_ID_WIDTH   = 6,
     parameter AXI_USER_WIDTH = 0
 ) (
     input  logic                                 clk_i,
