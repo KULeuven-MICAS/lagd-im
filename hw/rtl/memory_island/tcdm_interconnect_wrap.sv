@@ -14,7 +14,8 @@ module tcdm_interconnect_wrap #(
     parameter int unsigned AddrWidth = 32,
     parameter int unsigned DataWidth = 32,
     parameter int unsigned AddrMemWidth = 4,
-    parameter int unsigned AccessLatency = 1,
+    parameter int unsigned BeWidth = 4,
+    parameter int unsigned RespLat = 1,
 
     parameter type mem_req_t = logic,
     parameter type mem_rsp_t = logic
@@ -77,8 +78,9 @@ module tcdm_interconnect_wrap #(
         .NumOut(NumOut),
         .AddrWidth(AddrWidth),
         .DataWidth(DataWidth),
+        .BeWidth(BeWidth),
         .AddrMemWidth(AddrMemWidth),
-        .AccessLatency(AccessLatency),
+        .RespLat(RespLat),
         .Topology(tcdm_interconnect_pkg::LIC)
     ) i_tcdm_interconnect (
         .clk_i(clk_i),

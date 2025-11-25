@@ -80,6 +80,12 @@ module memory_island_core import memory_island_pkg::*; #(
     localparam int unsigned AddrBankWordBit = AddrWideBankBit - $clog2(Cfg.NumNarrowBanks);
     localparam int unsigned NarrowBankAddrWidth = AddrWideBankBit - AddrBankWordBit;
 
+    // Response latency for narrow banks
+    localparam int unsigned NarrowBankRespLat = Cfg.BankAccessLatency + SpillNarrowReqRouted +
+        SpillNarrowRspRouted + SpillReqBank + SpillRspBank;
+    localparam int unsigned WideBankRespLat = Cfg.BankAccessLatency + SpillWideReqRouted +
+        SpillWideRspRouted + SpillReqBank + SpillRspBank;
+
     // TODO: add buffer instances here to allow for decoupling/variable latency
     // possibly in-order and out-of-order variants
 
@@ -91,14 +97,14 @@ module memory_island_core import memory_island_pkg::*; #(
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks;
 
-    // TODO fix AddrMemWidth parameter
     tcdm_interconnect_wrap #(
         .NumIn(NumWideReq),
         .NumOut(NumWideBanks),
         .AddrWidth(Cfg.AddrWidth),
         .DataWidth(Cfg.WideDataWidth),
-        .AddrMemWidth(Cfg.AddrWidth),
-        .AccessLatency(Cfg.BankAccessLatency),
+        .AddrMemWidth(WideBankAddrWidth),
+        .BeWidth(AddrWideWordBit + 1),
+        .RespLat(WideBankRespLat),
         .mem_req_t(mem_wide_req_t),
         .mem_rsp_t(mem_wide_rsp_t)
     ) u_wide_interco (
@@ -121,8 +127,9 @@ module memory_island_core import memory_island_pkg::*; #(
         .NumOut(Cfg.NumNarrowBanks),
         .AddrWidth(Cfg.AddrWidth),
         .DataWidth(Cfg.NarrowDataWidth),
-        .AddrMemWidth(Cfg.AddrWidth),
-        .AccessLatency(Cfg.BankAccessLatency),
+        .AddrMemWidth(NarrowBankAddrWidth),
+        .BeWidth(AddrBankWordBit + 1),
+        .RespLat(NarrowBankRespLat),
         .mem_req_t(mem_narrow_req_t),
         .mem_rsp_t(mem_narrow_rsp_t)
     ) i_narrow_interco (
@@ -211,8 +218,8 @@ module memory_island_core import memory_island_pkg::*; #(
     mem_narrow_rsp_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_rsp;
     for (genvar i = 0; i < NumWideBanks; i++) begin: split_wide_req
         wide_to_narrow_splitter #(
-            .MemAddrWidth(Cfg.AddrWidth),
-            .BankAddrWidth(Cfg.AddrWidth),
+            .MemAddrWidth(AddrWideWordBit + 1),
+            .BankAddrWidth(InBankAddrWidth),
             .MemDataWidth(Cfg.WideDataWidth),
             .BankDataWidth(Cfg.NarrowDataWidth),
             .mem_req_t(mem_wide_req_t),
