@@ -49,7 +49,7 @@ module memory_island_core import memory_island_pkg::*; #(
         //          |            |-------------------------- AddrWideBankBit
         //          |--------------------------------------- AddrTopBit
         //
-        //                        <----------->              NarrowBankAddrWidth
+        //                        <------->                  NarrowBankAddrWidth
         //
         // Narrow interco: AddrWideBankBit -> AddrBankWordBit for routing
 
@@ -66,6 +66,19 @@ module memory_island_core import memory_island_pkg::*; #(
         //
         // Interco: AddrPseudoWideBankBit -> AddrPseudoWideWordBit 
         //      (PseudoWideBankAddrWidth len) for routing
+
+    localparam int unsigned AddrTopBit = Cfg.AddrWidth - 1;
+    localparam int unsigned InBankAddrWidth = $clog2(Cfg.WordsPerBank);
+
+    localparam int unsigned AddrWideBankBit = AddrTopBit - InBankAddrWidth;
+    localparam int unsigned NumNarrowBanksInWide = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
+
+    localparam int unsigned AddrWideWordBit = AddrWideBankBit - $clog2(Cfg.NumNarrowBanks /
+        NumNarrowBanksInWide);
+    localparam int unsigned WideBankAddrWidth = AddrWideBankBit - AddrWideWordBit;
+
+    localparam int unsigned AddrBankWordBit = AddrWideBankBit - $clog2(Cfg.NumNarrowBanks);
+    localparam int unsigned NarrowBankAddrWidth = AddrWideBankBit - AddrBankWordBit;
 
     // TODO: add buffer instances here to allow for decoupling/variable latency
     // possibly in-order and out-of-order variants
