@@ -17,6 +17,7 @@
     `define CVA6_ADDR_WIDTH 48
 
     // AXI
+    `define LAGD_AXI_ADDR_WIDTH 32
     `define LAGD_AXI_DATA_WIDTH 64
     `define LAGD_AXI_ID_WIDTH 6
 
