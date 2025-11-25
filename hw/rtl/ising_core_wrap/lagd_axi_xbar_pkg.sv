@@ -17,7 +17,7 @@
 // - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
 // - Cyril Koenig <cykoenig@iis.ee.ethz.ch>
 // - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
-
+//
 // Copyright 2025 KU Leuven.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
