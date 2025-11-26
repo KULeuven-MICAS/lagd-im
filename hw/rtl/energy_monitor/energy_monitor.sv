@@ -201,7 +201,7 @@ module energy_monitor #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
-        .spin_handshake_i(spin_handshake),
+        .data_valid_i(spin_handshake),
         .data_i(spin_pipe),
         .data_o(spin_cached)
     );
