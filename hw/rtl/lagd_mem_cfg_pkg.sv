@@ -12,7 +12,8 @@
 
 package lagd_mem_cfg_pkg;
     localparam memory_island_pkg::mem_cfg_t L2MemCfg = '{
-        AddrWidth : `L2_MEM_ADDR_WIDTH,
+        // AddrWidth : `L2_MEM_ADDR_WIDTH,
+        AddrWidth : `CVA6_ADDR_WIDTH,
         NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth : `LAGD_AXI_DATA_WIDTH,
         AxiNarrowIdWidth : `LAGD_AXI_ID_WIDTH,
@@ -39,7 +40,8 @@ package lagd_mem_cfg_pkg;
     };
 
     localparam memory_island_pkg::mem_cfg_t CVA6StackMemCfg = '{
-        AddrWidth : `STACK_ADDR_WIDTH,
+        // AddrWidth : `STACK_ADDR_WIDTH,
+        AddrWidth : `CVA6_ADDR_WIDTH,
         NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth : `LAGD_AXI_DATA_WIDTH,
         AxiNarrowIdWidth : `LAGD_AXI_ID_WIDTH,
@@ -66,7 +68,8 @@ package lagd_mem_cfg_pkg;
     };
 
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfg = '{
-        AddrWidth : $clog2(`IC_L1_MEM_SIZE_B),
+        //AddrWidth : $clog2(`IC_L1_MEM_SIZE_B),
+        AddrWidth : `CVA6_ADDR_WIDTH,
         NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth : `LAGD_AXI_DATA_WIDTH,
         AxiNarrowIdWidth : `LAGD_AXI_ID_WIDTH,

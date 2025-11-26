@@ -70,7 +70,8 @@ module tcdm_interconnect_wrap #(
         assign mem_rsp_i_q_ready[j] =  mem_rsp_i[j].q_ready;
     end
 
-
+    localparam int unsigned StrbWidth =  $bits(mem_req_i_q_strb[0]);
+    $info("StrbWidth = %d; BEWidth = %d", StrbWidth, BeWidth);
     tcdm_interconnect #(
         .NumIn(NumIn),
         .NumOut(NumOut),

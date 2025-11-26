@@ -83,7 +83,7 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .axi_rsp_t(axi_narrow_rsp_t),
             .mem_req_t(mem_narrow_req_t),
             .mem_rsp_t(mem_narrow_rsp_t),
-            .AddrWidth(Cfg.AddrWidth),
+            .AddrWidth(),
             .DataWidth(Cfg.NarrowDataWidth),
             .IdWidth(Cfg.AxiNarrowIdWidth),
             .MemDataWidth(Cfg.NarrowDataWidth),
