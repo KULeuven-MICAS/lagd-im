@@ -6,11 +6,9 @@
 //
 // LAGD AXI crossbar module
 
-`include "lagd_axi_xbar_pkg.sv"
-`include "axi/src/axi_intf.sv"
-`include "axi/src/axi_xbar.sv"
+`include "lagd_define.svh"
 
-module lagd_axi_xbar #(
+module lagd_axi_xbar import lagd_axi_xbar_pkg::*; #(
     parameter AXI_ADDR_WIDTH = 64,
     parameter AXI_DATA_WIDTH = 64,
     parameter AXI_ID_WIDTH   = 6,
@@ -29,29 +27,36 @@ module lagd_axi_xbar #(
     output lagd_axi_slv_req_t                     axi_narrow_req_flip_o,
     input  lagd_axi_slv_rsp_t                     axi_narrow_rsp_flip_i
 );
-    typedef lagd_axi_xbar_pkg::xbar_rule_32_t rule_t;
 
-    localparam lagd_axi_xbar_pkg::xbar_cfg_t xbar_cfg = `{ // TODO: to be checked
+    // Configuration of the AXI crossbar
+    localparam lagd_axi_xbar_pkg::xbar_cfg_t xbar_cfg = `{
         NoSlvPorts         : 1,
         NoMstPorts         : 3,
-        MaxMstTrans        : 8,
-        MaxSlvTrans        : 8,
+        MaxMstTrans        : 1,
+        MaxSlvTrans        : 1,
         FallThrough        : 1'b0,
-        LatencyMode        : 10'b0000000000,
-        PipelineStages     : 1,
+        LatencyMode        : 10'b111_11_111_11,
+        PipelineStages     : 0,
         AxiIdWidthSlvPorts : AXI_ID_WIDTH,
-        AxiIdUsedSlvPorts  : AXI_ID_WIDTH,
-        UniqueIds          : 1'b1,
+        AxiIdUsedSlvPorts  : AXI_ID_WIDTH+2,
+        UniqueIds          : 1'b0,
         AxiAddrWidth       : AXI_ADDR_WIDTH,
         AxiDataWidth       : AXI_DATA_WIDTH,
-        NoAddrRules        : 1
+        NoAddrRules        : 3
     };
 
-    localparam rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
+    // Define the xbar rule type
+    typedef struct packed {
+        logic [31:0] idx;
+        logic [AXI_ADDR_WIDTH-1:0] start_addr;
+        logic [AXI_ADDR_WIDTH-1:0] end_addr;
+    } rule_t;
+
+    rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
         '{
-            rule_t`{idx: 0, start_addr: 'h9000_0000, end_addr: 'h9000_2000},
-            rule_t`{idx: 1, start_addr: 'h9000_2000, end_addr: 'hA000_4000},
-            rule_t`{idx: 2, start_addr: 'hA000_4000, end_addr: 'hA000_6000}
+            `{idx: 0, start_addr: `IC_MEM_BASE_ADDR, end_addr: `IC_J_MEM_END_ADDR},
+            `{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_H_MEM_END_ADDR},
+            `{idx: 2, start_addr: `IC_H_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR}
         }
     };
 

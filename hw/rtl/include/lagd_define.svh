@@ -35,6 +35,9 @@
 
     // Ising cores
     `define IC_MEM_BASE_ADDR 'h9000_0000
+    `define IC_J_MEM_END_ADDR 'h9000_8000    // J Mem Addr Space    32KB
+    `define IC_H_MEM_END_ADDR 'h9001_0000    // H Mem Addr Space    32KB
+    `define IC_FLIP_MEM_END_ADDR 'h9001_8000 // Flip Mem Addr Space 32KB
     `define IC_REGS_BASE_ADDR 'hA000_0000
     // L1 memory per core
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
