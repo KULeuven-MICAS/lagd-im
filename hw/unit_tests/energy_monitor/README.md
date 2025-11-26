@@ -12,15 +12,21 @@ $$
 
 In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's complement format. $\sigma_i$ is a 1-bit variable. The scaling factor $h_{sfc}$ is an unsigned integer in the power of 2.
 
+## Performance
+
+For each transaction starting with spin handshake, this module takes DATASPIN/PARALLELISM+1 cycles to output energy value.
+
 ## Configurable Module Parameters
 
 *BITJ:* [int] bit precision of each signed weight (default: 4)
 
 *BITH:* [int] bit precision of each signed bias (default: 4)
 
-*DATASPIN:* [int] the number of spins  (default: 256)
+*DATASPIN:* [int] the number of spins, must be multiple of PARALLELISM  (default: 256)
 
 *SCALING_BIT:* [int] bit precision of the $h_{sfc}$ (default: 5)
+
+*PARALLELISM:* [int] parallelism of partial energy calculators (default: 4).
 
 *LOCAL_ENERGY_BIT:* [int] bit precision of local energy, defined as $\sum_{j} w_{ij} \sigma_i \sigma_j + h_{sfc} \cdot h_i \sigma_i$ (default: 16)
 
@@ -109,6 +115,6 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 ## Further Possible Improvements
 
-- Currently one spin is calculated per cycle (totally #SPIN+1 cycles). It needs to be configured with multiple spins per cycle.
 - Currently weight fetching happens after the spin handshake. It can also happen in parallel so can save one cycle per iteration.
+- STATICA feature is not added yet (only compute the spin part that differs with previous case).
 - Sparsity feature is not added yet.
