@@ -8,7 +8,7 @@
 
 `include "lagd_define.svh"
 
-module ising_core_wrap #(
+module ising_core_wrap import axi_pkg::*; #(
     parameter mem_cfg_t l1_mem_cfg_j = '0,
     parameter mem_cfg_t l1_mem_cfg_h = '0,
     parameter mem_cfg_t l1_mem_cfg_flip = '0,
@@ -43,25 +43,73 @@ module ising_core_wrap #(
     //////////////////////////////////////////////////////////
     // L1 memory, with narrow and direct access //////////////
     //////////////////////////////////////////////////////////
+    // Configuration of the AXI crossbar
+    localparam axi_pkg::xbar_cfg_t xbar_cfg = `{
+        NoSlvPorts         : 1,
+        NoMstPorts         : 3,
+        MaxMstTrans        : 1,
+        MaxSlvTrans        : 1,
+        FallThrough        : 1'b0,
+        LatencyMode        : 10'b111_11_111_11,
+        PipelineStages     : 0,
+        AxiIdWidthSlvPorts : `LAGD_AXI_ID_WIDTH,
+        AxiIdUsedSlvPorts  : `LAGD_AXI_ID_WIDTH+2,
+        UniqueIds          : 1'b0,
+        AxiAddrWidth       : $clog2(`IC_L1_MEM_LIMIT),
+        AxiDataWidth       : `LAGD_AXI_DATA_WIDTH,
+        NoAddrRules        : 3
+    };
 
-    lagd_axi_xbar #(
-        .AXI_ADDR_WIDTH       ($clog2(`IC_L1_MEM_LIMIT)),
-        .AXI_DATA_WIDTH       (`LAGD_AXI_DATA_WIDTH    ),
-        .AXI_ID_WIDTH         (`LAGD_AXI_ID_WIDTH      ),
-        .AXI_USER_WIDTH       (0                       )
-    ) i_l1_mem_axi_xbar (
-        .clk_i                (clk_i                   ),
-        .rst_ni               (rst_ni                  ),
-        .axi_narrow_req_i     (axi_s_req_i             ),
-        .axi_narrow_rsp_o     (axi_s_rsp_o             ),
-        .axi_narrow_req_j_o   (axi_s_req_j             ),
-        .axi_narrow_rsp_j_i   (axi_s_rsp_j             ),
-        .axi_narrow_req_h_o   (axi_s_req_h             ),
-        .axi_narrow_rsp_h_i   (axi_s_rsp_h             ),
-        .axi_narrow_req_flip_o(axi_s_req_flip          ),
-        .axi_narrow_rsp_flip_i(axi_s_rsp_flip          ),
+    // Define the xbar rule type
+    typedef struct packed {
+        logic [31:0] idx;
+        logic [AXI_ADDR_WIDTH-1:0] start_addr;
+        logic [AXI_ADDR_WIDTH-1:0] end_addr;
+    } rule_t;
+
+    rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
+        '{
+            `{idx: 0, start_addr: `IC_MEM_BASE_ADDR, end_addr: `IC_J_MEM_END_ADDR},
+            `{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_H_MEM_END_ADDR},
+            `{idx: 2, start_addr: `IC_H_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR}
+        }
+    };
+
+    axi_xbar #(
+    .Cfg                   (xbar_cfg               ),
+    .Connectivity          ('1                     ),
+    .ATOPs                 (0                      ),
+    .slv_aw_chan_t         (lagd_axi_slv_aw_chan_t ),
+    .mst_aw_chan_t         (lagd_axi_slv_aw_chan_t ),
+    .w_chan_t              (lagd_axi_slv_w_chan_t  ),
+    .slv_b_chan_t          (lagd_axi_slv_b_chan_t  ),
+    .mst_b_chan_t          (lagd_axi_slv_b_chan_t  ),
+    .slv_ar_chan_t         (lagd_axi_slv_ar_chan_t ),
+    .mst_ar_chan_t         (lagd_axi_slv_ar_chan_t ),
+    .slv_r_chan_t          (lagd_axi_slv_r_chan_t  ),
+    .mst_r_chan_t          (lagd_axi_slv_r_chan_t  ),
+    .slv_req_t             (lagd_axi_slv_req_t     ),
+    .slv_resp_t            (lagd_axi_slv_rsp_t     ),
+    .mst_req_t             (lagd_axi_slv_req_t     ),
+    .mst_resp_t            (lagd_axi_slv_rsp_t     )
+    ) i_axi_xbar ( 
+    .clk_i                 (clk_i                  ),
+    .rst_ni                (rst_ni                 ),
+    .test_i                (1'b0                   ),
+    .slv_ports_req_i       (axi_s_req_i            ),
+    .slv_ports_resp_o      (axi_s_rsp_o            ),
+    .mst_ports_req_o       ({axi_s_req_j,
+                            axi_s_req_h,
+                            axi_s_req_flip}        ),
+    .mst_ports_resp_i      ({axi_s_rsp_j,
+                            axi_s_rsp_h,
+                            axi_s_rsp_flip}        ),
+    .addr_map_i            (AddrMap                ),
+    .en_default_mst_port_i ('0                     ),
+    .default_mst_port_i    ('0                     )
     );
 
+    // L1 memory instances
     memory_island_wrap #(
         .mem_cfg_t             (l1_mem_cfg_j           )
     ) i_l1_mem_j (

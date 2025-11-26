@@ -29,7 +29,6 @@ sources:
       - hw/rtl/lagd_mem_pkg.sv
       - hw/rtl/lagd_soc.sv
       - hw/rtl/ising_core_wrap/lagd_ising_core_wrap.sv
-      - hw/rtl/ising_core_wrap/lagd_axi_xbar.sv
 
 #  - target: any(simulation, test)
 #    files:
