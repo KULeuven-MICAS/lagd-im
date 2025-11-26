@@ -6,6 +6,7 @@
 
 // Copied from 
 // https://github.com/pulp-platform/snitch_cluster/blob/5b2fccd96c42812774c20ab2f9b811e164809789/hw/mem_interface/include/mem_interface/typedef.svh#L38
+// (The repo is not in the dependencies list, but this file is needed for the memory island)
 
 // ==================
 // MEMORY TYPEDEFS
