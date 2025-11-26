@@ -44,7 +44,7 @@
     `define IC_L1_WORDS_PER_BANK 2048
     // L1 memory port width
     `define IC_L1_J_MEM_DATA_WIDTH 4*1024
-    `define IC_L1_H_MEM_DATA_WIDTH 4
+    `define IC_L1_H_MEM_DATA_WIDTH 16
     `define IC_L1_FLIP_MEM_DATA_WIDTH 256
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core

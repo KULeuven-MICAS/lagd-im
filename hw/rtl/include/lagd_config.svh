@@ -20,7 +20,7 @@
     `endif
 
     `ifndef L1_H_MEM_SIZE_B
-        `define L1_H_MEM_SIZE_B 128
+        `define L1_H_MEM_SIZE_B 4*1024
     `endif
 
     `ifndef L1_FLIP_MEM_SIZE_B
