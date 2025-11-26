@@ -139,7 +139,7 @@ module memory_island_core import memory_island_pkg::*; #(
                 assign mem_narrow_req_to_banks[0] = mem_narrow_req_i[0];
                 assign mem_narrow_rsp_o[0] = mem_narrow_rsp_from_banks[0];
             end else begin : gen_narrow_multi_req
-                $error("Simple arbitration for single bank not implemented yet")
+                $error("Simple arbitration for single bank not implemented yet");
             end
         end else begin : gen_narrow_mutli_bank
             // Interconnect instance
