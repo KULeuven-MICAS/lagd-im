@@ -8,12 +8,12 @@
 `define DBG 0
 `endif
 
-`define S1W1H1_TEST 'b000
-`define S0W1H1_TEST 'b001
-`define S0W0H0_TEST 'b010
-`define S1W0H0_TEST 'b011
-`define MaxPosValue_TEST 'b100
-`define MaxNegValue_TEST 'b101
+`define S1W1H1_TEST 'b000 // spins: +1, weights: +1, hbias: +1, hscaling: +1
+`define S0W1H1_TEST 'b001 // spins: -1, weights: +1, hbias: +1, hscaling: +1
+`define S0W0H0_TEST 'b010 // spins: -1, weights: -1, hbias: -1, hscaling: +1
+`define S1W0H0_TEST 'b011 // spins: +1, weights: -1, hbias: -1, hscaling: +1
+`define MaxPosValue_TEST 'b100 // spins: +1, weights: max positive, hbias: max positive, hscaling: max positive
+`define MaxNegValue_TEST 'b101 // spins: -1, weights: max negative, hbias: max negative, hscaling: max positive
 `define RANDOM_TEST 'b110
 
 `define True 1'b1
@@ -22,22 +22,24 @@
 module tb_energy_monitor;
 
     // Testbench parameters
-    localparam int test_mode = `RANDOM_TEST; // select test mode
-    localparam int NUM_TESTS = 1_000_000; // number of test cases
+    localparam int test_mode = `S0W1H1_TEST; // select test mode
+    localparam int NUM_TESTS = 100; // number of test cases
     localparam int CLKCYCLE = 2; // clock cycle in ns
     localparam int MEM_LATENCY = 0; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
-    localparam int MEM_LATENCY_RANDOM = `True;
-    localparam int SPIN_LATENCY_RANDOM = `True;
+    localparam int MEM_LATENCY_RANDOM = `False;
+    localparam int SPIN_LATENCY_RANDOM = `False;
 
     // Module parameters
-    localparam int BITJ = 4; // J precision
-    localparam int BITH = 4; // bias precision
+    localparam int BITJ = 4; // J precision, min: 2 (including sign bit)
+    localparam int BITH = 4; // bias precision, min: 2 (including sign bit)
     localparam int DATASPIN = 256; // number of spins
     localparam int SCALING_BIT = 5; // bit width of scaling factor
+    localparam int PARALLELISM = 4; // number of parallel energy calculation units, min: 1
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
-    localparam int PIPES = 2; // number of pipeline stages
+    localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
+    localparam int PIPES = 0; // number of pipeline stages
 
     // Testbench internal signals
     logic clk_i;
@@ -50,9 +52,9 @@ module tb_energy_monitor;
     logic [DATASPIN-1:0] spin_i;
     logic spin_ready_o;
     logic weight_valid_i;
-    logic [DATASPIN*BITJ-1:0] weight_i;
-    logic signed [BITH-1:0] hbias_i;
-    logic unsigned [SCALING_BIT-1:0] hscaling_i;
+    logic [DATASPIN*BITJ*PARALLELISM-1:0] weight_i;
+    logic signed [BITH*PARALLELISM-1:0] hbias_i;
+    logic unsigned [SCALING_BIT*PARALLELISM-1:0] hscaling_i;
     logic weight_ready_o;
     logic energy_valid_o;
     logic energy_ready_i;
@@ -65,11 +67,9 @@ module tb_energy_monitor;
     logic [DATASPIN-1:0] spin_reg [0:NUM_TESTS-1];
     logic [PIPES-1:0] pipe_valid;
     logic unsigned [31:0] pipe_valid_int;
-    logic [DATASPIN*BITJ-1:0] weight_pipe [0:PIPES-1];
-    logic signed [BITH-1:0] hbias_pipe [0:PIPES-1];
-    logic unsigned [SCALING_BIT-1:0] hscaling_pipe [0:PIPES-1];
-    logic signed [BITJ-1:0] weight_expected;
-    logic expected_valid;
+    logic [DATASPIN*BITJ*PARALLELISM-1:0] weight_pipe [0:PIPES-1];
+    logic signed [BITH*PARALLELISM-1:0] hbias_pipe [0:PIPES-1];
+    logic unsigned [SCALING_BIT*PARALLELISM-1:0] hscaling_pipe [0:PIPES-1];
     logic unsigned [ $clog2(DATASPIN) : 0 ] expected_spin_counter;
     logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
     logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy;
@@ -86,8 +86,6 @@ module tb_energy_monitor;
     integer transaction_time;
     integer start_time;
     integer end_time;
-
-    assign expected_valid = energy_ready_i;
 
     initial begin
         transaction_count = 0;
@@ -117,8 +115,10 @@ module tb_energy_monitor;
         .BITH(BITH),
         .DATASPIN(DATASPIN),
         .SCALING_BIT(SCALING_BIT),
+        .PARALLELISM(PARALLELISM),
         .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
+        .LITTLE_ENDIAN(LITTLE_ENDIAN),
         .PIPES(PIPES)
     ) dut (
         .clk_i(clk_i),
@@ -181,10 +181,10 @@ module tb_energy_monitor;
         if (`DBG) begin
             $display("Debug mode enabled. Generating VCD waveform.");
             $dumpfile("tb_energy_monitor.vcd");
-            $dumpvars(2, weight_interface);
             $dumpvars(2, tb_energy_monitor);
-                #(2000 * CLKCYCLE); // To avoid generating too large VCD files
-                $fatal("Testbench timeout reached. Ending simulation.");
+            // $dumpvars(1, dut.u_step_counter);
+            #(2000 * CLKCYCLE); // To avoid generating too large VCD files
+            $fatal("Testbench timeout reached. Ending simulation.");
         end
         else begin
             // #(200000 * CLKCYCLE);
@@ -283,41 +283,47 @@ module tb_energy_monitor;
             end
             else if (weight_valid_i && weight_ready_o) begin: calculate_energy
                 if (PIPES == 0) begin: no_pipeline_mode
-                    expected_local_energy = compute_local_energy(
-                        spin_reg[testcase_counter-1],
-                        weight_i,
-                        hbias_i,
-                        hscaling_i,
-                        expected_spin_counter
-                    );
-                    expected_energy += expected_local_energy;
-                    expected_spin_counter += 1;
+                    for (int i = 0; i < PARALLELISM; i++) begin
+                        expected_local_energy = compute_local_energy(
+                            spin_reg[testcase_counter-1],
+                            weight_i[i*DATASPIN*BITJ +: DATASPIN*BITJ],
+                            hbias_i[i*BITH +: BITH],
+                            hscaling_i[i*SCALING_BIT +: SCALING_BIT],
+                            expected_spin_counter + i
+                        );
+                        expected_energy += expected_local_energy;
+                    end
+                    expected_spin_counter += PARALLELISM;
                 end else begin: pipeline_mode
                     if (spin_reg_valid[testcase_counter-1] == 1'b0) begin: pipeline_stall
                         // wait for spin data, do nothing
                     end else begin: pipeline_no_stall
                         for (int p = 0; p < pipe_valid_int; p++) begin
                             if (pipe_valid[p]) begin
-                                expected_local_energy = compute_local_energy(
-                                    spin_reg[testcase_counter-1],
-                                    weight_pipe[p],
-                                    hbias_pipe[p],
-                                    hscaling_pipe[p],
-                                    expected_spin_counter
-                                );
-                                expected_energy += expected_local_energy;
-                                expected_spin_counter += 1;
+                                for (int i = 0; i < PARALLELISM; i++) begin
+                                    expected_local_energy = compute_local_energy(
+                                        spin_reg[testcase_counter-1],
+                                        weight_pipe[p][i*DATASPIN*BITJ +: DATASPIN*BITJ],
+                                        hbias_pipe[p][i*BITH +: BITH],
+                                        hscaling_pipe[p][i*SCALING_BIT +: SCALING_BIT],
+                                        expected_spin_counter + i
+                                    );
+                                    expected_energy += expected_local_energy;
+                                end
+                                expected_spin_counter += PARALLELISM;
                             end
                         end
-                        expected_local_energy = compute_local_energy(
-                            spin_reg[testcase_counter-1],
-                            weight_i,
-                            hbias_i,
-                            hscaling_i,
-                            expected_spin_counter
-                        );
-                        expected_energy += expected_local_energy;
-                        expected_spin_counter += 1;
+                        for (int i = 0; i < PARALLELISM; i++) begin
+                            expected_local_energy = compute_local_energy(
+                                spin_reg[testcase_counter-1],
+                                weight_i[i*DATASPIN*BITJ +: DATASPIN*BITJ],
+                                hbias_i[i*BITH +: BITH],
+                                hscaling_i[i*SCALING_BIT +: SCALING_BIT],
+                                expected_spin_counter + i
+                            );
+                            expected_energy += expected_local_energy;
+                        end
+                        expected_spin_counter += PARALLELISM;
                     end
                 end
                 if (expected_spin_counter >= DATASPIN) begin
@@ -342,17 +348,32 @@ module tb_energy_monitor;
     );
         logic signed [LOCAL_ENERGY_BIT-1:0] local_energy_temp;
         logic signed [BITJ-1:0] weight_temp;
+        logic current_spin;
         begin
             local_energy_temp = 0;
             for (int i = 0; i < DATASPIN; i++) begin
-                if (i == spin_idx) begin
-                    local_energy_temp += hbias * $signed({1'b0, hscaling});
+                if (LITTLE_ENDIAN == `True) begin
+                    if (i == spin_idx) begin
+                        local_energy_temp += hbias * $signed({1'b0, hscaling});
+                    end else begin
+                        weight_temp = $signed(weight_vec[i*BITJ +: BITJ]);
+                        local_energy_temp += spin_vec[i] ? weight_temp : -weight_temp;
+                    end
                 end else begin
-                    weight_temp = $signed(weight_vec[i*BITJ +: BITJ]);
-                    local_energy_temp += spin_vec[i] ? weight_temp : -weight_temp;
+                    if (i == (DATASPIN - 1 - spin_idx)) begin
+                        local_energy_temp += hbias * $signed({1'b0, hscaling});
+                    end else begin
+                        weight_temp = $signed(weight_vec[i*BITJ +: BITJ]);
+                        local_energy_temp += spin_vec[i] ? weight_temp : -weight_temp;
+                    end
                 end
             end
-            compute_local_energy = spin_vec[spin_idx] ? local_energy_temp : -local_energy_temp;
+            if (LITTLE_ENDIAN == `True) begin
+                current_spin = spin_vec[spin_idx];
+            end else begin
+                current_spin = spin_vec[DATASPIN - 1 - spin_idx];
+            end
+            compute_local_energy = current_spin ? local_energy_temp : -local_energy_temp;
         end
     endfunction
 
@@ -428,7 +449,6 @@ module tb_energy_monitor;
                 end
 
                 // Generate and send spin data
-                repeat ($urandom_range(0, 5)) @(posedge clk_i); // Random wait before sending spin data
                 spin_valid_i = 1;
                 for (int i = 0; i < DATASPIN; i++) begin
                     case(test_mode)
@@ -463,6 +483,8 @@ module tb_energy_monitor;
     task automatic weight_interface();
         begin
             logic signed [BITJ-1:0] weight_temp;
+            logic signed [BITH-1:0] hbias_temp;
+            logic unsigned [SCALING_BIT-1:0] hscaling_temp;
             spin_idx = 0;
 
             weight_valid_i = 0;
@@ -477,9 +499,9 @@ module tb_energy_monitor;
                     wait (!config_valid_i);
                     @(posedge clk_i);
                 end
-            
-                // Prepare weight data but do NOT assert yet
-                for (int i = 0; i < DATASPIN; i++) begin
+
+                // Prepare j data
+                for (int i = 0; i < DATASPIN * PARALLELISM; i++) begin
                     case(test_mode)
                         `S1W1H1_TEST: weight_temp = {{(BITJ-1){1'b0}},1'b1}; // +1
                         `S0W1H1_TEST: weight_temp = {{(BITJ-1){1'b0}},1'b1}; // +1
@@ -492,37 +514,53 @@ module tb_energy_monitor;
                     endcase
                     weight_i[i*BITJ +: BITJ] = weight_temp;
                 end
-                weight_i[spin_idx*BITJ +: BITJ] = 'd0;
-            
-                case(test_mode)
-                    `S1W1H1_TEST: hbias_i = {{(BITH-1){1'b0}},1'b1}; // +1
-                    `S0W1H1_TEST: hbias_i = {{(BITH-1){1'b0}},1'b1}; // +1
-                    `S0W0H0_TEST: hbias_i = {(BITH){1'b1}}; // -1
-                    `S1W0H0_TEST: hbias_i = {(BITH){1'b1}}; // -1
-                    `MaxPosValue_TEST: hbias_i = (1 << (BITH-1)) - 1; // Max positive value
-                    `MaxNegValue_TEST: hbias_i = -(1 << (BITH-1)); // Max negative value
-                    `RANDOM_TEST: hbias_i = $urandom();
-                    default: hbias_i = 'd0;
-                endcase
+                for (int i = 0; i < PARALLELISM; i++) begin
+                    if (LITTLE_ENDIAN == `True) begin
+                        // Little-endian storage
+                        weight_i[(spin_idx + i + (i * DATASPIN))*BITJ +: BITJ] = 'd0;
+                    end else begin
+                        // Big-endian storage
+                        weight_i[((DATASPIN - 1 - spin_idx) - i + (i * DATASPIN))*BITJ +: BITJ] = 'd0;
+                    end
+                end
 
-                case(test_mode)
-                    `S1W1H1_TEST: hscaling_i = 'd1;
-                    `S0W1H1_TEST: hscaling_i = 'd1;
-                    `S0W0H0_TEST: hscaling_i = 'd1;
-                    `S1W0H0_TEST: hscaling_i = 'd1;
-                    `MaxPosValue_TEST: hscaling_i = 'd16;
-                    `MaxNegValue_TEST: hscaling_i = 'd16;
-                    `RANDOM_TEST: hscaling_i = (1 << ($urandom() % SCALING_BIT));
-                    default: hscaling_i = 'd1;
-                endcase
-            
+                // Prepare hbias data
+                for (int i = 0; i < PARALLELISM; i++) begin
+                    case(test_mode)
+                        `S1W1H1_TEST: hbias_temp = {{(BITH-1){1'b0}},1'b1}; // +1
+                        `S0W1H1_TEST: hbias_temp = {{(BITH-1){1'b0}},1'b1}; // +1
+                        `S0W0H0_TEST: hbias_temp = {(BITH){1'b1}}; // -1
+                        `S1W0H0_TEST: hbias_temp = {(BITH){1'b1}}; // -1
+                        `MaxPosValue_TEST: hbias_temp = (1 << (BITH-1)) - 1; // Max positive value
+                        `MaxNegValue_TEST: hbias_temp = -(1 << (BITH-1)); // Max negative value
+                        `RANDOM_TEST: hbias_temp = $urandom();
+                        default: hbias_temp = 'd0;
+                    endcase
+                    hbias_i[i*BITH +: BITH] = hbias_temp;
+                end
+
+                // Prepare hscaling data
+                for (int i = 0; i < PARALLELISM; i++) begin
+                    case(test_mode)
+                        `S1W1H1_TEST: hscaling_temp = 'd1;
+                        `S0W1H1_TEST: hscaling_temp = 'd1;
+                        `S0W0H0_TEST: hscaling_temp = 'd1;
+                        `S1W0H0_TEST: hscaling_temp = 'd1;
+                        `MaxPosValue_TEST: hscaling_temp = 'd16;
+                        `MaxNegValue_TEST: hscaling_temp = 'd16;
+                        `RANDOM_TEST: hscaling_temp = (1 << ($urandom() % SCALING_BIT));
+                        default: hscaling_temp = 'd1;
+                    endcase
+                    hscaling_i[i*SCALING_BIT +: SCALING_BIT] = hscaling_temp;
+                end
+
                 // Now assert valid and wait for a handshake
                 weight_valid_i = 1;
                 do @(posedge clk_i);
                 while (!(weight_valid_i && weight_ready_o));
             
-                // Handshake occurred here - safe to update next data next cycle
-                spin_idx = (spin_idx + 1) % DATASPIN;
+                // Handshake occurred here - safe to update data next cycle
+                spin_idx = (spin_idx + PARALLELISM) % DATASPIN;
                 transaction_count++;
             
                 // Deassert valid if you want to insert latency

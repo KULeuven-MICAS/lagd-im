@@ -10,10 +10,12 @@
 // Parameters:
 // - BITJ: bit precision of J
 // - BITH: bit precision of h
-// - DATASPIN: number of spins
+// - DATASPIN: number of spins, must be multiple of PARALLELISM
 // - SCALING_BIT: number of bits of scaling factor for h
+// - PARALLELISM: number of parallel energy calculation units
 // - LOCAL_ENERGY_BIT: bit precision of partial energy value
 // - ENERGY_TOTAL_BIT: bit precision of total energy value
+// - LITTLE_ENDIAN: storage format of weight matrix and spin vector, 1 for little-endian, 0 for big-endian
 // - PIPES: number of pipeline stages for each input path
 //
 // Port definitions:
@@ -49,15 +51,22 @@
 
 `include "../lib/registers.svh"
 
+`define True 1'b1
+`define False 1'b0
+
 module energy_monitor #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
     parameter int DATASPIN = 256,
     parameter int SCALING_BIT = 5,
+    parameter int PARALLELISM = 4,
     parameter int LOCAL_ENERGY_BIT = 16,
     parameter int ENERGY_TOTAL_BIT = 32,
+    parameter int LITTLE_ENDIAN = `True,
     parameter int PIPES = 1,
-    parameter int DATAJ = DATASPIN * BITJ,
+    parameter int DATAJ = DATASPIN * BITJ * PARALLELISM,
+    parameter int DATAH = BITH * PARALLELISM,
+    parameter int DATASCALING = SCALING_BIT * PARALLELISM,
     parameter int SPINIDX_BIT = $clog2(DATASPIN)
 )(
     input logic clk_i,
@@ -74,8 +83,8 @@ module energy_monitor #(
 
     input logic weight_valid_i,
     input logic [DATAJ-1:0] weight_i,
-    input logic signed [BITH-1:0] hbias_i,
-    input logic unsigned [SCALING_BIT-1:0] hscaling_i,
+    input logic signed [DATAH-1:0] hbias_i,
+    input logic unsigned [DATASCALING-1:0] hscaling_i,
     output logic weight_ready_o,
 
     output logic energy_valid_o,
@@ -95,8 +104,8 @@ module energy_monitor #(
     logic spin_ready_pipe;
 
     logic [DATAJ-1:0] weight_pipe;
-    logic signed [BITH-1:0] hbias_pipe;
-    logic unsigned [SCALING_BIT-1:0] hscaling_pipe;
+    logic signed [DATAH-1:0] hbias_pipe;
+    logic unsigned [DATASCALING-1:0] hscaling_pipe;
     logic weight_valid_pipe;
     logic weight_ready_pipe;
 
@@ -105,12 +114,16 @@ module energy_monitor #(
     logic [SPINIDX_BIT-1:0] counter_q;
     logic counter_ready;
     logic cmpt_done;
-    logic current_spin;
-    logic signed [LOCAL_ENERGY_BIT-1:0] local_energy;
+    logic [PARALLELISM-1:0] current_spin;
+    logic [PARALLELISM-1:0] current_spin_raw;
+    logic signed [LOCAL_ENERGY_BIT*PARALLELISM-1:0] local_energy;
+    logic signed [LOCAL_ENERGY_BIT + $clog2(PARALLELISM) - 1:0] local_energy_parallel;
 
     // handshake signals
     logic spin_handshake;
     logic weight_handshake;
+
+    genvar i;
 
     assign spin_handshake = spin_valid_pipe && spin_ready_pipe;
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
@@ -144,7 +157,7 @@ module energy_monitor #(
         .ready_o(spin_ready_o)
     );
     bp_pipe #(
-        .DATAW(DATAJ + BITH + SCALING_BIT),
+        .DATAW(DATAJ + DATAH + DATASCALING),
         .PIPES(PIPES)
     ) u_pipe_weight (
         .clk_i(clk_i),
@@ -176,20 +189,19 @@ module energy_monitor #(
     );
 
     // Counter path
-    counter_ctrl #(
+    step_counter #(
         .COUNTER_BITWIDTH(SPINIDX_BIT),
-        .PIPES(PIPES)
-    ) u_counter_ctrl (
+        .PARALLELISM(PARALLELISM)
+    ) u_step_counter (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
-        .config_valid_i(config_valid_pipe),
-        .config_counter_i(config_counter_pipe),
-        .config_ready_i(config_ready_pipe),
+        .load_i(config_valid_pipe && config_ready_pipe),
+        .d_i(config_counter_pipe),
         .recount_en_i(spin_handshake),
         .step_en_i(weight_handshake),
         .q_o(counter_q),
-        .counter_ready_o(counter_ready)
+        .overflow_o(counter_ready)
     );
 
     // Spin path
@@ -204,26 +216,55 @@ module energy_monitor #(
         .data_o(spin_cached)
     );
 
-    // N-to-1 mux for a vector
-    assign current_spin = en_i ? spin_cached[counter_q] : 1'b0;
+    // N-to-PARALLELISM mux for a vector
+    if (LITTLE_ENDIAN == `True) begin: little_endian_spin_vector
+        assign current_spin_raw = en_i ? spin_cached[counter_q +: PARALLELISM] : '0;
+    end else begin: big_endian_spin_vector
+        assign current_spin_raw = en_i ? spin_cached[DATASPIN - 1 - counter_q -: PARALLELISM] : '0;
+    end
 
-    partial_energy_calc #(
-        .BITJ(BITJ),
-        .BITH(BITH),
-        .DATASPIN(DATASPIN),
-        .SCALING_BIT(SCALING_BIT),
-        .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT)
-    ) u_partial_energy_calc (
-        .spin_vector_i(spin_cached),
-        .current_spin_i(current_spin),
-        .weight_i(weight_pipe),
-        .hbias_i(hbias_pipe),
-        .hscaling_i(hscaling_pipe),
-        .energy_o(local_energy)
-        );
+    // map raw bits to current_spin
+    generate
+        for (i = 0; i < PARALLELISM; i = i + 1) begin: map_current_spin
+            if (LITTLE_ENDIAN == `True) begin
+                assign current_spin[i] = current_spin_raw[i];
+            end else begin
+                assign current_spin[i] = current_spin_raw[PARALLELISM - 1 - i];
+            end
+        end
+    endgenerate
 
+    // Energy calculation and accumulation
+    generate
+        for (i = 0; i < PARALLELISM; i = i + 1) begin: partial_energy_calc_inst
+            partial_energy_calc #(
+                .BITJ(BITJ),
+                .BITH(BITH),
+                .DATASPIN(DATASPIN),
+                .SCALING_BIT(SCALING_BIT),
+                .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT)
+            ) u_partial_energy_calc_i (
+                .spin_vector_i(spin_cached),
+                .current_spin_i(current_spin[i]),
+                .weight_i(weight_pipe[i*BITJ*DATASPIN +: BITJ*DATASPIN]),
+                .hbias_i(hbias_pipe[i*BITH +: BITH]),
+                .hscaling_i(hscaling_pipe[i*SCALING_BIT +: SCALING_BIT]),
+                .energy_o(local_energy[i*LOCAL_ENERGY_BIT +: LOCAL_ENERGY_BIT])
+            );
+        end
+    endgenerate
+
+    // Sum the parallel local energy
+    always_comb begin
+        local_energy_parallel = '0;
+        for (int i = 0; i < PARALLELISM; i++) begin
+            local_energy_parallel += $signed(local_energy[i*LOCAL_ENERGY_BIT +: LOCAL_ENERGY_BIT]);
+        end
+    end
+
+    // Accumulator
     accumulator #(
-        .IN_WIDTH(LOCAL_ENERGY_BIT),
+        .IN_WIDTH(LOCAL_ENERGY_BIT + $clog2(PARALLELISM)),
         .ACCUM_WIDTH(ENERGY_TOTAL_BIT)
     ) u_accumulator (
         .clk_i(clk_i),
@@ -231,7 +272,7 @@ module energy_monitor #(
         .en_i(en_i),
         .clear_i(energy_handshake), // clear when the output energy is accepted
         .valid_i(weight_handshake),
-        .data_i(local_energy),
+        .data_i(local_energy_parallel),
         .accum_o(energy_o),
         .overflow_o(accum_overflow_o), // for debug
         .valid_o(cmpt_done)

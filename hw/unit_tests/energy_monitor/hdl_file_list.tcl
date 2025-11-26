@@ -8,11 +8,9 @@ set HDL_FILES [ list \
     "./tb_energy_monitor.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
-    "${HDL_PATH}/energy_monitor/counter_ctrl.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
     "${HDL_PATH}/energy_monitor/step_counter.sv" \
     "${HDL_PATH}/energy_monitor/logic_ctrl.sv" \
-    "${HDL_PATH}/energy_monitor/vector_mux.sv" \
     "${HDL_PATH}/energy_monitor/partial_energy_calc.sv" \
     "${HDL_PATH}/energy_monitor/adder_tree.sv" \
     "${HDL_PATH}/energy_monitor/accumulator.sv" \
