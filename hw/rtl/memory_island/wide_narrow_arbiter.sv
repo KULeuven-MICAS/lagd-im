@@ -11,6 +11,8 @@
 module wide_narrow_arbiter #(
     parameter int unsigned NumNarrowBanks = 0,
     parameter int unsigned NumWideBanks = 0,
+    parameter int unsigned WideDataWidth = 0,
+    parameter int unsigned NarrowDataWidth = 0,
 
     parameter type mem_narrow_req_t = logic,
     parameter type mem_narrow_rsp_t = logic,
@@ -30,9 +32,6 @@ module wide_narrow_arbiter #(
     output mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_o
 );
 
-    localparam int unsigned WideDataWidth = $bits(mem_wide_req_i[0].q.data);
-    localparam int unsigned NarrowDataWidth = $bits(mem_narrow_req_i[0].q.data);
-    $info("WideDataWidth: %0d, NarrowDataWidth: %0d", WideDataWidth, NarrowDataWidth);
     localparam int unsigned NarrowPerWide = WideDataWidth / NarrowDataWidth;
 
     // Arbitration bit for narrow/wide

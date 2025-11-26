@@ -197,6 +197,8 @@ module memory_island_core import memory_island_pkg::*; #(
     wide_narrow_arbiter #(
         .NumNarrowBanks(Cfg.NumNarrowBanks),
         .NumWideBanks(NumWideBanks),
+        .WideDataWidth(Cfg.WideDataWidth),
+        .NarrowDataWidth(Cfg.NarrowDataWidth),
         .mem_narrow_req_t(mem_narrow_req_t),
         .mem_narrow_rsp_t(mem_narrow_rsp_t),
         .mem_wide_req_t(mem_wide_req_t),
