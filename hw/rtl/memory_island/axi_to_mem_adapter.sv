@@ -77,7 +77,7 @@ module axi_to_mem_adapter #(
             );
         end else begin : ro_adapter
             localparam int AxiToMemAdapter_AddrWidth = $bits(mem_req_o[0].q.addr);
-            $info("AxiToMemAdapter_AddrWidth: %0d", AxiToMemAdapter_AddrWidth);
+            $info("AxiToMemAdapter_AddrWidth: %d; AddrWidth: %d", AxiToMemAdapter_AddrWidth, AddrWidth);
             axi_to_mem #(
                 .axi_req_t(axi_req_t),
                 .axi_resp_t(axi_rsp_t),

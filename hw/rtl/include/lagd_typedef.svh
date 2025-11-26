@@ -37,16 +37,17 @@
     localparam type __prefix``addr_t = logic [__cheshire_cfg.AddrWidth-1:0]; \
     localparam type __prefix``narr_data_t = logic [__cheshire_cfg.AxiDataWidth-1:0]; \
     localparam type __prefix``wide_data_t = logic [__WideDataWidth-1:0]; \
-    localparam type __prefix``strb_t = logic [__cheshire_cfg.AxiDataWidth/8-1:0]; \
+    localparam type __prefix``narr_strb_t = logic [__cheshire_cfg.AxiDataWidth/8-1:0]; \
+    localparam type __prefix``wide_strb_t = logic [__WideDataWidth/8-1:0]; \
     localparam type __prefix``user_t = logic [__cheshire_cfg.AxiUserWidth-1:0]; \
     `LAGD_TYPEDEF_AXI(__prefix``axi, __prefix``addr_t, __prefix``narr_data_t, \
-        __prefix``strb_t, __prefix``user_t, __cheshire_cfg) \
+        __prefix``narr_strb_t, __prefix``user_t, __cheshire_cfg) \
     `LAGD_TYPEDEF_AXI(__prefix``axi_wide, __prefix``addr_t, __prefix``wide_data_t, \
-        __prefix``strb_t, __prefix``user_t, __cheshire_cfg) \
+        __prefix``wide_strb_t, __prefix``user_t, __cheshire_cfg) \
     `LAGD_TYPEDEF_REG(__prefix``reg, __prefix``addr_t) \
     `MEM_TYPEDEF_ALL(__prefix``mem_narr, __prefix``addr_t, __prefix``narr_data_t, \
-        __prefix``strb_t, __prefix``user_t) \
+        __prefix``narr_strb_t, __prefix``user_t) \
     `MEM_TYPEDEF_ALL(__prefix``mem_wide, __prefix``addr_t, __prefix``wide_data_t, \
-        __prefix``strb_t, __prefix``user_t)
+        __prefix``wide_strb_t, __prefix``user_t)
 
 `endif // LAGD_TYPEDEF_SVH_
