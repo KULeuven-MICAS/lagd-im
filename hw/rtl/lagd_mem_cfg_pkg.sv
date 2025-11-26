@@ -11,6 +11,7 @@
 `include "lagd_define.svh"
 
 package lagd_mem_cfg_pkg;
+    localparam unsigned int L2WordsPerBank = 2048;
     localparam memory_island_pkg::mem_cfg_t L2MemCfg = '{
         // AddrWidth : `L2_MEM_ADDR_WIDTH,
         AddrWidth : `CVA6_ADDR_WIDTH,
@@ -34,11 +35,12 @@ package lagd_mem_cfg_pkg;
         SpillWideRspRouted : 0,
         SpillReqBank : 0,
         SpillRspBank : 0,
-        NumNarrowBanks : 1,
+        NumNarrowBanks : `L2_MEM_SIZE_B / (`LAGD_AXI_DATA_WIDTH/8) / L2WordsPerBank,
         WordsPerBank : 2048,
         BankAccessLatency : 1
     };
 
+    localparam unsigned int StackWordsPerBank = L2WordsPerBank;
     localparam memory_island_pkg::mem_cfg_t CVA6StackMemCfg = '{
         // AddrWidth : `STACK_ADDR_WIDTH,
         AddrWidth : `CVA6_ADDR_WIDTH,
@@ -62,11 +64,12 @@ package lagd_mem_cfg_pkg;
         SpillWideRspRouted : 0,
         SpillReqBank : 0,
         SpillRspBank : 0,
-        NumNarrowBanks : 1,
-        WordsPerBank : 2048,
+        NumNarrowBanks : `STACK_SIZE_B / (`LAGD_AXI_DATA_WIDTH/8) / StackWordsPerBank,
+        WordsPerBank : StackWordsPerBank,
         BankAccessLatency : 1
     };
 
+    //TODO: adjust NumBanks
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfg = '{
         //AddrWidth : $clog2(`IC_L1_MEM_SIZE_B),
         AddrWidth : `CVA6_ADDR_WIDTH,
