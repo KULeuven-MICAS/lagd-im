@@ -29,6 +29,13 @@ sources:
       - hw/rtl/lagd_mem_pkg.sv
       - hw/rtl/lagd_soc.sv
       - hw/rtl/ising_core_wrap/lagd_ising_core_wrap.sv
+      - hw/rtl/energy_monitor/energy_monitor.sv
+      - hw/rtl/energy_monitor/vector_caching.sv
+      - hw/rtl/energy_monitor/step_counter.sv
+      - hw/rtl/energy_monitor/logic_ctrl.sv
+      - hw/rtl/energy_monitor/partial_energy_calc.sv
+      - hw/rtl/energy_monitor/adder_tree.sv
+      - hw/rtl/energy_monitor/accumulator.sv
 
 #  - target: any(simulation, test)
 #    files:
