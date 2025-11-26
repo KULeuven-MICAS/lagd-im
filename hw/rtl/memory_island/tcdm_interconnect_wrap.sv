@@ -11,6 +11,7 @@ module tcdm_interconnect_wrap #(
     parameter int unsigned NumOut = 4,
     parameter int unsigned AddrWidth = 32,
     parameter int unsigned DataWidth = 32,
+    parameter int unsigned FullAddrWidth = 32,
     parameter int unsigned AddrMemWidth = 4,
     parameter int unsigned BeWidth = 4,
     parameter int unsigned RespLat = 1,
@@ -39,7 +40,7 @@ module tcdm_interconnect_wrap #(
 
     for(genvar i = 0; i < NumIn; i++) begin
         assign mem_req_i_q_valid[i] = mem_req_i[i].q_valid;
-        assign mem_req_i_q_addr[i]  = mem_req_i[i].q.addr;
+        assign mem_req_i_q_addr[i]  = mem_req_i[i].q.addr[AddrWidth-1:0];
         assign mem_req_i_q_write[i] = mem_req_i[i].q.write;
         assign mem_req_i_q_data[i]  = mem_req_i[i].q.data;
         assign mem_req_i_q_strb[i]  = mem_req_i[i].q.strb;
@@ -51,7 +52,7 @@ module tcdm_interconnect_wrap #(
 
     logic [NumOut-1:0] mem_req_o_q_valid;
     logic [NumOut-1:0] mem_rsp_i_q_ready;
-    logic [NumOut-1:0][AddrWidth-1:0] mem_req_o_q_addr;
+    logic [NumOut-1:0][AddrMemWidth-1:0] mem_req_o_q_addr;
     logic [NumOut-1:0] mem_req_o_q_write;
     logic [NumOut-1:0][DataWidth-1:0] mem_req_o_q_data;
     logic [NumOut-1:0][(DataWidth/8)-1:0] mem_req_o_q_strb;
@@ -59,19 +60,17 @@ module tcdm_interconnect_wrap #(
     logic [NumOut-1:0] mem_rsp_i_p_valid;
 
     for(genvar j = 0; j < NumOut; j++) begin
-        assign mem_req_o[j].q_valid =  mem_req_o_q_valid[j];
-        assign mem_req_o[j].q.addr  =  mem_req_o_q_addr[j];
-        assign mem_req_o[j].q.write =  mem_req_o_q_write[j];
-        assign mem_req_o[j].q.data  =  mem_req_o_q_data[j];
-        assign mem_req_o[j].q.strb  =  mem_req_o_q_strb[j];
+        assign mem_req_o[j].q_valid = mem_req_o_q_valid[j];
+        assign mem_req_o[j].q.addr = {{(FullAddrWidth-AddrMemWidth){1'b0}} ,mem_req_o_q_addr[j]};
+        assign mem_req_o[j].q.write = mem_req_o_q_write[j];
+        assign mem_req_o[j].q.data = mem_req_o_q_data[j];
+        assign mem_req_o[j].q.strb = mem_req_o_q_strb[j];
 
-        assign mem_rsp_i_p_data[j]  =  mem_rsp_i[j].p.data;
-        assign mem_rsp_i_p_valid[j] =  mem_rsp_i[j].p.valid;
-        assign mem_rsp_i_q_ready[j] =  mem_rsp_i[j].q_ready;
+        assign mem_rsp_i_p_data[j] = mem_rsp_i[j].p.data;
+        assign mem_rsp_i_p_valid[j] = mem_rsp_i[j].p.valid;
+        assign mem_rsp_i_q_ready[j] = mem_rsp_i[j].q_ready;
     end
 
-    localparam int unsigned StrbWidth =  $bits(mem_req_i_q_strb[0]);
-    $info("StrbWidth = %d; BEWidth = %d", StrbWidth, BeWidth);
     tcdm_interconnect #(
         .NumIn(NumIn),
         .NumOut(NumOut),

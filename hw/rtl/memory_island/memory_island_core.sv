@@ -99,7 +99,8 @@ module memory_island_core import memory_island_pkg::*; #(
     tcdm_interconnect_wrap #(
         .NumIn(NumWideReq),
         .NumOut(NumWideBanks),
-        .AddrWidth(Cfg.AddrWidth),
+        .FullAddrWidth(Cfg.AddrWidth),
+        .AddrWidth(AddrTopBit+1),
         .DataWidth(Cfg.WideDataWidth),
         .AddrMemWidth(WideBankAddrWidth),
         .BeWidth(AddrWideWordBit + 1),
@@ -124,7 +125,8 @@ module memory_island_core import memory_island_pkg::*; #(
     tcdm_interconnect_wrap #(
         .NumIn(NumNarrowReq),
         .NumOut(Cfg.NumNarrowBanks),
-        .AddrWidth(Cfg.AddrWidth),
+        .FullAddrWidth(Cfg.AddrWidth),
+        .AddrWidth(AddrTopBit+1),
         .DataWidth(Cfg.NarrowDataWidth),
         .AddrMemWidth(NarrowBankAddrWidth),
         .BeWidth(AddrBankWordBit + 1),
