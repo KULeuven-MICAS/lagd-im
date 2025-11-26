@@ -95,28 +95,35 @@ module memory_island_core import memory_island_pkg::*; #(
     localparam int unsigned NumWideBanks = Cfg.NumNarrowBanks * Cfg.NarrowDataWidth / Cfg.WideDataWidth;
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks;
+    generate
+        if (NumWideReq > 0) begin : gen_wide_req_nonzero
+            tcdm_interconnect_wrap #(
+                .NumIn(NumWideReq),
+                .NumOut(NumWideBanks),
+                .FullAddrWidth(Cfg.AddrWidth),
+                .AddrWidth(AddrTopBit+1),
+                .DataWidth(Cfg.WideDataWidth),
+                .AddrMemWidth(WideBankAddrWidth),
+                .BeWidth(AddrWideWordBit + 1),
+                .RespLat(WideBankRespLat),
+                .mem_req_t(mem_wide_req_t),
+                .mem_rsp_t(mem_wide_rsp_t)
+            ) u_wide_interco (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
 
-    tcdm_interconnect_wrap #(
-        .NumIn(NumWideReq),
-        .NumOut(NumWideBanks),
-        .FullAddrWidth(Cfg.AddrWidth),
-        .AddrWidth(AddrTopBit+1),
-        .DataWidth(Cfg.WideDataWidth),
-        .AddrMemWidth(WideBankAddrWidth),
-        .BeWidth(AddrWideWordBit + 1),
-        .RespLat(WideBankRespLat),
-        .mem_req_t(mem_wide_req_t),
-        .mem_rsp_t(mem_wide_rsp_t)
-    ) u_wide_interco (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
+                .mem_req_i(mem_wide_req_i),
+                .mem_rsp_o(mem_wide_rsp_o),
 
-        .mem_req_i(mem_wide_req_i),
-        .mem_rsp_o(mem_wide_rsp_o),
-
-        .mem_req_o(mem_wide_req_to_banks),
-        .mem_rsp_i(mem_wide_rsp_from_banks)
-    );
+                .mem_req_o(mem_wide_req_to_banks),
+                .mem_rsp_i(mem_wide_rsp_from_banks)
+            );
+        end else begin : gen_wide_req_zero
+            // Tie-off signals if no wide requests
+            assign mem_wide_rsp_o = '0;
+            assign mem_wide_req_to_banks = '0;
+        end
+    endgenerate
 
     // Narrow interconnect
     mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks;
