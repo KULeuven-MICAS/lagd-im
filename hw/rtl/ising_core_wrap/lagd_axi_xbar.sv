@@ -8,7 +8,7 @@
 
 `include "lagd_define.svh"
 
-module lagd_axi_xbar import lagd_axi_xbar_pkg::*; #(
+module lagd_axi_xbar import axi_pkg::*; #(
     parameter AXI_ADDR_WIDTH = 64,
     parameter AXI_DATA_WIDTH = 64,
     parameter AXI_ID_WIDTH   = 6,
@@ -29,7 +29,7 @@ module lagd_axi_xbar import lagd_axi_xbar_pkg::*; #(
 );
 
     // Configuration of the AXI crossbar
-    localparam lagd_axi_xbar_pkg::xbar_cfg_t xbar_cfg = `{
+    localparam axi_pkg::xbar_cfg_t xbar_cfg = `{
         NoSlvPorts         : 1,
         NoMstPorts         : 3,
         MaxMstTrans        : 1,
