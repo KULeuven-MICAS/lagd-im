@@ -128,28 +128,44 @@ module memory_island_core import memory_island_pkg::*; #(
     // Narrow interconnect
     mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks;
     mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks;
+    generate
+        if (NumNarrowReq == 0) begin : gen_narrow_req_zero
+            // Tie-off signals if no narrow requests
+            assign mem_narrow_rsp_o = '0;
+            assign mem_narrow_req_to_banks = '0;
+        end else if(Cfg.NumNarrowBanks == 1) begin : gen_narrow_single_bank
+            if (NumNarrowReq == 1) begin : gen_narrow_single_req
+                // Bypass interconnect if single bank and single request
+                assign mem_narrow_req_to_banks[0] = mem_narrow_req_i[0];
+                assign mem_narrow_rsp_o[0] = mem_narrow_rsp_from_banks[0];
+            end else begin : gen_narrow_multi_req
+                $error("Simple arbitration for single bank not implemented yet")
+            end
+        end else begin : gen_narrow_mutli_bank
+            // Interconnect instance
+            tcdm_interconnect_wrap #(
+                .NumIn(NumNarrowReq),
+                .NumOut(Cfg.NumNarrowBanks),
+                .FullAddrWidth(Cfg.AddrWidth),
+                .AddrWidth(AddrTopBit+1),
+                .DataWidth(Cfg.NarrowDataWidth),
+                .AddrMemWidth(NarrowBankAddrWidth+InBankAddrWidth),
+                .BeWidth(AddrBankWordBit + 1),
+                .RespLat(NarrowBankRespLat),
+                .mem_req_t(mem_narrow_req_t),
+                .mem_rsp_t(mem_narrow_rsp_t)
+            ) i_narrow_interco (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
 
-    tcdm_interconnect_wrap #(
-        .NumIn(NumNarrowReq),
-        .NumOut(Cfg.NumNarrowBanks),
-        .FullAddrWidth(Cfg.AddrWidth),
-        .AddrWidth(AddrTopBit+1),
-        .DataWidth(Cfg.NarrowDataWidth),
-        .AddrMemWidth(NarrowBankAddrWidth+InBankAddrWidth),
-        .BeWidth(AddrBankWordBit + 1),
-        .RespLat(NarrowBankRespLat),
-        .mem_req_t(mem_narrow_req_t),
-        .mem_rsp_t(mem_narrow_rsp_t)
-    ) i_narrow_interco (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
+                .mem_req_i(mem_narrow_req_i),
+                .mem_rsp_o(mem_narrow_rsp_o),
 
-        .mem_req_i(mem_narrow_req_i),
-        .mem_rsp_o(mem_narrow_rsp_o),
-
-        .mem_req_o(mem_narrow_req_to_banks),
-        .mem_rsp_i(mem_narrow_rsp_from_banks)
-    );
+                .mem_req_o(mem_narrow_req_to_banks),
+                .mem_rsp_i(mem_narrow_rsp_from_banks)
+            );
+        end
+    endgenerate
 
     // ------------
     // Post route spilling
