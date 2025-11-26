@@ -55,7 +55,7 @@ module wide_narrow_arbiter #(
     for (genvar j = 0; j < NumWideBanks; j++) begin : narrow_valid_merging_gen
         for (genvar k = 0; k < NarrowPerWide; k++) begin
             localparam int unsigned narrow_idx = j * NarrowPerWide + k;
-            assign narrow_valid_unpacked[narrow_idx] = mem_narrow_req_i[narrow_idx].valid;
+            assign narrow_valid_unpacked[narrow_idx] = mem_narrow_req_i[narrow_idx].q_valid;
         end
         assign narrow_valid_merged[j] = |narrow_valid_unpacked[j * NarrowPerWide +: NarrowPerWide];
     end

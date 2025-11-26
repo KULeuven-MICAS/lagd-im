@@ -89,7 +89,6 @@ module axi_to_mem_adapter #(
             ) i_narrow_conv (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
-                .test_i('0),
                 .busy_o(),
                 .axi_req_i(axi_req_i),
                 .axi_resp_o(axi_rsp_o),
