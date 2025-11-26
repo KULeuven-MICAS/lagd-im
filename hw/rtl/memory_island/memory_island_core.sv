@@ -67,18 +67,17 @@ module memory_island_core import memory_island_pkg::*; #(
         // Interco: AddrPseudoWideBankBit -> AddrPseudoWideWordBit 
         //      (PseudoWideBankAddrWidth len) for routing
 
-    localparam int unsigned AddrTopBit = Cfg.AddrWidth - 1;
     localparam int unsigned InBankAddrWidth = $clog2(Cfg.WordsPerBank);
 
-    localparam int unsigned AddrWideBankBit = AddrTopBit - InBankAddrWidth;
+    localparam int unsigned AddrBankWordBit = Cfg.NarrowDataWidth/8 - 1;
+    localparam int unsigned AddrWideWordBit = Cfg.WideDataWidth/8 - 1;
     localparam int unsigned NumNarrowBanksInWide = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
 
-    localparam int unsigned AddrWideWordBit = AddrWideBankBit - $clog2(Cfg.NumNarrowBanks /
-        NumNarrowBanksInWide);
-    localparam int unsigned WideBankAddrWidth = AddrWideBankBit - AddrWideWordBit;
+    localparam int unsigned NarrowBankAddrWidth = $clog2(Cfg.NumNarrowBanks);
+    localparam int unsigned WideBankAddrWidth = $clog2(Cfg.NumNarrowBanks / NumNarrowBanksInWide);
 
-    localparam int unsigned AddrBankWordBit = AddrWideBankBit - $clog2(Cfg.NumNarrowBanks);
-    localparam int unsigned NarrowBankAddrWidth = AddrWideBankBit - AddrBankWordBit;
+    localparam int unsigned AddrWideBankBit = AddrBankWordBit + NarrowBankAddrWidth;
+    localparam int unsigned AddrTopBit = Cfg.AddrWideBankBit + InBankAddrWidth;
 
     // Response latency for narrow banks
     localparam int unsigned NarrowBankRespLat = Cfg.BankAccessLatency + Cfg.SpillNarrowReqRouted +
