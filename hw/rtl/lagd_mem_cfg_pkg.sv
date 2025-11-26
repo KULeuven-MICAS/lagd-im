@@ -11,7 +11,7 @@
 `include "lagd_define.svh"
 
 package lagd_mem_cfg_pkg;
-    localparam unsigned int L2WordsPerBank = 2048;
+    localparam int unsigned L2WordsPerBank = 2048;
     localparam memory_island_pkg::mem_cfg_t L2MemCfg = '{
         // AddrWidth : `L2_MEM_ADDR_WIDTH,
         AddrWidth : `CVA6_ADDR_WIDTH,
@@ -40,7 +40,7 @@ package lagd_mem_cfg_pkg;
         BankAccessLatency : 1
     };
 
-    localparam unsigned int StackWordsPerBank = L2WordsPerBank;
+    localparam int unsigned StackWordsPerBank = L2WordsPerBank;
     localparam memory_island_pkg::mem_cfg_t CVA6StackMemCfg = '{
         // AddrWidth : `STACK_ADDR_WIDTH,
         AddrWidth : `CVA6_ADDR_WIDTH,
