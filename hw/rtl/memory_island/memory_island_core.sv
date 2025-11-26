@@ -81,10 +81,10 @@ module memory_island_core import memory_island_pkg::*; #(
     localparam int unsigned NarrowBankAddrWidth = AddrWideBankBit - AddrBankWordBit;
 
     // Response latency for narrow banks
-    localparam int unsigned NarrowBankRespLat = Cfg.BankAccessLatency + SpillNarrowReqRouted +
-        SpillNarrowRspRouted + SpillReqBank + SpillRspBank;
-    localparam int unsigned WideBankRespLat = Cfg.BankAccessLatency + SpillWideReqRouted +
-        SpillWideRspRouted + SpillReqBank + SpillRspBank;
+    localparam int unsigned NarrowBankRespLat = Cfg.BankAccessLatency + Cfg.SpillNarrowReqRouted +
+        Cfg.SpillNarrowRspRouted + Cfg.SpillReqBank + Cfg.SpillRspBank;
+    localparam int unsigned WideBankRespLat = Cfg.BankAccessLatency + Cfg.SpillWideReqRouted +
+        Cfg.SpillWideRspRouted + Cfg.SpillReqBank + Cfg.SpillRspBank;
 
     // TODO: add buffer instances here to allow for decoupling/variable latency
     // possibly in-order and out-of-order variants
