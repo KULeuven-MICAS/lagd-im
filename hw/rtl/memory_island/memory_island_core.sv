@@ -294,7 +294,7 @@ module memory_island_core import memory_island_pkg::*; #(
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .req_i(bank_req_q1[i].q_valid),
-            .addr_i(bank_req_q1[i].q.addr),
+            .addr_i(bank_req_q1[i].q.addr[AddrTopBit -: InBankAddrWidth]),
             .we_i(bank_req_q1[i].q.write),
             .wdata_i(bank_req_q1[i].q.data),
             .be_i(bank_req_q1[i].q.strb),

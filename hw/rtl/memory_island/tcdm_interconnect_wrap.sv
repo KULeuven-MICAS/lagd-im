@@ -31,7 +31,7 @@ module tcdm_interconnect_wrap #(
 );
 
     logic [NumIn-1:0] mem_req_i_q_valid;
-    logic [NumIn-1:0] mem_req_o_q_ready;
+    logic [NumIn-1:0] mem_rsp_o_q_ready;
     logic [NumIn-1:0][AddrWidth-1:0] mem_req_i_q_addr;
     logic [NumIn-1:0] mem_req_i_q_write;
     logic [NumIn-1:0][DataWidth-1:0] mem_req_i_q_data;
@@ -48,11 +48,11 @@ module tcdm_interconnect_wrap #(
 
         assign mem_rsp_o[i].p.valid = mem_rsp_o_p_valid[i];
         assign mem_rsp_o[i].p.data  = mem_rsp_o_p_data[i];
-        assign mem_rsp_o[i].q_ready = mem_req_o_q_ready[i];
+        assign mem_rsp_o[i].q_ready = mem_rsp_o_q_ready[i];
     end
 
     logic [NumOut-1:0] mem_req_o_q_valid;
-    logic [NumOut-1:0] mem_req_i_q_ready;
+    logic [NumOut-1:0] mem_rsp_i_q_ready;
     logic [NumOut-1:0][AddrWidth-1:0] mem_req_o_q_addr;
     logic [NumOut-1:0] mem_req_o_q_write;
     logic [NumOut-1:0][DataWidth-1:0] mem_req_o_q_data;
@@ -69,7 +69,7 @@ module tcdm_interconnect_wrap #(
 
         assign mem_rsp_i_p_data[j]  =  mem_rsp_i[j].p.data;
         assign mem_rsp_i_p_valid[j] =  mem_rsp_i[j].p.valid;
-        assign mem_req_i_q_ready[j] =  mem_req_i[j].q_ready;
+        assign mem_rsp_i_q_ready[j] =  mem_rsp_i[j].q_ready;
     end
 
 
