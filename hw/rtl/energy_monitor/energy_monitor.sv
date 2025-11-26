@@ -206,14 +206,8 @@ module energy_monitor #(
         .data_o(spin_cached)
     );
 
-    vector_mux #(
-        .DATAWIDTH(DATASPIN)
-    ) u_spin_mux (
-        .en_i(en_i),
-        .idx_i(counter_q),
-        .data_i(spin_cached),
-        .data_o(current_spin)
-    );
+    // N-to-1 mux for a vector
+    assign current_spin = en_i ? spin_cached[counter_q] : 1'b0;
 
     partial_energy_calc #(
         .BITJ(BITJ),
