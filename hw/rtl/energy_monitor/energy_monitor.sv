@@ -38,16 +38,14 @@
 // - accum_overflow_o: accumulator overflow signal for debug
 //
 // Case tested:
-// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPES=0
-// -- All spins are 1, all weights are +1, hbias=+1, hscaling=1, 3 same cases
-// -- All spins are 0, all weights are +1, hbias=+1, hscaling=1, 3 same cases
-// -- All spins are 0, all weights are -1, hbias=-1, hscaling=1, 3 same cases
-// -- All spins are 1, all weights are -1, hbias=-1, hscaling=1, 3 same cases
-// -- All spins are 1, all weights are +7, hbias=+7, hscaling=16, 3 same cases
-// -- All spins are 0, all weights are -7, hbias=-7, hscaling=16, 3 same cases
-// -- All spins and weights are random, hbias and hscaling are random, 100 different cases
-// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPES=1
-// -- All spins and weights are random, hbias and hscaling are random, 100 different cases
+// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPES=0/1/2
+// -- All spins are 1, all weights are +1, hbias=+1, hscaling=1, 20 same cases
+// -- All spins are 0, all weights are +1, hbias=+1, hscaling=1, 20 same cases
+// -- All spins are 0, all weights are -1, hbias=-1, hscaling=1, 20 same cases
+// -- All spins are 1, all weights are -1, hbias=-1, hscaling=1, 20 same cases
+// -- All spins are 1, all weights are +7, hbias=+7, hscaling=16, 20 same cases
+// -- All spins are 0, all weights are -7, hbias=-7, hscaling=16, 20 same cases
+// -- All spins and weights are random, hbias and hscaling are random, 1,000,000 different cases
 
 `include "../lib/registers.svh"
 
