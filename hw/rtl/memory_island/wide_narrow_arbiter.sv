@@ -32,7 +32,7 @@ module wide_narrow_arbiter #(
 
     localparam int unsigned WideDataWidth = $bits(mem_wide_req_i[0].q.data);
     localparam int unsigned NarrowDataWidth = $bits(mem_narrow_req_i[0].q.data);
-    $display("WideDataWidth: %0d, NarrowDataWidth: %0d", WideDataWidth, NarrowDataWidth);
+    $info("WideDataWidth: %0d, NarrowDataWidth: %0d", WideDataWidth, NarrowDataWidth);
     localparam int unsigned NarrowPerWide = WideDataWidth / NarrowDataWidth;
 
     // Arbitration bit for narrow/wide
