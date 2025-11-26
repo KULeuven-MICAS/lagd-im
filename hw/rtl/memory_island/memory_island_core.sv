@@ -77,7 +77,7 @@ module memory_island_core import memory_island_pkg::*; #(
     localparam int unsigned WideBankAddrWidth = $clog2(Cfg.NumNarrowBanks / NumNarrowBanksInWide);
 
     localparam int unsigned AddrWideBankBit = AddrBankWordBit + NarrowBankAddrWidth;
-    localparam int unsigned AddrTopBit = Cfg.AddrWideBankBit + InBankAddrWidth;
+    localparam int unsigned AddrTopBit = AddrWideBankBit + InBankAddrWidth;
 
     // Response latency for narrow banks
     localparam int unsigned NarrowBankRespLat = Cfg.BankAccessLatency + Cfg.SpillNarrowReqRouted +
