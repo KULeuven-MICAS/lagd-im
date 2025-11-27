@@ -4,7 +4,41 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// Description: Round-robin arbiter between wide and narrow memory ports
+// Module: wide_narrow_arbiter
+
+// Description:
+//      Round-robin arbiter between wide and narrow memory request ports for shared banked 
+//      memory access. The arbiter  generates ready/grant signals 
+//      (q_ready) to control which requestor type can access the banks in each cycle. 
+// Arbitration Policy:
+//      - Round-robin priority flip: arb_narrow_next toggles every cycle.
+//      - When arb_narrow_next=1 (narrow priority): narrow requests are granted; wide requests 
+//        are blocked if any narrow request is valid for the corresponding wide bank group.
+//      - When arb_narrow_next=0 (wide priority): wide requests are granted; narrow requests 
+//        are blocked if the corresponding wide request is valid.
+//      - This ensures neither type starves and provides approximately equal bandwidth allocation.
+
+// Parameters:
+//      NumNarrowBanks: Total number of narrow memory banks.
+//      NumWideBanks: Total number of wide request ports (NumNarrowBanks / NarrowPerWide).
+//      WideDataWidth: Data width of wide ports (bits).
+//      NarrowDataWidth: Data width of narrow ports (bits).
+//                       WideDataWidth must be an integer multiple of NarrowDataWidth.
+//      mem_narrow_req_t / mem_narrow_rsp_t: Narrow memory request/response struct types 
+//          (must have q_valid and q_ready fields).
+//      mem_wide_req_t / mem_wide_rsp_t: Wide memory request/response struct types 
+//          (must have q_valid and q_ready fields).
+
+// Ports:
+//      clk_i: Clock.
+//      rst_ni: Active-low reset.
+//      Narrow Ports (one per narrow bank):
+//          mem_narrow_req_i[NumNarrowBanks-1:0]: Narrow request inputs (only .q_valid used here).
+//          mem_narrow_rsp_o[NumNarrowBanks-1:0]: Narrow response outputs (only .q_ready driven here).
+//      Wide Ports (one per wide bank group):
+//          mem_wide_req_i[NumWideBanks-1:0]: Wide request inputs (only .q_valid used here).
+//          mem_wide_rsp_o[NumWideBanks-1:0]: Wide response outputs (only .q_ready driven here).
+
 
 `include "lagd_platform.svh"
 

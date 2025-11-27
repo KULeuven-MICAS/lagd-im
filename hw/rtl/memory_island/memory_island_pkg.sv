@@ -4,7 +4,17 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// Package for memory configuration and definitions
+// Package: memory_island_pkg
+
+// Description:
+//      Defines the configuration structure (mem_cfg_t) for the memory_island  block
+
+// Overview:
+//      The mem_cfg_t struct captures all parameters needed to configure a memory island:
+//      - Address and data widths for narrow (scalar) and wide (vector/DMA) ports.
+//      - Number of AXI and direct memory request ports, with flags indicating read/write support.
+//      - Number of pipeline stages (cuts) at various points: entry, post-routing, pre-bank.
+//      - Banking configuration: number of banks (must be power-of-2), words per bank, latency.
 
 `include "lagd_config.svh"
 `include "lagd_platform.svh"

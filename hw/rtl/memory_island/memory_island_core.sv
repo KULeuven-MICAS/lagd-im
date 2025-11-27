@@ -57,7 +57,7 @@
 //      - (NumNarrowBanks * NarrowDataWidth) must be divisible by WideDataWidth (enforced).
 
 // Testing:
-//      - Untested 🙃
+//      - Untested
 
 
 module memory_island_core import memory_island_pkg::*; #(

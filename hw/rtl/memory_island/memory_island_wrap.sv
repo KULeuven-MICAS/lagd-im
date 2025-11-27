@@ -4,11 +4,52 @@
 
 // Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// Module description:
-// Wrapper for memory island module
+// Module: memory_island_wrap
+
+// Description:
+//      Top-level wrapper for the memory island subsystem. Bridges AXI protocol interfaces 
+//      to the memory island's internal memory protocol
+//
+//      This wrapper handles:
+//      - AXI-to-memory protocol conversion (via axi_to_mem_adapter) for narrow and wide ports.
+//      - Read/write splitting for AXI ports with independent channels.
+//      - Aggregation of AXI-converted and direct memory channels into unified request/response arrays.
 
 // The entire memory island was inspired by:
 // https://github.com/pulp-platform/memory_island
+
+// Parameters:
+//      Cfg: Configuration struct (type mem_cfg_t, see memory_island_pkg.sv)
+//      axi_narrow_req_t / axi_narrow_rsp_t: AXI request/response typedefs for narrow ports.
+//      axi_wide_req_t / axi_wide_rsp_t: AXI request/response typedefs for wide ports.
+//      mem_narrow_req_t / mem_narrow_rsp_t: Memory protocol typedefs for narrow ports.
+//      mem_wide_req_t / mem_wide_rsp_t: Memory protocol typedefs for wide ports (same fields).
+
+// Ports:
+//      clk_i: Clock.
+//      rst_ni: Active-low reset.
+//      AXI Narrow Ports (converted to memory protocol):
+//          axi_narrow_req_i[Cfg.NumAxiNarrowReq-1:0]: AXI narrow request inputs.
+//          axi_narrow_rsp_o[Cfg.NumAxiNarrowReq-1:0]: AXI narrow response outputs.
+//      AXI Wide Ports (converted to memory protocol):
+//          axi_wide_req_i[Cfg.NumAxiWideReq-1:0]: AXI wide request inputs.
+//          axi_wide_rsp_o[Cfg.NumAxiWideReq-1:0]: AXI wide response outputs.
+//      Direct Memory Narrow Ports (bypass AXI conversion):
+//          mem_narrow_req_i[Cfg.NumDirectNarrowReq-1:0]: Direct narrow memory requests.
+//          mem_narrow_rsp_o[Cfg.NumDirectNarrowReq-1:0]: Direct narrow memory responses.
+//      Direct Memory Wide Ports (bypass AXI conversion):
+//          mem_wide_req_i[Cfg.NumDirectWideReq-1:0]: Direct wide memory requests.
+//          mem_wide_rsp_o[Cfg.NumDirectWideReq-1:0]: Direct wide memory responses.
+
+// Internal Architecture:
+//  1. AXI-to-Memory Conversion (axi_to_mem_adapter instances).
+//  2. Entry-Point Pipeline Stages (mem_multicut instances).
+//  3. Channel Aggregation.
+//  4. Core Memory Island instance.
+
+// Testing:
+//      No verification yet.
+//      Synthesis only.
 
 module memory_island_wrap import memory_island_pkg::*; #(
     parameter mem_cfg_t Cfg = default_mem_cfg(),

@@ -4,7 +4,34 @@
 
 // Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// Module description:
+// Module: tcdm_interconnect_wrap
+
+// Description:
+//      Wrapper for the tcdm_interconnect module that bridges between struct-based memory 
+//      protocol interfaces (mem_req_t/mem_rsp_t) and the signal-based interface expected 
+//      by the underlying TCDM (Tightly Coupled Data Memory) interconnect. 
+
+// Parameters:
+//      NumIn: Number of input requestor ports.
+//      NumOut: Number of output memory bank ports.
+//      AddrWidth: Address width for input requests (bits used for routing and bank addressing).
+//      DataWidth: Data width for read/write transactions (must match memory word size).
+//      FullAddrWidth: Full address width .
+//      AddrMemWidth: Address width presented to output .
+//      BeWidth: Byte enable width, typically DataWidth/8 (one bit per byte).
+//      RespLat: Fixed response latency in cycles (interconnect + memory access).
+//      mem_req_t: Memory request struct type (must have q_valid, q.{addr,write,data,strb}).
+//      mem_rsp_t: Memory response struct type (must have q_ready, p.{valid,data}).
+
+// Ports:
+//      clk_i: Clock.
+//      rst_ni: Active-low reset.
+//      Input Ports (from requestors, e.g., CPU cores):
+//          mem_req_i[NumIn-1:0]: Memory request struct array.
+//          mem_rsp_o[NumIn-1:0]: Memory response struct array.
+//      Output Ports (to memory banks):
+//          mem_req_o[NumOut-1:0]: Memory request struct array.
+//          mem_rsp_i[NumOut-1:0]: Memory response struct array.
 
 module tcdm_interconnect_wrap #(
     parameter int unsigned NumIn = 4,
