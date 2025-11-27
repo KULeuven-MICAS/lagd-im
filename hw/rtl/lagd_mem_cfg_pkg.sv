@@ -69,18 +69,70 @@ package lagd_mem_cfg_pkg;
         BankAccessLatency : 1
     };
 
-    //TODO: adjust NumBanks
-    localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfg = '{
-        //AddrWidth : $clog2(`IC_L1_MEM_SIZE_B),
-        AddrWidth : `CVA6_ADDR_WIDTH,
-        NarrowDataWidth : `LAGD_AXI_DATA_WIDTH,
-        WideDataWidth : `LAGD_AXI_DATA_WIDTH,
-        AxiNarrowIdWidth : `LAGD_AXI_ID_WIDTH,
-        AxiWideIdWidth : `LAGD_AXI_ID_WIDTH,
+        localparam mem_cfg_t IsingCoreL1MemCfgJ = '{
+        AddrWidth           : $clog2(`L1_J_MEM_SIZE_B),
+        NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `IC_L1_J_MEM_DATA_WIDTH,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+2, // +2 to distinguish among J/h/flip
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH+2,
         NumAxiNarrowReq : 1,
         NumDirectNarrowReq : 0,
         NumAxiWideReq : 0,
-        NumDirectWideReq : 0,
+        NumDirectWideReq : 1,
+        AxiNarrowRW : '0,
+        AxiWideRW : '0,
+        SpillAxiNarrowReqEntry : 0,
+        SpillAxiNarrowRspEntry : 0,
+        SpillNarrowReqRouted : 0,
+        SpillNarrowRspRouted : 0,
+        SpillAxiWideReqEntry : 0,
+        SpillAxiWideRspEntry : 0,
+        SpillWideReqRouted : 0,
+        SpillWideRspRouted : 0,
+        SpillReqBank : 0,
+        SpillRspBank : 0,
+        NumNarrowBanks : 1,
+        WordsPerBank : 2048,
+        BankAccessLatency : 1
+    };
+
+    localparam mem_cfg_t IsingCoreL1MemCfgH = '{
+        AddrWidth           : $clog2(`L1_H_MEM_SIZE_B),
+        NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `IC_L1_H_MEM_DATA_WIDTH,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+2,
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH+2,
+        NumAxiNarrowReq : 1,
+        NumDirectNarrowReq : 0,
+        NumAxiWideReq : 0,
+        NumDirectWideReq : 1,
+        AxiNarrowRW : '0,
+        AxiWideRW : '0,
+        SpillAxiNarrowReqEntry : 0,
+        SpillAxiNarrowRspEntry : 0,
+        SpillNarrowReqRouted : 0,
+        SpillNarrowRspRouted : 0,
+        SpillAxiWideReqEntry : 0,
+        SpillAxiWideRspEntry : 0,
+        SpillWideReqRouted : 0,
+        SpillWideRspRouted : 0,
+        SpillReqBank : 0,
+        SpillRspBank : 0,
+        NumNarrowBanks : 1,
+        WordsPerBank : 2048,
+        BankAccessLatency : 1
+    };
+
+    localparam mem_cfg_t IsingCoreL1MemCfgFlip = '{
+        AddrWidth           : $clog2(`L1_FLIP_MEM_SIZE_B),
+        NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
+        WideDataWidth       : `IC_L1_FLIP_MEM_DATA_WIDTH,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+2,
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH+2,
+        NumAxiNarrowReq : 1,
+        NumDirectNarrowReq : 0,
+        NumAxiWideReq : 0,
+        NumDirectWideReq : 1,
         AxiNarrowRW : '0,
         AxiWideRW : '0,
         SpillAxiNarrowReqEntry : 0,
