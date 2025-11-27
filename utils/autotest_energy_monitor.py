@@ -110,7 +110,7 @@ if __name__ == "__main__":
     pass_cases = 0
     pbar = tqdm.tqdm(total=total_cases,
                      desc=f"Running autotests: [Pass: {pass_cases}/{total_cases}, Error: {error_cases}/{total_cases}]",
-                     ascii="░▒█")
+                     ascii=True)
     start_time = time.time()
     for test_mode, endian, parallelism, pipesintf, pipesmid, num_tests in itertools.product(
         test_mode_pool,
