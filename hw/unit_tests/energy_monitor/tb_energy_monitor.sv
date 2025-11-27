@@ -2,6 +2,11 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+// Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+//
+// Module description:
+// Energy monitor Testbench.
+
 `timescale 1ns / 1ps
 
 `ifndef DBG
@@ -38,7 +43,7 @@ module tb_energy_monitor;
     localparam int PARALLELISM = 1; // number of parallel energy calculation units, min: 1
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
-    localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
+    localparam int LITTLE_ENDIAN = `True; // endianness of spin and weight storage
     localparam int PIPESINTF = 0; // number of pipeline stages
     localparam int PIPESMID = 0; // number of pipeline stages at mid adder tree
 
