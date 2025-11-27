@@ -47,16 +47,3 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 | MaxPosValue_TEST        | 100 successive tests, all spin are 1, weight, bias are in positive maximum | $\sigma = [1]$, $w = [7]$, $h = [7]$, $h_{sfc} = 16$, NUM_TEST=100, LITTLE_ENDIAN=0/1, PARALLELISM=4, PIPESINTF=0/1/2, PIPESMID=0/1/2 |
 | MaxNegValue_TEST        | 100 successive tests, all spin are 0, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, NUM_TEST=100, LITTLE_ENDIAN=0/1, PARALLELISM=4, PIPESINTF=0/1/2, PIPESMID=0/1/2 |
 | RANDOM_TEST        | 1,000,000 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, NUM_TEST=1_000_000, LITTLE_ENDIAN=0/1, PARALLELISM=4, PIPESINTF=0/1/2, PIPESMID=0/1/2 |
-
-## Register: the following registers are configurable
-
-| Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
-|:-----------------------:|:-----------:|:----------------------:|:--:|:--:|
-| config counter          | 8           | config_counter_i       | Y | TBD |
-
-
-## Further Possible Improvements
-
-- Currently weight fetching happens after the spin handshake. It can also happen in parallel so can save one cycle per iteration.
-- STATICA feature is not added yet (only compute the spin part that differs with previous case).
-- Sparsity feature is not added yet.

@@ -75,3 +75,15 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 *debug_en_i:* debug enable input
 
 *accum_overflow_o:* accumulator overflow output (for debugging)
+
+## Register: the following registers are configurable
+
+| Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
+|:-----------------------:|:-----------:|:----------------------:|:--:|:--:|
+| config counter          | 8           | config_counter_i       | Y | TBD |
+
+## Further Possible Improvements
+
+- Currently weight fetching happens after the spin handshake. It can also happen in parallel so can save one cycle per iteration.
+- STATICA feature is not added yet (only compute the spin part that differs with previous case).
+- Sparsity feature is not added yet.
