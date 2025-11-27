@@ -143,9 +143,11 @@ if __name__ == "__main__":
     )
     error_cases = 0
     pass_cases = 0
+    desc_msg = f"Running autotests: [Pass: {pass_cases}/{total_cases}, "
+    f"Error: {error_cases}/{total_cases}]"
     pbar = tqdm.tqdm(
         total=total_cases,
-        desc=f"Running autotests: [Pass: {pass_cases}/{total_cases}, Error: {error_cases}/{total_cases}]",
+        desc=desc_msg,
         ascii=True,
     )
     start_time = time.time()
@@ -193,7 +195,8 @@ if __name__ == "__main__":
             msg = (
                 f"Error, case: Test Mode={test_mode}, PARALLELISM={parallelism}, "
                 f"LITTLE_ENDIAN={endian}, PIPESINTF={pipesintf}, PIPESMID={pipesmid}. "
-                f"Scoreboard: {tests_passed}/{total_tests} correct, {tests_failed}/{total_tests} errors. "
+                f"Scoreboard: {tests_passed}/{total_tests} correct, "
+                f"{tests_failed}/{total_tests} errors. "
                 f"Check log file: {log_file_path}"
             )
             error_cases += 1
@@ -201,13 +204,15 @@ if __name__ == "__main__":
             msg = (
                 f"Passed, case: Test Mode={test_mode}, PARALLELISM={parallelism}, "
                 f"LITTLE_ENDIAN={endian}, PIPESINTF={pipesintf}, PIPESMID={pipesmid}. "
-                f"Scoreboard: {tests_passed}/{total_tests} correct, {tests_failed}/{total_tests} errors."
+                f"Scoreboard: {tests_passed}/{total_tests} correct, "
+                f"{tests_failed}/{total_tests} errors."
             )
             pass_cases += 1
         msg_pool.append(msg)
         pbar.update(1)
         pbar.set_description(
-            f"Running autotests: [Pass: {pass_cases}/{total_cases}, Error: {error_cases}/{total_cases}]"
+            f"Running autotests: [Pass: {pass_cases}/{total_cases}, "
+            f"Error: {error_cases}/{total_cases}]"
         )
         time.sleep(0.1)  # To ensure tqdm display updates properly
     pbar.close()
@@ -218,11 +223,13 @@ if __name__ == "__main__":
     # Summary of results
     print("-" * 50)
     print(
-        f"Summary of autotest results [Pass: {pass_cases}/{total_cases}, Error: {error_cases}/{total_cases}]:"
+        f"Summary of autotest results [Pass: {pass_cases}/{total_cases}, "
+        f"Error: {error_cases}/{total_cases}]:"
     )
     for message in msg_pool:
         print(message)
     print(
-        f"Total time: {total_time/60:.2f} minutes, Average time per case: {elapese_time/60:.2f} minutes"
+        f"Total time: {total_time/60:.2f} minutes, "
+        f"Average time per case: {elapese_time/60:.2f} minutes"
     )
     print("-" * 50)
