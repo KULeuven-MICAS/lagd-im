@@ -133,10 +133,10 @@ if __name__ == "__main__":
         pipesmid_pool,
         num_tests_pool
     ):
-        log_file_path = f"{
-            log_folder}/autotest_energy_monitor_{test_mode}_PE{parallelism}_LE{endian}_PI{pipesintf}_PM{pipesmid}.log"
-        log_file_path = f"{
-            log_folder}/autotest_energy_monitor_{test_mode}_PE{parallelism}_LE{endian}_PI{pipesintf}_PM{pipesmid}.log"
+        log_file_path = f"{log_folder}/autotest_energy_monitor_{test_mode}_PE{parallelism}_LE{endian}" \
+                f"_PI{pipesintf}_PM{pipesmid}.log"
+        log_file_path = f"{log_folder}/autotest_energy_monitor_{test_mode}_PE{parallelism}_LE{endian}" \
+                f"_PI{pipesintf}_PM{pipesmid}.log"
 
         parameters_to_update = {
             "test_mode": test_mode,
