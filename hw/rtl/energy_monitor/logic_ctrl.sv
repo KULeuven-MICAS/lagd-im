@@ -25,14 +25,12 @@
 // - energy_valid_o: output energy valid signal
 // - energy_ready_i: input energy ready signal
 // - debug_en_i: debug step signal
-//
-// Case tested:
-// - None
-
 
 `include "../lib/registers.svh"
 
-module logic_ctrl (
+module logic_ctrl #(
+    parameter int PIPESMID = 1
+)(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
@@ -66,6 +64,7 @@ module logic_ctrl (
     logic energy_valid_comb;
     logic energy_valid_reg;
     logic energy_handshake;
+    logic [PIPESMID:0] counter_ready_pipe;
 
     assign weight_handshake = weight_valid_i && weight_ready_o;
     assign energy_handshake = energy_valid_o && energy_ready_i;
@@ -73,7 +72,16 @@ module logic_ctrl (
     assign config_ready_o = (current_state == IDLE) && !debug_en_i;
     assign spin_ready_o = (current_state == IDLE) && !debug_en_i && (!config_valid_i);
     assign weight_ready_o = (current_state == COMPUTE) && (!counter_ready_i) && (!debug_en_i);
-    assign energy_valid_comb = (current_state == COMPUTE) && counter_ready_i && cmpt_done_i;
+    assign energy_valid_comb = (current_state == COMPUTE) && counter_ready_pipe[PIPESMID] && cmpt_done_i;
+
+    // Pipeline counter_ready_i signal
+    assign counter_ready_pipe[0] = counter_ready_i;
+    generate
+        genvar i;
+        for (i = 0; i < PIPESMID; i++) begin : gen_counter_ready_pipe_loop
+            `FFL(counter_ready_pipe[i+1], counter_ready_pipe[i], en_i, 1'b0, clk_i, rst_ni);
+        end
+    endgenerate
 
     `FFLARNC(energy_valid_reg, 1'b1, energy_valid_comb, energy_ready_i, 1'b0, clk_i, rst_ni)
     assign energy_valid_o = energy_valid_comb || energy_valid_reg;

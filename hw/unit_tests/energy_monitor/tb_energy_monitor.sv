@@ -35,11 +35,12 @@ module tb_energy_monitor;
     localparam int BITH = 4; // bias precision, min: 2 (including sign bit)
     localparam int DATASPIN = 256; // number of spins
     localparam int SCALING_BIT = 5; // bit width of scaling factor
-    localparam int PARALLELISM = 4; // number of parallel energy calculation units, min: 1
+    localparam int PARALLELISM = 1; // number of parallel energy calculation units, min: 1
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
-    localparam int PIPES = 0; // number of pipeline stages
+    localparam int PIPESINTF = 0; // number of pipeline stages
+    localparam int PIPESMID = 0; // number of pipeline stages at mid adder tree
 
     // Testbench internal signals
     logic clk_i;
@@ -65,11 +66,11 @@ module tb_energy_monitor;
     logic unsigned [31:0] spin_reg_valid_int;
     logic [NUM_TESTS-1:0] spin_reg_valid;
     logic [DATASPIN-1:0] spin_reg [0:NUM_TESTS-1];
-    logic [PIPES-1:0] pipe_valid;
+    logic [PIPESINTF-1:0] pipe_valid;
     logic unsigned [31:0] pipe_valid_int;
-    logic [DATASPIN*BITJ*PARALLELISM-1:0] weight_pipe [0:PIPES-1];
-    logic signed [BITH*PARALLELISM-1:0] hbias_pipe [0:PIPES-1];
-    logic unsigned [SCALING_BIT*PARALLELISM-1:0] hscaling_pipe [0:PIPES-1];
+    logic [DATASPIN*BITJ*PARALLELISM-1:0] weight_pipe [0:PIPESINTF-1];
+    logic signed [BITH*PARALLELISM-1:0] hbias_pipe [0:PIPESINTF-1];
+    logic unsigned [SCALING_BIT*PARALLELISM-1:0] hscaling_pipe [0:PIPESINTF-1];
     logic unsigned [ $clog2(DATASPIN) : 0 ] expected_spin_counter;
     logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
     logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy;
@@ -93,14 +94,14 @@ module tb_energy_monitor;
 
     initial begin
         testcase_counter = 1;
-        $display("Starting energy monitor testbench. Running %0d/%0d tests...", testcase_counter, NUM_TESTS);
+        $display("Starting energy monitor testbench. Total cases: 'd%0d. Test mode: 'b%3b, Little endian: %0d", NUM_TESTS, test_mode, LITTLE_ENDIAN);
         forever begin
             wait (energy_valid_o && energy_ready_i);
             // Wait for the handshake to complete (energy_ready_i to go low)
             wait(!energy_ready_i);
             if (testcase_counter < NUM_TESTS) begin
                 testcase_counter = testcase_counter + 1;
-                $display("Running %0d/%0d tests...", testcase_counter, NUM_TESTS);
+                // $display("Running %0d/%0d tests...", testcase_counter, NUM_TESTS);
             end else begin
                 #(2*CLKCYCLE);
                 $finish;
@@ -119,7 +120,8 @@ module tb_energy_monitor;
         .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
         .LITTLE_ENDIAN(LITTLE_ENDIAN),
-        .PIPES(PIPES)
+        .PIPESINTF(PIPESINTF),
+        .PIPESMID(PIPESMID)
     ) dut (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -182,8 +184,8 @@ module tb_energy_monitor;
             $display("Debug mode enabled. Generating VCD waveform.");
             $dumpfile("tb_energy_monitor.vcd");
             $dumpvars(2, tb_energy_monitor);
-            // $dumpvars(1, dut.u_step_counter);
-            #(2000 * CLKCYCLE); // To avoid generating too large VCD files
+            $dumpvars(4, dut);
+            #(200 * CLKCYCLE); // To avoid generating too large VCD files
             $fatal("Testbench timeout reached. Ending simulation.");
         end
         else begin
@@ -198,18 +200,18 @@ module tb_energy_monitor;
     // ========================================================================
     always_ff @(posedge clk_i or negedge rst_ni) begin: spin_record
         if (!rst_ni) begin
-            spin_reg_valid_int = 0;
+            spin_reg_valid_int <= 0;
             for (int i = 0; i < NUM_TESTS; i++) begin
-                spin_reg[i] = 0;
-                spin_reg_valid[i] = 0;
+                spin_reg[i] <= 0;
+                spin_reg_valid[i] <= 0;
             end
         end
         else begin
             if (spin_valid_i && spin_ready_o) begin
                 assert (spin_reg_valid_int < NUM_TESTS) else $fatal("Spin register overflow: spin_reg_valid_int exceeded NUM_TESTS");
-                spin_reg[spin_reg_valid_int] = spin_i;
-                spin_reg_valid[spin_reg_valid_int] = 1'b1;
-                spin_reg_valid_int = spin_reg_valid_int + 1;
+                spin_reg[spin_reg_valid_int] <= spin_i;
+                spin_reg_valid[spin_reg_valid_int] <= 1'b1;
+                spin_reg_valid_int <= spin_reg_valid_int + 1;
             end
         end
     end
@@ -218,14 +220,14 @@ module tb_energy_monitor;
         if (!rst_ni) begin
             pipe_valid_int <= 0;
             pipe_valid <= 0;
-            for (int p = 0; p < PIPES; p++) begin
+            for (int p = 0; p < PIPESINTF; p++) begin
                 weight_pipe[p] <= 0;
                 hbias_pipe[p] <= 0;
                 hscaling_pipe[p] <= 0;
             end
         end else begin
             if (weight_valid_i && weight_ready_o) begin
-                if (PIPES == 0) begin: no_pipeline_mode
+                if (PIPESINTF == 0) begin: no_pipeline_mode
                     // Do nothing in no pipeline mode
                 end else begin: pipeline_mode
                     if (energy_ready_i) begin
@@ -237,7 +239,7 @@ module tb_energy_monitor;
                             hbias_pipe[pipe_valid_int] <= hbias_i;
                             hscaling_pipe[pipe_valid_int] <= hscaling_i;
                             pipe_valid_int <= pipe_valid_int + 1;
-                            assert (pipe_valid_int <= PIPES) else $fatal("Pipeline overflow: pipe_valid_int exceeded PIPES");
+                            assert (pipe_valid_int <= PIPESINTF) else $fatal("Pipeline overflow: pipe_valid_int exceeded PIPESINTF");
                         end
                     end else begin
                         if (spin_reg_valid[testcase_counter-1] == 1'b0) begin: pipeline_current_spin
@@ -246,7 +248,7 @@ module tb_energy_monitor;
                             hbias_pipe[pipe_valid_int] <= hbias_i;
                             hscaling_pipe[pipe_valid_int] <= hscaling_i;
                             pipe_valid_int <= pipe_valid_int + 1;
-                            assert (pipe_valid_int <= PIPES) else $fatal("Pipeline overflow [time %0d ns]: pipe_valid_int exceeded PIPES",
+                            assert (pipe_valid_int <= PIPESINTF) else $fatal("Pipeline overflow [time %0d ns]: pipe_valid_int exceeded PIPESINTF",
                             $time);
                         end else begin: pipeline_flush
                             for (int p = 0; p < pipe_valid_int; p++) begin
@@ -264,36 +266,42 @@ module tb_energy_monitor;
 
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
-            energy_ready_i = 0;
-            expected_spin_counter = 0;
-            expected_energy = 0;
-            expected_local_energy = 0;
+            energy_ready_i <= 0;
+            expected_spin_counter <= 0;
+            expected_energy <= 0;
+            expected_local_energy <= 0;
             end else begin
             if (energy_valid_o && energy_ready_i) begin: new_testcase_start
-                energy_ready_i = 0;
-                expected_spin_counter = 0;
-                expected_energy = 0;
-                expected_local_energy = 0;
+                energy_ready_i <= 0;
+                expected_spin_counter <= 0;
+                expected_energy <= 0;
+                expected_local_energy <= 0;
             end
             else if (expected_spin_counter >= DATASPIN) begin: keep_waiting
-                energy_ready_i = energy_ready_i;
-                expected_spin_counter = expected_spin_counter;
-                expected_energy = expected_energy;
-                expected_local_energy = expected_local_energy;
+                energy_ready_i <= energy_ready_i;
+                expected_spin_counter <= expected_spin_counter;
+                expected_energy <= expected_energy;
+                expected_local_energy <= expected_local_energy;
             end
             else if (weight_valid_i && weight_ready_o) begin: calculate_energy
-                if (PIPES == 0) begin: no_pipeline_mode
+                // Use local accumulators to avoid non-blocking update ordering issues
+                logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy_next;
+                logic unsigned [$clog2(DATASPIN) : 0] expected_spin_counter_next;
+                expected_energy_next = expected_energy;
+                expected_spin_counter_next = expected_spin_counter;
+
+                if (PIPESINTF == 0) begin: no_pipeline_mode
                     for (int i = 0; i < PARALLELISM; i++) begin
                         expected_local_energy = compute_local_energy(
                             spin_reg[testcase_counter-1],
                             weight_i[i*DATASPIN*BITJ +: DATASPIN*BITJ],
                             hbias_i[i*BITH +: BITH],
                             hscaling_i[i*SCALING_BIT +: SCALING_BIT],
-                            expected_spin_counter + i
+                            expected_spin_counter_next + i
                         );
-                        expected_energy += expected_local_energy;
+                        expected_energy_next = expected_energy_next + expected_local_energy;
                     end
-                    expected_spin_counter += PARALLELISM;
+                    expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
                 end else begin: pipeline_mode
                     if (spin_reg_valid[testcase_counter-1] == 1'b0) begin: pipeline_stall
                         // wait for spin data, do nothing
@@ -306,11 +314,11 @@ module tb_energy_monitor;
                                         weight_pipe[p][i*DATASPIN*BITJ +: DATASPIN*BITJ],
                                         hbias_pipe[p][i*BITH +: BITH],
                                         hscaling_pipe[p][i*SCALING_BIT +: SCALING_BIT],
-                                        expected_spin_counter + i
+                                        expected_spin_counter_next + i
                                     );
-                                    expected_energy += expected_local_energy;
+                                    expected_energy_next = expected_energy_next + expected_local_energy;
                                 end
-                                expected_spin_counter += PARALLELISM;
+                                expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
                             end
                         end
                         for (int i = 0; i < PARALLELISM; i++) begin
@@ -319,17 +327,22 @@ module tb_energy_monitor;
                                 weight_i[i*DATASPIN*BITJ +: DATASPIN*BITJ],
                                 hbias_i[i*BITH +: BITH],
                                 hscaling_i[i*SCALING_BIT +: SCALING_BIT],
-                                expected_spin_counter + i
+                                expected_spin_counter_next + i
                             );
-                            expected_energy += expected_local_energy;
+                            expected_energy_next = expected_energy_next + expected_local_energy;
                         end
-                        expected_spin_counter += PARALLELISM;
+                        expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
                     end
                 end
-                if (expected_spin_counter >= DATASPIN) begin
-                    energy_ready_i = 1;
+
+                // Commit accumulated values in non-blocking fashion
+                expected_energy <= expected_energy_next;
+                expected_spin_counter <= expected_spin_counter_next;
+
+                if (expected_spin_counter_next >= DATASPIN) begin
+                    energy_ready_i <= 1;
                 end else begin
-                    energy_ready_i = 0;
+                    energy_ready_i <= 0;
                 end
             end
         end
@@ -411,14 +424,15 @@ module tb_energy_monitor;
             error_count = 0;
             total_count = 0;
             wait(rst_ni);
-            forever begin
+            do begin
+                // do @(posedge clk_i); while (!(energy_valid_o && energy_ready_i));
                 wait(energy_valid_o && energy_ready_i);
                 if (energy_o !== expected_energy) begin
-                $error("Testcase [%0d] Energy mismatch: received 'd%0d, expected 'd%0d",
-                    testcase_counter, energy_o, expected_energy);
+                $error("Time: %0d ns, Testcase [%0d] Energy mismatch: received 'd%0d, expected 'd%0d",
+                    $time, testcase_counter, energy_o, expected_energy);
                 error_count = error_count + 1;
                 end else begin
-                    // $display("Testcase [%0d] Energy match: 'd%0d", testcase_counter, energy_o);
+                    // $display("Time: %0d ns, Testcase [%0d] Energy match: 'd%0d", $time, testcase_counter, energy_o);
                     correct_count = correct_count + 1;
                 end
                 total_count = total_count + 1;
@@ -431,6 +445,7 @@ module tb_energy_monitor;
                 end
                 @(posedge clk_i);
             end
+            while (total_count <= NUM_TESTS);
         end
     endtask
 

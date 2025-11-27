@@ -16,7 +16,8 @@
 // - LOCAL_ENERGY_BIT: bit precision of partial energy value
 // - ENERGY_TOTAL_BIT: bit precision of total energy value
 // - LITTLE_ENDIAN: storage format of weight matrix and spin vector, 1 for little-endian, 0 for big-endian
-// - PIPES: number of pipeline stages for each input path
+// - PIPESINTF: number of pipeline stages for each input path interface
+// - PIPESMID: number of pipeline stages at the middle adder tree interface
 //
 // Port definitions:
 // - clk_i: input clock signal
@@ -40,7 +41,7 @@
 // - accum_overflow_o: accumulator overflow signal for debug
 //
 // Case tested:
-// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPES=0/1/2
+// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPESINTF=0/1/2
 // -- All spins are 1, all weights are +1, hbias=+1, hscaling=1, 20 same cases
 // -- All spins are 0, all weights are +1, hbias=+1, hscaling=1, 20 same cases
 // -- All spins are 0, all weights are -1, hbias=-1, hscaling=1, 20 same cases
@@ -63,7 +64,8 @@ module energy_monitor #(
     parameter int LOCAL_ENERGY_BIT = 16,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int LITTLE_ENDIAN = `True,
-    parameter int PIPES = 1,
+    parameter int PIPESINTF = 0,
+    parameter int PIPESMID = 0,
     parameter int DATAJ = DATASPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
@@ -122,17 +124,24 @@ module energy_monitor #(
     // handshake signals
     logic spin_handshake;
     logic weight_handshake;
+    logic [PIPESMID:0] weight_handshake_accum;
 
     genvar i;
 
     assign spin_handshake = spin_valid_pipe && spin_ready_pipe;
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
     assign energy_handshake = energy_valid_o && energy_ready_i;
+    assign weight_handshake_accum[0] = weight_handshake;
+    generate
+        for (i = 0; i < PIPESMID; i++) begin: gen_weight_handshake_accum
+            `FFL(weight_handshake_accum[i+1], weight_handshake_accum[i], en_i, 1'b0, clk_i, rst_ni);
+        end
+    endgenerate
 
     // pipeline interfaces
     bp_pipe #(
         .DATAW(SPINIDX_BIT),
-        .PIPES(PIPES)
+        .PIPES(PIPESINTF)
     ) u_pipe_config (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -145,7 +154,7 @@ module energy_monitor #(
     );
     bp_pipe #(
         .DATAW(DATASPIN),
-        .PIPES(PIPES)
+        .PIPES(PIPESINTF)
     ) u_pipe_spin (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -158,7 +167,7 @@ module energy_monitor #(
     );
     bp_pipe #(
         .DATAW(DATAJ + DATAH + DATASCALING),
-        .PIPES(PIPES)
+        .PIPES(PIPESINTF)
     ) u_pipe_weight (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -171,7 +180,9 @@ module energy_monitor #(
     );
 
     // Logic FSM
-    logic_ctrl u_logic_ctrl (
+    logic_ctrl #(
+        .PIPESMID(PIPESMID)
+    ) u_logic_ctrl (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
@@ -242,8 +253,12 @@ module energy_monitor #(
                 .BITH(BITH),
                 .DATASPIN(DATASPIN),
                 .SCALING_BIT(SCALING_BIT),
-                .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT)
-            ) u_partial_energy_calc_i (
+                .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT),
+                .PIPES(PIPESMID)
+            ) u_partial_energy_calc (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .en_i(en_i),
                 .spin_vector_i(spin_cached),
                 .current_spin_i(current_spin[i]),
                 .weight_i(weight_pipe[i*BITJ*DATASPIN +: BITJ*DATASPIN]),
@@ -271,7 +286,7 @@ module energy_monitor #(
         .rst_ni(rst_ni),
         .en_i(en_i),
         .clear_i(energy_handshake), // clear when the output energy is accepted
-        .valid_i(weight_handshake),
+        .valid_i(weight_handshake_accum[PIPESMID]),
         .data_i(local_energy_parallel),
         .accum_o(energy_o),
         .overflow_o(accum_overflow_o), // for debug

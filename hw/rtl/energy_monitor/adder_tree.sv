@@ -10,26 +10,44 @@
 // Parameters:
 // -N: number of inputs
 // -DATAW: bit width of each input
+// -PIPES: number of pipeline stages
+// -OUT_WIDTH: bit width of the output
+// -IN_WIDTH: total input width
+
+`include "../lib/registers.svh"
 
 module adder_tree #(
-    parameter int N = 256, // number of inputs
-    parameter int DATAW = 8, // bit width of each input
-    parameter int OUT_WIDTH = $clog2(N) + DATAW, // bit width of the output
-    parameter int IN_WIDTH = N * DATAW // total input width
+    parameter int N = 256,
+    parameter int DATAW = 8,
+    parameter int PIPES = 0,
+    parameter int OUT_WIDTH = $clog2(N) + DATAW,
+    parameter int IN_WIDTH = N * DATAW
 )(
-    input logic signed [IN_WIDTH-1:0] data_i, // input data
-    output logic signed [OUT_WIDTH-1:0] sum_o // output sum
+    input logic clk_i,
+    input logic rst_ni,
+    input logic en_i,
+    input logic [IN_WIDTH-1:0] data_i,
+    output logic signed [OUT_WIDTH-1:0] sum_o
 );
     localparam int STAGES = $clog2(N); // number of stages
+    logic [IN_WIDTH-1:0] data_pipe [0:PIPES]; // pipeline registers
     logic signed [STAGES:0][N-1:0][DATAW+$clog2(N)-1:0] stage_data; // data at each stage
 
     // Generate variables
     genvar i, j;
 
+    assign data_pipe[0] = data_i; // assign input to first stage
+    // Pipeline registers
+    generate
+        for (i = 0; i < PIPES; i++) begin
+            `FFL(data_pipe[i+1], data_pipe[i], en_i, 'd0, clk_i, rst_ni);
+        end
+    endgenerate
+
     // Assign input data to stage 0
     generate
         for (i = 0; i < N; i++) begin : gen_input_unpack
-            assign stage_data[0][i] = $signed(data_i[i*DATAW +: DATAW]);
+            assign stage_data[0][i] = $signed(data_pipe[PIPES][i*DATAW +: DATAW]);
         end
     endgenerate
 
