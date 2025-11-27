@@ -36,7 +36,7 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 ## Testcases
 
-### The following testcases have been verified (with PIPES = 0/1/2).
+### The following testcases have been verified.
 
 | Testcase Name | Description                                         | Parameters                                                     |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
