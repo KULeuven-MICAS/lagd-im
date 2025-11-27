@@ -1,11 +1,11 @@
-## Copyright 2025 KU Leuven.
-## Licensed under the Apache License, Version 2.0, see LICENSE for details.
-## SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
 
-## Author: Jiacong Sun <jiacong.sun@kuleuven.be>
-##
-## Module description:
-## Autotest script for energy monitor unit testbench.
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+#
+# Module description:
+# Autotest script for energy monitor unit testbench.
 
 import re
 import os
