@@ -4,6 +4,28 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+// Module: mem_multicut
+
+// Description: 
+//      Inserts configurable pipeline stages (cuts) into both request and response 
+//      paths of a memory interface.
+
+// Parameters:
+//      AddrWidth: Address width of memory interface.
+//      DataWidth: Data width of memory interface.
+//      NumCutsReq: Number of pipeline stages to insert in request path (0 = bypass).
+//      NumCutsRsp: Number of pipeline stages to insert in response path (0 = bypass).
+//      mem_req_t: Memory request typedef (must provide q_valid, q.addr, q.data, q.strb, q.write).
+//      mem_rsp_t: Memory response typedef (must provide q_ready, p.valid, p.data).
+
+// Ports:
+//      clk_i: Clock.
+//      rst_ni: Active-low reset.
+//      req_i / req_o: Memory request input/output (pipelined by NumCutsReq stages).
+//      rsp_i / rsp_o: Memory response input/output (pipelined by NumCutsRsp stages).
+//      read_ready_i / read_ready_o: Backpressure signaling for read responses 
+//                                    (flows backward through response pipeline).
+
 module mem_multicut #(
     /// Address Width
     parameter int unsigned AddrWidth = 0,

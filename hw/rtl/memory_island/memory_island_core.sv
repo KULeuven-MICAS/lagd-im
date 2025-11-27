@@ -92,6 +92,7 @@ module memory_island_core import memory_island_pkg::*; #(
     // Interconnects
     // -------------
     // Wide interconnect
+    // TODO: add conditions inside the tcdm_interconnect_wrap
     localparam int unsigned NumWideBanks = Cfg.NumNarrowBanks * Cfg.NarrowDataWidth / Cfg.WideDataWidth;
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks;

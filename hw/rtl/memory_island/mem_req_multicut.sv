@@ -4,6 +4,26 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+// Module: mem_req_multicut
+
+// Description:
+//      Inserts a configurable number of spill register stages into the request path 
+//      of a memory interface.
+
+// Parameters:
+//      AddrWidth: Address width of memory interface.
+//      DataWidth: Data width of memory interface.
+//      NumCuts: Number of pipeline stages (spill registers) to insert (0 = bypass).
+//      mem_req_t: Memory request typedef (must provide q_valid, q.write, q.strb, q.addr, q.data).
+
+// Ports:
+//      clk_i: Clock.
+//      rst_ni: Active-low reset.
+//      req_i: Memory request input (from upstream requestor).
+//      req_o: Memory request output (to downstream memory controller).
+//      ready_i: Ready signal from downstream (backpressure).
+//      ready_o: Ready signal to upstream (indicates this stage can accept new request).
+
 module mem_req_multicut #(
     /// Address Width
     parameter int unsigned AddrWidth = 0,

@@ -4,6 +4,25 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+// Module: mem_rsp_multicut
+
+// Description:
+//      Inserts a configurable number of spill register stages into the response path 
+//      of a memory interface.
+
+// Parameters:
+//      DataWidth: Data width of memory interface.
+//      NumCuts: Number of pipeline stages (spill registers) to insert (0 = bypass).
+//      mem_rsp_t: Memory response typedef (must provide p.valid and p.data).
+
+// Ports:
+//      clk_i: Clock.
+//      rst_ni: Active-low reset.
+//      rsp_i: Memory response input (from downstream memory controller).
+//      rsp_o: Memory response output (to upstream requestor).
+//      ready_i: Ready signal from upstream (backpressure, indicates consumer can accept data).
+//      ready_o: Ready signal to downstream (indicates this stage can accept new response).
+
 module mem_rsp_multicut #(
     /// Data Width
     parameter int unsigned DataWidth = 0,
