@@ -129,10 +129,12 @@ if __name__ == "__main__":
         tests_passed, total_tests, tests_failed = fetch_scoreboard_in_log(log_file_path)
 
         if check_error_in_log(log_file_path):
-            msg = f"Error, case: Test Mode={test_mode}, PARALLELISM={parallelism}, LITTLE_ENDIAN={endian}, PIPESINTF={pipesintf}, PIPESMID={pipesmid}. Scoreboard: {tests_passed}/{total_tests} correct, {tests_failed}/{total_tests} errors. Check log file: {log_file_path}"
+            msg = f"Error, case: Test Mode={test_mode}, PARALLELISM={parallelism}, LITTLE_ENDIAN={endian}, PIPESINTF={pipesintf}, PIPESMID={pipesmid}. " \
+                f"Scoreboard: {tests_passed}/{total_tests} correct, {tests_failed}/{total_tests} errors. Check log file: {log_file_path}"
             error_cases += 1
         else:
-            msg = f"Passed, case: Test Mode={test_mode}, PARALLELISM={parallelism}, LITTLE_ENDIAN={endian}, PIPESINTF={pipesintf}, PIPESMID={pipesmid}. Scoreboard: {tests_passed}/{total_tests} correct, {tests_failed}/{total_tests} errors."
+            msg = f"Passed, case: Test Mode={test_mode}, PARALLELISM={parallelism}, LITTLE_ENDIAN={endian}, PIPESINTF={pipesintf}, PIPESMID={pipesmid}. " \
+                f"Scoreboard: {tests_passed}/{total_tests} correct, {tests_failed}/{total_tests} errors."
             pass_cases += 1
         msg_pool.append(msg)
         pbar.update(1)
