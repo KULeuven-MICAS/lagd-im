@@ -195,7 +195,7 @@ module memory_island_core import memory_island_pkg::*; #(
             end else begin : gen_narrow_multi_req
                 $error("Simple arbitration for single bank not implemented yet");
             end
-        end else begin : gen_narrow_mutli_bank
+        end else begin : gen_narrow_multi_bank
             // Interconnect instance
             tcdm_interconnect_wrap #(
                 .NumIn(NumNarrowReq),
