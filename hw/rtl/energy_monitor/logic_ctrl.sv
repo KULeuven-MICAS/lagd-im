@@ -53,10 +53,9 @@ module logic_ctrl #(
     input logic debug_en_i
 );
     // State enumeration
-    typedef enum logic [1:0] {
-        SLEEP = 2'b00,
-        IDLE = 2'b01,
-        COMPUTE = 2'b10
+    typedef enum logic {
+        IDLE = 1'b0,
+        COMPUTE = 1'b1
     } state_t;
     state_t current_state, next_state;
 
@@ -86,44 +85,31 @@ module logic_ctrl #(
     `FFLARNC(energy_valid_reg, 1'b1, energy_valid_comb, energy_ready_i, 1'b0, clk_i, rst_ni)
     assign energy_valid_o = energy_valid_comb || energy_valid_reg;
 
-    `FFL(current_state, next_state, en_i, SLEEP, clk_i, rst_ni)
+    `FFL(current_state, next_state, en_i, IDLE, clk_i, rst_ni)
 
     always_comb begin
         next_state = current_state;
         case (current_state)
-            SLEEP: begin
-                if (en_i) begin
-                    next_state = IDLE;
-                end
-            end
             IDLE: begin
-                if (!en_i) begin
-                    next_state = SLEEP;
-                end else begin
-                    if (debug_en_i)
-                        next_state = IDLE; // stay in IDLE in debug mode
-                    else begin
-                        if (spin_valid_i && spin_ready_o)
-                            next_state = COMPUTE;
-                    end
+                if (debug_en_i)
+                    next_state = IDLE; // stay in IDLE in debug mode
+                else begin
+                    if (spin_valid_i && spin_ready_o)
+                        next_state = COMPUTE;
                 end
             end
             COMPUTE: begin
-                if (!en_i) begin
-                    next_state = SLEEP;
-                end else begin
-                    if (debug_en_i)
-                        next_state = COMPUTE; // stay in COMPUTE in debug mode
-                    else begin
-                        if (energy_handshake)
-                            next_state = IDLE;
-                        else
-                            next_state = COMPUTE;
-                    end
+                if (debug_en_i)
+                    next_state = COMPUTE; // stay in COMPUTE in debug mode
+                else begin
+                    if (energy_handshake)
+                        next_state = IDLE;
+                    else
+                        next_state = COMPUTE;
                 end
             end
             default: begin
-                next_state = SLEEP;
+                next_state = IDLE;
             end
         endcase
     end
