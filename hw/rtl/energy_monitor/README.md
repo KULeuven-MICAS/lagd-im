@@ -74,8 +74,6 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *debug_en_i:* debug enable input
 
-*accum_overflow_o:* accumulator overflow output (for debugging)
-
 ## Register: the following registers are configurable
 
 | Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |

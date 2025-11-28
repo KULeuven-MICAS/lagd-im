@@ -38,7 +38,6 @@
 // - energy_ready_i: input energy ready signal
 // - energy_o: output energy value
 // - debug_en_i: debug enable signal
-// - accum_overflow_o: accumulator overflow signal for debug
 //
 // Case tested:
 // - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPESINTF=0/1/2
@@ -93,8 +92,7 @@ module energy_monitor #(
     input logic energy_ready_i,
     output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o,
 
-    input logic debug_en_i,
-    output logic accum_overflow_o
+    input logic debug_en_i
 );
     // pipe all input signals
     logic config_valid_pipe;
@@ -289,7 +287,7 @@ module energy_monitor #(
         .valid_i(weight_handshake_accum[PIPESMID]),
         .data_i(local_energy_parallel),
         .accum_o(energy_o),
-        .overflow_o(accum_overflow_o), // for debug
+        .overflow_o(),
         .valid_o(cmpt_done)
     );
 

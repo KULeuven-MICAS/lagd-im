@@ -27,8 +27,8 @@
 module tb_energy_monitor;
 
     // Testbench parameters
-    localparam int test_mode = `S0W1H1_TEST; // select test mode
-    localparam int NUM_TESTS = 100; // number of test cases
+    localparam int test_mode = `RANDOM_TEST; // select test mode
+    localparam int NUM_TESTS = 1000000; // number of test cases
     localparam int CLKCYCLE = 2; // clock cycle in ns
     localparam int MEM_LATENCY = 0; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
@@ -45,7 +45,7 @@ module tb_energy_monitor;
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int LITTLE_ENDIAN = `True; // endianness of spin and weight storage
     localparam int PIPESINTF = 0; // number of pipeline stages
-    localparam int PIPESMID = 0; // number of pipeline stages at mid adder tree
+    localparam int PIPESMID = 2; // number of pipeline stages at mid adder tree
 
     // Testbench internal signals
     logic clk_i;
@@ -66,7 +66,6 @@ module tb_energy_monitor;
     logic energy_ready_i;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_o;
     logic debug_en_i;
-    logic accum_overflow_o;
 
     logic unsigned [31:0] spin_reg_valid_int;
     logic [NUM_TESTS-1:0] spin_reg_valid;
@@ -145,8 +144,7 @@ module tb_energy_monitor;
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
         .energy_o(energy_o),
-        .debug_en_i(debug_en_i),
-        .accum_overflow_o(accum_overflow_o)
+        .debug_en_i(debug_en_i)
     );
 
     // Clock generation
