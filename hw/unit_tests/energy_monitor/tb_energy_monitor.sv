@@ -65,7 +65,6 @@ module tb_energy_monitor;
     logic energy_valid_o;
     logic energy_ready_i;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_o;
-    logic debug_en_i;
 
     logic unsigned [31:0] spin_reg_valid_int;
     logic [NUM_TESTS-1:0] spin_reg_valid;
@@ -143,8 +142,7 @@ module tb_energy_monitor;
         .weight_ready_o(weight_ready_o),
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
-        .energy_o(energy_o),
-        .debug_en_i(debug_en_i)
+        .energy_o(energy_o)
     );
 
     // Clock generation
@@ -158,11 +156,6 @@ module tb_energy_monitor;
         rst_ni = 0;
         #(10 * CLKCYCLE);
         rst_ni = 1;
-    end
-
-    // Initial values for debug signal and energy ready signal
-    initial begin
-        debug_en_i = 0;
     end
 
     // Config channel stimulus

@@ -90,9 +90,7 @@ module energy_monitor #(
 
     output logic energy_valid_o,
     input logic energy_ready_i,
-    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o,
-
-    input logic debug_en_i
+    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o
 );
     // pipe all input signals
     logic config_valid_pipe;
@@ -194,7 +192,7 @@ module energy_monitor #(
         .cmpt_done_i(cmpt_done),
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
-        .debug_en_i(debug_en_i)
+        .debug_en_i(1'b0) // disable debug_en_i
     );
 
     // Counter path
