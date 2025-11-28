@@ -72,8 +72,6 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *energy_o:* [ENERGY_TOTAL_BIT-1:0] signed energy output
 
-*debug_en_i:* debug enable input
-
 ## Register: the following registers are configurable
 
 | Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
