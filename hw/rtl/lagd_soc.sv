@@ -183,8 +183,8 @@ module lagd_soc import lagd_pkg::*; (
                 .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
                 .reg_slv_req_t  (lagd_reg_req_t),
                 .reg_slv_rsp_t  (lagd_reg_rsp_t),
-                .mem_narrow_req_t (lagd_mem_narrow_req_t),
-                .mem_narrow_rsp_t (lagd_mem_narrow_rsp_t),
+                .mem_narrow_req_t (lagd_mem_narr_req_t),
+                .mem_narrow_rsp_t (lagd_mem_narr_rsp_t),
                 .mem_wide_req_t   (lagd_mem_wide_req_t),
                 .mem_wide_rsp_t   (lagd_mem_wide_rsp_t)
             ) i_core (
