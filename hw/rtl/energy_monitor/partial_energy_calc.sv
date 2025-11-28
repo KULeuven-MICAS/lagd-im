@@ -16,6 +16,10 @@
 // - PIPES: number of pipeline stages at the adder tree interface
 //
 // Port definitions:
+// - clk_i: input clock signal
+// - rst_ni: asynchornous reset, active low
+// - en_i: enable signal
+// - data_valid_i: input data valid signal
 // - spin_vector_i: input spin data
 // - current_spin_i: current spin value
 // - weight_i: input weight data
@@ -37,6 +41,7 @@ module partial_energy_calc #(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
+    input logic data_valid_i,
     input logic [DATASPIN-1:0] spin_vector_i,
     input logic current_spin_i,
     input logic [DATAJ-1:0] weight_i,
@@ -54,8 +59,8 @@ module partial_energy_calc #(
     logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias; // local energy value without hbias
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
-    logic signed [MULTBIT-1:0] hbias_scaled_pipe [PIPES:0];
-    logic [PIPES:0] current_spin_pipe;
+    logic signed [MULTBIT-1:0] hbias_scaled_pipe;
+    logic current_spin_pipe;
 
     // Generate variables
     genvar i;
@@ -101,6 +106,7 @@ module partial_energy_calc #(
     ) u_adder_tree (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .data_valid_i(data_valid_i),
         .en_i(en_i),
         .data_i(mult_out),
         .sum_o(energy_local_wo_hbias)
@@ -109,24 +115,38 @@ module partial_energy_calc #(
     // ========================================================================
     // Generate pipeline for hbias_scaled
     // ========================================================================
-    assign hbias_scaled_pipe[0] = hbias_scaled;
-    generate
-        for (i = 0; i < PIPES; i++) begin : gen_hbias_pipe_loop
-            `FFL(hbias_scaled_pipe[i+1], hbias_scaled_pipe[i], en_i, 1'b0, clk_i, rst_ni);
-        end
-    endgenerate
+    bp_pipe #(
+        .DATAW(MULTBIT),
+        .PIPES(PIPES)
+    ) u_pipe_hbias (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .data_i(hbias_scaled),
+        .data_o(hbias_scaled_pipe),
+        .valid_i(data_valid_i),
+        .valid_o(),
+        .ready_i(1'b1),
+        .ready_o()
+    );
 
-    assign energy_local = energy_local_wo_hbias + hbias_scaled_pipe[PIPES];
+    assign energy_local = energy_local_wo_hbias + hbias_scaled_pipe;
 
     // ========================================================================
     // Multiply with current spin
     // ========================================================================
-    assign current_spin_pipe[0] = current_spin_i;
-    generate
-        for (i = 0; i < PIPES; i++) begin : gen_current_spin_pipe_loop
-            `FFL(current_spin_pipe[i+1], current_spin_pipe[i], en_i, 1'b0, clk_i, rst_ni);
-        end
-    endgenerate
-    assign energy_o = current_spin_pipe[PIPES] ? energy_local : -energy_local;
+    bp_pipe #(
+        .DATAW(MULTBIT),
+        .PIPES(PIPES)
+    ) u_pipe_current_spin (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .data_i(current_spin_i),
+        .data_o(current_spin_pipe),
+        .valid_i(data_valid_i),
+        .valid_o(),
+        .ready_i(1'b1),
+        .ready_o()
+    );
+    assign energy_o = current_spin_pipe ? energy_local : -energy_local;
 
 endmodule

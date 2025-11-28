@@ -255,6 +255,7 @@ module energy_monitor #(
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
                 .en_i(en_i),
+                .data_valid_i(weight_handshake),
                 .spin_vector_i(spin_cached),
                 .current_spin_i(current_spin[i]),
                 .weight_i(weight_pipe[i*BITJ*DATASPIN +: BITJ*DATASPIN]),
