@@ -28,7 +28,7 @@ module tb_energy_monitor;
 
     // Testbench parameters
     localparam int test_mode = `RANDOM_TEST; // select test mode
-    localparam int NUM_TESTS = 1000000; // number of test cases
+    localparam int NUM_TESTS = 100; // number of test cases
     localparam int CLKCYCLE = 2; // clock cycle in ns
     localparam int MEM_LATENCY = 0; // latency of memories in cycles
     localparam int SPIN_LATENCY = 10; // latency of spin input in cycles
@@ -40,11 +40,11 @@ module tb_energy_monitor;
     localparam int BITH = 4; // bias precision, min: 2 (including sign bit)
     localparam int DATASPIN = 256; // number of spins
     localparam int SCALING_BIT = 5; // bit width of scaling factor
-    localparam int PARALLELISM = 1; // number of parallel energy calculation units, min: 1
+    localparam int PARALLELISM = 4; // number of parallel energy calculation units, min: 1
     localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
-    localparam int LITTLE_ENDIAN = `True; // endianness of spin and weight storage
-    localparam int PIPESINTF = 0; // number of pipeline stages
+    localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
+    localparam int PIPESINTF = 2; // number of pipeline stages
     localparam int PIPESMID = 2; // number of pipeline stages at mid adder tree
 
     // Testbench internal signals

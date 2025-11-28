@@ -54,7 +54,7 @@ module adder_tree #(
 
     // Sum pipeline registers
     bp_pipe #(
-        .DATAW(MULTBIT),
+        .DATAW(OUT_WIDTH),
         .PIPES(PIPES)
     ) u_pipe_sum (
         .clk_i(clk_i),
