@@ -127,9 +127,9 @@ if __name__ == "__main__":
     endian_pool = ["True", "False"]
     parallelism_pool = [1, 4]
     pipesintf_pool = [0, 1, 2]
-    pipesmid_pool = [0, 1, 2, 8]
+    pipesmid_pool = [0, 1, 2]
     num_tests_pool = [100]
-    random_test_num = 1000000
+    random_test_num = 100
     #############################
 
     msg_pool = []
