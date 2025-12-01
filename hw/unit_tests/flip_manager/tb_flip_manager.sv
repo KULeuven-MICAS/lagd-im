@@ -19,9 +19,9 @@ module tb_flip_manager;
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
-    localparam int MEM_LATENCY = 0; // latency of memories in cycles
-    localparam int ENERGY_MONITOR_LATENCY = 0; // latency of energy monitor in cycles
-    localparam int ANALOG_DELAY = 0; // delay of analog macro in cycles
+    localparam int MEM_LATENCY = 0; // latency of memories in cycles (must be 0, which means 1 cycle)
+    localparam int ENERGY_MONITOR_LATENCY = 2; // latency of energy monitor in cycles
+    localparam int ANALOG_DELAY = 2; // delay of analog macro in cycles
     localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
     localparam int NUM_TESTS = 1; // number of test cases
 

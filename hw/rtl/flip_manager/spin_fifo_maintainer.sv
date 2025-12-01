@@ -62,6 +62,8 @@ module spin_fifo_maintainer #(
     input logic cmpt_stop_i,
     input logic host_readout_i,
 
+    input logic icon_finish_i,
+
     input logic spin_push_valid_i,
     input logic [DATASPIN-1:0] spin_push_i,
     input logic spin_push_none_i,
@@ -71,6 +73,7 @@ module spin_fifo_maintainer #(
     output logic [DATASPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
     output logic cmpt_busy_o,
+    output logic spin_fifo_full_o,
     output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o
 );
 
@@ -104,12 +107,14 @@ module spin_fifo_maintainer #(
 
     // Control logic
     assign within_cmpt = cmpt_busy_reg & ~cmpt_stop_i;
-    assign spin_pop_valid_o = en_i & ~fifo_empty & (within_cmpt | host_readout_i);
+    assign spin_pop_valid_o = en_i & ~fifo_empty & ((within_cmpt & (!icon_finish_i)) | host_readout_i);
     assign fifo_pop_comb = spin_pop_valid_o & spin_pop_ready_i;
     assign spin_push_ready_o = ~fifo_full & en_i;
     assign fifo_push_comb = spin_push_valid_i & spin_push_ready_o;
 
     assign cmpt_busy_o = cmpt_busy_reg;
+
+    assign spin_fifo_full_o = fifo_full;
 
     // Sequential logic
     `FFLARNC(cmpt_busy_reg, 1'b1, cmpt_en_i & en_i, cmpt_stop_i | flush_i, 1'b0, clk_i, rst_ni);

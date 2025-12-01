@@ -115,6 +115,7 @@ module flip_manager #(
     logic cmpt_stop_comb;
     logic cmpt_stop_reg;
     logic icon_finish;
+    logic spin_fifo_full;
     logic fifo_full_and_idle_comb;
     logic fifo_full_and_idle_reg;
 
@@ -128,7 +129,7 @@ module flip_manager #(
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
     assign energy_handshake = energy_valid_i & energy_ready_o & (~cmpt_idle_o);
-    assign cmpt_stop_comb = icon_finish & energy_handshake;
+    assign cmpt_stop_comb = icon_finish & spin_fifo_full;
 
     assign cmpt_idle_o = ~cmpt_busy;
     // assign fifo_full_and_idle_comb = ~(cmpt_busy | spin_maintainer_push_ready);
@@ -170,6 +171,7 @@ module flip_manager #(
         .en_i(en_i),
         .flush_i(flush_i),
         .cmpt_en_i(cmpt_en_i),
+        .icon_finish_i(icon_finish),
         .cmpt_stop_i(cmpt_stop_comb),
         .host_readout_i(host_readout_i),
         .spin_push_valid_i(spin_maintainer_push),
@@ -180,6 +182,7 @@ module flip_manager #(
         .spin_pop_o(spin_pop_p),
         .spin_pop_ready_i(spin_pop_ready_p),
         .cmpt_busy_o(cmpt_busy),
+        .spin_fifo_full_o(spin_fifo_full),
         .debug_fifo_usage_o()
     );
 
