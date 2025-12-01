@@ -94,7 +94,7 @@ module wide_narrow_arbiter #(
         assign narrow_valid_merged[j] = |narrow_valid_unpacked[j * NarrowPerWide +: NarrowPerWide];
     end
 
-    // Narrow/Wide arbitration: blocks drives granting signals
+    // Narrow/Wide arbitration: drives granting signals
     always_comb begin : narrow_wide_arbitration
         if (arb_narrow_next) begin : narrow_priority
             // Narrow has priority

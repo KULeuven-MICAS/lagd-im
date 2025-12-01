@@ -4,7 +4,7 @@
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// System-wide definitions for LAGD system
+// System-wide definitions for LAGD system.
 
 `include "lagd_config.svh"
 

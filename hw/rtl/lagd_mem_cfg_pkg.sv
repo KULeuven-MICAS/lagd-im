@@ -69,7 +69,7 @@ package lagd_mem_cfg_pkg;
         BankAccessLatency : 1
     };
 
-        localparam mem_cfg_t IsingCoreL1MemCfgJ = '{
+        localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgJ = '{
         AddrWidth           : $clog2(`L1_J_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_J_MEM_DATA_WIDTH,
@@ -96,7 +96,7 @@ package lagd_mem_cfg_pkg;
         BankAccessLatency : 1
     };
 
-    localparam mem_cfg_t IsingCoreL1MemCfgH = '{
+    localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgH = '{
         AddrWidth           : $clog2(`L1_H_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_H_MEM_DATA_WIDTH,
@@ -123,7 +123,7 @@ package lagd_mem_cfg_pkg;
         BankAccessLatency : 1
     };
 
-    localparam mem_cfg_t IsingCoreL1MemCfgFlip = '{
+    localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgFlip = '{
         AddrWidth           : $clog2(`L1_FLIP_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_FLIP_MEM_DATA_WIDTH,
