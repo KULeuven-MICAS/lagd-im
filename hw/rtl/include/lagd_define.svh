@@ -42,6 +42,7 @@
     // L1 memory per core
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
     `define IC_L1_WORDS_PER_BANK 2048
+    `define IC_L1_BANKING_FACTOR `IC_L1_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
     // L1 memory port width
     `define IC_L1_J_MEM_DATA_WIDTH 4*1024
     `define IC_L1_H_MEM_DATA_WIDTH 16
