@@ -103,7 +103,6 @@ module spin_fifo_maintainer #(
     );
 
     // Control logic
-    // assign within_cmpt = (cmpt_en_i | cmpt_busy_reg) & ~cmpt_stop_i;
     assign within_cmpt = cmpt_busy_reg & ~cmpt_stop_i;
     assign spin_pop_valid_o = en_i & ~fifo_empty & (within_cmpt | host_readout_i);
     assign fifo_pop_comb = spin_pop_valid_o & spin_pop_ready_i;

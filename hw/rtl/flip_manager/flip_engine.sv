@@ -81,7 +81,8 @@ module flip_engine #(
     output logic flipped_spin_valid_o,
 
     output logic flip_ren_o,
-    output logic [FLIP_ICON_ADDR_DEPTH-1:0] flip_raddr_o,
+    output logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_o,
+    input logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input logic [DATASPIN-1:0] flip_rdata_i,
 
     output logic icon_finish_o,
@@ -100,15 +101,15 @@ module flip_engine #(
     logic [DATASPIN-1:0] flip_icon;
     logic [DATASPIN-1:0] flipped_spin_comb;
     logic [DATASPIN-1:0] flipped_spin_reg;
-    logic [FLIP_ICON_ADDR_DEPTH-1:0] flip_raddr_n, flip_raddr_reg;
+    logic [FLIP_ICON_ADDR_DEPTH:0] flip_raddr_n, flip_raddr_reg;
     logic [DATASPIN-1:0] flip_rdata_reg;
-    logic icon_finish_comb;
+    logic icon_fifo_empty_comb;
 
     // Data logic
     assign flipped_spin_comb = flip_disable_i ? prev_spin_i : (prev_spin_i ^ flip_icon);
     assign flipped_spin_o = (en_i & prev_spin_handshake) ? flipped_spin_comb : flipped_spin_reg;
 
-    assign flip_raddr_n = (flip_raddr_reg == (FLIP_ICON_DEPTH - 1)) ? 'd0 : (flip_raddr_reg + 1'b1);
+    assign flip_raddr_n = flip_raddr_reg + 1'b1;
 
     assign flip_icon = flip_ren_n ? flip_rdata_i : flip_rdata_reg;
 
@@ -117,20 +118,18 @@ module flip_engine #(
     assign flipped_spin_handshake = flipped_spin_valid_o && flipped_spin_ready_i;
 
     assign prev_spin_ready_o = en_i & flipped_spin_ready_i;
-    // assign flipped_spin_valid_comb = en_i & prev_spin_handshake;
     assign flipped_spin_valid_o = en_i & prev_spin_valid_i;
-    // assign flipped_spin_valid_o = flipped_spin_valid_comb ? flipped_spin_valid_comb : flipped_spin_valid_reg;
 
-    assign flip_ren_p = en_i & (cmpt_en_i | prev_spin_handshake) & (~flush_i) & (~flip_disable_i);
-    assign icon_finish_comb = (flip_raddr_reg == (FLIP_ICON_DEPTH - 1)) && flip_ren_o;
+    assign flip_ren_p = en_i & prev_spin_handshake & (~flush_i) & (~flip_disable_i);
+    assign icon_fifo_empty_comb = (flip_raddr_reg == icon_last_raddr_plus_one_i);
     assign flip_ren_o = flip_ren_p;
+    assign flip_raddr_o = flip_raddr_reg;
 
     // Sequential logic
     `FFLARNC(flipped_spin_reg, flipped_spin_comb, en_i & prev_spin_handshake, flush_i, 'd0, clk_i, rst_ni);
-    `FFLARNC(icon_finish_o, icon_finish_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
-    // `FFLARNC(flipped_spin_valid_reg, 1'b1, flipped_spin_valid_comb, flush_i | (flipped_spin_handshake & (~prev_spin_handshake)), 1'b0, clk_i, rst_ni);
-    `FFLARNC(flip_raddr_reg, flip_raddr_n, flip_ren_o, flush_i, 'd0, clk_i, rst_ni);
-    `FFLARNC(flip_ren_n, flip_ren_p, en_i, flush_i, 1'b0, clk_i, rst_ni);
-    `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(icon_finish_o, icon_fifo_empty_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(flip_raddr_reg, flip_raddr_n, en_i & flip_ren_p, flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(flip_ren_n, flip_ren_p, en_i, flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni); // assume read data is valid one cycle after read enable
 
 endmodule

@@ -14,7 +14,6 @@
 // - ENERGY_TOTAL_BIT: bit-width of the total energy value
 // - FLIP_ICON_DEPTH: depth of flip icon memory
 // - FLIP_ICON_ADDR_DEPTH: address width for flip icon memory (usually $clog2(FLIP_ICON_DEPTH))
-// - PIPES: number of pipeline stages for input paths (unused in current implementation)
 //
 // Ports:
 // - clk_i, rst_ni: clock and active-low async reset
@@ -52,7 +51,6 @@
 // - flip_rdata_i: read data from flip icon memory (DATASPIN bits)
 //
 // Debug:
-// - debug_cmpt_stop_i: request to stop completion processing
 // - flip_disable_i: disable flipping
 //
 // Notes:
@@ -66,13 +64,13 @@ module flip_manager #(
     parameter int SPIN_DEPTH = 2,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int FLIP_ICON_DEPTH = 1024,
-    parameter int FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH),
-    parameter int PIPES = 1
+    parameter int FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH)
 )(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
     input logic flush_i,
+    input logic en_comparison_i,
 
     input logic cmpt_en_i,
     output logic cmpt_idle_o,
@@ -96,15 +94,14 @@ module flip_manager #(
     input logic signed [ENERGY_TOTAL_BIT-1:0] energy_i,
 
     output logic flip_ren_o,
-    output logic [FLIP_ICON_ADDR_DEPTH-1:0] flip_raddr_o,
+    output logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_o,
+    input logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input logic [DATASPIN-1:0] flip_rdata_i,
 
-    input logic debug_cmpt_stop_i,
     input logic flip_disable_i
 );
     // Internal signals
     logic cmpt_busy;
-    logic [($clog2(SPIN_DEPTH))-1:0] debug_spin_fifo_usage, debug_energy_fifo_usage;
     logic spin_pop_valid_p;
     logic [DATASPIN-1:0] spin_pop_p;
     logic spin_pop_ready_p;
@@ -116,6 +113,7 @@ module flip_manager #(
     logic spin_maintainer_push_ready;
     logic spin_maintainer_push_none;
     logic cmpt_stop_comb;
+    logic cmpt_stop_reg;
     logic icon_finish;
     logic fifo_full_and_idle_comb;
     logic fifo_full_and_idle_reg;
@@ -130,7 +128,7 @@ module flip_manager #(
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
     assign energy_handshake = energy_valid_i & energy_ready_o & (~cmpt_idle_o);
-    assign cmpt_stop_comb = debug_cmpt_stop_i | icon_finish;
+    assign cmpt_stop_comb = icon_finish & energy_handshake;
 
     assign cmpt_idle_o = ~cmpt_busy;
     // assign fifo_full_and_idle_comb = ~(cmpt_busy | spin_maintainer_push_ready);
@@ -148,6 +146,7 @@ module flip_manager #(
         .rst_ni(rst_ni),
         .en_i(en_i),
         .flush_i(flush_i),
+        .en_comparison_i(en_comparison_i),
         .spin_valid_o(spin_maintainer_push_from_en),
         .spin_o(spin_maintainer_income_from_en),
         .spin_push_none_o(spin_maintainer_push_none_from_en),
@@ -158,7 +157,7 @@ module flip_manager #(
         .energy_valid_i(energy_valid_i),
         .energy_ready_o(energy_ready_o),
         .energy_i(energy_i),
-        .debug_fifo_usage_o(debug_energy_fifo_usage)
+        .debug_fifo_usage_o()
     );
 
     // Instantiate spin FIFO maintainer
@@ -181,7 +180,7 @@ module flip_manager #(
         .spin_pop_o(spin_pop_p),
         .spin_pop_ready_i(spin_pop_ready_p),
         .cmpt_busy_o(cmpt_busy),
-        .debug_fifo_usage_o(debug_spin_fifo_usage)
+        .debug_fifo_usage_o()
     );
 
     // Instantiate flip engine
@@ -204,6 +203,7 @@ module flip_manager #(
         .flip_ren_o(flip_ren_o),
         .flip_raddr_o(flip_raddr_o),
         .flip_rdata_i(flip_rdata_i),
+        .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .icon_finish_o(icon_finish),
         .flip_disable_i(flip_disable_i)
     );

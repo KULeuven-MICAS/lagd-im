@@ -53,6 +53,7 @@ module energy_fifo_maintainer #(
     input logic en_i,
 
     input logic flush_i,
+    input logic en_comparison_i,
 
     output logic spin_valid_o,
     output logic [DATASPIN-1:0] spin_o,
@@ -75,7 +76,7 @@ module energy_fifo_maintainer #(
     logic fifo_empty;
     logic fifo_pop_comb;
     logic fifo_push_comb;
-    logic fifo_push_non_comb;
+    logic fifo_push_none_comb;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_pop;
     logic energy_handshake;
     logic spin_handshake_p;
@@ -84,8 +85,8 @@ module energy_fifo_maintainer #(
     logic spin_reg_full;
     logic spin_valid_comb;
     logic spin_valid_reg;
-    logic spin_push_non_comb;
-    logic spin_push_non_reg;
+    logic spin_push_none_comb;
+    logic spin_push_none_reg;
 
     // FIFO to store the spins
     fifo_v3 #(
@@ -101,7 +102,7 @@ module energy_fifo_maintainer #(
         .empty_o(fifo_empty),
         .usage_o(debug_fifo_usage_o),
         .data_i(energy_i),
-        .push_none_i(fifo_push_non_comb),
+        .push_none_i(fifo_push_none_comb),
         .push_i(fifo_push_comb),
         .data_o(energy_pop),
         .pop_i(fifo_pop_comb)
@@ -115,21 +116,21 @@ module energy_fifo_maintainer #(
     assign energy_handshake = energy_valid_i & energy_ready_o;
     assign fifo_push_comb = energy_handshake;
     assign fifo_pop_comb = energy_handshake;
-    assign fifo_push_non_comb = (energy_i >= energy_pop);
+    assign fifo_push_none_comb = en_comparison_i & (energy_i >= energy_pop);
 
     assign spin_handshake_p = spin_valid_i & spin_ready_o;
     assign spin_handshake_n = spin_valid_o & spin_ready_i;
     assign spin_valid_comb = energy_handshake & spin_reg_full;
     assign spin_valid_o = spin_valid_comb | spin_reg_full;
-    assign spin_push_none_comb = fifo_push_non_comb;
-    assign spin_push_none_o = spin_push_none_comb | spin_push_non_reg;
+    assign spin_push_none_comb = fifo_push_none_comb;
+    assign spin_push_none_o = spin_push_none_comb | spin_push_none_reg;
 
     // Sequential logic
     `FFLARNC(spin_ready_o, 1'b0, spin_handshake_p, spin_handshake_n | flush_i, 1'b1, clk_i, rst_ni);
     `FFL(spin_reg, spin_i, spin_handshake_p, 'd0, clk_i, rst_ni);
     `FFLARNC(spin_reg_full, 1'b1, spin_handshake_p, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
     `FFLARNC(spin_valid_reg, 1'b1, spin_valid_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
-    `FFLARNC(spin_push_non_reg, 1'b1, spin_push_none_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
+    `FFLARNC(spin_push_none_reg, 1'b1, spin_push_none_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
 
 
 endmodule
