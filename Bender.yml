@@ -15,6 +15,7 @@ dependencies:
   cheshire: {git: "https://github.com/pulp-platform/cheshire.git", version: 0.3.1}
   register_interface: {git: "https://github.com/pulp-platform/register_interface.git",
                        version: 0.4.5}
+  common_cells: {git: "git@github.com:pulp-platform/common_cells.git", version: 1.39.0}
 
 export_include_dirs:
   - hw/rtl/include
@@ -46,6 +47,10 @@ sources:
       - hw/rtl/energy_monitor/partial_energy_calc.sv
       - hw/rtl/energy_monitor/adder_tree.sv
       - hw/rtl/energy_monitor/accumulator.sv
+      - hw/rtl/flip_manager/flip_manager.sv
+      - hw/rtl/flip_manager/energy_fifo_maintainer.sv
+      - hw/rtl/flip_manager/spin_fifo_maintainer.sv
+      - hw/rtl/flip_manager/flip_engine.sv
 
 #  - target: any(simulation, test)
 #    files:
