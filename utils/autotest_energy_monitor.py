@@ -27,7 +27,8 @@ def simulate_energy_monitor_tb(
         "./ci/ut-run.sh",
         "--test=energy_monitor",
         "--clean",
-        f"--defines=\"test_mode={test_mode} NUM_TESTS={num_tests} PIPESINTF={pipesintf} PIPESMID={pipesmid}\"",
+        f"--defines=\"test_mode={test_mode} NUM_TESTS={num_tests} "
+        f"PIPESINTF={pipesintf} PIPESMID={pipesmid}\"",
         ]
     if show_terminal_output:
         print(f"Running command: {' '.join(command)} 2>&1 | tee {log_file}")
@@ -124,7 +125,8 @@ if __name__ == "__main__":
             num_tests=num_tests,
         )
 
-        tests_passed, total_tests, tests_failed, error_case = fetch_scoreboard_in_log(log_file_path)
+        (tests_passed, total_tests,
+         tests_failed, error_case) = fetch_scoreboard_in_log(log_file_path)
 
         if error_case:
             msg = (
