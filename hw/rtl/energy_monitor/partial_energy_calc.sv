@@ -135,7 +135,7 @@ module partial_energy_calc #(
     // Multiply with current spin
     // ========================================================================
     bp_pipe #(
-        .DATAW(MULTBIT),
+        .DATAW(1),
         .PIPES(PIPES)
     ) u_pipe_current_spin (
         .clk_i(clk_i),
