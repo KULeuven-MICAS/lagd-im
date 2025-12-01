@@ -60,8 +60,10 @@ module accumulator #(
         end
     end
 
+    // Overflow for signed addition: occurs when operands have the same sign
+    // and the result's sign is different. Compare sign bits directly.
     assign overflow = (en_i && valid_i && !clear_i) && 
-            ((accum_reg[ACCUM_WIDTH-1] == $signed(data_i[IN_WIDTH-1])) && 
+            ((accum_reg[ACCUM_WIDTH-1] == data_i[IN_WIDTH-1]) && 
                 (accum_n[ACCUM_WIDTH-1] != accum_reg[ACCUM_WIDTH-1])); // check for overflow
     assign data_valid = en_i && valid_i && !clear_i;
 
@@ -76,6 +78,6 @@ module accumulator #(
     `FFLARNC(data_valid_reg, data_valid, en_i, clear_i, '0, clk_i, rst_ni)
 
 // Assertions
-`RUNTIME_ASSERT(overflow_reg == 1'b0, "Accumulator overflow occurred", clk_i, rst_ni)
+`RUNTIME_ASSERT(overflow_reg === 1'b0, "Accumulator overflow occurred", clk_i, rst_ni)
 
 endmodule

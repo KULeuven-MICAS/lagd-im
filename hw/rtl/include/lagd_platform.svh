@@ -27,7 +27,7 @@
 `endif // LAGD_PLATFORM_SVH
 
 `define ASSERT(cond, msg) \
-    assert (cond) else $error(msg)
+    assert (cond) else $error("Time %0t: %s", $time, msg)
 
 `define RUNTIME_ASSERT(cond, msg, clk, reset) \
     always @(posedge clk) begin   \
