@@ -14,7 +14,7 @@ build:
 	$(MAKE) -C hw all
 
 target-syn:
-	$(MAKE) -C target/syn
+	$(MAKE) -C target/syn all
 
 target-sim:
 	$(MAKE) -C target/sim

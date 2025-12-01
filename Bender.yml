@@ -13,21 +13,39 @@ package:
 dependencies:
   axi: {git: "https://github.com/pulp-platform/axi.git", version: 0.39.8}
   cheshire: {git: "https://github.com/pulp-platform/cheshire.git", version: 0.3.1}
-  memory_island: {git: "https://github.com/pulp-platform/memory_island.git", rev: main}
   register_interface: {git: "https://github.com/pulp-platform/register_interface.git",
                        version: 0.4.5}
 
 export_include_dirs:
   - hw/rtl/include
+  - hw/rtl/memory_island/include
 
 sources:
   - target: all(tech_cells_generic_exclude_tc_sram)
     files:
       - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
   - files:
+      - hw/rtl/memory_island/axi_to_mem_adapter.sv
+      - hw/rtl/memory_island/mem_req_multicut.sv
+      - hw/rtl/memory_island/mem_rsp_multicut.sv
+      - hw/rtl/memory_island/mem_multicut.sv
+      - hw/rtl/memory_island/tcdm_interconnect_wrap.sv
+      - hw/rtl/memory_island/wide_narrow_arbiter.sv
+      - hw/rtl/memory_island/wide_to_narrow_splitter.sv
+      - hw/rtl/memory_island/memory_island_pkg.sv
+      - hw/rtl/memory_island/memory_island_core.sv
+      - hw/rtl/memory_island/memory_island_wrap.sv
       - hw/rtl/lagd_pkg.sv
-      - hw/rtl/lagd_mem_pkg.sv
+      - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
+      - hw/rtl/ising_core_wrap/lagd_ising_core_wrap.sv
+      - hw/rtl/energy_monitor/energy_monitor.sv
+      - hw/rtl/energy_monitor/vector_caching.sv
+      - hw/rtl/energy_monitor/step_counter.sv
+      - hw/rtl/energy_monitor/logic_ctrl.sv
+      - hw/rtl/energy_monitor/partial_energy_calc.sv
+      - hw/rtl/energy_monitor/adder_tree.sv
+      - hw/rtl/energy_monitor/accumulator.sv
 
 #  - target: any(simulation, test)
 #    files:

@@ -219,3 +219,25 @@ package lagd_pkg;
 
 
 endpackage : lagd_pkg
+
+// Package for Ising logic configuration and definitions
+package ising_logic_pkg;
+
+    typedef struct packed {
+        /// Number of Spins
+        int unsigned NumSpin;
+        /// Bit width for J couplings
+        int unsigned BitJ;
+        /// Bit width for H fields
+        int unsigned BitH;
+        /// Depth of the flip icon memory
+        int unsigned FlipIconDepth;
+    } ising_logic_cfg_t;
+    localparam ising_logic_cfg_t IsingLogicCfg = '{
+        NumSpin : `NUM_SPIN,
+        BitJ    : `BIT_J,
+        BitH    : `BIT_H,
+        FlipIconDepth : `FLIP_ICON_DEPTH
+    };
+
+endpackage: ising_logic_pkg
