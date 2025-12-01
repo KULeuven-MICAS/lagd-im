@@ -224,3 +224,6 @@ transcript
 alib-52/
 runs/
 .dc-tmp/
+
+# Autotest results
+results/
