@@ -12,6 +12,11 @@ $$
 
 In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's complement format. $\sigma_i$ is a 1-bit variable. The scaling factor $h_{sfc}$ is an unsigned integer in the power of 2.
 
+The module overview is provided in the picture below.
+<p align="center">
+<img src="https://github.com/KULeuven-MICAS/lagd-im/tree/main/doc/energy_monitor_overview.png" width="100%" alt="energy monitor overview">
+</p>
+
 ## Performance
 
 For each transaction starting with spin handshake, this module takes DATASPIN/PARALLELISM+PIPESMID+1 cycles in average to output energy value.
