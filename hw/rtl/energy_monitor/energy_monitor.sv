@@ -84,8 +84,8 @@ module energy_monitor #(
 
     input logic weight_valid_i,
     input logic [DATAJ-1:0] weight_i,
-    input logic signed [DATAH-1:0] hbias_i,
-    input logic unsigned [DATASCALING-1:0] hscaling_i,
+    input logic [DATAH-1:0] hbias_i,
+    input logic [DATASCALING-1:0] hscaling_i,
     output logic weight_ready_o,
 
     output logic energy_valid_o,
