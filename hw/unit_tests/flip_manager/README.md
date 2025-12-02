@@ -4,18 +4,6 @@
 
 This module maintains the flipping operation for each trail.
 
-## Configurable Module Parameters
-
-*DATASPIN:* [int] the number of spins  (default: 256)
-
-*SPIN_DEPTH:* [int] depth (entries) of internal spin/energy FIFOs
-
-*ENERGY_TOTAL_BIT:* [int] bit precision of total energy output (i.e. $H$) (default: 32)
-
-*FLIP_ICON_DEPTH:* [int] number of entries in the flip icon memory
-
-*PIPES:* [int] the pipeline depth at the interface (reserved)
-
 ## Testbench parameters
 
 *CLKCYCLE:* clock cycle time (unit: ns)
