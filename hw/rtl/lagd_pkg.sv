@@ -237,7 +237,9 @@ package ising_logic_pkg;
         NumSpin : `NUM_SPIN,
         BitJ    : `BIT_J,
         BitH    : `BIT_H,
-        FlipIconDepth : `FLIP_ICON_DEPTH
+        FlipIconDepth : `FLIP_ICON_DEPTH,
+        CfgCounterBitwidth : 16,
+        SynchronizerPipeDepth: 3
     };
 
 endpackage: ising_logic_pkg
