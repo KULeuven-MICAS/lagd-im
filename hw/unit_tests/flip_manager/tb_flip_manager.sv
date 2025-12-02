@@ -20,8 +20,8 @@ module tb_flip_manager;
     // Testbench parameters
     localparam int CLKCYCLE = 2;
     localparam int MEM_LATENCY = 0; // latency of memories in cycles (must be 0, which means 1 cycle)
-    localparam int ENERGY_MONITOR_LATENCY = 2; // latency of energy monitor in cycles
-    localparam int ANALOG_DELAY = 2; // delay of analog macro in cycles
+    localparam int ENERGY_MONITOR_LATENCY = 1; // latency of energy monitor in cycles
+    localparam int ANALOG_DELAY = 10; // delay of analog macro in cycles
     localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
     localparam int NUM_TESTS = 1; // number of test cases
 
@@ -45,6 +45,7 @@ module tb_flip_manager;
     logic spin_valid_i;
     logic [DATASPIN-1:0] spin_i;
     logic spin_ready_o;
+    logic spin_energy_monitor_ready;
     logic energy_valid_i;
     logic energy_ready_o;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_i;
@@ -77,7 +78,7 @@ module tb_flip_manager;
     integer rnd_delay;
     integer energy_handshake_count;
 
-    assign spin_push_handshake = spin_valid_i & spin_ready_o;
+    assign spin_push_handshake = spin_valid_i & spin_ready_o & spin_energy_monitor_ready;
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
 
     assign spin_pop_ready_i = spin_pop_ready_host ? spin_pop_ready_host : spin_pop_ready_analog;
@@ -150,7 +151,8 @@ module tb_flip_manager;
             $finish;
         end
         else begin
-            #(200_000 * CLKCYCLE);
+            $timeformat(-9, 1, " ns", 9);
+            #(2_000_000 * CLKCYCLE);
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -281,6 +283,7 @@ module tb_flip_manager;
                 @(posedge clk_i);
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
+            #(0.1 * CLKCYCLE);
             spin_pop_ready_analog = 1;
             forever begin
                 while (spin_pop_ready_host) @(posedge clk_i); // give priority to host readout
@@ -289,11 +292,12 @@ module tb_flip_manager;
                     @(posedge clk_i);
                 end
                 while (!spin_pop_valid_o);
+                #(0.1 * CLKCYCLE);
                 spin_pop_ready_analog = 0;
                 transaction_count_analog_rx++;
 
-                // Wait for spin_valid_i to become active (analog TX response)
-                wait(spin_valid_i);
+                // Wait for spin_push_handshake to become active
+                wait(spin_push_handshake);
                 @(posedge clk_i);
             end
         end
@@ -318,7 +322,7 @@ module tb_flip_manager;
                 end else begin
                     repeat (1) @(posedge clk_i); // mimic analog latency, 1 means 1 cycle
                 end
-                spin_valid_i = 1;
+                while (!spin_energy_monitor_ready) @(posedge clk_i);
                 if (RANDOM_TEST) begin
                     for (int i = 0; i < DATASPIN; i++) begin
                         spin_i[i] = $urandom_range(0, 1);
@@ -329,8 +333,10 @@ module tb_flip_manager;
                     else
                         spin_i = '1; // all ones
                 end
+                #(0.1 * CLKCYCLE);
+                spin_valid_i = 1;
                 do @(posedge clk_i);
-                while (!spin_ready_o);
+                while (!(spin_ready_o & spin_energy_monitor_ready));
                 spin_valid_i = 0;
                 transaction_count_analog_tx++;
             end
@@ -340,8 +346,8 @@ module tb_flip_manager;
     // Task for energy handshake counter
     task automatic energy_handshake_counter();
         begin
-            energy_handshake_count = 0;
             while (!rst_ni) begin
+                energy_handshake_count = 0;
                 @(posedge clk_i);
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
@@ -374,21 +380,22 @@ module tb_flip_manager;
                 cmpt_en_i = 0;
                 // wait for completion
                 do @(posedge clk_i);
-                while (energy_handshake_count < SPIN_DEPTH);
+                while (energy_handshake_count < icon_last_raddr_plus_one_i);
 
                 // read out the FIFO content
                 #(20.1 * CLKCYCLE); // small delay before readout
                 host_readout_i = 1;
                 flip_disable_i = 1; // disable flipping during host readout
                 spin_pop_ready_host = 1;
-                while (readout_count_host < SPIN_DEPTH) begin
+                while (readout_count_host < icon_last_raddr_plus_one_i) begin
                     do @(posedge clk_i);
                     while (!spin_pop_valid_o);
                     spin_read_out_host = spin_pop_o;
                     // check FIFO content
                     if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host]) begin
                         // note: this check fails if SPIN_DEPTH % DATASPIN != 0
-                        $fatal("Error: Host readout FIFO content ['h%0h] mismatch at time %t: expected 'h%h, got 'h%h",
+                        @(posedge clk_i);
+                        $fatal(1, "Error: Host readout FIFO content ['h%0h] mismatch at time %t: expected 'h%h, got 'h%h",
                             readout_count_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
                     end else begin
                         $display("Host readout FIFO content ['h%0h] match at time %t: expected 'h%h, got 'h%h",
@@ -419,6 +426,7 @@ module tb_flip_manager;
     task automatic energy_monitor_interface();
         begin
             while (!rst_ni) begin
+                spin_energy_monitor_ready = 1;
                 energy_valid_i = 0;
                 energy_i = {1'b0, {(ENERGY_TOTAL_BIT-1){1'b1}}}; // initial energy value
                 transaction_count_energy_monitor = 0;
@@ -427,8 +435,8 @@ module tb_flip_manager;
             while (!configure_test_done | !en_i) @(posedge clk_i);
             forever begin
                 while (!(spin_push_handshake)) @(posedge clk_i);
+                spin_energy_monitor_ready = 0;
                 repeat (ENERGY_MONITOR_LATENCY) @(posedge clk_i);
-                energy_valid_i = 1;
                 if (RANDOM_TEST) begin
                     for (int i = 0; i < ENERGY_TOTAL_BIT; i++) begin
                         energy_i[i] = $urandom_range(0, 1);
@@ -436,9 +444,13 @@ module tb_flip_manager;
                 end else begin
                     energy_i = energy_i - 1; // decremental energy
                 end
+                #(0.1 * CLKCYCLE);
+                energy_valid_i = 1;
                 do @(posedge clk_i);
                 while (!energy_ready_o);
+                #(0.1 * CLKCYCLE);
                 energy_valid_i = 0;
+                spin_energy_monitor_ready = 1;
                 transaction_count_energy_monitor++;
             end
         end
@@ -461,6 +473,7 @@ module tb_flip_manager;
             analog_rx_interface();
             analog_tx_interface();
             host_interface();
+            energy_handshake_counter();
             energy_monitor_interface();
         join_none
     end
