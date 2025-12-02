@@ -12,20 +12,21 @@
 module tb_flip_manager;
 
     // Module parameters
-    localparam int DATASPIN = 2; // number of spins
+    localparam int DATASPIN = 256; // number of spins
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
-    localparam int SPIN_DEPTH = 4; // depth of spin/energy FIFOs
-    localparam int FLIP_ICON_DEPTH = 1 * SPIN_DEPTH; // number of entries in flip
+    localparam int SPIN_DEPTH = 2; // depth of spin/energy FIFOs
+    localparam int FLIP_ICON_DEPTH = 1024; // number of entries in flip, must be multiply of SPIN_DEPTH
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
+    localparam int ENABLE_ENERGY_COMPARISON = 1; // set to 1 to enable energy comparison
     localparam int MEM_LATENCY = 0; // latency of memories in cycles (must be 0, which means 1 cycle)
     localparam int ENERGY_MONITOR_LATENCY = 1; // latency of energy monitor in cycles
-    localparam int ANALOG_DELAY = 10; // delay of analog macro in cycles
+    localparam int ANALOG_DELAY = 1; // delay of analog macro in cycles
     localparam bit RANDOM_TEST = 1; // set to 1 for random tests, 0 for fixed tests
-    localparam int NUM_TESTS = 1; // number of test cases
+    // localparam int NUM_TESTS = 1; // number of test cases (not used)
 
-    localparam int FLUSH_NUM_TESTS = 0; // no flush tests
+    localparam int FLUSH_NUM_TESTS = 1; // no flush tests
 
     // Testbench internal signals
     logic clk_i;
@@ -72,7 +73,6 @@ module tb_flip_manager;
     integer transaction_count_flip_icon;
     integer transaction_count_analog_rx;
     integer transaction_count_analog_tx;
-    integer testcase_count_host;
     integer readout_count_host;
     integer transaction_count_energy_monitor;
     integer rnd_delay;
@@ -85,7 +85,7 @@ module tb_flip_manager;
 
     initial begin
         en_i = 1;
-        en_comparison_i = 0;
+        en_comparison_i = ENABLE_ENERGY_COMPARISON;
         icon_last_raddr_plus_one_i = FLIP_ICON_DEPTH;
     end
 
@@ -146,7 +146,7 @@ module tb_flip_manager;
             $dumpfile("tb_flip_manager.vcd");
             $dumpvars(4, tb_flip_manager); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(200 * CLKCYCLE); // To avoid generating huge VCD files
+            #(600 * CLKCYCLE); // To avoid generating huge VCD files
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -178,6 +178,16 @@ module tb_flip_manager;
             end
             while (!en_i) @(posedge clk_i);
             do begin
+                // random cycle delay between 1 and 5 cycles
+                rnd_delay = $urandom_range(1, 5);
+                repeat (rnd_delay) @(posedge clk_i);
+                #(0.1 * CLKCYCLE);
+                flush_i = 1;
+                #(CLKCYCLE);
+                flush_i = 0;
+                flush_counter++;
+                configure_counter = 0;
+
                 while (configure_counter < SPIN_DEPTH) begin
                     @(posedge clk_i);
                     // send spin
@@ -208,17 +218,6 @@ module tb_flip_manager;
                 @(posedge clk_i);
                 spin_configure_valid_i = 0;
                 spin_configure_i = 'd0;
-
-                if (FLUSH_NUM_TESTS > 0) begin
-                    // random cycle delay between 1 and 5 cycles
-                    rnd_delay = $urandom_range(1, 5);
-                    repeat (rnd_delay) @(posedge clk_i);
-                    flush_i = 1;
-                    @(posedge clk_i);
-                    flush_i = 0;
-                end
-                flush_counter++;
-                configure_counter = 0;
             end
             while(flush_counter < FLUSH_NUM_TESTS);
             configure_test_done = 1;
@@ -363,7 +362,6 @@ module tb_flip_manager;
     task automatic host_interface();
         begin
             while (!rst_ni) begin
-                testcase_count_host = 0;
                 readout_count_host = 0;
                 cmpt_en_i = 0;
                 flip_disable_i = 0;
@@ -387,7 +385,7 @@ module tb_flip_manager;
                 host_readout_i = 1;
                 flip_disable_i = 1; // disable flipping during host readout
                 spin_pop_ready_host = 1;
-                while (readout_count_host < icon_last_raddr_plus_one_i) begin
+                while (readout_count_host < SPIN_DEPTH) begin
                     do @(posedge clk_i);
                     while (!spin_pop_valid_o);
                     spin_read_out_host = spin_pop_o;
@@ -395,26 +393,23 @@ module tb_flip_manager;
                     if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host]) begin
                         // note: this check fails if SPIN_DEPTH % DATASPIN != 0
                         @(posedge clk_i);
-                        $fatal(1, "Error: Host readout FIFO content ['h%0h] mismatch at time %t: expected 'h%h, got 'h%h",
+                        $fatal(1, "Error: Host readout FIFO content ['d%0d] mismatch at time %t: expected 'h%h, got 'h%h",
                             readout_count_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
                     end else begin
-                        $display("Host readout FIFO content ['h%0h] match at time %t: expected 'h%h, got 'h%h",
-                            readout_count_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
+                        $display("Pass: Host readout FIFO content ['d%0d] match at time %t: got 'h%h",
+                            readout_count_host, $time, spin_read_out_host);
                     end
                     readout_count_host++;
                 end
                 host_readout_i = 0;
                 flip_disable_i = 0;
                 spin_pop_ready_host = 0;
-                readout_count_host = 0;
                 cmpt_en_i = 0;
-                testcase_count_host++;
-                $display("testcase %0d completed.", testcase_count_host);
 
-                if (testcase_count_host == NUM_TESTS) begin
-                    $display("------------------------------------------------");
-                    $display("------- All tests completed [Pass: %0d] ----------", testcase_count_host);
-                    $display("------------------------------------------------");
+                if (readout_count_host == SPIN_DEPTH) begin
+                    $display("------------------------------------------------------");
+                    $display("-- All readout tests completed [Readout count: 'd%0d] --", readout_count_host);
+                    $display("------------------------------------------------------");
                     @(posedge clk_i);
                     $finish;
                 end
