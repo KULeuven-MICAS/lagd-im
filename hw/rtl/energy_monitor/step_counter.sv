@@ -5,7 +5,7 @@
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 //
 // Module description:
-// Incremental step counter.
+// Incremental step counter. q_o increases and stays at the target value until recount_en_i is asserted.
 //
 // Parameters:
 // - COUNTER_BITWIDTH: bit width of the counter
