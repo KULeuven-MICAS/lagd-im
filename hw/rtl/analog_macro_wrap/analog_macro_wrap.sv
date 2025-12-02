@@ -60,11 +60,12 @@ module analog_macro_wrap #(
 
     // Internal signals
     logic spin_tx_handshake;
-    logic [num_spin*bit_data-1:0] wbl_dt, wbl_spin;
+    logic [num_spin*bit_data-1:0] wbl_dt;
+    logic [num_spin-1:0] wbl_spin;
     logic analog_macro_cmpt_finish;
 
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
-    assign wbl_o = dt_cfg_idle_o ? wbl_spin : wbl_dt;
+    assign wbl_o = dt_cfg_idle_o ? {{(num_spin*bit_data-num_spin){1'b0}}, wbl_spin} : wbl_dt;
 
     analog_cfg #(
         .num_spin (num_spin),

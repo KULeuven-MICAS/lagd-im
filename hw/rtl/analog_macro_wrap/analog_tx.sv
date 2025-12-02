@@ -70,7 +70,7 @@ module analog_tx #(
     `FFL(analog_macro_cmpt_finish_nxt, analog_macro_cmpt_finish_i, en_i, 1'b0, clk_i, rst_ni)
 
     step_counter #(
-        .COUNTER_BITWIDTH (counter_bitwidth),
+        .COUNTER_BITWIDTH ($clog2(synchronizer_pipe_depth)),
         .PARALLELISM (1)
     ) u_step_counter_synchronizer (
         .clk_i (clk_i),
