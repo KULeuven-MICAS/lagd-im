@@ -1,0 +1,95 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+// Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+//
+// Analog RX module, which receives spin data from digital macro and sends to analog macro.
+
+`include "../lib/registers.svh"
+
+module analog_rx #(
+    parameter integer num_spin = 256,
+    parameter integer counter_bitwidth = 8
+)(
+    input logic clk_i,
+    input logic rst_ni,
+    input logic en_i,
+    // config interface
+    input  logic rx_configure_enable_i,
+    input  logic [counter_bitwidth-1:0] cycle_per_spin_write_i,
+    input  logic [num_spin-1:0] spin_wwl_strobe_i,
+    input  logic [num_spin-1:0] spin_mode_i,
+    input  logic [counter_bitwidth-1:0] cycle_per_spin_compute_i,
+    // spin interface: rx <-> digital
+    input  logic spin_pop_valid_i,
+    output logic spin_pop_ready_o,
+    input  logic [num_spin-1:0] spin_pop_i,
+    input  logic analog_macro_idle_i,
+    // spin interface: tx -> analog macro
+    output logic [num_spin-1:0] spin_wwl_o,
+    output logic [num_spin-1:0] spin_compute_en_o,
+    output logic [num_spin-1:0] wbl_o,
+    // status
+    output logic analog_rx_idle_o,
+    output logic analog_macro_cmpt_finish_o
+);
+    // Internal signals
+    logic spin_pop_handshake;
+    logic write_counter_overflow;
+    logic compute_counter_overflow;
+    logic [num_spin-1:0] spin_pop_comb;
+    logic [num_spin-1:0] spin_wwl_strobe_reg;
+    logic [num_spin-1:0] spin_mode_reg;
+    logic [num_spin-1:0] spin_wwl_comb;
+    logic [num_spin-1:0] spin_compute_en_comb;
+    logic rx_busy;
+
+    assign analog_rx_idle_o = !rx_busy;
+    assign spin_pop_handshake = spin_pop_valid_i & spin_pop_ready_o;
+    assign spin_pop_comb = spin_pop_handshake ? spin_pop_i : 'd0;
+    assign spin_wwl_comb = spin_pop_handshake ? spin_wwl_strobe_reg : 'd0;
+    assign spin_compute_en_comb = spin_pop_handshake ? spin_mode_reg : 'd0;
+
+    `FFLARNC(spin_pop_ready_o, 1'b0, en_i & spin_pop_handshake, !en_i | analog_macro_idle_i, 1'b1, clk_i, rst_ni)
+    `FFL(wbl_o, spin_pop_comb, en_i & spin_pop_handshake, 'd0, clk_i, rst_ni)
+    `FFLARNC(spin_wwl_o, spin_wwl_comb, en_i & spin_pop_handshake, !en_i | write_counter_overflow, 'd0, clk_i, rst_ni)
+    `FFLARNC(spin_compute_en_o, spin_compute_en_comb, en_i & spin_pop_handshake, !en_i | compute_counter_overflow, 'd0, clk_i, rst_ni)
+    `FFLARNC(analog_macro_cmpt_finish_o, 1'b1, en_i & compute_counter_overflow, !en_i | spin_pop_handshake, 1'b0, clk_i, rst_ni)
+
+    // configure registers
+    `FFLARNC(rx_busy, 1'b1, en_i & spin_pop_handshake, !en_i | write_counter_overflow, 1'b0, clk_i, rst_ni)
+    `FFL(spin_wwl_strobe_reg, spin_wwl_strobe_i, en_i & rx_configure_enable_i, 'b0, clk_i, rst_ni)
+    `FFL(spin_mode_reg, spin_mode_i, en_i & rx_configure_enable_i, 'b0, clk_i, rst_ni)
+
+    step_counter #(
+        .COUNTER_BITWIDTH (counter_bitwidth),
+        .PARALLELISM (1)
+    ) u_step_counter_spin_write (
+        .clk_i (clk_i),
+        .rst_ni (rst_ni),
+        .en_i (en_i),
+        .load_i (rx_configure_enable_i),
+        .d_i (cycle_per_spin_write_i),
+        .recount_en_i (spin_pop_handshake),
+        .step_en_i (en_i),
+        .q_o (),
+        .overflow_o (write_counter_overflow)
+    );
+
+    step_counter #(
+        .COUNTER_BITWIDTH (counter_bitwidth),
+        .PARALLELISM (1)
+    ) u_step_counter_spin_compute (
+        .clk_i (clk_i),
+        .rst_ni (rst_ni),
+        .en_i (en_i),
+        .load_i (rx_configure_enable_i),
+        .d_i (cycle_per_spin_compute_i),
+        .recount_en_i (spin_pop_handshake),
+        .step_en_i (en_i),
+        .q_o (),
+        .overflow_o (compute_counter_overflow)
+    );
+
+endmodule
