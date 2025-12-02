@@ -8,7 +8,7 @@ Note: the module assumes the flip memory exactly takes 1 clock cycle.
 
 ## Performance
 
-For each transaction starting with energy handshake, this module takes ?? cycles in average to output a new spin vector.
+For each transaction starting with energy handshake, this module takes 3 cycles in average to output a new spin vector.
 
 ## Configurable Module Parameters
 
