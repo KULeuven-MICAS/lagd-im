@@ -29,15 +29,19 @@ module ising_core_wrap import axi_pkg::*; #(
     input lagd_reg_req_t reg_s_req_i,
     output lagd_reg_rsp_t reg_s_rsp_o
 );
+    // defines axi and register interface types
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_DATA_WIDTH, CheshireCfg)
 
     // Internal signals
     logic [1:0] mode_select; // 00: idle; 01: weight loading; 10: computing; 11: debugging
-    logic direct_req_t drt_s_req;
-    logic direct_rsp_t drt_s_rsp;
-    logic direct_req_t drt_s_req_load;
-    logic direct_rsp_t drt_s_rsp_load;
-    logic direct_req_t drt_s_req_compute;
-    logic direct_rsp_t drt_s_rsp_compute;
+    axi_narrow_req_t axi_s_req_j, axi_s_req_h, axi_s_req_flip;
+    axi_narrow_rsp_t axi_s_rsp_j, axi_s_rsp_h, axi_s_rsp_flip;
+    lagd_mem_wide_req_t drt_s_req_j, drt_s_req_h;
+    lagd_mem_wide_rsp_t drt_s_rsp_j, drt_s_rsp_h;
+    lagd_mem_wide_req_t drt_s_req_load_j, drt_s_req_load_h;
+    lagd_mem_wide_rsp_t drt_s_rsp_load_j, drt_s_rsp_load_h;
+    lagd_mem_wide_req_t drt_s_req_compute_j, drt_s_req_compute_h;
+    lagd_mem_wide_rsp_t drt_s_rsp_compute_j, drt_s_rsp_compute_h;
     logic [logic_cfg.NumSpin-1:0] spin_regfile;
 
     //////////////////////////////////////////////////////////
@@ -111,48 +115,72 @@ module ising_core_wrap import axi_pkg::*; #(
 
     // L1 memory instances
     memory_island_wrap #(
-        .mem_cfg_t             (l1_mem_cfg_j           )
+        .mem_cfg_t             (l1_mem_cfg_j           ),
+        .axi_narrow_req_t      (lagd_axi_slv_req_t     ),
+        .axi_narrow_rsp_t      (lagd_axi_slv_rsp_t     ),
+        .axi_wide_req_t        (lagd_axi_wide_slv_req_t),
+        .axi_wide_rsp_t        (lagd_axi_wide_slv_rsp_t),
+        .mem_narrow_req_t      (lagd_mem_narr_req_t    ),
+        .mem_narrow_rsp_t      (lagd_mem_narr_rsp_t    ),
+        .mem_wide_req_t        (lagd_mem_wide_req_t    ),
+        .mem_wide_rsp_t        (lagd_mem_wide_rsp_t    )
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_j           ),
-        .axi_narrow_rsp_o       (axi_s_rsp_j           ),
-        .axi_wide_req_i         (                      ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       (                      ),
-        .mem_narrow_rsp_o       (                      ),
-        .mem_wide_req_i         (drt_s_req_j           ),
-        .mem_wide_rsp_o         (drt_s_rsp_j           )
+        .axi_narrow_req_t       (axi_s_req_j           ),
+        .axi_narrow_rsp_t       (axi_s_rsp_j           ),
+        .axi_wide_req_t         (                      ),
+        .axi_wide_rsp_t         (                      ),
+        .mem_narrow_req_t       (                      ),
+        .mem_narrow_rsp_t       (                      ),
+        .mem_wide_req_t         (drt_s_req_j           ),
+        .mem_wide_rsp_t         (drt_s_rsp_j           )
     );
 
     memory_island_wrap #(
-    .mem_cfg_t                  (l1_mem_cfg_h          )
+    .mem_cfg_t                 (l1_mem_cfg_h           ),
+    .axi_narrow_req_t          (lagd_axi_slv_req_t     ),
+    .axi_narrow_rsp_t          (lagd_axi_slv_rsp_t     ),
+    .axi_wide_req_t            (lagd_axi_wide_slv_req_t),
+    .axi_wide_rsp_t            (lagd_axi_wide_slv_rsp_t),
+    .mem_narrow_req_t          (lagd_mem_narr_req_t    ),
+    .mem_narrow_rsp_t          (lagd_mem_narr_rsp_t    ),
+    .mem_wide_req_t            (lagd_mem_wide_req_t    ),
+    .mem_wide_rsp_t            (lagd_mem_wide_rsp_t    )
     ) i_l1_mem_h (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_h           ),
-        .axi_narrow_rsp_o       (axi_s_rsp_h           ),
-        .axi_wide_req_i         (                      ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       (                      ),
-        .mem_narrow_rsp_o       (                      ),
-        .mem_wide_req_i         (drt_s_req_h           ),
-        .mem_wide_rsp_o         (drt_s_rsp_h           )
+        .axi_narrow_req_t       (axi_s_req_h           ),
+        .axi_narrow_rsp_t       (axi_s_rsp_h           ),
+        .axi_wide_req_t         (                      ),
+        .axi_wide_rsp_t         (                      ),
+        .mem_narrow_req_t       (                      ),
+        .mem_narrow_rsp_t       (                      ),
+        .mem_wide_req_t         (drt_s_req_h           ),
+        .mem_wide_rsp_t         (drt_s_rsp_h           )
     );
 
     memory_island_wrap #(
-    .mem_cfg_t                  (l1_mem_cfg_flip       )
+    .mem_cfg_t                 (l1_mem_cfg_flip        ),
+    .axi_narrow_req_t          (lagd_axi_slv_req_t     ),
+    .axi_narrow_rsp_t          (lagd_axi_slv_rsp_t     ),
+    .axi_wide_req_t            (lagd_axi_wide_slv_req_t),
+    .axi_wide_rsp_t            (lagd_axi_wide_slv_rsp_t),
+    .mem_narrow_req_t          (lagd_mem_narr_req_t    ),
+    .mem_narrow_rsp_t          (lagd_mem_narr_rsp_t    ),
+    .mem_wide_req_t            (lagd_mem_wide_req_t    ),
+    .mem_wide_rsp_t            (lagd_mem_wide_rsp_t    )
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_flip        ),
-        .axi_narrow_rsp_o       (axi_s_rsp_flip        ),
-        .axi_wide_req_i         (                      ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       (                      ),
-        .mem_narrow_rsp_o       (                      ),
-        .mem_wide_req_i         (drt_s_req_flip        ),
-        .mem_wide_rsp_o         (drt_s_rsp_flip        )
+        .axi_narrow_req_t       (axi_s_req_flip        ),
+        .axi_narrow_rsp_t       (axi_s_rsp_flip        ),
+        .axi_wide_req_t         (                      ),
+        .axi_wide_rsp_t         (                      ),
+        .mem_narrow_req_t       (                      ),
+        .mem_narrow_rsp_t       (                      ),
+        .mem_wide_req_t         (drt_s_req_flip        ),
+        .mem_wide_rsp_t         (drt_s_rsp_flip        )
     );
 
     //////////////////////////////////////////////////////////
