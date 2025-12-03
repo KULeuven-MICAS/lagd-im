@@ -82,8 +82,8 @@ module lagd_soc import lagd_pkg::*; (
         // External AXI crosbar ports
         .axi_ext_slv_req_o  (axi_ext_slv_req),
         .axi_ext_slv_rsp_i  (axi_ext_slv_rsp),
-        .axi_ext_mst_req_o  (axi_ext_mst_req),
-        .axi_ext_mst_rsp_i  (axi_ext_mst_rsp),
+        .axi_ext_mst_req_i  (axi_ext_mst_req),
+        .axi_ext_mst_rsp_o  (axi_ext_mst_rsp),
         // Register interface
         .reg_ext_slv_req_o  (reg_ext_req),
         .reg_ext_slv_rsp_i  (reg_ext_rsp),
