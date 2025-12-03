@@ -48,7 +48,7 @@ module lagd_soc import lagd_pkg::*; (
 );
 
     // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_DATA_WIDTH, CheshireCfg)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
 
     //////////////////////////////////////////////////////////
     // Wire declarations /////////////////////////////////////
