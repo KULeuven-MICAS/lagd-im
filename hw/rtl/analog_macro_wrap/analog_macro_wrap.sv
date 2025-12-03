@@ -9,8 +9,10 @@
 module analog_macro_wrap #(
     parameter integer num_spin = 256,
     parameter integer bit_data = 4,
+    parameter integer parallelism = 1, // min: 1
     parameter integer counter_bitwidth = 16,
-    parameter integer synchronizer_pipe_depth = 3
+    parameter integer synchronizer_pipe_depth = 3,
+    parameter integer j_address_width = $clog2(num_spin / parallelism)
 )(
     input logic clk_i,
     input logic rst_ni,
@@ -28,8 +30,8 @@ module analog_macro_wrap #(
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
     output logic j_mem_ren_o,
-    output logic [$clog2(num_spin)-1:0] j_waddr_o,
-    input  logic [num_spin*bit_data-1:0] j_wdata_i,
+    output logic [j_address_width-1:0] j_waddr_o,
+    input  logic [num_spin*bit_data*parallelism-1:0] j_wdata_i,
     output logic h_ren_o,
     input  logic [num_spin*bit_data-1:0] h_wdata_i,
     output logic sfc_ren_o,
@@ -70,7 +72,8 @@ module analog_macro_wrap #(
     analog_cfg #(
         .num_spin (num_spin),
         .bit_data (bit_data),
-        .counter_bitwidth (counter_bitwidth)
+        .counter_bitwidth (counter_bitwidth),
+        .parallelism (parallelism)
     ) u_analog_cfg (
         .clk_i (clk_i),
         .rst_ni (rst_ni),

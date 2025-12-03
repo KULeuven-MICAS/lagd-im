@@ -16,6 +16,8 @@ module tb_analog_macro_wrap;
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 16;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
+    localparam int PARALLELISM = 4; // number of parallel data in J memory
+    localparam int J_ADDRESS_WIDTH = $clog2(DATASPIN / PARALLELISM);
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
@@ -35,8 +37,8 @@ module tb_analog_macro_wrap;
     logic synchronizer_mode_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
-    logic [$clog2(DATASPIN)-1:0] j_waddr_o;
-    logic [DATASPIN*BITDATA-1:0] j_wdata_i;
+    logic [J_ADDRESS_WIDTH-1:0] j_waddr_o;
+    logic [DATASPIN*BITDATA*PARALLELISM-1:0] j_wdata_i;
     logic h_ren_o;
     logic [DATASPIN*BITDATA-1:0] h_wdata_i;
     logic sfc_ren_o;

@@ -60,8 +60,8 @@ module digital_macro #(
     // data loading interface
     input  logic dt_cfg_enable_i, // load enable
     output logic j_mem_ren_o,
-    output logic [$clog2(num_spin)-1:0] j_waddr_o,
-    input  logic [num_spin*bit_j-1:0] j_wdata_i,
+    output logic [$clog2(num_spin / parallelism)-1:0] j_waddr_o,
+    input  logic [num_spin*bit_j*parallelism-1:0] j_wdata_i,
     output logic h_ren_o,
     input  logic [num_spin*bit_h-1:0] h_wdata_i,
     output logic sfc_ren_o,
@@ -179,6 +179,7 @@ module digital_macro #(
     analog_macro_wrap #(
         .num_spin (num_spin),
         .bit_data (bit_j),
+        .parallelism (parallelism),
         .counter_bitwidth (counter_bitwidth),
         .synchronizer_pipe_depth (synchronizer_pipe_depth)
     ) u_analog_wrap (
