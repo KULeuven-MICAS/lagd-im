@@ -27,9 +27,8 @@
     localparam cheshire_pkg::axi_in_t __name``__AxiIn = cheshire_pkg::gen_axi_in(__cfg); \
     localparam type __name``_slv_id_t  = logic [__cfg.AxiMstIdWidth + \
         $clog2(__name``__AxiIn.num_in)-1:0]; \
-
     `LAGD_TYPEDEF_AXI_CT(__name``_mst, __addr_t, \
-        __name``_mst_id_t, __data_t, __strb_t, __user_t)
+        __name``_mst_id_t, __data_t, __strb_t, __user_t) \
     `LAGD_TYPEDEF_AXI_CT(__name``_slv, __addr_t, \
         __name``_slv_id_t, __data_t, __strb_t, __user_t)
 
