@@ -149,9 +149,10 @@ package lagd_pkg;
     function automatic cheshire_pkg::cheshire_cfg_t gen_cheshire_cfg();
         cheshire_pkg::cheshire_cfg_t cfg = cheshire_pkg::DefaultCfg;
         // CVA6 parameters
-        //cfg.Cva6RASDepth = ariane_pkg::ArianeDefaultCfg.RASDepth; // default cfg not present in checkedout cva6 repo
-        //cfg.Cva6BTBEntries = ariane_pkg::ArianeDefaultCfg.BTBEntries; // default cfg not present in checkedout cva6 repo
-        //cfg.Cva6BHTEntries = ariane_pkg::ArianeDefaultCfg.BHTEntries; // default cfg not present in checkedout cva6 repo
+        // default cfg not present in checkedout cva6 repo
+        //cfg.Cva6RASDepth = ariane_pkg::ArianeDefaultCfg.RASDepth;
+        //cfg.Cva6BTBEntries = ariane_pkg::ArianeDefaultCfg.BTBEntries;
+        //cfg.Cva6BHTEntries = ariane_pkg::ArianeDefaultCfg.BHTEntries;
         cfg.Cva6NrPMPEntries = 0;
         cfg.Cva6ExtCieLength = 'h1000_0000;
         cfg.Cva6ExtCieOnTop = 1'b0;
@@ -190,7 +191,7 @@ package lagd_pkg;
         // DMA config defaults are defaults
         // External AXI ports
         cfg.AxiExtNumSlv = $unsigned(`LAGD_NUM_AXI_SLV);
-        cfg.AxiExtNumMst = 0;
+        cfg.AxiExtNumMst = $unsigned(`LAGD_NUM_AXI_MST);
         cfg.AxiExtNumRules = $unsigned(`LAGD_NUM_AXI_SLV);
         cfg.AxiExtRegionIdx = LagdSlvIdxMap;
         cfg.AxiExtRegionStart = LagdSlvAddrStart;
