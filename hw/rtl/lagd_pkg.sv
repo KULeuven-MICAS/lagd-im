@@ -172,7 +172,7 @@ package lagd_pkg;
         cfg.Bootrom = 1;
         cfg.Uart = 1;
         cfg.I2c = 0;
-        cfg.SpiHost = 1;
+        cfg.SpiHost = 0;
         cfg.Gpio = 0;
         cfg.Dma = 1;
         cfg.SerialLink = 1;
