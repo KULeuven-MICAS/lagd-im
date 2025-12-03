@@ -79,7 +79,7 @@ package lagd_pkg;
         addr_map[Idx.STACK_MEM] = $unsigned(`STACK_BASE_ADDR + `STACK_SIZE_B - 1);
         // Ising cores
         localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + 
-            `IC_L1_MEM_MAX_SIZE_B);
+            `IC_L1_MEM_SIZE_B);
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i+1)*`IC_L1_MEM_LIMIT - 1);
