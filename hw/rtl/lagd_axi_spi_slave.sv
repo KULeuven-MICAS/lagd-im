@@ -11,7 +11,7 @@ module lagd_axi_spi_slave #(
     input logic clk_i,
     input logic rst_ni,
 
-    input logic spi_sck_i,
+    input logic spi_sclk_i,
     input logic spi_cs_i,
     output logic [3:0] spi_oen_o,
     input logic [3:0] spi_sdi_i,
