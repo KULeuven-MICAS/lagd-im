@@ -121,8 +121,8 @@ module lagd_soc import lagd_pkg::*; (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         // AXI slave interface
-        .axi_req_i(axi_ext_mst_req[0]),
-        .axi_rsp_o(axi_ext_mst_rsp[0]),
+        .axi_req_o(axi_ext_mst_req[0]),
+        .axi_rsp_i(axi_ext_mst_rsp[0]),
         .spi_sclk_i(spi_sck_i),
         .spi_cs_i(spi_cs_i),
         .spi_oen_o(spi_oen_o),
