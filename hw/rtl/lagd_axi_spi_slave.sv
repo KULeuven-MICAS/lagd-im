@@ -22,10 +22,10 @@ module lagd_axi_spi_slave #(
 );
 
     axi_spi_slave #(
-        .AXI_ADDR_WIDTH($bits(axi_req_t.aw.addr)),
-        .AXI_DATA_WIDTH($bits(axi_rsp_t.r.data)),
-        .AXI_USER_WIDTH($bits(axi_req_t.aw.user)),
-        .AXI_ID_WIDTH($bits(axi_req_t.aw.id))
+        .AXI_ADDR_WIDTH($bits(axi_req_o.aw.addr)),
+        .AXI_DATA_WIDTH($bits(axi_rsp_i.r.data)),
+        .AXI_USER_WIDTH($bits(axi_req_o.aw.user)),
+        .AXI_ID_WIDTH($bits(axi_req_o.aw.id))
     ) (
         // SPI Interface
         .spi_sclk(spi_sclk_i),

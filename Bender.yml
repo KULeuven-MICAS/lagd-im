@@ -50,6 +50,7 @@ sources:
       - hw/rtl/energy_monitor/partial_energy_calc.sv
       - hw/rtl/energy_monitor/adder_tree.sv
       - hw/rtl/energy_monitor/accumulator.sv
+      - hw/rtl/lagd_axi_spi_slave.sv
 
 #  - target: any(simulation, test)
 #    files:
