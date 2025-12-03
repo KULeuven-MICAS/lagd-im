@@ -115,8 +115,8 @@ module lagd_soc import lagd_pkg::*; (
     // Axi SPI Slave /////////////////////////////////////////
     //////////////////////////////////////////////////////////
     lagd_axi_spi_slave #(
-        .axi_req_t(lagd_axi_slv_req_t),
-        .axi_rsp_t(lagd_axi_slv_rsp_t)
+        .axi_req_t(lagd_axi_mst_req_t),
+        .axi_rsp_t(lagd_axi_mst_rsp_t)
     ) i_axi_spi_slave (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
