@@ -15,7 +15,7 @@ dependencies:
   cheshire: {git: "https://github.com/pulp-platform/cheshire.git", version: 0.3.1}
   register_interface: {git: "https://github.com/pulp-platform/register_interface.git",
                        version: 0.4.5}
-  hemaia_axi_spi_slave: {git: "https://github.com/KULeuven-MICAS/hemaia_axi_spi_slave.git", 
+  hemaia_axi_spi_slave: {git: "https://github.com/KULeuven-MICAS/hemaia_axi_spi_slave.git",
                          rev: main}
 
 export_include_dirs:

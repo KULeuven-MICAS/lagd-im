@@ -58,6 +58,8 @@ module lagd_soc import lagd_pkg::*; (
     // External AXI interconnect
     lagd_axi_slv_req_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_req;
     lagd_axi_slv_rsp_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
+    lagd_axi_mst_req_t  [`LAGD_NUM_AXI_MST-1:0] axi_ext_mst_req;
+    lagd_axi_mst_rsp_t  [`LAGD_NUM_AXI_MST-1:0] axi_ext_mst_rsp;
     // Register interface
     lagd_reg_req_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_req;
     lagd_reg_rsp_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_rsp;
@@ -67,6 +69,8 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     cheshire_soc #(
         .Cfg                (CheshireCfg),
+        .axi_ext_mst_req_t  (lagd_axi_mst_req_t),
+        .axi_ext_mst_rsp_t  (lagd_axi_mst_rsp_t),
         .axi_ext_slv_req_t  (lagd_axi_slv_req_t),
         .axi_ext_slv_rsp_t  (lagd_axi_slv_rsp_t),
         .reg_ext_req_t      (lagd_reg_req_t),
@@ -80,6 +84,8 @@ module lagd_soc import lagd_pkg::*; (
         // External AXI crosbar ports
         .axi_ext_slv_req_o  (axi_ext_slv_req),
         .axi_ext_slv_rsp_i  (axi_ext_slv_rsp),
+        .axi_ext_mst_req_o  (axi_ext_mst_req),
+        .axi_ext_mst_rsp_i  (axi_ext_mst_rsp),
         // Register interface
         .reg_ext_slv_req_o  (reg_ext_req),
         .reg_ext_slv_rsp_i  (reg_ext_rsp),
