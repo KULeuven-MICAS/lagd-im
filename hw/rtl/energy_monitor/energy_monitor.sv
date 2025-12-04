@@ -87,6 +87,7 @@ module energy_monitor #(
     input logic [DATAH-1:0] hbias_i,
     input logic [DATASCALING-1:0] hscaling_i,
     output logic weight_ready_o,
+    output logic [SPINIDX_BIT-1:0] counter_spin_o,
 
     output logic energy_valid_o,
     input logic energy_ready_i,
@@ -124,6 +125,7 @@ module energy_monitor #(
 
     genvar i;
 
+    assign counter_spin_o = counter_q;
     assign spin_handshake = spin_valid_pipe && spin_ready_pipe;
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
     assign energy_handshake = energy_valid_o && energy_ready_i;

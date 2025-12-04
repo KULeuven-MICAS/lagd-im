@@ -77,6 +77,7 @@ module tb_energy_monitor;
     logic energy_valid_o;
     logic energy_ready_i;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_o;
+    logic [$clog2(DATASPIN)-1:0] counter_spin_o;
 
     logic unsigned [31:0] spin_reg_valid_int;
     logic [`NUM_TESTS-1:0] spin_reg_valid;
@@ -152,6 +153,7 @@ module tb_energy_monitor;
         .hbias_i(hbias_i),
         .hscaling_i(hscaling_i),
         .weight_ready_o(weight_ready_o),
+        .counter_spin_o(counter_spin_o),
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
         .energy_o(energy_o)
