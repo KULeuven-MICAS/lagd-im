@@ -40,15 +40,15 @@ module digital_macro #(
     input  logic rst_ni,
     input  logic en_i,
     // config interface: ctrl
-    input  logic config_valid_i,
-    output logic config_ready_o,
+    input  logic config_valid_em_i,
+    input  logic config_valid_fm_i,
+    input  logic config_valid_aw_i,
     // config interface: energy monitor
     input  logic [spin_idx_bit-1:0] config_counter_i,
     // config interface: flip manager
     input  logic [num_spin-1:0] config_spin_initial_i,
     input  logic config_spin_initial_skip_i,
     // config interface: analog wrap
-    input  logic analog_wrap_configure_enable_i,
     input  logic [counter_bitwidth-1:0] cfg_trans_num_i,
     input  logic [counter_bitwidth-1:0] cycle_per_dt_write_i,
     input  logic [counter_bitwidth-1:0] cycle_per_spin_write_i,
@@ -102,14 +102,9 @@ module digital_macro #(
     logic [energy_total_bit-1:0] energy_monitor_output;
     logic flip_manager_spin_ready;
     logic flip_manager_energy_ready;
-    logic flip_manager_config_ready;
-    logic energy_monitor_config_ready;
     logic spin_new_valid;
     logic [num_spin-1:0] spin_new;
     logic analog_ready;
-
-    assign config_ready_o = energy_monitor_config_ready & flip_manager_config_ready;
-
 
     energy_monitor #(
         .BITJ (bit_j),
@@ -126,9 +121,9 @@ module digital_macro #(
         .clk_i (clk_i),
         .rst_ni (rst_ni),
         .en_i (en_i),
-        .config_valid_i (config_valid_i),
+        .config_valid_i (config_valid_em_i),
         .config_counter_i (config_counter_i),
-        .config_ready_o (energy_monitor_config_ready),
+        .config_ready_o (),
         .spin_valid_i (analog_spin_valid & flip_manager_spin_ready),
         .spin_i (analog_spin),
         .spin_ready_o (energy_monitor_spin_ready),
@@ -156,10 +151,10 @@ module digital_macro #(
         .cmpt_en_i (cmpt_en_i),
         .cmpt_idle_o (cmpt_idle_o),
         .host_readout_i (host_readout_i),
-        .spin_configure_valid_i (config_valid_i),
+        .spin_configure_valid_i (config_valid_fm_i),
         .spin_configure_i (config_spin_initial_i),
         .spin_configure_push_none_i (config_spin_initial_skip_i),
-        .spin_configure_ready_o (flip_manager_config_ready),
+        .spin_configure_ready_o (),
         .spin_pop_valid_o (spin_new_valid),
         .spin_pop_o (spin_new),
         .spin_pop_ready_i (analog_ready),
@@ -186,7 +181,7 @@ module digital_macro #(
         .clk_i (clk_i),
         .rst_ni (rst_ni),
         .en_i (en_i),
-        .analog_wrap_configure_enable_i (analog_wrap_configure_enable_i),
+        .analog_wrap_configure_enable_i (config_valid_aw_i),
         .cfg_trans_num_i (cfg_trans_num_i),
         .cycle_per_dt_write_i (cycle_per_dt_write_i),
         .cycle_per_spin_write_i (cycle_per_spin_write_i),

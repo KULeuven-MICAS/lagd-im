@@ -37,12 +37,12 @@ module tb_digital_macro;
     logic clk_i;
     logic rst_ni;
     logic en_i;
-    logic config_valid_i;
-    logic config_ready_o;
+    logic config_valid_em_i;
+    logic config_valid_fm_i;
+    logic config_valid_aw_i;
     logic [ $clog2(num_spin)-1 : 0 ] config_counter_i;
     logic [ num_spin-1 : 0 ] config_spin_initial_i;
     logic config_spin_initial_skip_i;
-    logic analog_wrap_configure_enable_i;
     logic [ counter_bitwidth-1 : 0] cfg_trans_num_i;
     logic [ counter_bitwidth-1 : 0] cycle_per_dt_write_i;
     logic [ counter_bitwidth-1 : 0] cycle_per_spin_write_i;
@@ -107,12 +107,12 @@ module tb_digital_macro;
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
-        .config_valid_i(config_valid_i),
-        .config_ready_o(config_ready_o),
+        .config_valid_em_i(config_valid_em_i),
+        .config_valid_fm_i(config_valid_fm_i),
+        .config_valid_aw_i(config_valid_aw_i),
         .config_counter_i(config_counter_i),
         .config_spin_initial_i(config_spin_initial_i),
         .config_spin_initial_skip_i(config_spin_initial_skip_i),
-        .analog_wrap_configure_enable_i(analog_wrap_configure_enable_i),
         .cfg_trans_num_i(cfg_trans_num_i),
         .cycle_per_dt_write_i(cycle_per_dt_write_i),
         .cycle_per_spin_write_i(cycle_per_spin_write_i),
