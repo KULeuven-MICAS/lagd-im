@@ -18,8 +18,8 @@ module analog_tx #(
     input logic en_i,
     // config interface
     input  logic tx_configure_enable_i,
-    input  logic [$clog2(synchronizer_pipe_depth)-1:0] synchronizer_pipe_num_i, // 0: one-shot; 1: continuous
-    input  logic synchronizer_mode_i,
+    input  logic [$clog2(synchronizer_pipe_depth)-1:0] synchronizer_pipe_num_i,
+    input  logic synchronizer_mode_i, // 0: one-shot; 1: continuous
     // spin interface: tx <- analog macro
     input  logic [num_spin-1:0] spin_i,
     // spin interface: rx -> tx
