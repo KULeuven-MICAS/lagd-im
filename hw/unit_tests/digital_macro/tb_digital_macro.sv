@@ -18,7 +18,7 @@ module tb_digital_macro;
     localparam int bit_j = 4;
     localparam int bit_h = 4;
     localparam int num_spin = 256;
-    localparam int scaling_bit = 5;
+    localparam int scaling_bit = 4; // limited by analog wbl which is reused by sfc, h and j
     localparam int parallelism = 4;
     localparam int local_energy_bit = 16;
     localparam int energy_total_bit = 32;
@@ -58,7 +58,7 @@ module tb_digital_macro;
     logic h_ren_o;
     logic [ bit_h*num_spin-1 : 0 ] h_rdata_i;
     logic sfc_ren_o;
-    logic [ num_spin*bit_j-1 : 0 ] sfc_rdata_i;
+    logic [ scaling_bit-1 : 0 ] sfc_rdata_i;
     logic flush_i;
     logic en_comparison_i;
     logic cmpt_en_i;
@@ -69,8 +69,8 @@ module tb_digital_macro;
     logic [ $clog2(flip_icon_depth)+1-1 : 0 ] icon_last_raddr_plus_one_i;
     logic [ num_spin-1 : 0 ] flip_rdata_i;
     logic flip_disable_i;
-    logic weight_valid_i;
-    logic weight_ready_o;
+    logic weight_ren_o;
+    logic [ $clog2(num_spin / parallelism)-1 : 0 ] weight_raddr_o;
     logic [ num_spin*bit_j*parallelism-1 : 0 ] weight_i;
     logic [ bit_h*parallelism-1 : 0 ] hbias_i;
     logic [ scaling_bit-1 : 0 ] hscaling_i;
@@ -94,7 +94,6 @@ module tb_digital_macro;
         .num_spin(num_spin),
         .scaling_bit(scaling_bit),
         .parallelism(parallelism),
-        .local_energy_bit(local_energy_bit),
         .energy_total_bit(energy_total_bit),
         .little_endian(little_endian),
         .pipesintf(pipesintf),
@@ -139,8 +138,8 @@ module tb_digital_macro;
         .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .flip_rdata_i(flip_rdata_i),
         .flip_disable_i(flip_disable_i),
-        .weight_valid_i(weight_valid_i),
-        .weight_ready_o(weight_ready_o),
+        .weight_ren_o(weight_ren_o),
+        .weight_raddr_o(weight_raddr_o),
         .weight_i(weight_i),
         .hbias_i(hbias_i),
         .hscaling_i(hscaling_i),

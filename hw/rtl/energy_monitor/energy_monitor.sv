@@ -58,13 +58,13 @@ module energy_monitor #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
     parameter int DATASPIN = 256,
-    parameter int SCALING_BIT = 5,
+    parameter int SCALING_BIT = 4,
     parameter int PARALLELISM = 4,
-    parameter int LOCAL_ENERGY_BIT = 16,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int LITTLE_ENDIAN = `True,
     parameter int PIPESINTF = 0,
     parameter int PIPESMID = 0,
+    parameter int LOCAL_ENERGY_BIT = $clog2(DATASPIN) + BITH + SCALING_BIT - 1,
     parameter int DATAJ = DATASPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
@@ -251,7 +251,6 @@ module energy_monitor #(
                 .BITH(BITH),
                 .DATASPIN(DATASPIN),
                 .SCALING_BIT(SCALING_BIT),
-                .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT),
                 .PIPES(PIPESMID)
             ) u_partial_energy_calc (
                 .clk_i(clk_i),

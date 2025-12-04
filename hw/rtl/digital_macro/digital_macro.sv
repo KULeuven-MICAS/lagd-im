@@ -7,6 +7,7 @@
 // Digital compute macro
 
 `include "../include/lagd_define.svh"
+`include "../lib/registers.svh"
 
 `define True 1'b1
 `define False 1'b0
@@ -16,9 +17,8 @@ module digital_macro #(
     parameter integer bit_j = 4,
     parameter integer bit_h = 4,
     parameter integer num_spin = 256,
-    parameter integer scaling_bit = 5,
+    parameter integer scaling_bit = 4,
     parameter integer parallelism = 4,
-    parameter integer local_energy_bit = 16,
     parameter integer energy_total_bit = 32,
     parameter integer little_endian = `False,
     parameter integer pipesintf = 1,
@@ -59,12 +59,12 @@ module digital_macro #(
     // data loading interface
     input  logic dt_cfg_enable_i, // load enable
     output logic j_mem_ren_o,
-    output logic [$clog2(num_spin / parallelism)-1:0] j_waddr_o,
-    input  logic [num_spin*bit_j*parallelism-1:0] j_wdata_i,
+    output logic [$clog2(num_spin / parallelism)-1:0] j_raddr_o,
+    input  logic [data_j_bit-1:0] j_rdata_i,
     output logic h_ren_o,
-    input  logic [num_spin*bit_h-1:0] h_wdata_i,
+    input  logic [data_h_bit-1:0] h_rdata_i,
     output logic sfc_ren_o,
-    input  logic [num_spin*bit_j-1:0] sfc_wdata_i,
+    input  logic [scaling_bit-1:0] sfc_rdata_i,
     // runtime interface: flip manager
     input  logic flush_i,
     input  logic en_comparison_i,
@@ -78,8 +78,7 @@ module digital_macro #(
     input  logic flip_disable_i,
     // runtime interface: energy monitor
     output logic weight_ren_o,
-    output logic weight_raddro,
-    output logic weight_ready_o,
+    output logic [$clog2(num_spin / parallelism)-1:0] weight_raddr_o,
     input  logic [data_j_bit-1:0] weight_i,
     input  logic [data_h_bit-1:0] hbias_i,
     input  logic [scaling_bit-1:0] hscaling_i,
@@ -99,6 +98,8 @@ module digital_macro #(
     logic [num_spin-1:0] analog_spin;
     logic energy_monitor_spin_ready;
     logic energy_monitor_energy_valid;
+    logic weight_valid_em;
+    logic weight_ready_em;
     logic [energy_total_bit-1:0] energy_monitor_output;
     logic flip_manager_spin_ready;
     logic flip_manager_energy_ready;
@@ -107,11 +108,16 @@ module digital_macro #(
     logic analog_ready;
     logic [spin_idx_bit-1:0] counter_spin;
     logic [scaling_bit*parallelism-1:0] hscaling_expanded;
+    logic [scaling_bit * num_spin-1:0] hscaling_analog_expanded;
     logic [bit_h*parallelism-1:0] hbias_sliced;
 
     assign hscaling_expanded = {parallelism{hscaling_i}};
-
+    assign hscaling_analog_expanded = {num_spin{sfc_rdata_i}};
     assign hbias_sliced = hbias_i[counter_spin * bit_h +: bit_h * parallelism];
+
+    assign weight_ren_o = en_i & (cmpt_en_i | weight_ready_em);
+    assign weight_raddr_o = counter_spin / parallelism;
+    `FFL(weight_valid_em, weight_ren_o, en_i, 1'b0, clk_i, rst_ni)
 
     energy_monitor #(
         .BITJ (bit_j),
@@ -119,7 +125,6 @@ module digital_macro #(
         .DATASPIN (num_spin),
         .SCALING_BIT (scaling_bit),
         .PARALLELISM (parallelism),
-        .LOCAL_ENERGY_BIT (local_energy_bit),
         .ENERGY_TOTAL_BIT (energy_total_bit),
         .LITTLE_ENDIAN (little_endian),
         .PIPESINTF (pipesintf),
@@ -134,11 +139,11 @@ module digital_macro #(
         .spin_valid_i (analog_spin_valid & flip_manager_spin_ready),
         .spin_i (analog_spin),
         .spin_ready_o (energy_monitor_spin_ready),
-        .weight_valid_i (weight_valid_i),
+        .weight_valid_i (weight_valid_em),
         .weight_i (weight_i),
-        .hbias_i (hbias_i),
+        .hbias_i (hbias_sliced),
         .hscaling_i (hscaling_expanded),
-        .weight_ready_o (weight_ready_o),
+        .weight_ready_o (weight_ready_em),
         .counter_spin_o (counter_spin),
         .energy_valid_o (energy_monitor_energy_valid),
         .energy_ready_i (flip_manager_energy_ready),
@@ -203,9 +208,9 @@ module digital_macro #(
         .j_raddr_o (j_raddr_o),
         .j_rdata_i (j_rdata_i),
         .h_ren_o (h_ren_o),
-        .h_wdata_i (h_wdata_i),
+        .h_rdata_i (h_rdata_i),
         .sfc_ren_o (sfc_ren_o),
-        .sfc_wdata_i (sfc_wdata_i),
+        .sfc_rdata_i (hscaling_analog_expanded),
         .j_one_hot_wwl_o (j_one_hot_wwl_o),
         .h_wwl_o (h_wwl_o),
         .sfc_wwl_o (sfc_wwl_o),
