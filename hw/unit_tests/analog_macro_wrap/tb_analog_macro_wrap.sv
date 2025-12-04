@@ -37,12 +37,12 @@ module tb_analog_macro_wrap;
     logic synchronizer_mode_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
-    logic [J_ADDRESS_WIDTH-1:0] j_waddr_o;
-    logic [DATASPIN*BITDATA*PARALLELISM-1:0] j_wdata_i;
+    logic [J_ADDRESS_WIDTH-1:0] j_raddr_o;
+    logic [DATASPIN*BITDATA*PARALLELISM-1:0] j_rdata_i;
     logic h_ren_o;
-    logic [DATASPIN*BITDATA-1:0] h_wdata_i;
+    logic [DATASPIN*BITDATA-1:0] h_rdata_i;
     logic sfc_ren_o;
-    logic [DATASPIN*BITDATA-1:0] sfc_wdata_i;
+    logic [DATASPIN*BITDATA-1:0] sfc_rdata_i;
     logic [DATASPIN-1:0] j_one_hot_wwl_o;
     logic h_wwl_o;
     logic sfc_wwl_o;
@@ -85,12 +85,12 @@ module tb_analog_macro_wrap;
         .synchronizer_mode_i(synchronizer_mode_i),
         .dt_cfg_enable_i(dt_cfg_enable_i),
         .j_mem_ren_o(j_mem_ren_o),
-        .j_waddr_o(j_waddr_o),
-        .j_wdata_i(j_wdata_i),
+        .j_raddr_o(j_raddr_o),
+        .j_rdata_i(j_rdata_i),
         .h_ren_o(h_ren_o),
-        .h_wdata_i(h_wdata_i),
+        .h_rdata_i(h_rdata_i),
         .sfc_ren_o(sfc_ren_o),
-        .sfc_wdata_i(sfc_wdata_i),
+        .sfc_rdata_i(sfc_rdata_i),
         .j_one_hot_wwl_o(j_one_hot_wwl_o),
         .h_wwl_o(h_wwl_o),
         .sfc_wwl_o(sfc_wwl_o),

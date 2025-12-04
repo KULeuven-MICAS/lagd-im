@@ -53,12 +53,12 @@ module tb_digital_macro;
     logic synchronizer_mode_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
-    logic [ $clog2(num_spin / parallelism)-1 : 0 ] j_waddr_o;
-    logic [ num_spin*bit_j*parallelism-1 : 0 ] j_wdata_i;
+    logic [ $clog2(num_spin / parallelism)-1 : 0 ] j_raddr_o;
+    logic [ num_spin*bit_j*parallelism-1 : 0 ] j_rdata_i;
     logic h_ren_o;
-    logic [ bit_h*num_spin-1 : 0 ] h_wdata_i;
+    logic [ bit_h*num_spin-1 : 0 ] h_rdata_i;
     logic sfc_ren_o;
-    logic [ num_spin*bit_j-1 : 0 ] sfc_wdata_i;
+    logic [ num_spin*bit_j-1 : 0 ] sfc_rdata_i;
     logic flush_i;
     logic en_comparison_i;
     logic cmpt_en_i;
@@ -73,7 +73,7 @@ module tb_digital_macro;
     logic weight_ready_o;
     logic [ num_spin*bit_j*parallelism-1 : 0 ] weight_i;
     logic [ bit_h*parallelism-1 : 0 ] hbias_i;
-    logic [ scaling_bit*parallelism-1 : 0 ] hscaling_i;
+    logic [ scaling_bit-1 : 0 ] hscaling_i;
     logic [ num_spin-1 : 0 ] j_one_hot_wwl_o;
     logic h_wwl_o;
     logic sfc_wwl_o;
@@ -123,12 +123,12 @@ module tb_digital_macro;
         .synchronizer_mode_i(synchronizer_mode_i),
         .dt_cfg_enable_i(dt_cfg_enable_i),
         .j_mem_ren_o(j_mem_ren_o),
-        .j_waddr_o(j_waddr_o),
-        .j_wdata_i(j_wdata_i),
+        .j_raddr_o(j_raddr_o),
+        .j_rdata_i(j_rdata_i),
         .h_ren_o(h_ren_o),
-        .h_wdata_i(h_wdata_i),
+        .h_rdata_i(h_rdata_i),
         .sfc_ren_o(sfc_ren_o),
-        .sfc_wdata_i(sfc_wdata_i),
+        .sfc_rdata_i(sfc_rdata_i),
         .flush_i(flush_i),
         .en_comparison_i(en_comparison_i),
         .cmpt_en_i(cmpt_en_i),

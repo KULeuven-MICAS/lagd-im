@@ -33,8 +33,7 @@ module digital_macro #(
     parameter integer spin_idx_bit = $clog2(num_spin),
     parameter integer flip_icon_addr_depth = $clog2(flip_icon_depth),
     parameter integer data_j_bit = num_spin * bit_j * parallelism,
-    parameter integer data_h_bit = bit_h * parallelism,
-    parameter integer data_sfc_bit = scaling_bit * parallelism
+    parameter integer data_h_bit = bit_h * num_spin
 )(
     input  logic clk_i,
     input  logic rst_ni,
@@ -78,11 +77,12 @@ module digital_macro #(
     input  logic [num_spin-1:0] flip_rdata_i,
     input  logic flip_disable_i,
     // runtime interface: energy monitor
-    input  logic weight_valid_i,
+    output logic weight_ren_o,
+    output logic weight_raddro,
     output logic weight_ready_o,
     input  logic [data_j_bit-1:0] weight_i,
     input  logic [data_h_bit-1:0] hbias_i,
-    input  logic [data_sfc_bit-1:0] hscaling_i,
+    input  logic [scaling_bit-1:0] hscaling_i,
     // runtime interface: analog wrap
     // analog interface: config
     output logic [num_spin-1:0] j_one_hot_wwl_o,
@@ -105,6 +105,13 @@ module digital_macro #(
     logic spin_new_valid;
     logic [num_spin-1:0] spin_new;
     logic analog_ready;
+    logic [spin_idx_bit-1:0] counter_spin;
+    logic [scaling_bit*parallelism-1:0] hscaling_expanded;
+    logic [bit_h*parallelism-1:0] hbias_sliced;
+
+    assign hscaling_expanded = {parallelism{hscaling_i}};
+
+    assign hbias_sliced = hbias_i[counter_spin * bit_h +: bit_h * parallelism];
 
     energy_monitor #(
         .BITJ (bit_j),
@@ -130,8 +137,9 @@ module digital_macro #(
         .weight_valid_i (weight_valid_i),
         .weight_i (weight_i),
         .hbias_i (hbias_i),
-        .hscaling_i (hscaling_i),
+        .hscaling_i (hscaling_expanded),
         .weight_ready_o (weight_ready_o),
+        .counter_spin_o (counter_spin),
         .energy_valid_o (energy_monitor_energy_valid),
         .energy_ready_i (flip_manager_energy_ready),
         .energy_o (energy_monitor_output)
@@ -192,8 +200,8 @@ module digital_macro #(
         .synchronizer_mode_i (synchronizer_mode_i),
         .dt_cfg_enable_i (dt_cfg_enable_i),
         .j_mem_ren_o (j_mem_ren_o),
-        .j_waddr_o (j_waddr_o),
-        .j_wdata_i (j_wdata_i),
+        .j_raddr_o (j_raddr_o),
+        .j_rdata_i (j_rdata_i),
         .h_ren_o (h_ren_o),
         .h_wdata_i (h_wdata_i),
         .sfc_ren_o (sfc_ren_o),

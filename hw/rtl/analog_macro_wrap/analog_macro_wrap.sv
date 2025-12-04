@@ -30,12 +30,12 @@ module analog_macro_wrap #(
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
     output logic j_mem_ren_o,
-    output logic [j_address_width-1:0] j_waddr_o,
-    input  logic [num_spin*bit_data*parallelism-1:0] j_wdata_i,
+    output logic [j_address_width-1:0] j_raddr_o,
+    input  logic [num_spin*bit_data*parallelism-1:0] j_rdata_i,
     output logic h_ren_o,
-    input  logic [num_spin*bit_data-1:0] h_wdata_i,
+    input  logic [num_spin*bit_data-1:0] h_rdata_i,
     output logic sfc_ren_o,
-    input  logic [num_spin*bit_data-1:0] sfc_wdata_i,
+    input  logic [num_spin*bit_data-1:0] sfc_rdata_i,
     // data config interface <-> analog macro
     output logic [num_spin-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
@@ -85,12 +85,12 @@ module analog_macro_wrap #(
         // data config interface <-> digital
         .dt_cfg_enable_i (dt_cfg_enable_i),
         .j_mem_ren_o (j_mem_ren_o),
-        .j_waddr_o (j_waddr_o),
-        .j_wdata_i (j_wdata_i),
+        .j_raddr_o (j_raddr_o),
+        .j_rdata_i (j_rdata_i),
         .h_ren_o (h_ren_o),
-        .h_wdata_i (h_wdata_i),
+        .h_rdata_i (h_rdata_i),
         .sfc_ren_o (sfc_ren_o),
-        .sfc_wdata_i (sfc_wdata_i),
+        .sfc_rdata_i (sfc_rdata_i),
         // data config interface -> analog macro
         .j_one_hot_wwl_o (j_one_hot_wwl_o),
         .h_wwl_o (h_wwl_o),
