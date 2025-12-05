@@ -14,11 +14,11 @@ SIM_TOOL := vsim
 
 all: chs-hw-all test
 
-# Vars for hdl_file_list.tcl generation
+# Memory island hdl_file_list.tcl generation
 MI_TEST_PATH := ./unit_tests/memory_island
 MI_SIM_ARGS := -t rtl
 
-test: $(MI_TEST_PATH)/hdl_file_list.tcl
+test: $(MI_TEST_PATH)/bender_list.tcl
 
-$(MI_TEST_PATH)/hdl_file_list.tcl:
+$(MI_TEST_PATH)/bender_list.tcl:
 	$(BENDER) script $(SIM_TOOL) $(MI_SIM_ARGS) > $@

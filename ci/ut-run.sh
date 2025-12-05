@@ -7,12 +7,14 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # ut-run.sh - Run unit tests
 
+# TODO add support for multicore execution
+
 set -e
 
 show_usage()
 {
     echo "LAGD: Unit test trigger script"
-    echo "Usage: $0 [--test=#test_name [--tool=#sim_tool --hdl_flist=#flist_path --gui --dbg=#dbg_lvl --defines=#defines --clean --clean-only [--help]]"
+    echo "Usage: $0 [--test=#test_name [--tool=#sim_tool --leaf=#leaf_name --hdl_flist=#flist_path --gui --dbg=#dbg_lvl --defines=#defines --clean --clean-only [--help]]"
     echo "Example: $0 --test=adder"
 }
 
@@ -21,6 +23,7 @@ show_help()
     show_usage
     echo "  --test=#test_name: Name of the test to run"
     echo "  --tool=#sim_tool: Simulation tool to use (default: vsim)"
+    echo "  --leaf=#leaf_name: Name of the leaf test to run (optional)"
     echo "  --hdl_flist=#flist_path: Path to HDL file list (default: empty, the test will use the default HDL files)"
     echo "  --gui: Run simulation in GUI mode"
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
@@ -33,6 +36,7 @@ ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 SIM_TOOL="vsim"
 HDL_FILE_LIST=""
+LEAF=""
 NO_GUI=1
 DBG=0
 DEFINES=""
@@ -43,6 +47,10 @@ for i in "$@"; do
     case $i in
         --test=*)
             TEST_NAME="${i#*=}"
+            shift
+            ;;
+        --leaf=*)
+            LEAF="${i#*=}"
             shift
             ;;
         --tool=*)
@@ -91,35 +99,28 @@ if [ ! -d "${TEST_PATH}" ]; then
     exit 1
 fi
 
-# Set call args for the simulation
-ARGS=""
-if [ -n "${HDL_FILE_LIST}" ]; then
-    ARGS="HDL_FILES_LIST=${HDL_FILE_LIST}"
-fi
-
-if [ "${NO_GUI}" -eq 0 ]; then
-    ARGS="${ARGS} NO_GUI=0"
-else
-    ARGS="${ARGS} NO_GUI=1"
-fi
-
-if [ "${DBG}" -gt 0 ]; then
-    ARGS="${ARGS} DBG=${DBG}"
-else
-    ARGS="${ARGS} DBG=0"
-fi
-
-if [ -n "${DEFINES}" ]; then
-    ARGS="${ARGS} DEFINES=${DEFINES}"
+if [ -n "${LEAF}" ]; then
+    if [ ! -f "${TEST_PATH}/tests/${LEAF}.tcl" ]; then
+        echo "Error: Leaf test '${LEAF}' for '${TEST_PATH}' does not exist."
+        exit 1
+    else
+        HDL_FILE_LIST="${TEST_PATH}/tests/${LEAF}.tcl"
+    fi
 fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
     SIM_TOOL=${SIM_TOOL} make -C "${TEST_PATH}" clean
 else
     if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
-        HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
-        SIM_TOOL=${SIM_TOOL} \
-        make -C "${TEST_PATH}" ${CLEAN} run
+        if [ -n "${LEAF}" ]; then
+            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
+            SIM_TOOL=${SIM_TOOL} \
+            make -C "${TEST_PATH}" ${CLEAN} run
+        else
+            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
+            SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} \
+            make -C "${TEST_PATH}" ${CLEAN} run
+        fi
     else
         DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} \
             make -C "${TEST_PATH}" ${CLEAN} run

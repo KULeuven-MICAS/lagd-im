@@ -10,9 +10,14 @@ PROJECT_ROOT = $(realpath ../../../)
 # PATHS
 SIM_DIR = $(PROJECT_ROOT)/target/sim
 
-SIM_NAME ?= $(shell basename $(CURDIR))
+ifdef LEAF
+	SIM_NAME := $(LEAF)
+else
+	SIM_NAME ?= $(shell basename $(CURDIR))
+endif
+
 TEST_PATH ?= $(CURDIR)
-WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs
+WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/
 DBG ?= 0
 NO_GUI ?= 1
 DEFINES ?=

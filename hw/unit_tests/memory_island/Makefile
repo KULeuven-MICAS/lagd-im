@@ -4,6 +4,14 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-# Note: hdl_file_list.tcl is generated from hw/Makefile
+# Note: bender_list.tcl is generated from hw/Makefile
+
+ifdef REGRESSION
+	TEST_LIST := $(shell ls $(CURDIR)/tests/*.tcl)
+	SIM_NAME := $(basename $(notdir $(TEST_LIST)))
+else
+	SIM_NAME := memory_island
+endif
+HDL_FILES_LIST ?= $(CURDIR)/tests/memory_island.tcl
 
 include ../common.mk
