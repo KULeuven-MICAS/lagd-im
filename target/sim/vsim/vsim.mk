@@ -19,24 +19,35 @@ ifeq ($(NO_GUI), 1)
 	VSIM_FLAGS += -c
 endif
 
-build: vsim-build
-
-run: vsim-run build
-
 # Questasim build target
-$(TEST_PATH)/work/work_${SIM_NAME}: $(HDL_FILES) $(VSIM_BUILD_SCRIPT)
-	@mkdir -p ./work
-	TEST_PATH=$(TEST_PATH) SIM_NAME=$(SIM_NAME) DBG=$(DBG) \
+$(WORK_DIR)/work/work_${SIM_NAME}: $(HDL_FILES) $(VSIM_BUILD_SCRIPT)
+	@mkdir -p $(WORK_DIR)/work
+	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR) SIM_NAME=$(SIM_NAME) DBG=$(DBG) \
 	BUILD_ONLY=1 DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) \
-	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT)"
+	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT)" \
+	&& mv ./transcript $(WORK_DIR)/transcript.build
 
 # Questasim run target
-$(TEST_PATH)/work/${SIM_NAME}.wlf: $(TEST_PATH)/work/work_${SIM_NAME} $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES)
-	@mkdir -p ./work
-	TEST_PATH=$(TEST_PATH) SIM_NAME=$(SIM_NAME) DBG=$(DBG) FORCE_BUILD=0 \
+$(WORK_DIR)/work/${SIM_NAME}.wlf: $(WORK_DIR)/work/work_${SIM_NAME} $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES)
+	@mkdir -p $(WORK_DIR)/work
+	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR) SIM_NAME=$(SIM_NAME) DBG=$(DBG) FORCE_BUILD=0 \
 	DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) OBJ=$(VSIM_OBJ) \
-	vsim $(VSIM_FLAGS) -do "source $(VSIM_SCRIPT)"
+	vsim $(VSIM_FLAGS) -do "source $(VSIM_SCRIPT)" \
+	&& mv ./transcript $(WORK_DIR)/transcript.run
 
-vsim-run: $(TEST_PATH)/work/${SIM_NAME}.wlf
+vsim-run: $(WORK_DIR)/work/${SIM_NAME}.wlf
 
-vsim-build: $(TEST_PATH)/work/work_${SIM_NAME}
+vsim-build: $(WORK_DIR)/work/work_${SIM_NAME}
+
+clean-sim: 
+	rm -rf $(WORK_DIR)/work/${SIM_NAME}.wlf $(WORK_DIR)/transcript.run ${WORK_DIR}/*.vcd
+
+clean:
+	rm -rf $(WORK_DIR)
+
+# Aliases
+build: vsim-build
+run: vsim-run build
+clean-all: clean
+
+.PHONY: clean clean-sim clean-all

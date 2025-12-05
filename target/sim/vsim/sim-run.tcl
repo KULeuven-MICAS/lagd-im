@@ -38,11 +38,11 @@ vmap
 
 # Run simulation
 vsim -quiet \
-    -wlf work/${SIM_NAME}.wlf \
+    -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
     -msgmode both -displaymsgmode both \
     -L work_lib \
     -work ${WLIB} \
-    -ini ./modelsim.ini \
+    -ini ${WORK_DIR}/modelsim.ini \
     ${OBJ}
 
 run -all

@@ -37,6 +37,8 @@ if { $DBG == 1 } {
     set OBJ "nodbg_${SIM_NAME}"
 }
 
+file rename -force ./modelsim.ini ${WORK_DIR}/modelsim.ini
+
 if { $BUILD_ONLY == 1 } {
     quit
 }

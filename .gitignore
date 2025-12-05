@@ -208,11 +208,13 @@ __marimo__/
 # Questasim generated files
 **/work/
 **.ini
-transcript
+transcript*
 **.wlf
 **.vcd
 **.mti
 **.mpf
+**runs/
+
 # pixi environments
 .pixi/*
 !.pixi/config.toml

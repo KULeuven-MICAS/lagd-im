@@ -114,7 +114,7 @@ if [ -n "${DEFINES}" ]; then
 fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
-    make -C "${TEST_PATH}" clean
+    SIM_TOOL=${SIM_TOOL} make -C "${TEST_PATH}" clean
 else
     if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
         HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \

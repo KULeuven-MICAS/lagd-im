@@ -12,6 +12,7 @@ SIM_DIR = $(PROJECT_ROOT)/target/sim
 
 SIM_NAME ?= $(shell basename $(CURDIR))
 TEST_PATH ?= $(CURDIR)
+WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs
 DBG ?= 0
 NO_GUI ?= 1
 DEFINES ?=
@@ -22,6 +23,3 @@ HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST))
 $(info HDL_FILES: $(HDL_FILES))
 
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
-
-clean:
-	rm -rf work transcript *.vcd
