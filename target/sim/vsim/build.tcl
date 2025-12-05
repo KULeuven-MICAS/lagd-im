@@ -21,10 +21,17 @@ vmap work ${WLIB}
 
 source ${HDL_FILE_LIST}
 
+if { [ info exists INCLUDE_DIRS ] == 0 } {
+    set INCLUDES ""
+} else {
+    # Add +incdir+ for each directory in INCLUDE_DIRS
+    set INCLUDES [join [lmap inc ${INCLUDE_DIRS} { format "+incdir+%s" $inc } ] " "]
+}
+
 puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
-    vlog -sv -work ${WLIB} {*}${DEFINES} ${file}
+    vlog -incr -sv -work ${WLIB} {*}${DEFINES} ${INCLUDES} ${file}
 }
 
 
@@ -36,6 +43,8 @@ if { $DBG == 1 } {
     vopt -quiet -work ${WLIB} tb_${SIM_NAME} -o nodbg_${SIM_NAME}
     set OBJ "nodbg_${SIM_NAME}"
 }
+
+file rename -force ./modelsim.ini ${WORK_DIR}/modelsim.ini
 
 if { $BUILD_ONLY == 1 } {
     quit
