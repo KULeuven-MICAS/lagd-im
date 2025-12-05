@@ -20,7 +20,7 @@ show_help()
 {
     show_usage
     echo "  --test=#test_name: Name of the test to run"
-    echo "  --tool=#sim_tool: Simulation tool to use (default: questa)"
+    echo "  --tool=#sim_tool: Simulation tool to use (default: vsim)"
     echo "  --hdl_flist=#flist_path: Path to HDL file list (default: empty, the test will use the default HDL files)"
     echo "  --gui: Run simulation in GUI mode"
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
@@ -31,12 +31,12 @@ show_help()
 SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
-SIM_TOOL="questa"
+SIM_TOOL="vsim"
 HDL_FILE_LIST=""
 NO_GUI=1
 DBG=0
 DEFINES=""
-CLEAN=0
+CLEAN=""
 CLEAN_ONLY=0
 
 for i in "$@"; do
@@ -66,7 +66,7 @@ for i in "$@"; do
             shift
             ;;
         --clean)
-            CLEAN=1
+            CLEAN=clean
             shift
             ;;
         --clean-only)
@@ -116,17 +116,12 @@ fi
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
     make -C "${TEST_PATH}" clean
 else
-    if [ "${CLEAN}" -eq 1 ]; then # CLEAN is set to 1
-        if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
-            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} make -C "${TEST_PATH}" clean questa-run
-        else
-             DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} make -C "${TEST_PATH}" clean questa-run
-        fi
+    if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
+        HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
+        SIM_TOOL=${SIM_TOOL} \
+        make -C "${TEST_PATH}" ${CLEAN} run
     else
-        if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
-            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} make -C "${TEST_PATH}" questa-run
-        else
-             DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} make -C "${TEST_PATH}" questa-run
-        fi
+        DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} \
+            make -C "${TEST_PATH}" ${CLEAN} run
     fi
 fi
