@@ -78,7 +78,8 @@ package lagd_pkg;
         // CVA6 stack memory
         addr_map[Idx.STACK_MEM] = $unsigned(`STACK_BASE_ADDR + `STACK_SIZE_B - 1);
         // Ising cores
-        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B);
+        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + 
+            `IC_L1_MEM_SIZE_B);
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i+1)*`IC_L1_MEM_LIMIT - 1);
@@ -149,9 +150,10 @@ package lagd_pkg;
     function automatic cheshire_pkg::cheshire_cfg_t gen_cheshire_cfg();
         cheshire_pkg::cheshire_cfg_t cfg = cheshire_pkg::DefaultCfg;
         // CVA6 parameters
-        //cfg.Cva6RASDepth = ariane_pkg::ArianeDefaultCfg.RASDepth; // default cfg not present in checkedout cva6 repo
-        //cfg.Cva6BTBEntries = ariane_pkg::ArianeDefaultCfg.BTBEntries; // default cfg not present in checkedout cva6 repo
-        //cfg.Cva6BHTEntries = ariane_pkg::ArianeDefaultCfg.BHTEntries; // default cfg not present in checkedout cva6 repo
+        // default cfg not present in checkedout cva6 repo
+        //cfg.Cva6RASDepth = ariane_pkg::ArianeDefaultCfg.RASDepth;
+        //cfg.Cva6BTBEntries = ariane_pkg::ArianeDefaultCfg.BTBEntries;
+        //cfg.Cva6BHTEntries = ariane_pkg::ArianeDefaultCfg.BHTEntries;
         cfg.Cva6NrPMPEntries = 0;
         cfg.Cva6ExtCieLength = 'h1000_0000;
         cfg.Cva6ExtCieOnTop = 1'b0;
@@ -172,7 +174,7 @@ package lagd_pkg;
         cfg.Bootrom = 1;
         cfg.Uart = 1;
         cfg.I2c = 0;
-        cfg.SpiHost = 1;
+        cfg.SpiHost = 0;
         cfg.Gpio = 0;
         cfg.Dma = 1;
         cfg.SerialLink = 1;
@@ -190,7 +192,7 @@ package lagd_pkg;
         // DMA config defaults are defaults
         // External AXI ports
         cfg.AxiExtNumSlv = $unsigned(`LAGD_NUM_AXI_SLV);
-        cfg.AxiExtNumMst = 0;
+        cfg.AxiExtNumMst = $unsigned(`LAGD_NUM_AXI_MST);
         cfg.AxiExtNumRules = $unsigned(`LAGD_NUM_AXI_SLV);
         cfg.AxiExtRegionIdx = LagdSlvIdxMap;
         cfg.AxiExtRegionStart = LagdSlvAddrStart;
