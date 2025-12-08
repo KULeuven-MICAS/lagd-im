@@ -78,7 +78,7 @@ package lagd_pkg;
         // CVA6 stack memory
         addr_map[Idx.STACK_MEM] = $unsigned(`STACK_BASE_ADDR + `STACK_SIZE_B - 1);
         // Ising cores
-        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B);
+        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `L1_J_MEM_SIZE_B);
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i+1)*`IC_L1_MEM_LIMIT - 1);
@@ -215,7 +215,8 @@ package lagd_pkg;
     // Check that the number of cores can be encoded in the Reg Slave ID width
     `PACKAGE_ASSERT(cheshire_pkg::MaxExtRegSlvWidth >= $clog2(`NUM_ISING_CORES))
     // Check that the memory per core is not larger than the maximum allowed
-    `PACKAGE_ASSERT(`IC_L1_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
+    `PACKAGE_ASSERT(`L1_J_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
+    `PACKAGE_ASSERT(`L1_FLIP_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
 
 
 endpackage : lagd_pkg
