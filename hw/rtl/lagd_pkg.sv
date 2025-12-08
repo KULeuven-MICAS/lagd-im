@@ -233,8 +233,26 @@ package ising_logic_pkg;
         int unsigned BitJ;
         /// Bit width for H fields
         int unsigned BitH;
+        /// Bit width for scaling
+        int unsigned ScalingBit;
+        /// Parallelism factor
+        int unsigned Parallelism;
+        /// Total energy bit width
+        int unsigned EnergyTotalBit;
         /// Depth of the flip icon memory
         int unsigned FlipIconDepth;
+        /// Config counter bitwidth
+        int unsigned CfgCounterBitwidth;
+        /// Spin depth
+        int unsigned SpinDepth;
+        /// Little endian flag
+        bit LittleEndian;
+        /// Pipeline at energy monitor interface
+        bit PipesIntf;
+        /// Pipeline in adder tree of energy monitor
+        bit PipesMid;
+        /// Synchronizer pipe depth
+        int unsigned SynchronizerPipeDepth;
     } ising_logic_cfg_t;
     localparam ising_logic_cfg_t IsingLogicCfg = '{
         NumSpin : `NUM_SPIN,
