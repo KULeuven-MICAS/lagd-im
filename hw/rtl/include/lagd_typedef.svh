@@ -12,7 +12,7 @@
 
 `include "axi/typedef.svh"
 `include "register_interface/typedef.svh"
-`include "../memory_island/typedef.svh"
+`include "memory_interface/typedef.svh"
 
 // ==================
 // AXI TYPEDEFS
