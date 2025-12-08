@@ -47,6 +47,7 @@
     // L1 memory port width
     `define IC_L1_J_MEM_DATA_WIDTH 4096
     `define IC_L1_FLIP_MEM_DATA_WIDTH 256
+    `define IC_L1_J_MEM_ADDR_WIDTH 8
     `define IC_L1_FLIP_MEM_ADDR_WIDTH 16
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core

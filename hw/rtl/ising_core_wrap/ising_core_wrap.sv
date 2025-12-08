@@ -27,30 +27,49 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     output axi_slv_rsp_t axi_s_rsp_o,
 
     // Register slave interface
-    input lagd_reg_req_t reg_s_req_i,
-    output lagd_reg_rsp_t reg_s_rsp_o
+    input reg_req_t reg_s_req_i,
+    output reg_rsp_t reg_s_rsp_o
 );
-    // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
-    localparam type lagd_addr_t = logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0];
-    localparam type lagd_flip_wide_data_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0];
-    localparam type lagd_flip_wide_strb_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH/8-1:0];
-    localparam type lagd_user_t = logic [CheshireCfg.AxiUserWidth-1:0];
-    `MEM_TYPEDEF_ALL(lagd_flip_mem_wide, lagd_addr_t, lagd_flip_wide_data_t, lagd_flip_wide_strb_t, lagd_user_t)
+    // Define local types for flip memory interface
+    localparam type flip_addr_t = logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0];
+    localparam type flip_data_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0];
+    localparam type flip_strb_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH/8-1:0];
+    localparam type flip_user_t = logic [lagd_pkg::CheshireCfg.AxiUserWidth-1:0];
+    `MEM_TYPEDEF_ALL(flip_mem, flip_addr_t, flip_data_t, flip_strb_t, flip_user_t)
+    
+    // Define types for J memory (wide port)
+    localparam type j_data_t = logic [`IC_L1_DATA_WIDTH-1:0];
+    localparam type j_strb_t = logic [`IC_L1_DATA_WIDTH/8-1:0];
+    localparam type j_addr_t = logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0];
+    `MEM_TYPEDEF_ALL(j_mem, j_addr_t, j_data_t, j_strb_t, flip_user_t)
 
     // Internal signals
     logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
-    axi_narrow_req_t axi_s_req_j, axi_s_req_flip;
-    axi_narrow_rsp_t axi_s_rsp_j, axi_s_rsp_flip;
-    lagd_mem_wide_req_t drt_s_req_j;
-    lagd_mem_wide_rsp_t drt_s_rsp_j;
-    lagd_flip_mem_wide_req_t drt_s_req_flip;
-    lagd_flip_mem_wide_rsp_t drt_s_rsp_flip;
-    lagd_mem_wide_req_t drt_s_req_load_j;
-    lagd_mem_wide_rsp_t drt_s_rsp_load_j;
-    lagd_mem_wide_req_t drt_s_req_compute_j;
-    lagd_mem_wide_rsp_t drt_s_rsp_compute_j;
+    axi_slv_req_t axi_s_req_j, axi_s_req_h, axi_s_req_flip;
+    axi_slv_rsp_t axi_s_rsp_j, axi_s_rsp_h, axi_s_rsp_flip;
+    j_mem_req_t drt_s_req_j;
+    j_mem_rsp_t drt_s_rsp_j;
+    flip_mem_req_t drt_s_req_flip;
+    flip_mem_rsp_t drt_s_rsp_flip;
     logic [logic_cfg.NumSpin-1:0] spin_regfile;
+    
+    // Digital macro interface signals
+    logic en_i;
+    logic j_mem_ren_load;
+    logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] j_raddr_load;
+    logic [`IC_L1_DATA_WIDTH-1:0] j_rdata;
+    logic h_ren;
+    logic [`IC_L1_DATA_WIDTH-1:0] h_rdata;
+    logic sfc_ren;
+    logic [`IC_L1_DATA_WIDTH-1:0] sfc_rdata;
+    logic en_comparison, cmpt_en, cmpt_idle, host_readout;
+    logic flip_ren, flip_disable;
+    logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] flip_raddr, icon_last_raddr_plus_one;
+    logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0] flip_rdata;
+    logic weight_ren;
+    logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] weight_raddr;
+    logic [`IC_L1_DATA_WIDTH-1:0] weight;
+    logic [`IC_L1_DATA_WIDTH-1:0] hbias, hscaling;
 
     logic [logic_cfg.NumSpin * logic_cfg.BitJ-1:0] analog_wbl;
     logic [logic_cfg.NumSpin-1:0] analog_dt_j_wwl;
@@ -63,7 +82,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // L1 memory, with narrow and direct access //////////////
     //////////////////////////////////////////////////////////
     // Configuration of the AXI crossbar
-    localparam axi_pkg::xbar_cfg_t xbar_cfg = `{
+    localparam axi_pkg::xbar_cfg_t xbar_cfg = '{
         NoSlvPorts         : 1,
         NoMstPorts         : 3,
         MaxMstTrans        : 1,
@@ -87,25 +106,24 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     } rule_t;
 
     rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
-        '{
-            `{idx: 0, start_addr: `IC_MEM_BASE_ADDR, end_addr: `IC_J_MEM_END_ADDR},
-            `{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR}
-        }
+        '{idx: 0, start_addr: `IC_MEM_BASE_ADDR, end_addr: `IC_J_MEM_END_ADDR-1},
+        '{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR-1},
+        '{idx: 2, start_addr: `IC_FLIP_MEM_END_ADDR, end_addr: `IC_L1_MEM_LIMIT-1}
     };
 
     axi_xbar #(
     .Cfg                   (xbar_cfg               ),
     .Connectivity          ('1                     ),
     .ATOPs                 (0                      ),
-    .slv_aw_chan_t         (lagd_axi_slv_aw_chan_t ),
-    .mst_aw_chan_t         (lagd_axi_slv_aw_chan_t ),
-    .w_chan_t              (lagd_axi_slv_w_chan_t  ),
-    .slv_b_chan_t          (lagd_axi_slv_b_chan_t  ),
-    .mst_b_chan_t          (lagd_axi_slv_b_chan_t  ),
-    .slv_ar_chan_t         (lagd_axi_slv_ar_chan_t ),
-    .mst_ar_chan_t         (lagd_axi_slv_ar_chan_t ),
-    .slv_r_chan_t          (lagd_axi_slv_r_chan_t  ),
-    .mst_r_chan_t          (lagd_axi_slv_r_chan_t  ),
+    .slv_aw_chan_t         (axi_slv_aw_chan_t      ),
+    .mst_aw_chan_t         (axi_slv_aw_chan_t      ),
+    .w_chan_t              (axi_slv_w_chan_t       ),
+    .slv_b_chan_t          (axi_slv_b_chan_t       ),
+    .mst_b_chan_t          (axi_slv_b_chan_t       ),
+    .slv_ar_chan_t         (axi_slv_ar_chan_t      ),
+    .mst_ar_chan_t         (axi_slv_ar_chan_t      ),
+    .slv_r_chan_t          (axi_slv_r_chan_t       ),
+    .mst_r_chan_t          (axi_slv_r_chan_t       ),
     .slv_req_t             (axi_slv_req_t          ),
     .slv_resp_t            (axi_slv_rsp_t          ),
     .mst_req_t             (axi_slv_req_t          ),
@@ -129,49 +147,41 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // L1 memory instances
     memory_island_wrap #(
-        .mem_cfg_t             (l1_mem_cfg_j           ),
+        .Cfg                   (l1_mem_cfg_j           ),
         .axi_narrow_req_t      (axi_slv_req_t          ),
         .axi_narrow_rsp_t      (axi_slv_rsp_t          ),
-        .axi_wide_req_t        (lagd_axi_wide_slv_req_t),
-        .axi_wide_rsp_t        (lagd_axi_wide_slv_rsp_t),
-        .mem_narrow_req_t      (lagd_mem_narr_req_t    ),
-        .mem_narrow_rsp_t      (lagd_mem_narr_rsp_t    ),
-        .mem_wide_req_t        (lagd_mem_wide_req_t    ),
-        .mem_wide_rsp_t        (lagd_mem_wide_rsp_t    )
+        .mem_wide_req_t        (j_mem_req_t            ),
+        .mem_wide_rsp_t        (j_mem_rsp_t            )
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_t       (axi_s_req_j           ),
-        .axi_narrow_rsp_t       (axi_s_rsp_j           ),
-        .axi_wide_req_t         (                      ),
-        .axi_wide_rsp_t         (                      ),
-        .mem_narrow_req_t       (                      ),
-        .mem_narrow_rsp_t       (                      ),
-        .mem_wide_req_t         (drt_s_req_j           ),
-        .mem_wide_rsp_t         (drt_s_rsp_j           )
+        .axi_narrow_req_i       (axi_s_req_j           ),
+        .axi_narrow_rsp_o       (axi_s_rsp_j           ),
+        .axi_wide_req_i         ('0                    ),
+        .axi_wide_rsp_o         (                      ),
+        .mem_narrow_req_i       (                      ),
+        .mem_narrow_rsp_o       ('0                    ),
+        .mem_wide_req_i         (drt_s_req_j           ),
+        .mem_wide_rsp_o         (drt_s_rsp_j           )
     );
 
     memory_island_wrap #(
-    .mem_cfg_t                 (l1_mem_cfg_flip        ),
-    .axi_narrow_req_t          (axi_slv_req_t          ),
-    .axi_narrow_rsp_t          (axi_slv_rsp_t          ),
-    .axi_wide_req_t            (lagd_axi_wide_slv_req_t),
-    .axi_wide_rsp_t            (lagd_axi_wide_slv_rsp_t),
-    .mem_narrow_req_t          (lagd_mem_narr_req_t    ),
-    .mem_narrow_rsp_t          (lagd_mem_narr_rsp_t    ),
-    .mem_wide_req_t            (lagd_mem_wide_req_t    ),
-    .mem_wide_rsp_t            (lagd_mem_wide_rsp_t    )
+        .Cfg                   (l1_mem_cfg_flip        ),
+        .axi_narrow_req_t      (axi_slv_req_t          ),
+        .axi_narrow_rsp_t      (axi_slv_rsp_t          ),
+        .mem_wide_req_t        (flip_mem_req_t         ),
+        .mem_wide_rsp_t        (flip_mem_rsp_t         )
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_t       (axi_s_req_flip        ),
-        .axi_narrow_rsp_t       (axi_s_rsp_flip        ),
-        .axi_wide_req_t         (                      ),
-        .axi_wide_rsp_t         (                      ),
-        .mem_narrow_req_t       (                      ),
-        .mem_narrow_rsp_t       (                      ),
-        .mem_wide_req_t         (drt_s_req_flip        ),
-        .mem_wide_rsp_t         (drt_s_rsp_flip        )
+        .axi_narrow_req_i       (axi_s_req_flip        ),
+        .axi_narrow_rsp_o       (axi_s_rsp_flip        ),
+        .axi_wide_req_i         ('0                    ),
+        .axi_wide_rsp_o         (                      ),
+        .mem_narrow_req_i       (                      ),
+        .mem_narrow_rsp_o       ('0                    ),
+        .mem_wide_req_i         (drt_s_req_flip        ),
+        .mem_wide_rsp_o         (drt_s_rsp_flip        )
     );
 
     //////////////////////////////////////////////////////////
@@ -264,9 +274,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
         drt_s_req_flip.q_user          = '0;
         drt_s_req_flip.q_valid         = flip_ren;
-        drt_s_rsp_flip.q_ready         = 1'b1; // not sure how to use this signal
-        drt_s_rsP_flip.p.data          = flip_rdata;
-        drt_s_rsp_flip.p.valid         = 1'b1; // not used yet
+        flip_rdata                     = drt_s_rsp_flip.p.data;
+        // drt_s_rsp_flip.q_ready; // not sure how to use this signal
+        // drt_s_rsp_flip.p.valid; // not used yet
     end
 
     always_comb begin
@@ -278,9 +288,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.strb         = {(`IC_L1_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q_user         = '0;
                 drt_s_req_j.q_valid        = j_mem_ren_load;
-                drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
-                drt_s_rsp_j.p.data         = j_rdata;
-                drt_s_rsp_j.p.valid        = 1'b1; // not used yet
+                j_rdata                    = drt_s_rsp_j.p.data;
+                // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
+                // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
             end
             1'b1: begin: compute_mode
                 drt_s_req_j.q.addr         = weight_raddr;
@@ -289,9 +299,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.strb         = {(`IC_L1_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q_user         = '0;
                 drt_s_req_j.q_valid        = weight_ren;
-                drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
-                drt_s_rsp_j.p.data         = weight;
-                drt_s_rsp_j.p.valid        = 1'b1; // not used yet
+                weight                     = drt_s_rsp_j.p.data;
+                // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
+                // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
             end
         endcase
     end
