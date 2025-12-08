@@ -34,14 +34,12 @@ module lagd_soc import lagd_pkg::*; (
     input logic uart_dsr_ni, // =1,
     input logic uart_dcd_ni,  // =1,
     input logic uart_rin_ni,  // =1,
-    // SPI host interface
-    output logic spih_sck_o,
-    output logic spih_sck_en_o,
-    output logic [SpihNumCs-1:0] spih_csb_o,
-    output logic [SpihNumCs-1:0] spih_csb_en_o,
-    output logic [ 3:0] spih_sd_o,
-    output logic [ 3:0] spih_sd_en_o,
-    input logic [ 3:0] spih_sd_i,
+    // SPI slave interface
+    input logic spi_sck_i,
+    input logic spi_cs_i,
+    output logic [3:0] spi_oen_o,
+    input logic [3:0] spi_sdi_i,
+    output logic [3:0] spi_sdo_o,
     // Serial link interface
     input logic [SlinkNumChan-1:0] slink_rcv_clk_i,
     output logic [SlinkNumChan-1:0] slink_rcv_clk_o,
@@ -50,7 +48,7 @@ module lagd_soc import lagd_pkg::*; (
 );
 
     // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_DATA_WIDTH, CheshireCfg)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
 
     //////////////////////////////////////////////////////////
     // Wire declarations /////////////////////////////////////
@@ -58,6 +56,8 @@ module lagd_soc import lagd_pkg::*; (
     // External AXI interconnect
     lagd_axi_slv_req_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_req;
     lagd_axi_slv_rsp_t  [`LAGD_NUM_AXI_SLV-1:0] axi_ext_slv_rsp;
+    lagd_axi_mst_req_t  [`LAGD_NUM_AXI_MST-1:0] axi_ext_mst_req;
+    lagd_axi_mst_rsp_t  [`LAGD_NUM_AXI_MST-1:0] axi_ext_mst_rsp;
     // Register interface
     lagd_reg_req_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_req;
     lagd_reg_rsp_t  [`LAGD_NUM_REG_SLV-1:0] reg_ext_rsp;
@@ -67,6 +67,8 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     cheshire_soc #(
         .Cfg                (CheshireCfg),
+        .axi_ext_mst_req_t  (lagd_axi_mst_req_t),
+        .axi_ext_mst_rsp_t  (lagd_axi_mst_rsp_t),
         .axi_ext_slv_req_t  (lagd_axi_slv_req_t),
         .axi_ext_slv_rsp_t  (lagd_axi_slv_rsp_t),
         .reg_ext_req_t      (lagd_reg_req_t),
@@ -80,6 +82,8 @@ module lagd_soc import lagd_pkg::*; (
         // External AXI crosbar ports
         .axi_ext_slv_req_o  (axi_ext_slv_req),
         .axi_ext_slv_rsp_i  (axi_ext_slv_rsp),
+        .axi_ext_mst_req_i  (axi_ext_mst_req),
+        .axi_ext_mst_rsp_o  (axi_ext_mst_rsp),
         // Register interface
         .reg_ext_slv_req_o  (reg_ext_req),
         .reg_ext_slv_rsp_i  (reg_ext_rsp),
@@ -100,19 +104,30 @@ module lagd_soc import lagd_pkg::*; (
         .uart_dsr_ni    (uart_dsr_ni), // =1,
         .uart_dcd_ni    (uart_dcd_ni), // =1,
         .uart_rin_ni    (uart_rin_ni), // =1,
-        // SPI host interface
-        .spih_sck_o     (spih_sck_o),
-        .spih_sck_en_o  (spih_sck_en_o),
-        .spih_csb_o     (spih_csb_o),
-        .spih_csb_en_o  (spih_csb_en_o),
-        .spih_sd_o      (spih_sd_o),
-        .spih_sd_en_o   (spih_sd_en_o),
-        .spih_sd_i      (spih_sd_i),
         // Serial link interface
         .slink_rcv_clk_i    (slink_rcv_clk_i),
         .slink_rcv_clk_o    (slink_rcv_clk_o),
         .slink_i            (slink_i),
         .slink_o            (slink_o)
+    );
+
+    //////////////////////////////////////////////////////////
+    // Axi SPI Slave /////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    lagd_axi_spi_slave #(
+        .axi_req_t(lagd_axi_mst_req_t),
+        .axi_rsp_t(lagd_axi_mst_rsp_t)
+    ) i_axi_spi_slave (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        // AXI slave interface
+        .axi_req_o(axi_ext_mst_req[0]),
+        .axi_rsp_i(axi_ext_mst_rsp[0]),
+        .spi_sclk_i(spi_sck_i),
+        .spi_cs_i(spi_cs_i),
+        .spi_oen_o(spi_oen_o),
+        .spi_sdi_i(spi_sdi_i),
+        .spi_sdo_o(spi_sdo_o)
     );
 
     //////////////////////////////////////////////////////////

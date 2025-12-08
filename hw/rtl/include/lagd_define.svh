@@ -14,6 +14,7 @@
     // Platform define
     `define LAGD_NUM_AXI_SLV `NUM_ISING_CORES + 2 // +2 for L2 memory and stack memory
     `define LAGD_NUM_REG_SLV `NUM_ISING_CORES
+    `define LAGD_NUM_AXI_MST 1 // Number of AXI masters (only SPI)
     `define CVA6_ADDR_WIDTH 48
 
     // AXI
@@ -39,7 +40,7 @@
     `define IC_FLIP_MEM_END_ADDR 'h9001_0000 // Flip Mem Addr Space 32KB
     `define IC_REGS_BASE_ADDR 'hA000_0000
     // L1 memory per core
-    `define IC_L1_MEM_SIZE_B `L1_J_MEM_SIZE_B + `L1_FLIP_MEM_SIZE_B
+    `define IC_L1_MEM_SIZE_B `L1_J_MEM_SIZE_B + `L1_H_MEM_SIZE_B + `L1_FLIP_MEM_SIZE_B
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
     `define IC_L1_WORDS_PER_BANK 2048
     `define IC_L1_BANKING_FACTOR `L1_J_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
