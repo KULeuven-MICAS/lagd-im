@@ -237,9 +237,16 @@ package ising_logic_pkg;
         NumSpin : `NUM_SPIN,
         BitJ    : `BIT_J,
         BitH    : `BIT_H,
+        ScalingBit: `SCALING_BIT,
+        Parallelism: `PARALLELISM,
+        EnergyTotalBit: `ENERGY_TOTAL_BIT,
         FlipIconDepth : `FLIP_ICON_DEPTH,
         CfgCounterBitwidth : 16,
-        SynchronizerPipeDepth: 3
+        SpinDepth: 2,
+        LittleEndian: 0,
+        PipesIntf: 1, // pipeline at energy monitor interface
+        PipesMid: 1, // pipeline in adder tree of energy monitor
+        SynchronizerPipeDepth: `SYNCH_PIPE_DEPTH
     };
 
 endpackage: ising_logic_pkg

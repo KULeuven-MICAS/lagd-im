@@ -36,22 +36,26 @@
     // Ising cores
     `define IC_MEM_BASE_ADDR 'h9000_0000
     `define IC_J_MEM_END_ADDR 'h9000_8000    // J Mem Addr Space    32KB
-    `define IC_H_MEM_END_ADDR 'h9000_9000    // H Mem Addr Space    4KB
-    `define IC_FLIP_MEM_END_ADDR 'h9001_1000 // Flip Mem Addr Space 32KB
+    `define IC_FLIP_MEM_END_ADDR 'h9001_0000 // Flip Mem Addr Space 32KB
     `define IC_REGS_BASE_ADDR 'hA000_0000
     // L1 memory per core
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
     `define IC_L1_WORDS_PER_BANK 2048
     `define IC_L1_BANKING_FACTOR `IC_L1_MEM_SIZE_B/(`LAGD_AXI_DATA_WIDTH/8)/`IC_L1_WORDS_PER_BANK
     // L1 memory port width
-    `define IC_L1_J_MEM_DATA_WIDTH 4*1024
-    `define IC_L1_H_MEM_DATA_WIDTH 16
+    `define IC_L1_DATA_WIDTH 4096
     `define IC_L1_FLIP_MEM_DATA_WIDTH 256
+    `define IC_L1_FLIP_MEM_ADDR_WIDTH 16
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core
-    // Ising analog macro
+    // Ising macro
+    `define NUM_SPIN 256
     `define BIT_J 4
     `define BIT_H 4
-    `define FLIP_ICON_DEPTH 1024
+    `define SCALING_BIT 4
+    `define PARALLELISM 4
+    `define ENERGY_TOTAL_BIT 32
+    `define SYNCH_PIPE_DEPTH 3
+    `define FLIP_ICON_DEPTH (`IC_FLIP_MEM_END_ADDR - `IC_J_MEM_END_ADDR)/(`NUM_SPIN)*8
 
 `endif // LAGD_DEFINE_SVH
