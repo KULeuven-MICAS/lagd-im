@@ -12,7 +12,6 @@
 
 module ising_core_wrap import axi_pkg::*; #(
     parameter mem_cfg_t l1_mem_cfg_j = '0,
-    parameter mem_cfg_t l1_mem_cfg_h = '0,
     parameter mem_cfg_t l1_mem_cfg_flip = '0,
     parameter ising_logic_cfg_t logic_cfg = '0,
     parameter type axi_slv_req_t = logic,
