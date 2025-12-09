@@ -83,6 +83,8 @@ module spin_fifo_maintainer #(
     logic fifo_push_comb;
     logic within_cmpt;
     logic cmpt_stop_comb;
+    logic cmpt_busy_cond;
+    logic cmpt_idle_cond;
 
     // FIFO to store the spins
     fifo_v3 #(
@@ -114,7 +116,10 @@ module spin_fifo_maintainer #(
 
     assign cmpt_busy_o = cmpt_busy_reg;
 
+    assign cmpt_busy_cond = cmpt_en_i & en_i;
+    assign cmpt_idle_cond = cmpt_stop_comb | flush_i;
+
     // Sequential logic
-    `FFLARNC(cmpt_busy_reg, 1'b1, cmpt_en_i & en_i, cmpt_stop_comb | flush_i, 1'b0, clk_i, rst_ni);
+    `FFLARNC(cmpt_busy_reg, 1'b1, cmpt_busy_cond, cmpt_idle_cond, 1'b0, clk_i, rst_ni);
 
 endmodule
