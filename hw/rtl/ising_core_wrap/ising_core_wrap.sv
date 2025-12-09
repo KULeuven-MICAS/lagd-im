@@ -38,8 +38,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     `MEM_TYPEDEF_ALL(flip_mem, flip_addr_t, flip_data_t, flip_strb_t, flip_user_t)
     
     // Define types for J memory (wide port)
-    localparam type j_data_t = logic [`IC_L1_DATA_WIDTH-1:0];
-    localparam type j_strb_t = logic [`IC_L1_DATA_WIDTH/8-1:0];
+    localparam type j_data_t = logic [`IC_L1_J_MEM_DATA_WIDTH-1:0];
+    localparam type j_strb_t = logic [`IC_L1_J_MEM_DATA_WIDTH/8-1:0];
     localparam type j_addr_t = logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0];
     `MEM_TYPEDEF_ALL(j_mem, j_addr_t, j_data_t, j_strb_t, flip_user_t)
 
