@@ -12,6 +12,12 @@ if { [info exists ::env(TEST_PATH)] } {
     quit
 }
 
+if { [info exists ::env(WORK_DIR)] } {
+    set WORK_DIR $::env(WORK_DIR)
+} else {
+    set WORK_DIR "${TEST_PATH}/vsim-runs"
+}
+
 if { [info exists ::env(HDL_FILE_LIST)] } {
     set HDL_FILE_LIST $::env(HDL_FILE_LIST)
 } else {
@@ -38,24 +44,32 @@ if { [info exists ::env(DEFINES)] } {
     set DEFINES ""
 }
 
+if { [info exists ::env(VCD_FILE)] } {
+    set VCD_FILE $::env(VCD_FILE)
+} else {
+    set VCD_FILE "${WORK_DIR}/tb_${SIM_NAME}.vcd"
+}
+
 if { [info exists ::env(DBG)] } {
-    set DBG [expr { $::env(DBG) == 1 }]
+    set DBG $::env(DBG)
     # If DBG is set, we add it to the DEFINES
-    if { $DBG == 1 } {
-        set DEFINES "${DEFINES} +define+DBG=1"
+    if { ${DBG} >= 1 } {
+        set DEFINES "${DEFINES} +define+DBG=${DBG} +define+VCD_FILE=\"${VCD_FILE}\""
     }
 } else {
     set DBG 0
 }
 
-set WLIB "${TEST_PATH}/work/work_${SIM_NAME}"
+set WLIB "${WORK_DIR}/work/work_${SIM_NAME}"
 
 puts "--------------------------------------------------------------------------------"
 puts "Defines loaded"
 puts "TEST_PATH: ${TEST_PATH}"
+puts "WORK_DIR: ${WORK_DIR}"
 puts "HDL_FILE_LIST: ${HDL_FILE_LIST}"
 puts "SIM_NAME: ${SIM_NAME}"
 puts "DBG: ${DBG}"
+puts "VCD_FILE: ${VCD_FILE}"
 puts "DEFINES: ${DEFINES}"
 puts "WLIB: ${WLIB}"
 puts "--------------------------------------------------------------------------------"

@@ -10,4 +10,15 @@ include $(PROJECT_ROOT)/common.mk
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 include $(CHS_ROOT)/cheshire.mk
 
-all: chs-hw-all
+SIM_TOOL := vsim
+
+all: chs-hw-all test
+
+# Memory island hdl_file_list.tcl generation
+MI_TEST_PATH := ./unit_tests/memory_island
+MI_SIM_ARGS := -t rtl
+
+test: $(MI_TEST_PATH)/bender_list.tcl
+
+$(MI_TEST_PATH)/bender_list.tcl:
+	$(BENDER) script $(SIM_TOOL) $(MI_SIM_ARGS) > $@

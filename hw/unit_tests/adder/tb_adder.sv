@@ -8,6 +8,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_FILE
+`define VCD_FILE "tb_adder.vcd"
+`endif
+
 module tb_adder;
 
     // Testbench signals
@@ -35,7 +39,7 @@ module tb_adder;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
-            $dumpfile("tb_adder.vcd");
+            $dumpfile(`VCD_FILE);
             $dumpvars(0,tb_adder);
         end
         $display("Starting adder testbench. Running %0d tests...", NUM_TESTS);
