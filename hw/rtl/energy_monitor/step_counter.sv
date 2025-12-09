@@ -55,7 +55,7 @@ module step_counter #(
     `FFL(counter_reg, d_i, en_i && load_i, {COUNTER_BITWIDTH{1'b1}}, clk_i, rst_ni)
 
     // Sequential logic to update the counter register
-    `FFLARNC(q_o, counter_n, en_i && step_en_i && (q_o != counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
-    `FFLARNC(overflow, 1'b1, en_i && step_en_i && (q_o == (counter_reg - PARALLELISM + 1)), en_i && recount_en_i, 'd0, clk_i, rst_ni)
+    `FFLARNC(q_o, counter_n, (en_i && step_en_i && (q_o != counter_reg)), (en_i && recount_en_i), 'd0, clk_i, rst_ni)
+    `FFLARNC(overflow, 1'b1, (en_i && step_en_i && (q_o == (counter_reg - PARALLELISM + 1))), (en_i && recount_en_i), 'd0, clk_i, rst_ni)
 
 endmodule
