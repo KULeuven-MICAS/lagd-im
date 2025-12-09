@@ -87,6 +87,7 @@ module energy_fifo_maintainer #(
     logic spin_valid_reg;
     logic spin_push_none_comb;
     logic spin_push_none_reg;
+    logic flush_cond;
 
     // FIFO to store the spins
     fifo_v3 #(
@@ -124,13 +125,14 @@ module energy_fifo_maintainer #(
     assign spin_valid_o = spin_valid_comb | spin_reg_full;
     assign spin_push_none_comb = fifo_push_none_comb;
     assign spin_push_none_o = spin_push_none_comb | spin_push_none_reg;
+    assign flush_cond = spin_handshake_n | flush_i;
 
     // Sequential logic
-    `FFLARNC(spin_ready_o, 1'b0, spin_handshake_p, spin_handshake_n | flush_i, 1'b1, clk_i, rst_ni);
+    `FFLARNC(spin_ready_o, 1'b0, spin_handshake_p, flush_cond, 1'b1, clk_i, rst_ni);
     `FFL(spin_reg, spin_i, spin_handshake_p, 'd0, clk_i, rst_ni);
-    `FFLARNC(spin_reg_full, 1'b1, spin_handshake_p, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
-    `FFLARNC(spin_valid_reg, 1'b1, spin_valid_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
-    `FFLARNC(spin_push_none_reg, 1'b1, spin_push_none_comb, spin_handshake_n | flush_i, 1'b0, clk_i, rst_ni);
+    `FFLARNC(spin_reg_full, 1'b1, spin_handshake_p, flush_cond, 1'b0, clk_i, rst_ni);
+    `FFLARNC(spin_valid_reg, 1'b1, spin_valid_comb, flush_cond, 1'b0, clk_i, rst_ni);
+    `FFLARNC(spin_push_none_reg, 1'b1, spin_push_none_comb, flush_cond, 1'b0, clk_i, rst_ni);
 
 
 endmodule
