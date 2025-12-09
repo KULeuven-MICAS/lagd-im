@@ -44,6 +44,11 @@ module analog_rx #(
     logic [num_spin-1:0] spin_wwl_comb;
     logic [num_spin-1:0] spin_compute_en_comb;
     logic rx_busy;
+    logic spin_pop_cond, cmpt_finish_cond;
+    logic spin_pop_ready_reset_cond;
+    logic spin_wwl_reset_cond, spin_compute_reset_cond;
+    logic cmpt_finish_cond, cmpt_finish_reset_cond;
+    logic config_cond;
 
     assign analog_rx_idle_o = !rx_busy;
     assign spin_pop_handshake = spin_pop_valid_i & spin_pop_ready_o;
@@ -51,16 +56,24 @@ module analog_rx #(
     assign spin_wwl_comb = spin_pop_handshake ? spin_wwl_strobe_reg : 'd0;
     assign spin_compute_en_comb = spin_pop_handshake ? spin_mode_reg : 'd0;
 
-    `FFLARNC(spin_pop_ready_o, 1'b0, en_i & spin_pop_handshake, !en_i | analog_macro_idle_i, 1'b1, clk_i, rst_ni)
-    `FFL(wbl_o, spin_pop_comb, en_i & spin_pop_handshake, 'd0, clk_i, rst_ni)
-    `FFLARNC(spin_wwl_o, spin_wwl_comb, en_i & spin_pop_handshake, !en_i | write_counter_overflow, 'd0, clk_i, rst_ni)
-    `FFLARNC(spin_compute_en_o, spin_compute_en_comb, en_i & spin_pop_handshake, !en_i | compute_counter_overflow, 'd0, clk_i, rst_ni)
-    `FFLARNC(analog_macro_cmpt_finish_o, 1'b1, en_i & compute_counter_overflow, !en_i | spin_pop_handshake, 1'b0, clk_i, rst_ni)
+    assign spin_pop_cond = en_i & spin_pop_handshake;
+    assign spin_pop_ready_reset_cond = !en_i | analog_macro_idle_i;
+    assign spin_wwl_reset_cond = !en_i | write_counter_overflow;
+    assign spin_compute_reset_cond = !en_i | compute_counter_overflow;
+    assign cmpt_finish_cond = en_i & compute_counter_overflow;
+    assign cmpt_finish_reset_cond = !en_i | spin_pop_handshake;
+    assign config_cond = en_i & rx_configure_enable_i;
+
+    `FFLARNC(spin_pop_ready_o, 1'b0, spin_pop_cond, spin_pop_ready_reset_cond, 1'b1, clk_i, rst_ni)
+    `FFL(wbl_o, spin_pop_comb, spin_pop_cond, 'd0, clk_i, rst_ni)
+    `FFLARNC(spin_wwl_o, spin_wwl_comb, spin_pop_cond, spin_wwl_reset_cond, 'd0, clk_i, rst_ni)
+    `FFLARNC(spin_compute_en_o, spin_compute_en_comb, spin_pop_cond, spin_compute_reset_cond, 'd0, clk_i, rst_ni)
+    `FFLARNC(analog_macro_cmpt_finish_o, 1'b1, cmpt_finish_cond, cmpt_finish_reset_cond, 1'b0, clk_i, rst_ni)
 
     // configure registers
-    `FFLARNC(rx_busy, 1'b1, en_i & spin_pop_handshake, !en_i | write_counter_overflow, 1'b0, clk_i, rst_ni)
-    `FFL(spin_wwl_strobe_reg, spin_wwl_strobe_i, en_i & rx_configure_enable_i, 'b0, clk_i, rst_ni)
-    `FFL(spin_mode_reg, spin_mode_i, en_i & rx_configure_enable_i, 'b0, clk_i, rst_ni)
+    `FFLARNC(rx_busy, 1'b1, spin_pop_cond, spin_wwl_reset_cond, 1'b0, clk_i, rst_ni)
+    `FFL(spin_wwl_strobe_reg, spin_wwl_strobe_i, config_cond, 'b0, clk_i, rst_ni)
+    `FFL(spin_mode_reg, spin_mode_i, config_cond, 'b0, clk_i, rst_ni)
 
     step_counter #(
         .COUNTER_BITWIDTH (counter_bitwidth),
