@@ -277,7 +277,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         drt_s_req_flip.q.write         = '0;
         drt_s_req_flip.q.data          = '0;
         drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
-        drt_s_req_flip.q_user          = '0;
+        drt_s_req_flip.q.user          = '0;
         drt_s_req_flip.q_valid         = flip_ren;
         flip_rdata                     = drt_s_rsp_flip.p.data;
         // drt_s_rsp_flip.q_ready; // not sure how to use this signal
@@ -291,7 +291,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.write        = 1'b0;
                 drt_s_req_j.q.data         = '0;
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
-                drt_s_req_j.q_user         = '0;
+                drt_s_req_j.q.user         = '0;
                 drt_s_req_j.q_valid        = j_mem_ren_load;
                 j_rdata                    = drt_s_rsp_j.p.data;
                 // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
@@ -302,7 +302,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.write        = 1'b0;
                 drt_s_req_j.q.data         = '0;
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
-                drt_s_req_j.q_user         = '0;
+                drt_s_req_j.q.user         = '0;
                 drt_s_req_j.q_valid        = weight_ren;
                 weight                     = drt_s_rsp_j.p.data;
                 // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
