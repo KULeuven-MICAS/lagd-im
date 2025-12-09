@@ -102,11 +102,11 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Define the xbar rule type
     typedef struct packed {
         logic [31:0] idx;
-        logic [AXI_ADDR_WIDTH-1:0] start_addr;
-        logic [AXI_ADDR_WIDTH-1:0] end_addr;
+        logic [CVA6_ADDR_WIDTH-1:0] start_addr;
+        logic [CVA6_ADDR_WIDTH-1:0] end_addr;
     } rule_t;
 
-    rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
+    localparam rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
         '{idx: 0, start_addr: `IC_MEM_BASE_ADDR, end_addr: `IC_J_MEM_END_ADDR-1},
         '{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR-1},
         '{idx: 2, start_addr: `IC_FLIP_MEM_END_ADDR, end_addr: `IC_L1_MEM_LIMIT-1}
@@ -116,19 +116,19 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     .Cfg                   (xbar_cfg               ),
     .Connectivity          ('1                     ),
     .ATOPs                 (0                      ),
-    .slv_aw_chan_t         (axi_slv_aw_chan_t      ),
-    .mst_aw_chan_t         (axi_slv_aw_chan_t      ),
-    .w_chan_t              (axi_slv_w_chan_t       ),
-    .slv_b_chan_t          (axi_slv_b_chan_t       ),
-    .mst_b_chan_t          (axi_slv_b_chan_t       ),
-    .slv_ar_chan_t         (axi_slv_ar_chan_t      ),
-    .mst_ar_chan_t         (axi_slv_ar_chan_t      ),
-    .slv_r_chan_t          (axi_slv_r_chan_t       ),
-    .mst_r_chan_t          (axi_slv_r_chan_t       ),
-    .slv_req_t             (axi_slv_req_t          ),
-    .slv_resp_t            (axi_slv_rsp_t          ),
-    .mst_req_t             (axi_slv_req_t          ),
-    .mst_resp_t            (axi_slv_rsp_t          )
+    .slv_aw_chan_t         (lagd_axi_slv_aw_chan_t ),
+    .mst_aw_chan_t         (lagd_axi_mst_aw_chan_t ),
+    .w_chan_t              (lagd_axi_slv_w_chan_t  ),
+    .slv_b_chan_t          (lagd_axi_slv_b_chan_t  ),
+    .mst_b_chan_t          (lagd_axi_mst_b_chan_t  ),
+    .slv_ar_chan_t         (lagd_axi_slv_ar_chan_t ),
+    .mst_ar_chan_t         (lagd_axi_mst_ar_chan_t ),
+    .slv_r_chan_t          (lagd_axi_slv_r_chan_t  ),
+    .mst_r_chan_t          (lagd_axi_mst_r_chan_t  ),
+    .slv_req_t             (lagd_axi_slv_req_t     ),
+    .slv_resp_t            (lagd_axi_slv_rsp_t     ),
+    .mst_req_t             (lagd_axi_mst_req_t     ),
+    .mst_resp_t            (lagd_axi_mst_rsp_t     )
     ) i_axi_xbar ( 
     .clk_i                 (clk_i                  ),
     .rst_ni                (rst_ni                 ),
