@@ -10,7 +10,7 @@
 `include "lagd_config.svh"
 `include "lagd_typedef.svh"
 
-module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import ising_logic_pkg::*; #(
+module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import ising_logic_pkg::*; import lagd_pkg::*; #(
     parameter mem_cfg_t l1_mem_cfg_j = '0,
     parameter mem_cfg_t l1_mem_cfg_flip = '0,
     parameter ising_logic_cfg_t logic_cfg = '0,
@@ -32,7 +32,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 );
 
     // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, lagd_pkg::CheshireCfg)
 
     // Define local types for flip memory interface
     localparam type flip_addr_t = logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0];
