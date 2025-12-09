@@ -52,7 +52,6 @@ module logic_ctrl #(
 
     input logic debug_en_i
 );
-    localparam int PIPESMID_LP = PIPESMID;
     // State enumeration
     typedef enum logic {
         IDLE = 1'b0,
@@ -64,7 +63,7 @@ module logic_ctrl #(
     logic energy_valid_comb;
     logic energy_valid_reg;
     logic energy_handshake;
-    logic [PIPESMID_LP:0] counter_ready_pipe;
+    logic [PIPESMID:0] counter_ready_pipe;
 
     assign weight_handshake = weight_valid_i && weight_ready_o;
     assign energy_handshake = energy_valid_o && energy_ready_i;
@@ -72,13 +71,13 @@ module logic_ctrl #(
     assign config_ready_o = (current_state == IDLE) && !debug_en_i;
     assign spin_ready_o = (current_state == IDLE) && !debug_en_i && (!config_valid_i);
     assign weight_ready_o = (current_state == COMPUTE) && (!counter_ready_i) && (!debug_en_i);
-    assign energy_valid_comb = (current_state == COMPUTE) && counter_ready_pipe[PIPESMID_LP] && cmpt_done_i;
+    assign energy_valid_comb = (current_state == COMPUTE) && counter_ready_pipe[PIPESMID] && cmpt_done_i;
 
     // Pipeline counter_ready_i signal
     assign counter_ready_pipe[0] = counter_ready_i;
     generate
         genvar i;
-        for (i = 0; i < PIPESMID_LP; i++) begin : gen_counter_ready_pipe_loop
+        for (i = 0; i < PIPESMID; i++) begin : gen_counter_ready_pipe_loop
             `FFL(counter_ready_pipe[i+1], counter_ready_pipe[i], en_i, 1'b0, clk_i, rst_ni);
         end
     endgenerate
