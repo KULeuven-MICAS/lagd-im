@@ -47,7 +47,7 @@ module analog_rx #(
     logic spin_pop_cond, cmpt_finish_cond;
     logic spin_pop_ready_reset_cond;
     logic spin_wwl_reset_cond, spin_compute_reset_cond;
-    logic cmpt_finish_cond, cmpt_finish_reset_cond;
+    logic cmpt_finish_reset_cond;
     logic config_cond;
 
     assign analog_rx_idle_o = !rx_busy;
