@@ -61,6 +61,7 @@ sources:
       - hw/rtl/analog_macro_wrap/analog_cfg.sv
       - hw/rtl/analog_macro_wrap/analog_rx.sv
       - hw/rtl/analog_macro_wrap/analog_tx.sv
+      - hw/rtl/lib/bp_pipe.sv
 
 #  - target: any(simulation, test)
 #    files:
