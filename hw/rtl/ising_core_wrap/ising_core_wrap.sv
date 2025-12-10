@@ -78,7 +78,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] weight_raddr;
     logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] weight;
     logic [`BIT_H*`NUM_SPIN-1:0] hbias;
-    logic [`SCALING_BIT*`NUM_SPIN-1:0] hscaling;
+    logic [`SCALING_BIT-1:0] hscaling;
 
     logic [logic_cfg.NumSpin * logic_cfg.BitJ-1:0] analog_wbl;
     logic [logic_cfg.NumSpin-1:0] analog_dt_j_wwl;
