@@ -72,7 +72,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [`SCALING_BIT-1:0] sfc_rdata;
     logic en_comparison, cmpt_en, cmpt_idle, host_readout;
     logic flip_ren, flip_disable;
-    logic [logic_cfg.FlipIconDepth+1-1:0] flip_raddr, icon_last_raddr_plus_one;
+    logic [$clog2(logic_cfg.FlipIconDepth)+1-1:0] flip_raddr, icon_last_raddr_plus_one;
     logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0] flip_rdata;
     logic weight_ren;
     logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] weight_raddr;
