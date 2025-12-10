@@ -64,21 +64,17 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Digital macro interface signals
     logic en_i;
     logic j_mem_ren_load;
-    logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0] j_raddr_load;
-    logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] j_rdata;
+    logic weight_ren;
     logic h_ren;
-    logic [`BIT_H*`NUM_SPIN-1:0] h_rdata;
     logic sfc_ren;
-    logic [`SCALING_BIT-1:0] sfc_rdata;
+    logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0] j_raddr_load, weight_raddr;
+    logic [logic_cfg.NumSpin*logic_cfg.BitJ*logic_cfg.Parallelism-1:0] j_rdata, weight;
+    logic [logic_cfg.BitH*logic_cfg.NumSpin-1:0] h_rdata, hbias;
+    logic [logic_cfg.ScalingBit-1:0] sfc_rdata, hscaling;
     logic en_comparison, cmpt_en, cmpt_idle, host_readout;
     logic flip_ren, flip_disable;
     logic [$clog2(logic_cfg.FlipIconDepth)+1-1:0] flip_raddr, icon_last_raddr_plus_one;
-    logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0] flip_rdata;
-    logic weight_ren;
-    logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0] weight_raddr;
-    logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] weight;
-    logic [`BIT_H*`NUM_SPIN-1:0] hbias;
-    logic [`SCALING_BIT-1:0] hscaling;
+    logic [logic_cfg.NumSpin-1:0] flip_rdata;
 
     logic [logic_cfg.NumSpin * logic_cfg.BitJ-1:0] analog_wbl;
     logic [logic_cfg.NumSpin-1:0] analog_dt_j_wwl;
@@ -139,8 +135,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     .mst_r_chan_t          (lagd_axi_mst_r_chan_t  ),
     .slv_req_t             (axi_slv_req_t          ),
     .slv_resp_t            (axi_slv_rsp_t          ),
-    .mst_req_t             (lagd_axi_mst_req_t     ),
-    .mst_resp_t            (lagd_axi_mst_rsp_t     ),
+    .mst_req_t             (axi_mst_req_t          ),
+    .mst_resp_t            (axi_mst_rsp_t          ),
     .rule_t                (rule_t                 )
     ) i_axi_xbar ( 
     .clk_i                 (clk_i                  ),
