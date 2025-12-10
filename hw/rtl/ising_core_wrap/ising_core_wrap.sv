@@ -64,10 +64,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // Internal signals
     logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
-    axi_mst_req_t axi_m_req_j, axi_m_req_flip;
-    axi_mst_rsp_t axi_m_rsp_j, axi_m_rsp_flip;
-    axi_mst_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
-    axi_mst_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
+    axi_slv_req_t axi_m_req_j, axi_m_req_flip;
+    axi_slv_rsp_t axi_m_rsp_j, axi_m_rsp_flip;
+    axi_slv_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
+    axi_slv_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
     j_mem_req_t drt_s_req_j;
     j_mem_rsp_t drt_s_rsp_j;
     flip_mem_req_t drt_s_req_flip;
