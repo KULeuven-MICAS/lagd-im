@@ -72,10 +72,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [`SCALING_BIT-1:0] sfc_rdata;
     logic en_comparison, cmpt_en, cmpt_idle, host_readout;
     logic flip_ren, flip_disable;
-    logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] flip_raddr, icon_last_raddr_plus_one;
+    logic [logic_cfg.FlipIconDepth+1-1:0] flip_raddr, icon_last_raddr_plus_one;
     logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0] flip_rdata;
     logic weight_ren;
-    logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] weight_raddr;
+    logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] weight_raddr;
     logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] weight;
     logic [`BIT_H*`NUM_SPIN-1:0] hbias;
     logic [`SCALING_BIT*`NUM_SPIN-1:0] hscaling;
@@ -158,8 +158,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // L1 memory instances
     memory_island_wrap #(
         .Cfg                   (l1_mem_cfg_j           ),
-        .axi_narrow_req_t      (axi_slv_req_t          ),
-        .axi_narrow_rsp_t      (axi_slv_rsp_t          ),
+        .axi_narrow_req_t      (axi_mst_req_t          ),
+        .axi_narrow_rsp_t      (axi_mst_rsp_t          ),
         .mem_wide_req_t        (j_mem_req_t            ),
         .mem_wide_rsp_t        (j_mem_rsp_t            )
     ) i_l1_mem_j (
@@ -177,8 +177,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     memory_island_wrap #(
         .Cfg                   (l1_mem_cfg_flip        ),
-        .axi_narrow_req_t      (axi_slv_req_t          ),
-        .axi_narrow_rsp_t      (axi_slv_rsp_t          ),
+        .axi_narrow_req_t      (axi_mst_req_t          ),
+        .axi_narrow_rsp_t      (axi_mst_rsp_t          ),
         .mem_wide_req_t        (flip_mem_req_t         ),
         .mem_wide_rsp_t        (flip_mem_rsp_t         )
     ) i_l1_mem_flip (
