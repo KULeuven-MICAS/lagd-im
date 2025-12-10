@@ -90,7 +90,7 @@ module energy_fifo_maintainer #(
     logic flush_cond;
 
     // FIFO to store the spins
-    fifo_v3 #(
+    lagd_fifo_v3 #(
         .FALL_THROUGH(1'b0),
         .DATA_WIDTH(ENERGY_TOTAL_BIT),
         .DEPTH(SPIN_DEPTH),

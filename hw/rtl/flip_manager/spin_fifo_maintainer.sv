@@ -87,7 +87,7 @@ module spin_fifo_maintainer #(
     logic cmpt_idle_cond;
 
     // FIFO to store the spins
-    fifo_v3 #(
+    lagd_fifo_v3 #(
         .FALL_THROUGH(1'b0),
         .DATA_WIDTH(DATASPIN),
         .DEPTH(SPIN_DEPTH),
