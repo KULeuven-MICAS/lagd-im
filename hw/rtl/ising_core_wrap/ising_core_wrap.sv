@@ -18,6 +18,23 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter type axi_slv_rsp_t = logic,
     parameter type axi_mst_req_t = logic,
     parameter type axi_mst_rsp_t = logic,
+    parameter type axi_narrow_req_t = logic,
+    parameter type axi_narrow_rsp_t = logic,
+    parameter type axi_wide_req_t = logic,
+    parameter type axi_wide_rsp_t = logic,
+    parameter type mem_narrow_req_t = logic,
+    parameter type mem_narrow_rsp_t = logic,
+    parameter type mem_wide_req_t = logic,
+    parameter type mem_wide_rsp_t = logic,
+    parameter type axi_slv_aw_chan_t = logic,
+    parameter type axi_mst_aw_chan_t = logic,
+    parameter type axi_slv_w_chan_t = logic,
+    parameter type axi_slv_b_chan_t = logic,
+    parameter type axi_mst_b_chan_t = logic,
+    parameter type axi_slv_ar_chan_t = logic,
+    parameter type axi_mst_ar_chan_t = logic,
+    parameter type axi_slv_r_chan_t = logic,
+    parameter type axi_mst_r_chan_t = logic,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 )(
@@ -32,10 +49,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     input reg_req_t reg_s_req_i,
     output reg_rsp_t reg_s_rsp_o
 );
-
-    // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, lagd_pkg::CheshireCfg)
-
     // Define local types for flip memory interface
     localparam type flip_addr_t = logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0];
     localparam type flip_data_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0];
@@ -124,15 +137,15 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     .Cfg                   (xbar_cfg               ),
     .Connectivity          ('1                     ),
     .ATOPs                 (0                      ),
-    .slv_aw_chan_t         (lagd_axi_slv_aw_chan_t ),
-    .mst_aw_chan_t         (lagd_axi_mst_aw_chan_t ),
-    .w_chan_t              (lagd_axi_slv_w_chan_t  ),
-    .slv_b_chan_t          (lagd_axi_slv_b_chan_t  ),
-    .mst_b_chan_t          (lagd_axi_mst_b_chan_t  ),
-    .slv_ar_chan_t         (lagd_axi_slv_ar_chan_t ),
-    .mst_ar_chan_t         (lagd_axi_mst_ar_chan_t ),
-    .slv_r_chan_t          (lagd_axi_slv_r_chan_t  ),
-    .mst_r_chan_t          (lagd_axi_mst_r_chan_t  ),
+    .slv_aw_chan_t         (axi_slv_aw_chan_t      ),
+    .mst_aw_chan_t         (axi_mst_aw_chan_t      ),
+    .w_chan_t              (axi_slv_w_chan_t       ),
+    .slv_b_chan_t          (axi_slv_b_chan_t       ),
+    .mst_b_chan_t          (axi_mst_b_chan_t       ),
+    .slv_ar_chan_t         (axi_slv_ar_chan_t      ),
+    .mst_ar_chan_t         (axi_mst_ar_chan_t      ),
+    .slv_r_chan_t          (axi_slv_r_chan_t       ),
+    .mst_r_chan_t          (axi_mst_r_chan_t       ),
     .slv_req_t             (axi_slv_req_t          ),
     .slv_resp_t            (axi_slv_rsp_t          ),
     .mst_req_t             (axi_mst_req_t          ),
