@@ -195,6 +195,8 @@ module lagd_soc import lagd_pkg::*; (
                 .logic_cfg      (ising_logic_pkg::IsingLogicCfg),
                 .axi_slv_req_t  (lagd_axi_slv_req_t),
                 .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
+                .axi_mst_req_t  (lagd_axi_mst_req_t),
+                .axi_mst_rsp_t  (lagd_axi_mst_rsp_t),
                 .reg_req_t      (lagd_reg_req_t),
                 .reg_rsp_t      (lagd_reg_rsp_t)
             ) i_core (

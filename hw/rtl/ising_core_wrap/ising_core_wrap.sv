@@ -16,6 +16,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter ising_logic_cfg_t logic_cfg = '0,
     parameter type axi_slv_req_t = logic,
     parameter type axi_slv_rsp_t = logic,
+    parameter type axi_mst_req_t = logic,
+    parameter type axi_mst_rsp_t = logic,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 )(
@@ -49,10 +51,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // Internal signals
     logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
-    axi_slv_req_t axi_s_req_j, axi_s_req_flip;
-    axi_slv_rsp_t axi_s_rsp_j, axi_s_rsp_flip;
-    axi_slv_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
-    axi_slv_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
+    axi_mst_req_t axi_m_req_j, axi_m_req_flip;
+    axi_mst_rsp_t axi_m_rsp_j, axi_m_rsp_flip;
+    axi_mst_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
+    axi_mst_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
     j_mem_req_t drt_s_req_j;
     j_mem_rsp_t drt_s_rsp_j;
     flip_mem_req_t drt_s_req_flip;
@@ -91,18 +93,18 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Configuration of the AXI crossbar
     localparam axi_pkg::xbar_cfg_t xbar_cfg = '{
         NoSlvPorts         : 1,
-        NoMstPorts         : 3,
+        NoMstPorts         : 2,
         MaxMstTrans        : 1,
         MaxSlvTrans        : 1,
         FallThrough        : 1'b0,
         LatencyMode        : 10'b111_11_111_11,
         PipelineStages     : 0,
         AxiIdWidthSlvPorts : `LAGD_AXI_ID_WIDTH,
-        AxiIdUsedSlvPorts  : `LAGD_AXI_ID_WIDTH+2,
+        AxiIdUsedSlvPorts  : `LAGD_AXI_ID_WIDTH+1,
         UniqueIds          : 1'b0,
         AxiAddrWidth       : $clog2(`IC_L1_MEM_LIMIT),
         AxiDataWidth       : `LAGD_AXI_DATA_WIDTH,
-        NoAddrRules        : 3
+        NoAddrRules        : 2
     };
 
     // Define the xbar rule type
@@ -114,14 +116,13 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     localparam rule_t [xbar_cfg.NoAddrRules-1:0] AddrMap = '{
         '{idx: 0, start_addr: `IC_MEM_BASE_ADDR, end_addr: `IC_J_MEM_END_ADDR-1},
-        '{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR-1},
-        '{idx: 2, start_addr: `IC_FLIP_MEM_END_ADDR, end_addr: `IC_L1_MEM_LIMIT-1}
+        '{idx: 1, start_addr: `IC_J_MEM_END_ADDR, end_addr: `IC_FLIP_MEM_END_ADDR-1}
     };
 
-    assign axi_s_req_j = axi_xbar_out_req[0];
-    assign axi_s_req_flip = axi_xbar_out_req[1];
-    assign axi_xbar_out_rsp[0] = axi_s_rsp_j;
-    assign axi_xbar_out_rsp[1] = axi_s_rsp_flip;
+    assign axi_m_req_j = axi_xbar_out_req[0];
+    assign axi_m_req_flip = axi_xbar_out_req[1];
+    assign axi_xbar_out_rsp[0] = axi_m_rsp_j;
+    assign axi_xbar_out_rsp[1] = axi_m_rsp_flip;
 
     axi_xbar #(
     .Cfg                   (xbar_cfg               ),
@@ -164,8 +165,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_j           ),
-        .axi_narrow_rsp_o       (axi_s_rsp_j           ),
+        .axi_narrow_req_i       (axi_m_req_j           ),
+        .axi_narrow_rsp_o       (axi_m_rsp_j           ),
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
         .mem_narrow_req_i       (                      ),
@@ -183,8 +184,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_flip        ),
-        .axi_narrow_rsp_o       (axi_s_rsp_flip        ),
+        .axi_narrow_req_i       (axi_m_req_flip        ),
+        .axi_narrow_rsp_o       (axi_m_rsp_flip        ),
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
         .mem_narrow_req_i       (                      ),
