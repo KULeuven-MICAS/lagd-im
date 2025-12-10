@@ -47,7 +47,6 @@
     // L1 memory port width
     `define IC_L1_J_MEM_DATA_WIDTH 4096
     `define IC_L1_FLIP_MEM_DATA_WIDTH 256
-    `define IC_L1_J_MEM_ADDR_WIDTH 8
     `define IC_L1_FLIP_MEM_ADDR_WIDTH 16
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core
@@ -60,5 +59,6 @@
     `define ENERGY_TOTAL_BIT 32
     `define SYNCH_PIPE_DEPTH 3
     `define FLIP_ICON_DEPTH (`IC_FLIP_MEM_END_ADDR - `IC_J_MEM_END_ADDR)/(`NUM_SPIN)*8
+    `define IC_L1_J_MEM_ADDR_WIDTH `NUM_SPIN/`PARALLELISM
 
 `endif // LAGD_DEFINE_SVH

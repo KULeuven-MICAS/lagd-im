@@ -60,7 +60,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Digital macro interface signals
     logic en_i;
     logic j_mem_ren_load;
-    logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] j_raddr_load;
+    logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] j_raddr_load;
     logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] j_rdata;
     logic h_ren;
     logic [`BIT_H*`NUM_SPIN-1:0] h_rdata;
