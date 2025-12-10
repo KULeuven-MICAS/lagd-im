@@ -102,7 +102,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         AxiIdWidthSlvPorts : `LAGD_AXI_ID_WIDTH,
         AxiIdUsedSlvPorts  : `LAGD_AXI_ID_WIDTH+1,
         UniqueIds          : 1'b0,
-        AxiAddrWidth       : $clog2(`IC_L1_MEM_LIMIT),
+        AxiAddrWidth       : `CVA6_ADDR_WIDTH,
         AxiDataWidth       : `LAGD_AXI_DATA_WIDTH,
         NoAddrRules        : 2
     };
