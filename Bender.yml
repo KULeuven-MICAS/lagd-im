@@ -52,6 +52,7 @@ sources:
       - hw/rtl/energy_monitor/accumulator.sv
       - hw/rtl/lagd_axi_spi_slave.sv
       - hw/rtl/flip_manager/flip_manager.sv
+      - hw/rtl/flip_manager/lagd_fifo_v3.sv
       - hw/rtl/flip_manager/energy_fifo_maintainer.sv
       - hw/rtl/flip_manager/spin_fifo_maintainer.sv
       - hw/rtl/flip_manager/flip_engine.sv

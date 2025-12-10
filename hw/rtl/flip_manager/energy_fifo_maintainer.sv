@@ -35,12 +35,11 @@
 // - debug_fifo_usage_o exposes the FIFO usage count from the energy FIFO.
 //
 // Notes:
-// - The energy FIFO used here is fifo_v3 instantiated as energy_fifo.
+// - The energy FIFO used here is lagd_fifo_v3 instantiated as energy_fifo.
 // - spin_push_none_o is driven by the comparison (energy_i >= energy_pop)
 //   and latched for downstream observation.
 
 `include "../lib/registers.svh"
-`include "../lib/fifo_v3.sv"
 
 module energy_fifo_maintainer #(
     parameter int DATASPIN = 256,

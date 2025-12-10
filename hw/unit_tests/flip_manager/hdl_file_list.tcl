@@ -9,7 +9,7 @@ set HDL_FILES [ list \
     "${HDL_PATH}/flip_manager/flip_manager.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/flip_manager/flip_engine.sv" \
-    "${HDL_PATH}/lib/fifo_v3.sv" \
+    "${HDL_PATH}/flip_manager/lagd_fifo_v3.sv" \
     "${HDL_PATH}/lib/registers.svh" \
     "${HDL_PATH}/flip_manager/energy_fifo_maintainer.sv" \
     "${HDL_PATH}/flip_manager/spin_fifo_maintainer.sv" \

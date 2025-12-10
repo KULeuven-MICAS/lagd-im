@@ -45,7 +45,6 @@
 // - None
 
 `include "../lib/registers.svh"
-`include "../lib/fifo_v3.sv"
 
 module spin_fifo_maintainer #(
     parameter int SPIN_DEPTH = 2,
