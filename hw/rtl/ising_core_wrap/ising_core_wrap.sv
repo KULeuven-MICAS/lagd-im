@@ -65,7 +65,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic h_ren;
     logic [`BIT_H*`NUM_SPIN-1:0] h_rdata;
     logic sfc_ren;
-    logic [`SCALING_BIT*`NUM_SPIN-1:0] sfc_rdata;
+    logic [`SCALING_BIT-1:0] sfc_rdata;
     logic en_comparison, cmpt_en, cmpt_idle, host_readout;
     logic flip_ren, flip_disable;
     logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0] flip_raddr, icon_last_raddr_plus_one;
