@@ -46,7 +46,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Define types for J memory (wide port)
     localparam type j_data_t = logic [`IC_L1_J_MEM_DATA_WIDTH-1:0];
     localparam type j_strb_t = logic [`IC_L1_J_MEM_DATA_WIDTH/8-1:0];
-    localparam type j_addr_t = logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0];
+    localparam type j_addr_t = logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0];
     `MEM_TYPEDEF_ALL(j_mem, j_addr_t, j_data_t, j_strb_t, flip_user_t)
 
     // Internal signals
@@ -64,7 +64,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Digital macro interface signals
     logic en_i;
     logic j_mem_ren_load;
-    logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] j_raddr_load;
+    logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0] j_raddr_load;
     logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] j_rdata;
     logic h_ren;
     logic [`BIT_H*`NUM_SPIN-1:0] h_rdata;
@@ -75,7 +75,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [$clog2(logic_cfg.FlipIconDepth)+1-1:0] flip_raddr, icon_last_raddr_plus_one;
     logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0] flip_rdata;
     logic weight_ren;
-    logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] weight_raddr;
+    logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0] weight_raddr;
     logic [`IC_L1_J_MEM_DATA_WIDTH-1:0] weight;
     logic [`BIT_H*`NUM_SPIN-1:0] hbias;
     logic [`SCALING_BIT-1:0] hscaling;
@@ -137,8 +137,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     .mst_ar_chan_t         (lagd_axi_mst_ar_chan_t ),
     .slv_r_chan_t          (lagd_axi_slv_r_chan_t  ),
     .mst_r_chan_t          (lagd_axi_mst_r_chan_t  ),
-    .slv_req_t             (lagd_axi_slv_req_t     ),
-    .slv_resp_t            (lagd_axi_slv_rsp_t     ),
+    .slv_req_t             (axi_slv_req_t          ),
+    .slv_resp_t            (axi_slv_rsp_t          ),
     .mst_req_t             (lagd_axi_mst_req_t     ),
     .mst_resp_t            (lagd_axi_mst_rsp_t     ),
     .rule_t                (rule_t                 )
