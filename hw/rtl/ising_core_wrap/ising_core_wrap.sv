@@ -49,8 +49,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // Internal signals
     logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
-    axi_slv_req_t axi_s_req_j, axi_s_req_h, axi_s_req_flip;
-    axi_slv_rsp_t axi_s_rsp_j, axi_s_rsp_h, axi_s_rsp_flip;
+    axi_slv_req_t axi_s_req_j, axi_s_req_flip;
+    axi_slv_rsp_t axi_s_rsp_j, axi_s_rsp_flip;
+    axi_slv_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
+    axi_slv_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
     j_mem_req_t drt_s_req_j;
     j_mem_rsp_t drt_s_rsp_j;
     flip_mem_req_t drt_s_req_flip;
@@ -116,6 +118,11 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         '{idx: 2, start_addr: `IC_FLIP_MEM_END_ADDR, end_addr: `IC_L1_MEM_LIMIT-1}
     };
 
+    assign axi_s_req_j = axi_xbar_out_req[0];
+    assign axi_s_req_flip = axi_xbar_out_req[1];
+    assign axi_xbar_out_rsp[0] = axi_s_rsp_j;
+    assign axi_xbar_out_rsp[1] = axi_s_rsp_flip;
+
     axi_xbar #(
     .Cfg                   (xbar_cfg               ),
     .Connectivity          ('1                     ),
@@ -132,19 +139,16 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     .slv_req_t             (lagd_axi_slv_req_t     ),
     .slv_resp_t            (lagd_axi_slv_rsp_t     ),
     .mst_req_t             (lagd_axi_mst_req_t     ),
-    .mst_resp_t            (lagd_axi_mst_rsp_t     )
+    .mst_resp_t            (lagd_axi_mst_rsp_t     ),
+    .rule_t                (rule_t                 )
     ) i_axi_xbar ( 
     .clk_i                 (clk_i                  ),
     .rst_ni                (rst_ni                 ),
     .test_i                (1'b0                   ),
     .slv_ports_req_i       (axi_s_req_i            ),
     .slv_ports_resp_o      (axi_s_rsp_o            ),
-    .mst_ports_req_o       ({axi_s_req_j,
-                            axi_s_req_h,
-                            axi_s_req_flip}        ),
-    .mst_ports_resp_i      ({axi_s_rsp_j,
-                            axi_s_rsp_h,
-                            axi_s_rsp_flip}        ),
+    .mst_ports_req_o       (axi_xbar_out_req       ),
+    .mst_ports_resp_i      (axi_xbar_out_rsp       ),
     .addr_map_i            (AddrMap                ),
     .en_default_mst_port_i ('0                     ),
     .default_mst_port_i    ('0                     )
