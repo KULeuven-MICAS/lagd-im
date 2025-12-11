@@ -201,9 +201,14 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Analog Macro //////////////////////////////////////////
     //////////////////////////////////////////////////////////
     galena_256 #(
-        .SpinZize               (logic_cfg.NumSpin     ),
+        .ArraySize              (logic_cfg.NumSpin     ),
         .WordWidth              (logic_cfg.BitJ        )
     ) u_galena (
+        .vdd_aio                (                      ),
+        .vss_aio                (                      ),
+        .iref_aio               (                      ),
+        .vup_aio                (                      ),
+        .vdn_aio                (                      ),
         .wdata_i                (analog_wbl            ), // wbl
         .write_cu_i             (analog_dt_j_wwl       ), // dt_j_wwl
         .write_h_i              (analog_dt_h_wwl       ), // dt_h_wwl
@@ -215,7 +220,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     // Digital Macro /////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
+    $warning("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
         logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
     digital_macro #(
         .bit_j                  (logic_cfg.BitJ                   ),
