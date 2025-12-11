@@ -203,22 +203,22 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     // Analog Macro //////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    galena_256 #(
-        .ArraySize              (logic_cfg.NumSpin     ),
-        .WordWidth              (logic_cfg.BitJ        )
-    ) u_galena (
-        // .vdd_aio                (                      ), // cannot find this pin in synthesis
-        // .vss_aio                (                      ),
-        // .iref_aio               (                      ),
-        // .vup_aio                (                      ),
-        // .vdn_aio                (                      ),
-        .wdata_i                (analog_wbl            ), // wbl
-        .write_cu_i             (analog_dt_j_wwl       ), // dt_j_wwl
-        .write_h_i              (analog_dt_h_wwl       ), // dt_h_wwl
-        .write_au_i             (spin_wwl              ), // spin_wwl
-        .cont_en_i              (spin_compute_mode     ), // spin mode
-        .spins_o                (analog_spin_output    )
-    );
+    // galena_256 #(
+    //     .ArraySize              (logic_cfg.NumSpin     ),
+    //     .WordWidth              (logic_cfg.BitJ        )
+    // ) u_galena (
+    //     // .vdd_aio                (                      ), // cannot find this pin in synthesis
+    //     // .vss_aio                (                      ),
+    //     // .iref_aio               (                      ),
+    //     // .vup_aio                (                      ),
+    //     // .vdn_aio                (                      ),
+    //     .wdata_i                (analog_wbl            ), // wbl
+    //     .write_cu_i             (analog_dt_j_wwl       ), // dt_j_wwl
+    //     .write_h_i              (analog_dt_h_wwl       ), // dt_h_wwl
+    //     .write_au_i             (spin_wwl              ), // spin_wwl
+    //     .cont_en_i              (spin_compute_mode     ), // spin mode
+    //     .spins_o                (analog_spin_output    )
+    // );
 
     //////////////////////////////////////////////////////////
     // Digital Macro /////////////////////////////////////////
