@@ -220,7 +220,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     // Digital Macro /////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    $warning("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
+    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
         logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
     digital_macro #(
         .bit_j                  (logic_cfg.BitJ                   ),
