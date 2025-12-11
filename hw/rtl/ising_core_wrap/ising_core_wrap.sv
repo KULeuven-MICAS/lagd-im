@@ -207,7 +207,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .ArraySize              (logic_cfg.NumSpin     ),
         .WordWidth              (logic_cfg.BitJ        )
     ) u_galena (
-        .vdd_aio                (                      ),
+        // .vdd_aio                (                      ), // cannot find this pin in synthesis
         .vss_aio                (                      ),
         .iref_aio               (                      ),
         .vup_aio                (                      ),
