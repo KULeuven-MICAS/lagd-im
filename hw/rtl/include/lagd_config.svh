@@ -16,11 +16,11 @@
     `endif
 
     `ifndef L1_J_MEM_SIZE_B
-        `define L1_J_MEM_SIZE_B 32*1024
+        `define L1_J_MEM_SIZE_B 1024*1024 // should be 32*1024
     `endif
 
     `ifndef L1_FLIP_MEM_SIZE_B
-        `define L1_FLIP_MEM_SIZE_B 32*1024
+        `define L1_FLIP_MEM_SIZE_B 256*1024 // should be 32*1024
     `endif
 
     `ifndef L2_MEM_SIZE_B
