@@ -27,8 +27,4 @@
         `define L2_MEM_SIZE_B 64*1024
     `endif
 
-    `ifndef NUM_SPIN
-        `define NUM_SPIN 256
-    `endif
-
 `endif // LAGD_CONFIG_SVH
