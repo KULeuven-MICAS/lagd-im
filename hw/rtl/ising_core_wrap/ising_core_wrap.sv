@@ -208,7 +208,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .waddr_i                (analog_dt_j_wwl       ), // dt_j_wwl
         .h_write_i              (analog_dt_h_wwl       ), // dt_h_wwl
         // .write_au_i             (spin_wwl              ), // spin_wwl
-        .compute_en_i           (spin_compute_mode     ), // spin mode
+        .compute_en_i           (spin_compute_mode[0]  ), // spin mode
         .spins_o                (analog_spin_output    )
     );
 
