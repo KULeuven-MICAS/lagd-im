@@ -73,7 +73,7 @@ package lagd_mem_cfg_pkg;
         AddrWidth           : $clog2(`L1_J_MEM_SIZE_B),
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_J_MEM_DATA_WIDTH,
-        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+1, // +2 to distinguish among J/flip
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+1, // +1 to distinguish among J/flip
         AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH+1,
         NumAxiNarrowReq : 1,
         NumDirectNarrowReq : 0,
