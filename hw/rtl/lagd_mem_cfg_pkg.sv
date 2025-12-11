@@ -70,7 +70,7 @@ package lagd_mem_cfg_pkg;
     };
 
         localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgJ = '{
-        AddrWidth           : $clog2(`L1_J_MEM_SIZE_B),
+        AddrWidth           : `CVA6_ADDR_WIDTH,
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_J_MEM_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+1, // +1 to distinguish among J/flip
@@ -97,7 +97,7 @@ package lagd_mem_cfg_pkg;
     };
 
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgFlip = '{
-        AddrWidth           : $clog2(`L1_FLIP_MEM_SIZE_B),
+        AddrWidth           : `CVA6_ADDR_WIDTH,
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_FLIP_MEM_DATA_WIDTH,
         AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+1,
