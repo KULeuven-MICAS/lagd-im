@@ -77,6 +77,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin-1:0] spin_compute_mode;
     logic [logic_cfg.NumSpin-1:0] analog_spin_output;
 
+    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
+        logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
+
     ////////
     // This is a temporary implementation
     ////////
@@ -220,8 +223,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     // Digital Macro /////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
-        logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
     digital_macro #(
         .bit_j                  (logic_cfg.BitJ                   ),
         .bit_h                  (logic_cfg.BitH                   ),
