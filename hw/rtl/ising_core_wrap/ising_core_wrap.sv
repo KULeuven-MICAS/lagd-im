@@ -16,8 +16,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter ising_logic_cfg_t logic_cfg = '0,
     parameter type axi_slv_req_t = logic,
     parameter type axi_slv_rsp_t = logic,
-    parameter type axi_mst_req_t = logic,
-    parameter type axi_mst_rsp_t = logic,
     parameter type axi_narrow_req_t = logic,
     parameter type axi_narrow_rsp_t = logic,
     parameter type axi_wide_req_t = logic,
@@ -27,14 +25,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter type mem_wide_req_t = logic,
     parameter type mem_wide_rsp_t = logic,
     parameter type axi_slv_aw_chan_t = logic,
-    parameter type axi_mst_aw_chan_t = logic,
     parameter type axi_slv_w_chan_t = logic,
     parameter type axi_slv_b_chan_t = logic,
-    parameter type axi_mst_b_chan_t = logic,
     parameter type axi_slv_ar_chan_t = logic,
-    parameter type axi_mst_ar_chan_t = logic,
     parameter type axi_slv_r_chan_t = logic,
-    parameter type axi_mst_r_chan_t = logic,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 )(
@@ -42,36 +36,23 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     input logic rst_ni,
 
     // AXI slave interface
-    input axi_slv_req_t axi_s_req_i,
-    output axi_slv_rsp_t axi_s_rsp_o,
+    input axi_slv_req_t [0:0] axi_s_req_i,
+    output axi_slv_rsp_t [0:0] axi_s_rsp_o,
 
     // Register slave interface
     input reg_req_t reg_s_req_i,
     output reg_rsp_t reg_s_rsp_o
 );
-    // Define local types for flip memory interface
-    localparam type flip_addr_t = logic [`IC_L1_FLIP_MEM_ADDR_WIDTH-1:0];
-    localparam type flip_data_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH-1:0];
-    localparam type flip_strb_t = logic [`IC_L1_FLIP_MEM_DATA_WIDTH/8-1:0];
-    localparam type flip_user_t = logic [lagd_pkg::CheshireCfg.AxiUserWidth-1:0];
-    `MEM_TYPEDEF_ALL(flip_mem, flip_addr_t, flip_data_t, flip_strb_t, flip_user_t)
-    
-    // Define types for J memory (wide port)
-    localparam type j_data_t = logic [`IC_L1_J_MEM_DATA_WIDTH-1:0];
-    localparam type j_strb_t = logic [`IC_L1_J_MEM_DATA_WIDTH/8-1:0];
-    localparam type j_addr_t = logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0];
-    `MEM_TYPEDEF_ALL(j_mem, j_addr_t, j_data_t, j_strb_t, flip_user_t)
-
     // Internal signals
     logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
     axi_slv_req_t axi_m_req_j, axi_m_req_flip;
     axi_slv_rsp_t axi_m_rsp_j, axi_m_rsp_flip;
     axi_slv_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
     axi_slv_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
-    j_mem_req_t drt_s_req_j;
-    j_mem_rsp_t drt_s_rsp_j;
-    flip_mem_req_t drt_s_req_flip;
-    flip_mem_rsp_t drt_s_rsp_flip;
+    mem_wide_req_t drt_s_req_j;
+    mem_wide_rsp_t drt_s_rsp_j;
+    mem_wide_req_t drt_s_req_flip;
+    mem_wide_rsp_t drt_s_rsp_flip;
     logic [logic_cfg.NumSpin-1:0] spin_regfile;
     
     // Digital macro interface signals
@@ -95,6 +76,11 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin-1:0] spin_wwl;
     logic [logic_cfg.NumSpin-1:0] spin_compute_mode;
     logic [logic_cfg.NumSpin-1:0] analog_spin_output;
+
+    ////////
+    // This is a temporary implementation
+    ////////
+    assign mode_select = 1'b1;
 
     //////////////////////////////////////////////////////////
     // L1 memory, with narrow and direct access //////////////
@@ -138,18 +124,18 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     .Connectivity          ('1                     ),
     .ATOPs                 (0                      ),
     .slv_aw_chan_t         (axi_slv_aw_chan_t      ),
-    .mst_aw_chan_t         (axi_mst_aw_chan_t      ),
+    .mst_aw_chan_t         (axi_slv_aw_chan_t      ),
     .w_chan_t              (axi_slv_w_chan_t       ),
     .slv_b_chan_t          (axi_slv_b_chan_t       ),
-    .mst_b_chan_t          (axi_mst_b_chan_t       ),
+    .mst_b_chan_t          (axi_slv_b_chan_t       ),
     .slv_ar_chan_t         (axi_slv_ar_chan_t      ),
-    .mst_ar_chan_t         (axi_mst_ar_chan_t      ),
+    .mst_ar_chan_t         (axi_slv_ar_chan_t      ),
     .slv_r_chan_t          (axi_slv_r_chan_t       ),
-    .mst_r_chan_t          (axi_mst_r_chan_t       ),
+    .mst_r_chan_t          (axi_slv_r_chan_t       ),
     .slv_req_t             (axi_slv_req_t          ),
     .slv_resp_t            (axi_slv_rsp_t          ),
-    .mst_req_t             (axi_mst_req_t          ),
-    .mst_resp_t            (axi_mst_rsp_t          ),
+    .mst_req_t             (axi_slv_req_t          ),
+    .mst_resp_t            (axi_slv_rsp_t          ),
     .rule_t                (rule_t                 )
     ) i_axi_xbar ( 
     .clk_i                 (clk_i                  ),
@@ -173,8 +159,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
-        .mem_wide_req_t        (j_mem_req_t            ),
-        .mem_wide_rsp_t        (j_mem_rsp_t            )
+        .mem_wide_req_t        (mem_wide_req_t         ),
+        .mem_wide_rsp_t        (mem_wide_rsp_t         )
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
@@ -196,8 +182,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
-        .mem_wide_req_t        (flip_mem_req_t         ),
-        .mem_wide_rsp_t        (flip_mem_rsp_t         )
+        .mem_wide_req_t        (mem_wide_req_t         ),
+        .mem_wide_rsp_t        (mem_wide_rsp_t         )
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
@@ -214,7 +200,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     // Analog Macro //////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    galena #(
+    galena_256 #(
         .SpinZize               (logic_cfg.NumSpin     ),
         .WordWidth              (logic_cfg.BitJ        )
     ) u_galena (
@@ -229,6 +215,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     // Digital Macro /////////////////////////////////////////
     //////////////////////////////////////////////////////////
+    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
+        logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
     digital_macro #(
         .bit_j                  (logic_cfg.BitJ                   ),
         .bit_h                  (logic_cfg.BitH                   ),
