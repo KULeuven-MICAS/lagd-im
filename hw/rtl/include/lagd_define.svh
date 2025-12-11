@@ -40,8 +40,6 @@
     `define IC_FLIP_MEM_END_ADDR 'h9001_0000 // Flip Mem Addr Space 32KB
     `define IC_REGS_BASE_ADDR 'hA000_0000
     // L1 memory per core
-    `define L1_J_MEM_SIZE_B 32*1024      // 32 kB J memory
-    `define L1_FLIP_MEM_SIZE_B 32*1024    // 32 kB Flip memory
     `define IC_L1_MEM_SIZE_B `L1_J_MEM_SIZE_B + `L1_FLIP_MEM_SIZE_B
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
     `define IC_L1_WORDS_PER_BANK 2048
