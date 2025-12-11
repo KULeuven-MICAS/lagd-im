@@ -121,6 +121,7 @@ module energy_monitor #(
     // handshake signals
     logic spin_handshake;
     logic weight_handshake;
+    logic energy_handshake;
     logic [PIPESMID:0] weight_handshake_accum;
 
     genvar i;
