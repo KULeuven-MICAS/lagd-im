@@ -208,10 +208,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .WordWidth              (logic_cfg.BitJ        )
     ) u_galena (
         // .vdd_aio                (                      ), // cannot find this pin in synthesis
-        .vss_aio                (                      ),
-        .iref_aio               (                      ),
-        .vup_aio                (                      ),
-        .vdn_aio                (                      ),
+        // .vss_aio                (                      ),
+        // .iref_aio               (                      ),
+        // .vup_aio                (                      ),
+        // .vdn_aio                (                      ),
         .wdata_i                (analog_wbl            ), // wbl
         .write_cu_i             (analog_dt_j_wwl       ), // dt_j_wwl
         .write_h_i              (analog_dt_h_wwl       ), // dt_h_wwl
