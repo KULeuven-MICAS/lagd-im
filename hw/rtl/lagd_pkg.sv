@@ -73,13 +73,13 @@ package lagd_pkg;
     function automatic lagd_slv_addr_map_t gen_lagd_slv_end_addr(lagd_slv_idx_e Idx);
         lagd_slv_addr_map_t addr_map;
         int unsigned idx;
+        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B);
+
         // L2 memory
         addr_map[Idx.L2_MEM] = $unsigned(`L2_MEM_BASE_ADDR + `L2_MEM_SIZE_B - 1);
         // CVA6 stack memory
         addr_map[Idx.STACK_MEM] = $unsigned(`STACK_BASE_ADDR + `STACK_SIZE_B - 1);
         // Ising cores
-        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + 
-            `IC_L1_MEM_SIZE_B);
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + i);
             addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (i+1)*`IC_L1_MEM_LIMIT - 1);
@@ -217,7 +217,8 @@ package lagd_pkg;
     // Check that the number of cores can be encoded in the Reg Slave ID width
     `PACKAGE_ASSERT(cheshire_pkg::MaxExtRegSlvWidth >= $clog2(`NUM_ISING_CORES))
     // Check that the memory per core is not larger than the maximum allowed
-    `PACKAGE_ASSERT(`IC_L1_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
+    `PACKAGE_ASSERT(`L1_J_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
+    `PACKAGE_ASSERT(`L1_FLIP_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
 
 
 endpackage : lagd_pkg
@@ -232,14 +233,41 @@ package ising_logic_pkg;
         int unsigned BitJ;
         /// Bit width for H fields
         int unsigned BitH;
+        /// Bit width for scaling
+        int unsigned ScalingBit;
+        /// Parallelism factor
+        int unsigned Parallelism;
+        /// Total energy bit width
+        int unsigned EnergyTotalBit;
         /// Depth of the flip icon memory
         int unsigned FlipIconDepth;
+        /// Config counter bitwidth
+        int unsigned CfgCounterBitwidth;
+        /// Spin depth
+        int unsigned SpinDepth;
+        /// Little endian flag
+        bit LittleEndian;
+        /// Pipeline at energy monitor interface
+        bit PipesIntf;
+        /// Pipeline in adder tree of energy monitor
+        bit PipesMid;
+        /// Synchronizer pipe depth
+        int unsigned SynchronizerPipeDepth;
     } ising_logic_cfg_t;
     localparam ising_logic_cfg_t IsingLogicCfg = '{
         NumSpin : `NUM_SPIN,
         BitJ    : `BIT_J,
         BitH    : `BIT_H,
-        FlipIconDepth : `FLIP_ICON_DEPTH
+        ScalingBit: `SCALING_BIT,
+        Parallelism: `PARALLELISM,
+        EnergyTotalBit: `ENERGY_TOTAL_BIT,
+        FlipIconDepth : `FLIP_ICON_DEPTH,
+        CfgCounterBitwidth : 16,
+        SpinDepth: 2,
+        LittleEndian: 0,
+        PipesIntf: 1, // pipeline at energy monitor interface
+        PipesMid: 1, // pipeline in adder tree of energy monitor
+        SynchronizerPipeDepth: `SYNCH_PIPE_DEPTH
     };
 
 endpackage: ising_logic_pkg

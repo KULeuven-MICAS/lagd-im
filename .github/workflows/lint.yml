@@ -40,6 +40,7 @@ jobs:
                     exclude_paths: |
                         third_parties/*
                         target/syn/tech/tsmc7ff/*
+                        hw/rtl/flip_manager/lagd_fifo_v3.sv
 
     ################
     # Verible Lint #

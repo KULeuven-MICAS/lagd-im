@@ -190,18 +190,26 @@ module lagd_soc import lagd_pkg::*; (
     generate
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
             ising_core_wrap #(
-                .l1_mem_cfg_j     (lagd_mem_pkg::IsingCoreL1MemCfgJ),
-                .l1_mem_cfg_h     (lagd_mem_pkg::IsingCoreL1MemCfgH),
-                .l1_mem_cfg_flip  (lagd_mem_pkg::IsingCoreL1MemCfgFlip),
+                .l1_mem_cfg_j     (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ),
+                .l1_mem_cfg_flip  (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip),
                 .logic_cfg      (ising_logic_pkg::IsingLogicCfg),
                 .axi_slv_req_t  (lagd_axi_slv_req_t),
                 .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
-                .reg_slv_req_t  (lagd_reg_req_t),
-                .reg_slv_rsp_t  (lagd_reg_rsp_t),
-                .mem_narrow_req_t (lagd_mem_narr_req_t),
-                .mem_narrow_rsp_t (lagd_mem_narr_rsp_t),
-                .mem_wide_req_t   (lagd_mem_wide_req_t),
-                .mem_wide_rsp_t   (lagd_mem_wide_rsp_t)
+                .axi_narrow_req_t(lagd_axi_slv_req_t),
+                .axi_narrow_rsp_t(lagd_axi_slv_rsp_t),
+                .axi_wide_req_t(lagd_axi_wide_slv_req_t),
+                .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
+                .mem_narrow_req_t(lagd_mem_narr_req_t),
+                .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
+                .mem_wide_req_t(lagd_mem_wide_req_t),
+                .mem_wide_rsp_t(lagd_mem_wide_rsp_t),
+                .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t),
+                .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t),
+                .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t),
+                .axi_slv_ar_chan_t (lagd_axi_slv_ar_chan_t),
+                .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t),
+                .reg_req_t      (lagd_reg_req_t),
+                .reg_rsp_t      (lagd_reg_rsp_t)
             ) i_core (
                 .clk_i      (clk_i),
                 .rst_ni     (rst_ni),

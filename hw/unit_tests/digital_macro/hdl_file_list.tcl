@@ -1,0 +1,28 @@
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+set HDL_PATH ../../rtl
+
+set HDL_FILES [ list \
+    "./tb_digital_macro.sv" \
+    "${HDL_PATH}/digital_macro/digital_macro.sv" \
+    "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
+    "${HDL_PATH}/lib/bp_pipe.sv" \
+    "${HDL_PATH}/lib/fifo_v3.sv" \
+    "${HDL_PATH}/lib/registers.svh" \
+    "${HDL_PATH}/energy_monitor/vector_caching.sv" \
+    "${HDL_PATH}/energy_monitor/step_counter.sv" \
+    "${HDL_PATH}/energy_monitor/logic_ctrl.sv" \
+    "${HDL_PATH}/energy_monitor/partial_energy_calc.sv" \
+    "${HDL_PATH}/energy_monitor/adder_tree.sv" \
+    "${HDL_PATH}/energy_monitor/accumulator.sv" \
+    "${HDL_PATH}/flip_manager/flip_manager.sv" \
+    "${HDL_PATH}/flip_manager/flip_engine.sv" \
+    "${HDL_PATH}/flip_manager/energy_fifo_maintainer.sv" \
+    "${HDL_PATH}/flip_manager/spin_fifo_maintainer.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_macro_wrap.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_cfg.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_tx.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
+]

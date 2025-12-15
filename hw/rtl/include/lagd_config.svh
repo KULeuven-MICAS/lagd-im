@@ -16,23 +16,15 @@
     `endif
 
     `ifndef L1_J_MEM_SIZE_B
-        `define L1_J_MEM_SIZE_B 32*1024
-    `endif
-
-    `ifndef L1_H_MEM_SIZE_B
-        `define L1_H_MEM_SIZE_B 4*1024
+        `define L1_J_MEM_SIZE_B 32*1024 // should be 32*1024
     `endif
 
     `ifndef L1_FLIP_MEM_SIZE_B
-        `define L1_FLIP_MEM_SIZE_B 32*1024
+        `define L1_FLIP_MEM_SIZE_B 32*1024 // should be 32*1024
     `endif
 
     `ifndef L2_MEM_SIZE_B
         `define L2_MEM_SIZE_B 64*1024
-    `endif
-
-    `ifndef NUM_SPIN
-        `define NUM_SPIN 256
     `endif
 
 `endif // LAGD_CONFIG_SVH
