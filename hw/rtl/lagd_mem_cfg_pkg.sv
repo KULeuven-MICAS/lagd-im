@@ -72,7 +72,6 @@ package lagd_mem_cfg_pkg;
     // localparam int unsigned IsingCoreJWordsPerBank = `L1_J_MEM_SIZE_B*8/`IC_L1_J_MEM_DATA_WIDTH;
     localparam int unsigned IsingCoreJWordsPerBank = 64;
     localparam int unsigned IsingCoreJNumNarrowBanks = `L1_J_MEM_SIZE_B*8/IsingCoreJWordsPerBank/`LAGD_AXI_DATA_WIDTH;
-    
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgJ = '{
         AddrWidth           : `CVA6_ADDR_WIDTH,
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
