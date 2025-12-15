@@ -98,8 +98,8 @@ module tcdm_interconnect_wrap #(
         assign mem_rsp_i_q_ready[j] = mem_rsp_i[j].q_ready;
     end
     generate
-        if (NumIn == 1) begin
-            if (NumOut == 1) begin
+        if (NumOut == 1) begin
+            if (NumIn == 1) begin
                 // Direct connection for 1x1 interconnect
                 assign mem_req_o_q_valid[0] = mem_req_i_q_valid[0];
                 assign mem_req_o_q_addr[0]  = mem_req_i_q_addr[0][AddrMemWidth-1:0];
