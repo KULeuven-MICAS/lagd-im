@@ -122,8 +122,8 @@ module memory_island_core import memory_island_pkg::*; #(
 
     localparam int unsigned InBankAddrWidth = $clog2(Cfg.WordsPerBank);
 
-    localparam int unsigned AddrBankWordBit = Cfg.NarrowDataWidth/8 - 1;
-    localparam int unsigned AddrWideWordBit = Cfg.WideDataWidth/8 - 1;
+    localparam int unsigned AddrBankWordBit = $clog2(Cfg.NarrowDataWidth/8) - 1;
+    localparam int unsigned AddrWideWordBit = $clog2(Cfg.WideDataWidth/8) - 1;
     localparam int unsigned NumNarrowBanksInWide = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
 
     localparam int unsigned NarrowBankAddrWidth = $clog2(Cfg.NumNarrowBanks);
@@ -194,8 +194,8 @@ module memory_island_core import memory_island_pkg::*; #(
                 .FullAddrWidth(Cfg.AddrWidth),
                 .AddrWidth(AddrTopBit+1),
                 .DataWidth(Cfg.NarrowDataWidth),
-                .AddrMemWidth(NarrowBankAddrWidth+InBankAddrWidth),
-                .BeWidth(AddrBankWordBit + 1),
+                .AddrMemWidth(InBankAddrWidth),
+                .BeWidth(Cfg.NarrowDataWidth/8),
                 .RespLat(NarrowBankRespLat),
                 .mem_req_t(mem_narrow_req_t),
                 .mem_rsp_t(mem_narrow_rsp_t)

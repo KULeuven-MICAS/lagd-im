@@ -72,12 +72,13 @@ package lagd_mem_cfg_pkg;
     // localparam int unsigned IsingCoreJWordsPerBank = `L1_J_MEM_SIZE_B*8/`IC_L1_J_MEM_DATA_WIDTH;
     localparam int unsigned IsingCoreJWordsPerBank = 64;
     localparam int unsigned IsingCoreJNumNarrowBanks = `L1_J_MEM_SIZE_B*8/IsingCoreJWordsPerBank/`LAGD_AXI_DATA_WIDTH;
+    
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgJ = '{
         AddrWidth           : `CVA6_ADDR_WIDTH,
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_J_MEM_DATA_WIDTH,
-        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+1, // +1 to distinguish among J/flip
-        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH+1,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
         NumAxiNarrowReq : 1,
         NumDirectNarrowReq : 0,
         NumAxiWideReq : 0,
@@ -106,8 +107,8 @@ package lagd_mem_cfg_pkg;
         AddrWidth           : `CVA6_ADDR_WIDTH,
         NarrowDataWidth     : `LAGD_AXI_DATA_WIDTH,
         WideDataWidth       : `IC_L1_FLIP_MEM_DATA_WIDTH,
-        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH+1,
-        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH+1,
+        AxiNarrowIdWidth    : `LAGD_AXI_ID_WIDTH,
+        AxiWideIdWidth      : `LAGD_AXI_ID_WIDTH,
         NumAxiNarrowReq : 1,
         NumDirectNarrowReq : 0,
         NumAxiWideReq : 0,

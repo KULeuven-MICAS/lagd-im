@@ -61,7 +61,7 @@ module tcdm_interconnect_wrap #(
     logic [NumIn-1:0][AddrWidth-1:0] mem_req_i_q_addr;
     logic [NumIn-1:0] mem_req_i_q_write;
     logic [NumIn-1:0][DataWidth-1:0] mem_req_i_q_data;
-    logic [NumIn-1:0][(DataWidth/8)-1:0] mem_req_i_q_strb;
+    logic [NumIn-1:0][BeWidth-1:0] mem_req_i_q_strb;
     logic [NumIn-1:0] mem_rsp_o_p_valid;
     logic [NumIn-1:0][DataWidth-1:0] mem_rsp_o_p_data;
 
@@ -82,7 +82,7 @@ module tcdm_interconnect_wrap #(
     logic [NumOut-1:0][AddrMemWidth-1:0] mem_req_o_q_addr;
     logic [NumOut-1:0] mem_req_o_q_write;
     logic [NumOut-1:0][DataWidth-1:0] mem_req_o_q_data;
-    logic [NumOut-1:0][(DataWidth/8)-1:0] mem_req_o_q_strb;
+    logic [NumOut-1:0][BeWidth-1:0] mem_req_o_q_strb;
     logic [NumOut-1:0][DataWidth-1:0] mem_rsp_i_p_data;
     logic [NumOut-1:0] mem_rsp_i_p_valid;
 
