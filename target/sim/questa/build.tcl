@@ -25,7 +25,7 @@ puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
     vlog -sv -work ${WLIB} {*}${DEFINES} ${file} \
-        {*}[lmap inc ${INCLUDE_FILES} {format "+incdir+%s" $inc}]
+        {*}[lmap inc ${INCLUDE_FILES} { format "+incdir+%s" $inc }]
 }
 
 

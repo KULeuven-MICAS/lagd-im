@@ -37,8 +37,12 @@ class ParserClass(ScriptsParserClass):
 
     def init_parser(self):
         self.parser.add_argument('-f', '--file', type=str, help='HDL file path')
-        self.parser.add_argument('-t', '--target', type=str, help='target extration type',
-            default='HDL_FILES')
+        self.parser.add_argument(
+            '-t', '--target',
+            type=str,
+            help='target extration type',
+            default='HDL_FILES'
+        )
 
     def set_defaults(self):
         pass
