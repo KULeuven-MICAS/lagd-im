@@ -70,7 +70,7 @@ package lagd_mem_cfg_pkg;
     };
 
     // localparam int unsigned IsingCoreJWordsPerBank = `L1_J_MEM_SIZE_B*8/`IC_L1_J_MEM_DATA_WIDTH;
-    localparam int unsigned IsingCoreJWordsPerBank = 2048;
+    localparam int unsigned IsingCoreJWordsPerBank = 64;
     localparam int unsigned IsingCoreJNumNarrowBanks = `L1_J_MEM_SIZE_B*8/IsingCoreJWordsPerBank/`LAGD_AXI_DATA_WIDTH;
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgJ = '{
         AddrWidth           : `CVA6_ADDR_WIDTH,
@@ -100,7 +100,7 @@ package lagd_mem_cfg_pkg;
     };
 
     // localparam int unsigned IsingCoreFlipWordsPerBank = `L1_FLIP_MEM_SIZE_B*8/`IC_L1_FLIP_MEM_DATA_WIDTH;
-    localparam int unsigned IsingCoreFlipWordsPerBank = 2048;
+    localparam int unsigned IsingCoreFlipWordsPerBank = 256;
     localparam int unsigned IsingCoreFlipNumNarrowBanks = `L1_FLIP_MEM_SIZE_B*8/IsingCoreFlipWordsPerBank/`LAGD_AXI_DATA_WIDTH;
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgFlip = '{
         AddrWidth           : `CVA6_ADDR_WIDTH,
