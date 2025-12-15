@@ -100,7 +100,7 @@ package lagd_mem_cfg_pkg;
     };
 
     // localparam int unsigned IsingCoreFlipWordsPerBank = `L1_FLIP_MEM_SIZE_B*8/`IC_L1_FLIP_MEM_DATA_WIDTH;
-    localparam int unsigned IsingCoreFlipWordsPerBank = 256;
+    localparam int unsigned IsingCoreFlipWordsPerBank = 1024;
     localparam int unsigned IsingCoreFlipNumNarrowBanks = `L1_FLIP_MEM_SIZE_B*8/IsingCoreFlipWordsPerBank/`LAGD_AXI_DATA_WIDTH;
     localparam memory_island_pkg::mem_cfg_t IsingCoreL1MemCfgFlip = '{
         AddrWidth           : `CVA6_ADDR_WIDTH,

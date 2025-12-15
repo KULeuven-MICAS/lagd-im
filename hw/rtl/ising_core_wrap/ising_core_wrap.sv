@@ -122,36 +122,36 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign axi_xbar_out_rsp[0] = axi_s_rsp_j;
     assign axi_xbar_out_rsp[1] = axi_s_rsp_flip;
 
-    axi_xbar #(
-    .Cfg                   (xbar_cfg               ),
-    .Connectivity          ('1                     ),
-    .ATOPs                 (0                      ),
-    .slv_aw_chan_t         (axi_slv_aw_chan_t      ),
-    .mst_aw_chan_t         (axi_slv_aw_chan_t      ),
-    .w_chan_t              (axi_slv_w_chan_t       ),
-    .slv_b_chan_t          (axi_slv_b_chan_t       ),
-    .mst_b_chan_t          (axi_slv_b_chan_t       ),
-    .slv_ar_chan_t         (axi_slv_ar_chan_t      ),
-    .mst_ar_chan_t         (axi_slv_ar_chan_t      ),
-    .slv_r_chan_t          (axi_slv_r_chan_t       ),
-    .mst_r_chan_t          (axi_slv_r_chan_t       ),
-    .slv_req_t             (axi_slv_req_t          ),
-    .slv_resp_t            (axi_slv_rsp_t          ),
-    .mst_req_t             (axi_slv_req_t          ),
-    .mst_resp_t            (axi_slv_rsp_t          ),
-    .rule_t                (rule_t                 )
-    ) i_axi_xbar ( 
-    .clk_i                 (clk_i                  ),
-    .rst_ni                (rst_ni                 ),
-    .test_i                (1'b0                   ),
-    .slv_ports_req_i       (axi_s_req_i            ),
-    .slv_ports_resp_o      (axi_s_rsp_o            ),
-    .mst_ports_req_o       (axi_xbar_out_req       ),
-    .mst_ports_resp_i      (axi_xbar_out_rsp       ),
-    .addr_map_i            (AddrMap                ),
-    .en_default_mst_port_i ('0                     ),
-    .default_mst_port_i    ('0                     )
-    );
+    // axi_xbar #(
+    // .Cfg                   (xbar_cfg               ),
+    // .Connectivity          ('1                     ),
+    // .ATOPs                 (0                      ),
+    // .slv_aw_chan_t         (axi_slv_aw_chan_t      ),
+    // .mst_aw_chan_t         (axi_slv_aw_chan_t      ),
+    // .w_chan_t              (axi_slv_w_chan_t       ),
+    // .slv_b_chan_t          (axi_slv_b_chan_t       ),
+    // .mst_b_chan_t          (axi_slv_b_chan_t       ),
+    // .slv_ar_chan_t         (axi_slv_ar_chan_t      ),
+    // .mst_ar_chan_t         (axi_slv_ar_chan_t      ),
+    // .slv_r_chan_t          (axi_slv_r_chan_t       ),
+    // .mst_r_chan_t          (axi_slv_r_chan_t       ),
+    // .slv_req_t             (axi_slv_req_t          ),
+    // .slv_resp_t            (axi_slv_rsp_t          ),
+    // .mst_req_t             (axi_slv_req_t          ),
+    // .mst_resp_t            (axi_slv_rsp_t          ),
+    // .rule_t                (rule_t                 )
+    // ) i_axi_xbar ( 
+    // .clk_i                 (clk_i                  ),
+    // .rst_ni                (rst_ni                 ),
+    // .test_i                (1'b0                   ),
+    // .slv_ports_req_i       (axi_s_req_i            ),
+    // .slv_ports_resp_o      (axi_s_rsp_o            ),
+    // .mst_ports_req_o       (axi_xbar_out_req       ),
+    // .mst_ports_resp_i      (axi_xbar_out_rsp       ),
+    // .addr_map_i            (AddrMap                ),
+    // .en_default_mst_port_i ('0                     ),
+    // .default_mst_port_i    ('0                     )
+    // );
 
     // L1 memory instances
     memory_island_wrap #(
@@ -167,8 +167,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_j           ),
-        .axi_narrow_rsp_o       (axi_s_rsp_j           ),
+        .axi_narrow_req_i       (axi_s_req_i           ), // todo: connnect to axi_s_req_j
+        .axi_narrow_rsp_o       (axi_s_rsp_o           ), // todo: connnect to axi_s_rsp_j
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
         .mem_narrow_req_i       (                      ),
@@ -190,8 +190,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_flip        ),
-        .axi_narrow_rsp_o       (axi_s_rsp_flip        ),
+        .axi_narrow_req_i       (axi_s_req_i           ), // todo: connnect to axi_s_req_flip
+        .axi_narrow_rsp_o       (axi_s_rsp_o           ), // todo: connnect to axi_s_rsp_flip
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
         .mem_narrow_req_i       (                      ),
