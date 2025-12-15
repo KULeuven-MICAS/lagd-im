@@ -111,7 +111,7 @@ module tcdm_interconnect_wrap #(
                 assign mem_rsp_o_p_data[0]  = mem_rsp_i_p_data[0];
                 assign mem_rsp_o_q_ready[0] = mem_rsp_i_q_ready[0];
             end else begin
-                $error("tcdm_interconnect_wrap: NumIn=1 with NumOut>1 is not supported.");
+                $error("tcdm_interconnect_wrap: NumIn>1 with NumOut=1 is not supported.");
             end
         end else begin
             tcdm_interconnect #(
