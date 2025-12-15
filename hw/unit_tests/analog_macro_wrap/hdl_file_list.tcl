@@ -2,6 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+set PROJECT_ROOT ../../..
 set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
@@ -12,4 +13,8 @@ set HDL_FILES [ list \
     "${HDL_PATH}/lib/registers.svh" \
     "${HDL_PATH}/analog_macro_wrap/analog_tx.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
+]
+
+set INCLUDE_FILES [list \
+    "${PROJECT_ROOT}/.bender/git/checkouts/common_cells-08bbccfb95b81332/include" \
 ]
