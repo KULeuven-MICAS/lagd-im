@@ -27,7 +27,7 @@
 // - hscaling_i: h scaling factor (must be a power of 2, including 0)
 // - energy_o: output energy value
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module partial_energy_calc #(
     parameter int BITJ = 4,

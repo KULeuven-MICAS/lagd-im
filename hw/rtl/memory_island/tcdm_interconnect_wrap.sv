@@ -61,7 +61,7 @@ module tcdm_interconnect_wrap #(
     logic [NumIn-1:0][AddrWidth-1:0] mem_req_i_q_addr;
     logic [NumIn-1:0] mem_req_i_q_write;
     logic [NumIn-1:0][DataWidth-1:0] mem_req_i_q_data;
-    logic [NumIn-1:0][(DataWidth/8)-1:0] mem_req_i_q_strb;
+    logic [NumIn-1:0][BeWidth-1:0] mem_req_i_q_strb;
     logic [NumIn-1:0] mem_rsp_o_p_valid;
     logic [NumIn-1:0][DataWidth-1:0] mem_rsp_o_p_data;
 
@@ -82,7 +82,7 @@ module tcdm_interconnect_wrap #(
     logic [NumOut-1:0][AddrMemWidth-1:0] mem_req_o_q_addr;
     logic [NumOut-1:0] mem_req_o_q_write;
     logic [NumOut-1:0][DataWidth-1:0] mem_req_o_q_data;
-    logic [NumOut-1:0][(DataWidth/8)-1:0] mem_req_o_q_strb;
+    logic [NumOut-1:0][BeWidth-1:0] mem_req_o_q_strb;
     logic [NumOut-1:0][DataWidth-1:0] mem_rsp_i_p_data;
     logic [NumOut-1:0] mem_rsp_i_p_valid;
 
@@ -97,36 +97,54 @@ module tcdm_interconnect_wrap #(
         assign mem_rsp_i_p_valid[j] = mem_rsp_i[j].p.valid;
         assign mem_rsp_i_q_ready[j] = mem_rsp_i[j].q_ready;
     end
+    generate
+        if (NumOut == 1) begin
+            if (NumIn == 1) begin
+                // Direct connection for 1x1 interconnect
+                assign mem_req_o_q_valid[0] = mem_req_i_q_valid[0];
+                assign mem_req_o_q_addr[0]  = mem_req_i_q_addr[0][AddrMemWidth-1:0];
+                assign mem_req_o_q_write[0] = mem_req_i_q_write[0];
+                assign mem_req_o_q_data[0]  = mem_req_i_q_data[0];
+                assign mem_req_o_q_strb[0]  = mem_req_i_q_strb[0];
 
-    tcdm_interconnect #(
-        .NumIn(NumIn),
-        .NumOut(NumOut),
-        .AddrWidth(AddrWidth),
-        .DataWidth(DataWidth),
-        .BeWidth(BeWidth),
-        .AddrMemWidth(AddrMemWidth),
-        .RespLat(RespLat),
-        .Topology(tcdm_interconnect_pkg::LIC)
-    ) i_tcdm_interconnect (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
+                assign mem_rsp_o_p_valid[0] = mem_rsp_i_p_valid[0];
+                assign mem_rsp_o_p_data[0]  = mem_rsp_i_p_data[0];
+                assign mem_rsp_o_q_ready[0] = mem_rsp_i_q_ready[0];
+            end else begin
+                $error("tcdm_interconnect_wrap: NumIn>1 with NumOut=1 is not supported.");
+            end
+        end else begin
+            tcdm_interconnect #(
+                .NumIn(NumIn),
+                .NumOut(NumOut),
+                .AddrWidth(AddrWidth),
+                .DataWidth(DataWidth),
+                .BeWidth(BeWidth),
+                .AddrMemWidth(AddrMemWidth),
+                .RespLat(RespLat),
+                .Topology(tcdm_interconnect_pkg::LIC)
+            ) i_tcdm_interconnect (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
 
-        .req_i(mem_req_i_q_valid),
-        .add_i(mem_req_i_q_addr),
-        .wen_i(mem_req_i_q_write),
-        .wdata_i(mem_req_i_q_data),
-        .be_i(mem_req_i_q_strb),
-        .gnt_o(mem_rsp_o_q_ready),
-        .vld_o(mem_rsp_o_p_valid),
-        .rdata_o(mem_rsp_o_p_data),
+                .req_i(mem_req_i_q_valid),
+                .add_i(mem_req_i_q_addr),
+                .wen_i(mem_req_i_q_write),
+                .wdata_i(mem_req_i_q_data),
+                .be_i(mem_req_i_q_strb),
+                .gnt_o(mem_rsp_o_q_ready),
+                .vld_o(mem_rsp_o_p_valid),
+                .rdata_o(mem_rsp_o_p_data),
 
-        .req_o(mem_req_o_q_valid),
-        .gnt_i(mem_rsp_i_q_ready),
-        .add_o(mem_req_o_q_addr),
-        .wen_o(mem_req_o_q_write),
-        .wdata_o(mem_req_o_q_data),
-        .be_o(mem_req_o_q_strb),
-        .rdata_i(mem_rsp_i_p_data)
-    );
+                .req_o(mem_req_o_q_valid),
+                .gnt_i(mem_rsp_i_q_ready),
+                .add_o(mem_req_o_q_addr),
+                .wen_o(mem_req_o_q_write),
+                .wdata_o(mem_req_o_q_data),
+                .be_o(mem_req_o_q_strb),
+                .rdata_i(mem_rsp_i_p_data)
+            );
+        end
+    endgenerate
 
 endmodule : tcdm_interconnect_wrap

@@ -19,6 +19,8 @@ dependencies:
                          version: 1.3.0}
   hemaia_axi_spi_slave: {git: "https://github.com/KULeuven-MICAS/hemaia_axi_spi_slave.git",
                          rev: main}
+  common_cells: {git: "https://github.com/pulp-platform/common_cells.git",
+                 version: 1.38.0}
 
 export_include_dirs:
   - hw/rtl/include

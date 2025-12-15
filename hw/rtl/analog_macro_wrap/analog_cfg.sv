@@ -6,7 +6,7 @@
 //
 // Analog cfg module
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module analog_cfg #(
     parameter integer num_spin = 256,

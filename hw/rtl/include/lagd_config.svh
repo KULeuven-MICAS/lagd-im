@@ -12,7 +12,7 @@
     // Number of Ising cores in the system
     // Maximum is 14 (because of AXI ID width limitations)
     `ifndef NUM_ISING_CORES
-        `define NUM_ISING_CORES 1
+        `define NUM_ISING_CORES 2
     `endif
 
     `ifndef L1_J_MEM_SIZE_B
