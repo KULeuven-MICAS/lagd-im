@@ -193,9 +193,8 @@ module tb_energy_monitor;
             $display("Debug mode enabled. Generating VCD waveform.");
             $dumpfile("tb_energy_monitor.vcd");
             $dumpvars(2, tb_energy_monitor);
-            $dumpvars(2, dut);
             #(200 * CLKCYCLE); // To avoid generating too large VCD files
-            $fatal("Testbench timeout reached. Ending simulation.");
+            $fatal(1, "Testbench timeout reached. Ending simulation.");
         end
         else begin
             // #(200000 * CLKCYCLE);
