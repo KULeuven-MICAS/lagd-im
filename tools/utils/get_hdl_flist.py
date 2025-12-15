@@ -11,12 +11,12 @@ vars_dict = {}
 with open(parser.args.file, 'r') as file:
     IN_FILE_LIST = False
     for line in file:
-        if line.startswith('set HDL_FILES'):
+        if line.startswith(f'set {parser.args.target}'):
             IN_FILE_LIST = True
             continue
         elif line.startswith(']'):
             IN_FILE_LIST = False
-        elif line.startswith('set'):
+        elif line.startswith('set') and '_FILES' not in line:
             var, value = line.split()[1:]
             vars_dict[var] = value
 

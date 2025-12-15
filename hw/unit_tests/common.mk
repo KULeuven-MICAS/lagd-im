@@ -26,8 +26,10 @@ endif
 
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils
-HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST))
+HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t HDL_FILES)
 $(info HDL_FILES: $(HDL_FILES))
+INCLUDE_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_FILES)
+$(info INCLUDE_FILES: $(INCLUDE_FILES))
 
 # VSIM FLAGS
 ifeq ($(NO_GUI), 1)
@@ -39,7 +41,7 @@ $(TEST_PATH)/work/work_${SIM_NAME}: $(HDL_FILES) $(VSIM_BUILD_SCRIPT)
 	@mkdir -p ./work
 	TEST_PATH=$(TEST_PATH) SIM_NAME=$(SIM_NAME) DBG=$(DBG) \
 	BUILD_ONLY=1 DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) \
-	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT)"
+	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT); quit"
 
 # Questasim run target
 $(TEST_PATH)/work/${SIM_NAME}.wlf: $(TEST_PATH)/work/work_${SIM_NAME} $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES)
