@@ -26,7 +26,7 @@ module lagd_axi_spi_slave #(
         .AXI_DATA_WIDTH($bits(axi_rsp_i.r.data)),
         .AXI_USER_WIDTH($bits(axi_req_o.aw.user)),
         .AXI_ID_WIDTH($bits(axi_req_o.aw.id))
-    ) (
+    ) i_axi_spi_slave (
         // SPI Interface
         .spi_sclk(spi_sclk_i),
         .spi_cs(spi_cs_i),

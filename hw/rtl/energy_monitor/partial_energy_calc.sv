@@ -33,9 +33,10 @@ module partial_energy_calc #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
     parameter int DATASPIN = 256,
-    parameter int SCALING_BIT = 5,
-    parameter int LOCAL_ENERGY_BIT = 16,
+    parameter int SCALING_BIT = 4,
     parameter int PIPES = 0,
+    parameter int MULTBIT = BITH + SCALING_BIT - 1, // bit width of the multiplier output
+    parameter int LOCAL_ENERGY_BIT = $clog2(DATASPIN) + MULTBIT,
     parameter int DATAJ = DATASPIN * BITJ
     )(
     input logic clk_i,
@@ -49,9 +50,6 @@ module partial_energy_calc #(
     input logic unsigned [SCALING_BIT-1:0] hscaling_i,
     output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o
 );
-    // Parameters
-    localparam int MULTBIT = BITH + SCALING_BIT - 1; // bit width of the multiplier output
-
     // Internal signals
     logic signed [DATASPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
     logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
