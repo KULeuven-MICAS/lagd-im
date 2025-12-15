@@ -39,11 +39,16 @@ vmap
 # Run simulation
 vsim -quiet \
     -wlf work/${SIM_NAME}.wlf \
+    -voptargs=+acc \
     -msgmode both -displaymsgmode both \
     -L work_lib \
     -work ${WLIB} \
     -ini ./modelsim.ini \
     ${OBJ}
+
+if { [info exists DBG] && $DBG == 1 } {
+    log -r /*
+}
 
 run -all
 quit
