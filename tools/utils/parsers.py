@@ -40,7 +40,7 @@ class ParserClass(ScriptsParserClass):
         self.parser.add_argument(
             '-t', '--target',
             type=str,
-            help='target extration type',
+            help='target extraction type',
             default='HDL_FILES'
         )
 
