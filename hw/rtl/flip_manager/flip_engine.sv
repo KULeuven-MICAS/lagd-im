@@ -58,7 +58,7 @@
 //   copy of flip_rdata) are maintained with clocked registers and cleared by
 //   flush_i or reset. Register macros from ../lib/registers.svh are used.
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module flip_engine #(
     parameter int DATASPIN = 256,

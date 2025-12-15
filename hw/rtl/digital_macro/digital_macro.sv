@@ -7,7 +7,7 @@
 // Digital compute macro
 
 `include "../include/lagd_define.svh"
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 `define True 1'b1
 `define False 1'b0

@@ -49,7 +49,7 @@
 // -- All spins are 0, all weights are -7, hbias=-7, hscaling=16, 20 same cases
 // -- All spins and weights are random, hbias and hscaling are random, 1,000,000 different cases
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 `define True 1'b1
 `define False 1'b0
