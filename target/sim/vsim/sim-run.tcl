@@ -39,22 +39,22 @@ vmap
 # Run simulation
 if { [info exists DBG] && ${DBG} == 0 } {
     vsim -quiet \
-    -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
-    -msgmode both -displaymsgmode both \
-    -L work_lib \
-    -work ${WLIB} \
-    -ini ${WORK_DIR}/modelsim.ini \
-    ${OBJ}
+        -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
+        -msgmode both -displaymsgmode both \
+        -L work_lib \
+        -work ${WLIB} \
+        -ini ${WORK_DIR}/modelsim.ini \
+        ${OBJ}
 } else {
     # Add voptargs to enable visibility of submodules signals
     vsim -quiet \
-    -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
-    -voptargs=+acc \
-    -msgmode both -displaymsgmode both \
-    -L work_lib \
-    -work ${WLIB} \
-    -ini ${WORK_DIR}/modelsim.ini \
-    ${OBJ}
+        -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
+        -voptargs=+acc \
+        -msgmode both -displaymsgmode both \
+        -L work_lib \
+        -work ${WLIB} \
+        -ini ${WORK_DIR}/modelsim.ini \
+        ${OBJ}
     # Save all signals in vcd
     log -r /*
 }
