@@ -10,7 +10,6 @@ set HDL_FILES [ list \
     "${HDL_PATH}/energy_monitor/step_counter.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_macro_wrap.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_cfg.sv" \
-    "${HDL_PATH}/lib/registers.svh" \
     "${HDL_PATH}/analog_macro_wrap/analog_tx.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
 ]
