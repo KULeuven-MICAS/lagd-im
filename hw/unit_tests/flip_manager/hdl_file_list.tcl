@@ -16,6 +16,6 @@ set HDL_FILES [ list \
     "${HDL_PATH}/flip_manager/spin_fifo_maintainer.sv" \
 ]
 
-set INCLUDE_FILES [list \
+set INCLUDE_DIRS [list \
     "${PROJECT_ROOT}/.bender/git/checkouts/common_cells-08bbccfb95b81332/include" \
 ]

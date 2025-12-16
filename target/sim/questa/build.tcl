@@ -24,11 +24,11 @@ source ${HDL_FILE_LIST}
 puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
-    if { [info exists INCLUDE_FILES] && [llength $INCLUDE_FILES] > 0 } {
-        vlog -sv -work ${WLIB} {*}${DEFINES} ${file} \
-            {*}[lmap inc ${INCLUDE_FILES} { format "+incdir+%s" $inc }]
-    } else {
+    if { [info exists INCLUDE_DIRS] == 0 } {
         vlog -sv -work ${WLIB} {*}${DEFINES} ${file}
+    } else {
+        vlog -sv -work ${WLIB} {*}${DEFINES} ${file} \
+            {*}[lmap inc ${INCLUDE_DIRS} { format "+incdir+%s" $inc }]
     }
 }
 

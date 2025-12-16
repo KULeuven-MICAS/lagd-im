@@ -28,8 +28,8 @@ HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils
 HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t HDL_FILES)
 $(info HDL_FILES: $(HDL_FILES))
-INCLUDE_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_FILES)
-$(info INCLUDE_FILES: $(INCLUDE_FILES))
+INCLUDE_DIRS ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_DIRS)
+$(info INCLUDE_DIRS: $(INCLUDE_DIRS))
 
 # VSIM FLAGS
 ifeq ($(NO_GUI), 1)

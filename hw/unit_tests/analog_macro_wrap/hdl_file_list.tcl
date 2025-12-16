@@ -15,6 +15,6 @@ set HDL_FILES [ list \
     "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
 ]
 
-set INCLUDE_FILES [list \
+set INCLUDE_DIRS [list \
     "${PROJECT_ROOT}/.bender/git/checkouts/common_cells-08bbccfb95b81332/include" \
 ]
