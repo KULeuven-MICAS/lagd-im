@@ -41,7 +41,16 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // Register slave interface
     input reg_req_t reg_s_req_i,
-    output reg_rsp_t reg_s_rsp_o
+    output reg_rsp_t reg_s_rsp_o,
+
+    // Galena wires
+    inout wire galena_vdd_i,
+    inout wire galena_cu_iref_i,
+    inout wire galena_cu_vup_i,
+    inout wire galena_cu_vdn_i,
+    inout wire galena_h_iref_i,
+    inout wire galena_h_vup_i,
+    inout wire galena_h_vdn_i
 );
     // Internal signals
     logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
@@ -209,7 +218,15 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .h_write_i              (analog_dt_h_wwl       ), // dt_h_wwl
         .au_write_i             (spin_wwl              ), // spin_wwl
         .cont_en_i              (spin_compute_mode     ), // spin mode
-        .spins_o                (analog_spin_output    )
+        .spins_o                (analog_spin_output    ),
+        // Galena wires
+        .vdd_ai                 (galena_vdd_i          ),
+        .cu_iref_ai             (galena_cu_iref_i      ),
+        .cu_vup_ai              (galena_cu_vup_i       ),
+        .cu_vdn_ai              (galena_cu_vdn_i       ),
+        .h_iref_ai              (galena_h_iref_i       ),
+        .h_vup_ai               (galena_h_vup_i        ),
+        .h_vdn_ai               (galena_h_vdn_i        )
     );
 
     //////////////////////////////////////////////////////////
