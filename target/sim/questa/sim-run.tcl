@@ -37,7 +37,17 @@ vmap
 # set IterationLimit 20000000
 
 # Run simulation
-vsim -quiet \
+if { [info exists DBG] == 0 } {
+    vsim -quiet \
+    -wlf work/${SIM_NAME}.wlf \
+    -msgmode both -displaymsgmode both \
+    -L work_lib \
+    -work ${WLIB} \
+    -ini ./modelsim.ini \
+    ${OBJ}
+} else {
+    # Add voptargs to enable visibility of submodules signals
+    vsim -quiet \
     -wlf work/${SIM_NAME}.wlf \
     -voptargs=+acc \
     -msgmode both -displaymsgmode both \
@@ -46,7 +56,7 @@ vsim -quiet \
     -ini ./modelsim.ini \
     ${OBJ}
 
-if { [info exists DBG] && $DBG == 1 } {
+    # Save all signals in vcd
     log -r /*
 }
 
