@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from parsers import ParserClass
+import os
 
 parser = ParserClass()
 file_list = []
@@ -16,7 +17,7 @@ with open(parser.args.file, 'r') as file:
             continue
         elif line.startswith(']'):
             IN_FILE_LIST = False
-        elif line.startswith('set') and '_FILES' not in line:
+        elif line.startswith('set') and '[' not in line:
             var, value = line.split()[1:]
             vars_dict[var] = value
 
