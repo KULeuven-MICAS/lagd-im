@@ -6,7 +6,7 @@
 //
 // Analog TX module, which transmits spin data from analog macro to digital macro.
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module analog_tx #(
     parameter integer num_spin = 256,

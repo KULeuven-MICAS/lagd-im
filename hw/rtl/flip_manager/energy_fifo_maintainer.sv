@@ -39,7 +39,7 @@
 // - spin_push_none_o is driven by the comparison (energy_i >= energy_pop)
 //   and latched for downstream observation.
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module energy_fifo_maintainer #(
     parameter int DATASPIN = 256,

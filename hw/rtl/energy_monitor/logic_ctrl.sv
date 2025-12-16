@@ -26,7 +26,7 @@
 // - energy_ready_i: input energy ready signal
 // - debug_en_i: debug step signal
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module logic_ctrl #(
     parameter int PIPESMID = 1

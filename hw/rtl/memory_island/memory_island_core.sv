@@ -122,8 +122,8 @@ module memory_island_core import memory_island_pkg::*; #(
 
     localparam int unsigned InBankAddrWidth = $clog2(Cfg.WordsPerBank);
 
-    localparam int unsigned AddrBankWordBit = Cfg.NarrowDataWidth/8 - 1;
-    localparam int unsigned AddrWideWordBit = Cfg.WideDataWidth/8 - 1;
+    localparam int unsigned AddrBankWordBit = $clog2(Cfg.NarrowDataWidth/8) - 1;
+    localparam int unsigned AddrWideWordBit = $clog2(Cfg.WideDataWidth/8) - 1;
     localparam int unsigned NumNarrowBanksInWide = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
 
     localparam int unsigned NarrowBankAddrWidth = $clog2(Cfg.NumNarrowBanks);
@@ -145,7 +145,6 @@ module memory_island_core import memory_island_pkg::*; #(
     // Interconnects
     // -------------
     // Wide interconnect
-    // TODO: add conditions inside the tcdm_interconnect_wrap
     localparam int unsigned NumWideBanks = Cfg.NumNarrowBanks * Cfg.NarrowDataWidth / Cfg.WideDataWidth;
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks;
@@ -187,14 +186,6 @@ module memory_island_core import memory_island_pkg::*; #(
             // Tie-off signals if no narrow requests
             assign mem_narrow_rsp_o = '0;
             assign mem_narrow_req_to_banks = '0;
-        end else if(Cfg.NumNarrowBanks == 1) begin : gen_narrow_single_bank
-            if (NumNarrowReq == 1) begin : gen_narrow_single_req
-                // Bypass interconnect if single bank and single request
-                assign mem_narrow_req_to_banks[0] = mem_narrow_req_i[0];
-                assign mem_narrow_rsp_o[0] = mem_narrow_rsp_from_banks[0];
-            end else begin : gen_narrow_multi_req
-                $error("Simple arbitration for single bank not implemented yet");
-            end
         end else begin : gen_narrow_multi_bank
             // Interconnect instance
             tcdm_interconnect_wrap #(
@@ -203,8 +194,8 @@ module memory_island_core import memory_island_pkg::*; #(
                 .FullAddrWidth(Cfg.AddrWidth),
                 .AddrWidth(AddrTopBit+1),
                 .DataWidth(Cfg.NarrowDataWidth),
-                .AddrMemWidth(NarrowBankAddrWidth+InBankAddrWidth),
-                .BeWidth(AddrBankWordBit + 1),
+                .AddrMemWidth(InBankAddrWidth),
+                .BeWidth(Cfg.NarrowDataWidth/8),
                 .RespLat(NarrowBankRespLat),
                 .mem_req_t(mem_narrow_req_t),
                 .mem_rsp_t(mem_narrow_rsp_t)

@@ -6,7 +6,7 @@
 //
 // Analog RX module, which receives spin data from digital macro and sends to analog macro.
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module analog_rx #(
     parameter integer num_spin = 256,

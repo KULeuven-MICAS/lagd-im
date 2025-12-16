@@ -44,7 +44,7 @@
 // Case tested:
 // - None
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module spin_fifo_maintainer #(
     parameter int SPIN_DEPTH = 2,

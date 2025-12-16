@@ -57,7 +57,7 @@
 // - This module arbitrates between configuration-driven pushes and energy-driven pushes into the spin FIFO.
 // - It exposes FIFO usage debug signals from submodules (debug_*_fifo_usage).
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module flip_manager #(
     parameter int DATASPIN = 256,
