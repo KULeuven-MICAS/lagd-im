@@ -9,6 +9,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_FILE
+`define VCD_FILE "tb_digital_macro.vcd"
+`endif
+
 `define True 1'b1
 `define False 1'b0
 
@@ -172,7 +176,7 @@ module tb_digital_macro;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
-            $dumpfile("tb_digital_macro.vcd");
+            $dumpfile(`VCD_FILE);
             $dumpvars(4, tb_digital_macro); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
             #(600 * CLKCYCLE); // To avoid generating huge VCD files

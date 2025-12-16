@@ -10,8 +10,6 @@ set HDL_FILES [ list \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
-    "${HDL_PATH}/lib/fifo_v3.sv" \
-    "${HDL_PATH}/lib/registers.svh" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
     "${HDL_PATH}/energy_monitor/step_counter.sv" \
     "${HDL_PATH}/energy_monitor/logic_ctrl.sv" \
@@ -19,6 +17,7 @@ set HDL_FILES [ list \
     "${HDL_PATH}/energy_monitor/adder_tree.sv" \
     "${HDL_PATH}/energy_monitor/accumulator.sv" \
     "${HDL_PATH}/flip_manager/flip_manager.sv" \
+    "${HDL_PATH}/flip_manager/lagd_fifo_v3.sv" \
     "${HDL_PATH}/flip_manager/flip_engine.sv" \
     "${HDL_PATH}/flip_manager/energy_fifo_maintainer.sv" \
     "${HDL_PATH}/flip_manager/spin_fifo_maintainer.sv" \
@@ -28,6 +27,6 @@ set HDL_FILES [ list \
     "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
 ]
 
-set INCLUDE_FILES [list \
+set INCLUDE_DIRS [list \
     "${PROJECT_ROOT}/.bender/git/checkouts/common_cells-08bbccfb95b81332/include" \
 ]
