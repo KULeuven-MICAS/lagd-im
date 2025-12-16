@@ -205,10 +205,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     //////////////////////////////////////////////////////////
     galena_256 u_galena (
         .wdata_i                (analog_wbl            ), // wbl
-        .waddr_i                (analog_dt_j_wwl       ), // dt_j_wwl
+        .cu_write_i             (analog_dt_j_wwl       ), // dt_j_wwl
         .h_write_i              (analog_dt_h_wwl       ), // dt_h_wwl
-        // .write_au_i             (spin_wwl              ), // spin_wwl
-        .compute_en_i           (spin_compute_mode[0]  ), // spin mode
+        .au_write_i             (spin_wwl              ), // spin_wwl
+        .cont_en_i              (spin_compute_mode     ), // spin mode
         .spins_o                (analog_spin_output    )
     );
 
