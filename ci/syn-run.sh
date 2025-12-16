@@ -66,6 +66,8 @@ for i in "$@"; do
   esac
 done
 
+# TODO: add make commands to generate all the files needed for synthesis/ before running this script
+
 # source /esat/micas-data/software/scripts/syn_vU-2022.12-SP2.rc
 TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
 mkdir -p "${TMP_DIR}"
