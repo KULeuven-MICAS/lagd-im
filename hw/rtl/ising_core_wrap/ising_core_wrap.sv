@@ -45,7 +45,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // Galena wires
     inout wire galena_vdd_i,
-    inout wire galena_vss_i,
     inout wire galena_cu_iref_i,
     inout wire galena_cu_vup_i,
     inout wire galena_cu_vdn_i,
@@ -222,7 +221,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .spins_o                (analog_spin_output    ),
         // Galena wires
         .vdd_ai                 (galena_vdd_i          ),
-        .VSS                    (galena_vss_i          ),
         .cu_iref_ai             (galena_cu_iref_i      ),
         .cu_vup_ai              (galena_cu_vup_i       ),
         .cu_vdn_ai              (galena_cu_vdn_i       ),
