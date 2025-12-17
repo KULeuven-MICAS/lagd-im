@@ -47,6 +47,7 @@ module lagd_soc import lagd_pkg::*; (
     output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_o,
     // Galena wires
     inout wire galena_vdd_i,
+    input wire galena_vss_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_cu_iref_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_cu_vup_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_cu_vdn_i,
@@ -229,6 +230,7 @@ module lagd_soc import lagd_pkg::*; (
                 .reg_s_rsp_o(reg_ext_rsp[i]),
                 // Galena wires
                 .galena_vdd_i       (galena_vdd_i),
+                .galena_vss_i       (galena_vss_i),
                 .galena_cu_iref_i   (galena_cu_iref_i[i]),
                 .galena_cu_vup_i    (galena_cu_vup_i[i]),
                 .galena_cu_vdn_i    (galena_cu_vdn_i[i]),
