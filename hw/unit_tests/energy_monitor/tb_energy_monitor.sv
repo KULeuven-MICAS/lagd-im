@@ -606,7 +606,6 @@ module tb_energy_monitor;
     // ========================================================================
     // Testbench task and timer setup
     // ========================================================================
-    // Spin interface
     initial begin
         fork
             spin_interface();
