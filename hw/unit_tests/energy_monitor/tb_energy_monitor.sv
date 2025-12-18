@@ -13,6 +13,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_FILE
+`define VCD_FILE "tb_energy_monitor.vcd"
+`endif
+
 `define S1W1H1_TEST 'b000 // spins: +1, weights: +1, hbias: +1, hscaling: +1
 `define S0W1H1_TEST 'b001 // spins: -1, weights: +1, hbias: +1, hscaling: +1
 `define S0W0H0_TEST 'b010 // spins: -1, weights: -1, hbias: -1, hscaling: +1
@@ -191,11 +195,10 @@ module tb_energy_monitor;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Generating VCD waveform.");
-            $dumpfile("tb_energy_monitor.vcd");
+            $dumpfile(`VCD_FILE);
             $dumpvars(2, tb_energy_monitor);
-            $dumpvars(2, dut);
             #(200 * CLKCYCLE); // To avoid generating too large VCD files
-            $fatal("Testbench timeout reached. Ending simulation.");
+            $fatal(1, "Testbench timeout reached. Ending simulation.");
         end
         else begin
             // #(200000 * CLKCYCLE);

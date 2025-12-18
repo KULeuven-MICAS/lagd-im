@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from parsers import ParserClass
+import os
 
 parser = ParserClass()
 file_list = []
@@ -11,12 +12,12 @@ vars_dict = {}
 with open(parser.args.file, 'r') as file:
     IN_FILE_LIST = False
     for line in file:
-        if line.startswith('set HDL_FILES'):
+        if line.startswith(f'set {parser.args.target}'):
             IN_FILE_LIST = True
             continue
         elif line.startswith(']'):
             IN_FILE_LIST = False
-        elif line.startswith('set'):
+        elif line.startswith('set') and '[' not in line:
             var, value = line.split()[1:]
             vars_dict[var] = value
 
@@ -29,7 +30,16 @@ for file in file_list:
     for var in vars_dict.keys():
         if '${' + var + '}' in file:
             file = file.replace('${' + var + '}', vars_dict[var])
-    exp_file_list.append(file)
+    if parser.args.target == 'INCLUDE_DIRS':
+        # fetch every file in the include directory
+        include_dir = file
+        if os.path.isdir(include_dir):
+            for root, dirs, files in os.walk(include_dir):
+                for f in files:
+                    if f.endswith('.vh') or f.endswith('.svh'):
+                        exp_file_list.append(os.path.join(root, f))
+    else:
+        exp_file_list.append(file)
 
 file_list_str = ' '.join(exp_file_list)
 

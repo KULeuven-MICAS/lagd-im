@@ -37,13 +37,25 @@ vmap
 # set IterationLimit 20000000
 
 # Run simulation
+if { [info exists DBG] && ${DBG} == 1 } {
+    set vopt_flag "-voptargs=+acc"
+} else {
+    set vopt_flag ""
+}
+
 vsim -quiet \
-    -wlf work/${SIM_NAME}.wlf \
+    -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
+    ${vopt_flag} \
     -msgmode both -displaymsgmode both \
     -L work_lib \
     -work ${WLIB} \
-    -ini ./modelsim.ini \
+    -ini ${WORK_DIR}/modelsim.ini \
     ${OBJ}
+
+if { [info exists DBG] && ${DBG} == 1 } {
+    # Save all signals in vcd
+    log -r /*
+}
 
 run -all
 quit

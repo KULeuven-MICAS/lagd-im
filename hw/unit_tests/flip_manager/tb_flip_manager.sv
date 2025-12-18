@@ -9,6 +9,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_FILE
+`define VCD_FILE "tb_flip_manager.vcd"
+`endif
+
 module tb_flip_manager;
 
     // Module parameters
@@ -143,7 +147,7 @@ module tb_flip_manager;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
-            $dumpfile("tb_flip_manager.vcd");
+            $dumpfile(`VCD_FILE);
             $dumpvars(4, tb_flip_manager); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
             #(600 * CLKCYCLE); // To avoid generating huge VCD files
