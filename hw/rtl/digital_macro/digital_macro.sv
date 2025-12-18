@@ -63,8 +63,6 @@ module digital_macro #(
     input  logic [data_j_bit-1:0] j_rdata_i,
     output logic h_ren_o,
     input  logic [data_h_bit-1:0] h_rdata_i,
-    output logic sfc_ren_o,
-    input  logic [scaling_bit-1:0] sfc_rdata_i,
     // runtime interface: flip manager
     input  logic flush_i,
     input  logic en_comparison_i,
@@ -86,7 +84,6 @@ module digital_macro #(
     // analog interface: config
     output logic [num_spin-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
-    output logic sfc_wwl_o,
     output logic [num_spin*bit_j-1:0] wbl_o,
     // analog interface: runtime
     output logic [num_spin-1:0] spin_wwl_o,
@@ -108,11 +105,9 @@ module digital_macro #(
     logic analog_ready;
     logic [spin_idx_bit-1:0] counter_spin;
     logic [scaling_bit*parallelism-1:0] hscaling_expanded;
-    logic [scaling_bit * num_spin-1:0] hscaling_analog_expanded;
     logic [bit_h*parallelism-1:0] hbias_sliced;
 
     assign hscaling_expanded = {parallelism{hscaling_i}};
-    assign hscaling_analog_expanded = {num_spin{sfc_rdata_i}};
     assign hbias_sliced = hbias_i[counter_spin * bit_h +: bit_h * parallelism];
 
     assign weight_ren_o = en_i & (cmpt_en_i | weight_ready_em);
@@ -209,11 +204,8 @@ module digital_macro #(
         .j_rdata_i (j_rdata_i),
         .h_ren_o (h_ren_o),
         .h_rdata_i (h_rdata_i),
-        .sfc_ren_o (sfc_ren_o),
-        .sfc_rdata_i (hscaling_analog_expanded),
         .j_one_hot_wwl_o (j_one_hot_wwl_o),
         .h_wwl_o (h_wwl_o),
-        .sfc_wwl_o (sfc_wwl_o),
         .wbl_o (wbl_o),
         .spin_pop_valid_i (spin_new_valid),
         .spin_pop_ready_o (analog_ready),

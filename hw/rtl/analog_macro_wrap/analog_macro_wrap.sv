@@ -34,12 +34,9 @@ module analog_macro_wrap #(
     input  logic [num_spin*bit_data*parallelism-1:0] j_rdata_i,
     output logic h_ren_o,
     input  logic [num_spin*bit_data-1:0] h_rdata_i,
-    output logic sfc_ren_o,
-    input  logic [num_spin*bit_data-1:0] sfc_rdata_i,
     // data config interface <-> analog macro
     output logic [num_spin-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
-    output logic sfc_wwl_o,
     output logic [num_spin*bit_data-1:0] wbl_o,
     // spin interface: rx <-> digital
     input  logic spin_pop_valid_i,
@@ -89,12 +86,9 @@ module analog_macro_wrap #(
         .j_rdata_i (j_rdata_i),
         .h_ren_o (h_ren_o),
         .h_rdata_i (h_rdata_i),
-        .sfc_ren_o (sfc_ren_o),
-        .sfc_rdata_i (sfc_rdata_i),
         // data config interface -> analog macro
         .j_one_hot_wwl_o (j_one_hot_wwl_o),
         .h_wwl_o (h_wwl_o),
-        .sfc_wwl_o (sfc_wwl_o),
         .wbl_o (wbl_dt),
         // status
         .dt_cfg_idle_o (dt_cfg_idle_o)
