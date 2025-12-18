@@ -17,5 +17,5 @@ set HDL_FILES [ list \
 ]
 
 set INCLUDE_DIRS [list \
-    "${PROJECT_ROOT}/.bender/git/checkouts/common_cells-08bbccfb95b81332/include" \
+    "[exec bender path common_cells]/include" \
 ]
