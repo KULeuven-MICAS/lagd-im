@@ -9,6 +9,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_FILE
+`define VCD_FILE "tb_analog_macro_wrap.vcd"
+`endif
+
 module tb_analog_macro_wrap;
 
     // Module parameters
@@ -128,7 +132,7 @@ module tb_analog_macro_wrap;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
-            $dumpfile("tb_analog_macro_wrap.vcd");
+            $dumpfile(`VCD_FILE);
             $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
             #(600 * CLKCYCLE); // To avoid generating huge VCD files
