@@ -37,24 +37,22 @@ vmap
 # set IterationLimit 20000000
 
 # Run simulation
-if { [info exists DBG] && ${DBG} == 0 } {
-    vsim -quiet \
-        -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
-        -msgmode both -displaymsgmode both \
-        -L work_lib \
-        -work ${WLIB} \
-        -ini ${WORK_DIR}/modelsim.ini \
-        ${OBJ}
+if { [info exists DBG] && ${DBG} == 1 } {
+    set vopt_flag "-voptargs=+acc"
 } else {
-    # Add voptargs to enable visibility of submodules signals
-    vsim -quiet \
-        -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
-        -voptargs=+acc \
-        -msgmode both -displaymsgmode both \
-        -L work_lib \
-        -work ${WLIB} \
-        -ini ${WORK_DIR}/modelsim.ini \
-        ${OBJ}
+    set vopt_flag ""
+}
+
+vsim -quiet \
+    -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
+    ${vopt_flag} \
+    -msgmode both -displaymsgmode both \
+    -L work_lib \
+    -work ${WLIB} \
+    -ini ${WORK_DIR}/modelsim.ini \
+    ${OBJ}
+
+if { [info exists DBG] && ${DBG} == 1 } {
     # Save all signals in vcd
     log -r /*
 }

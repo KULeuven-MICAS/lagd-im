@@ -26,7 +26,7 @@ $(WORK_DIR)/%/work/work_%: $(HDL_FILES) $(INCLUDE_FILES) $(VSIM_BUILD_SCRIPT)
 	@mkdir -p $(WORK_DIR)/$*/work
 	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR)/$* SIM_NAME=$* DBG=$(DBG) \
 	BUILD_ONLY=1 DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) \
-	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT)" \
+	vsim -c -do "source $(VSIM_BUILD_SCRIPT)" \
 	&& mv ./transcript $(WORK_DIR)/$*/transcript.build
 
 # Questasim run target
