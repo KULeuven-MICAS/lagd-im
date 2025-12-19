@@ -22,7 +22,15 @@ with open(parser.args.file, 'r') as file:
             vars_dict[var] = value
 
         if IN_FILE_LIST:
-            file_list.append(line.strip().split()[0].strip('"'))
+            if 'exec' in line:
+                # Handle exec commands
+                start_idx = line.find('exec')
+                end_idx = line.find(']', start_idx)
+                exec_cmd = line[start_idx + 5:end_idx].strip()
+                exec_output = os.popen(exec_cmd).read().strip()
+                file_list.append(exec_output+line[end_idx + 1:].split()[0].strip('"'))
+            else:
+                file_list.append(line.strip().split()[0].strip('"'))
 
 # Substitute variables ${VARS} in file_list with values from vars_dict
 exp_file_list = []
