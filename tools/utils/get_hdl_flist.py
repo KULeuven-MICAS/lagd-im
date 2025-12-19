@@ -9,6 +9,13 @@ parser = ParserClass()
 file_list = []
 vars_dict = {}
 
+def parse_exec_command(line):
+    start_idx = line.find('exec')
+    end_idx = line.find(']', start_idx)
+    exec_cmd = line[start_idx + 5:end_idx].strip()
+    exec_output = os.popen(exec_cmd).read().strip()
+    return start_idx, end_idx, exec_output
+
 with open(parser.args.file, 'r') as file:
     IN_FILE_LIST = False
     for line in file:
@@ -17,17 +24,19 @@ with open(parser.args.file, 'r') as file:
             continue
         elif line.startswith(']'):
             IN_FILE_LIST = False
-        elif line.startswith('set') and '[' not in line:
-            var, value = line.split()[1:]
-            vars_dict[var] = value
+        elif line.startswith('set') and 'list' not in line:
+            if 'exec' in line:
+                # Handle exec commands in variable assignments
+                start_idx, end_idx, exec_output = parse_exec_command(line)
+                var, value = line[:start_idx].split()[1:], exec_output + line[end_idx + 1:].strip()
+            else:
+                var, value = line.split()[1:]
+                vars_dict[var] = value
 
         if IN_FILE_LIST:
             if 'exec' in line:
                 # Handle exec commands
-                start_idx = line.find('exec')
-                end_idx = line.find(']', start_idx)
-                exec_cmd = line[start_idx + 5:end_idx].strip()
-                exec_output = os.popen(exec_cmd).read().strip()
+                start_idx, end_idx, exec_output = parse_exec_command(line)
                 file_list.append(exec_output+line[end_idx + 1:].split()[0].strip('"'))
             else:
                 file_list.append(line.strip().split()[0].strip('"'))
