@@ -44,7 +44,14 @@ module lagd_soc import lagd_pkg::*; (
     input logic [SlinkNumChan-1:0] slink_rcv_clk_i,
     output logic [SlinkNumChan-1:0] slink_rcv_clk_o,
     input logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_i,
-    output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_o
+    output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_o,
+    // Galena wires
+    inout wire [`NUM_ISING_CORES-1:0] galena_cu_iref_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_cu_vup_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_cu_vdn_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_h_iref_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_h_vup_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_h_vdn_i
 );
 
     // defines axi and register interface types
@@ -218,7 +225,14 @@ module lagd_soc import lagd_pkg::*; (
                 .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
                 // Register interface
                 .reg_s_req_i(reg_ext_req[i]),
-                .reg_s_rsp_o(reg_ext_rsp[i])
+                .reg_s_rsp_o(reg_ext_rsp[i]),
+                // Galena wires
+                .galena_cu_iref_i   (galena_cu_iref_i[i]),
+                .galena_cu_vup_i    (galena_cu_vup_i[i]),
+                .galena_cu_vdn_i    (galena_cu_vdn_i[i]),
+                .galena_h_iref_i    (galena_h_iref_i[i]),
+                .galena_h_vup_i     (galena_h_vup_i[i]),
+                .galena_h_vdn_i     (galena_h_vdn_i[i])
             );
         end
     endgenerate
