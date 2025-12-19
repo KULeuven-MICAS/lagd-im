@@ -37,9 +37,7 @@ module analog_tx #(
     logic spin_handshake;
     logic analog_macro_cmpt_finish_nxt, analog_macro_cmpt_finish_pulse;
     logic [synchronizer_pipe_depth:0][num_spin-1:0] spin_shift_reg;
-    logic [synchronizer_pipe_depth:0] analog_macro_cmpt_finish_pulse_reg;
-    logic synchronizer_counter_overflow;
-    logic synchronizer_en_cond, synchronizer_shift_cond;
+    logic [synchronizer_pipe_depth:0] analog_macro_cmpt_finish_pulse_reg, synchronizer_shift_cond;
     logic synchronizer_pip_num_reset_cond;
     logic synchronizer_mode_reset_cond;
     logic spin_valid_cond, spin_valid_reset_cond;
@@ -59,40 +57,24 @@ module analog_tx #(
     end
 
     // Shift register for synchronizing spins from analog macro
-    assign synchronizer_en_cond = en_i & (!synchronizer_mode_reg);
-    assign synchronizer_shift_cond = en_i & (synchronizer_mode_reg | analog_macro_cmpt_finish_pulse);
     generate
         for (i = 0; i < synchronizer_pipe_depth; i = i + 1) begin : gen_spin_shift_reg
             if (i > 0) begin
-                `FFL(analog_macro_cmpt_finish_pulse_reg[i+1], analog_macro_cmpt_finish_pulse_reg[i], synchronizer_en_cond, '0, clk_i, rst_ni)
-                `FFL(spin_shift_reg[i+1], spin_shift_reg[i], synchronizer_shift_cond, '0, clk_i, rst_ni)
+                `FFL(analog_macro_cmpt_finish_pulse_reg[i+1], analog_macro_cmpt_finish_pulse_reg[i], '1, '0, clk_i, rst_ni)
+                assign synchronizer_shift_cond[i] = en_i & (synchronizer_mode_reg | analog_macro_cmpt_finish_pulse_reg[i]);
+                `FFL(spin_shift_reg[i+1], spin_shift_reg[i], synchronizer_shift_cond[i], '0, clk_i, rst_ni)
             end
         end
     endgenerate
 
     assign synchronizer_pip_num_reset_cond = en_i & tx_configure_enable_i;
     assign synchronizer_mode_reset_cond = en_i & tx_configure_enable_i;
-    assign spin_valid_cond = en_i & synchronizer_counter_overflow;
+    assign spin_valid_cond = en_i & analog_macro_cmpt_finish_pulse_reg[synchronizer_pipe_num_reg];
     assign spin_valid_reset_cond = !en_i | spin_handshake;
 
     `FFL(synchronizer_pipe_num_reg, synchronizer_pipe_num_i, synchronizer_pip_num_reset_cond, synchronizer_pipe_depth, clk_i, rst_ni)
     `FFL(synchronizer_mode_reg, synchronizer_mode_i, synchronizer_mode_reset_cond, 1'b0, clk_i, rst_ni)
     `FFLARNC(spin_valid_o, 1'b1, spin_valid_cond, spin_valid_reset_cond, 1'b0, clk_i, rst_ni)
     `FFL(analog_macro_cmpt_finish_nxt, analog_macro_cmpt_finish_i, en_i, 1'b0, clk_i, rst_ni)
-
-    step_counter #(
-        .COUNTER_BITWIDTH ($clog2(synchronizer_pipe_depth)),
-        .PARALLELISM (1)
-    ) u_step_counter_synchronizer (
-        .clk_i (clk_i),
-        .rst_ni (rst_ni),
-        .en_i (en_i),
-        .load_i (tx_configure_enable_i),
-        .d_i (synchronizer_pipe_num_i),
-        .recount_en_i (en_i & analog_macro_cmpt_finish_pulse),
-        .step_en_i (en_i),
-        .q_o (),
-        .overflow_o (synchronizer_counter_overflow)
-    );
 
 endmodule
