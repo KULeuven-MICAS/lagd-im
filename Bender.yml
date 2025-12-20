@@ -21,14 +21,20 @@ dependencies:
                          version: 1.3.0}
   hemaia_axi_spi_slave: {git: "https://github.com/KULeuven-MICAS/hemaia_axi_spi_slave.git",
                          rev: main}
+  common_cells: {git: "https://github.com/pulp-platform/common_cells.git",
+                 version: 1.38.0}
 
 export_include_dirs:
   - hw/rtl/include
   - hw/rtl/memory_island/include
+  - target/syn/tech/tsmc7ff/include
 
 sources:
   - files:
       - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
+      - target/syn/tech/tsmc7ff/rtl/chronos_pll_wrap.sv
+      - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
+      - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
     target: all(tech_cells_generic_exclude_tc_sram)
   - files:
       - hw/rtl/memory_island/axi_to_mem_adapter.sv
@@ -53,6 +59,17 @@ sources:
       - hw/rtl/energy_monitor/adder_tree.sv
       - hw/rtl/energy_monitor/accumulator.sv
       - hw/rtl/lagd_axi_spi_slave.sv
+      - hw/rtl/flip_manager/flip_manager.sv
+      - hw/rtl/flip_manager/lagd_fifo_v3.sv
+      - hw/rtl/flip_manager/energy_fifo_maintainer.sv
+      - hw/rtl/flip_manager/spin_fifo_maintainer.sv
+      - hw/rtl/flip_manager/flip_engine.sv
+      - hw/rtl/digital_macro/digital_macro.sv
+      - hw/rtl/analog_macro_wrap/analog_macro_wrap.sv
+      - hw/rtl/analog_macro_wrap/analog_cfg.sv
+      - hw/rtl/analog_macro_wrap/analog_rx.sv
+      - hw/rtl/analog_macro_wrap/analog_tx.sv
+      - hw/rtl/lib/bp_pipe.sv
 
 #  - target: any(simulation, test)
 #    files:

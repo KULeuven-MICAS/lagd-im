@@ -13,6 +13,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_FILE
+`define VCD_FILE "tb_energy_monitor.vcd"
+`endif
+
 `define S1W1H1_TEST 'b000 // spins: +1, weights: +1, hbias: +1, hscaling: +1
 `define S0W1H1_TEST 'b001 // spins: -1, weights: +1, hbias: +1, hscaling: +1
 `define S0W0H0_TEST 'b010 // spins: -1, weights: -1, hbias: -1, hscaling: +1
@@ -55,7 +59,7 @@ module tb_energy_monitor;
     localparam int DATASPIN = 256; // number of spins
     localparam int SCALING_BIT = 5; // bit width of scaling factor
     localparam int PARALLELISM = 4; // number of parallel energy calculation units, min: 1
-    localparam int LOCAL_ENERGY_BIT = 16; // bit width of local energy
+    localparam int LOCAL_ENERGY_BIT = $clog2(DATASPIN) + BITH + SCALING_BIT - 1; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
 
@@ -77,6 +81,7 @@ module tb_energy_monitor;
     logic energy_valid_o;
     logic energy_ready_i;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_o;
+    logic [$clog2(DATASPIN)-1:0] counter_spin_o;
 
     logic unsigned [31:0] spin_reg_valid_int;
     logic [`NUM_TESTS-1:0] spin_reg_valid;
@@ -132,7 +137,6 @@ module tb_energy_monitor;
         .DATASPIN(DATASPIN),
         .SCALING_BIT(SCALING_BIT),
         .PARALLELISM(PARALLELISM),
-        .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
         .LITTLE_ENDIAN(LITTLE_ENDIAN),
         .PIPESINTF(`PIPESINTF),
@@ -152,6 +156,7 @@ module tb_energy_monitor;
         .hbias_i(hbias_i),
         .hscaling_i(hscaling_i),
         .weight_ready_o(weight_ready_o),
+        .counter_spin_o(counter_spin_o),
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
         .energy_o(energy_o)
@@ -190,11 +195,10 @@ module tb_energy_monitor;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Generating VCD waveform.");
-            $dumpfile("tb_energy_monitor.vcd");
+            $dumpfile(`VCD_FILE);
             $dumpvars(2, tb_energy_monitor);
-            $dumpvars(2, dut);
             #(200 * CLKCYCLE); // To avoid generating too large VCD files
-            $fatal("Testbench timeout reached. Ending simulation.");
+            $fatal(1, "Testbench timeout reached. Ending simulation.");
         end
         else begin
             // #(200000 * CLKCYCLE);

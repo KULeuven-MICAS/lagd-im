@@ -24,7 +24,9 @@ DEFINES ?=
 
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils
-HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST))
+HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t HDL_FILES)
 $(info HDL_FILES: $(HDL_FILES))
+INCLUDE_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_DIRS)
+$(info INCLUDE_FILES: $(INCLUDE_FILES))
 
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk

@@ -6,7 +6,8 @@ set PROJECT_ROOT ../../..
 set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
-    "./tb_energy_monitor.sv" \
+    "./tb_digital_macro.sv" \
+    "${HDL_PATH}/digital_macro/digital_macro.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
@@ -15,6 +16,15 @@ set HDL_FILES [ list \
     "${HDL_PATH}/energy_monitor/partial_energy_calc.sv" \
     "${HDL_PATH}/energy_monitor/adder_tree.sv" \
     "${HDL_PATH}/energy_monitor/accumulator.sv" \
+    "${HDL_PATH}/flip_manager/flip_manager.sv" \
+    "${HDL_PATH}/flip_manager/lagd_fifo_v3.sv" \
+    "${HDL_PATH}/flip_manager/flip_engine.sv" \
+    "${HDL_PATH}/flip_manager/energy_fifo_maintainer.sv" \
+    "${HDL_PATH}/flip_manager/spin_fifo_maintainer.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_macro_wrap.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_cfg.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_tx.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
 ]
 
 set INCLUDE_DIRS [list \

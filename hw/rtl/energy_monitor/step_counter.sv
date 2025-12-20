@@ -5,7 +5,7 @@
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 //
 // Module description:
-// Incremental step counter.
+// Incremental step counter. q_o increases and stays at the target value until recount_en_i is asserted.
 //
 // Parameters:
 // - COUNTER_BITWIDTH: bit width of the counter
@@ -25,7 +25,7 @@
 // Case tested:
 // - None
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 module step_counter #(
     parameter int COUNTER_BITWIDTH = $clog2(256),
@@ -46,16 +46,24 @@ module step_counter #(
     logic finish;
     logic unsigned [COUNTER_BITWIDTH-1:0] counter_reg;
     logic unsigned [COUNTER_BITWIDTH-1:0] counter_n;
+    logic load_cond;
+    logic step_cond;
+    logic overflow_cond;
+    logic recount_cond;
 
     assign counter_n = q_o + PARALLELISM;
+    assign load_cond = en_i && load_i;
+    assign step_cond = en_i && step_en_i && (q_o != counter_reg);
+    assign overflow_cond = en_i && step_en_i && (q_o == (counter_reg - PARALLELISM + 1));
+    assign recount_cond = en_i && recount_en_i;
 
     assign overflow_o = overflow;
 
     // Sequential logic to set the counter target value
-    `FFL(counter_reg, d_i, en_i && load_i, {COUNTER_BITWIDTH{1'b1}}, clk_i, rst_ni)
+    `FFL(counter_reg, d_i, load_cond, {COUNTER_BITWIDTH{1'b1}}, clk_i, rst_ni)
 
     // Sequential logic to update the counter register
-    `FFLARNC(q_o, counter_n, en_i && step_en_i && (q_o != counter_reg), en_i && recount_en_i, 'd0, clk_i, rst_ni)
-    `FFLARNC(overflow, 1'b1, en_i && step_en_i && (q_o == (counter_reg - PARALLELISM + 1)), en_i && recount_en_i, 'd0, clk_i, rst_ni)
+    `FFLARNC(q_o, counter_n, step_cond, recount_cond, 'd0, clk_i, rst_ni)
+    `FFLARNC(overflow, 1'b1, overflow_cond, recount_cond, 'd0, clk_i, rst_ni)
 
 endmodule

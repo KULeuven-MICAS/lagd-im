@@ -25,7 +25,7 @@
 // Case tested:
 // - None
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 `include "../include/lagd_platform.svh"
 
 module accumulator #(

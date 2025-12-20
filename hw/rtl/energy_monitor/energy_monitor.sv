@@ -49,7 +49,7 @@
 // -- All spins are 0, all weights are -7, hbias=-7, hscaling=16, 20 same cases
 // -- All spins and weights are random, hbias and hscaling are random, 1,000,000 different cases
 
-`include "../lib/registers.svh"
+`include "common_cells/registers.svh"
 
 `define True 1'b1
 `define False 1'b0
@@ -58,13 +58,13 @@ module energy_monitor #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
     parameter int DATASPIN = 256,
-    parameter int SCALING_BIT = 5,
+    parameter int SCALING_BIT = 4,
     parameter int PARALLELISM = 4,
-    parameter int LOCAL_ENERGY_BIT = 16,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int LITTLE_ENDIAN = `True,
     parameter int PIPESINTF = 0,
     parameter int PIPESMID = 0,
+    parameter int LOCAL_ENERGY_BIT = $clog2(DATASPIN) + BITH + SCALING_BIT - 1,
     parameter int DATAJ = DATASPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
@@ -84,9 +84,10 @@ module energy_monitor #(
 
     input logic weight_valid_i,
     input logic [DATAJ-1:0] weight_i,
-    input logic signed [DATAH-1:0] hbias_i,
-    input logic unsigned [DATASCALING-1:0] hscaling_i,
+    input logic [DATAH-1:0] hbias_i,
+    input logic [DATASCALING-1:0] hscaling_i,
     output logic weight_ready_o,
+    output logic [SPINIDX_BIT-1:0] counter_spin_o,
 
     output logic energy_valid_o,
     input logic energy_ready_i,
@@ -120,10 +121,12 @@ module energy_monitor #(
     // handshake signals
     logic spin_handshake;
     logic weight_handshake;
+    logic energy_handshake;
     logic [PIPESMID:0] weight_handshake_accum;
 
     genvar i;
 
+    assign counter_spin_o = counter_q;
     assign spin_handshake = spin_valid_pipe && spin_ready_pipe;
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
     assign energy_handshake = energy_valid_o && energy_ready_i;
@@ -249,7 +252,6 @@ module energy_monitor #(
                 .BITH(BITH),
                 .DATASPIN(DATASPIN),
                 .SCALING_BIT(SCALING_BIT),
-                .LOCAL_ENERGY_BIT(LOCAL_ENERGY_BIT),
                 .PIPES(PIPESMID)
             ) u_partial_energy_calc (
                 .clk_i(clk_i),

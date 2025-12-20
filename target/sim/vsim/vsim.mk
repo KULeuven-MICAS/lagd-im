@@ -22,15 +22,15 @@ ifeq ($(NO_GUI), 1)
 endif
 
 # Questasim build target
-$(WORK_DIR)/%/work/work_%: $(HDL_FILES) $(VSIM_BUILD_SCRIPT)
+$(WORK_DIR)/%/work/work_%: $(HDL_FILES) $(INCLUDE_FILES) $(VSIM_BUILD_SCRIPT)
 	@mkdir -p $(WORK_DIR)/$*/work
 	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR)/$* SIM_NAME=$* DBG=$(DBG) \
 	BUILD_ONLY=1 DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) \
-	vsim $(VSIM_FLAGS) -do "source $(VSIM_BUILD_SCRIPT)" \
+	vsim -c -do "source $(VSIM_BUILD_SCRIPT)" \
 	&& mv ./transcript $(WORK_DIR)/$*/transcript.build
 
 # Questasim run target
-$(WORK_DIR)/%/work/%.wlf: $(WORK_DIR)/%/work/work_% $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES)
+$(WORK_DIR)/%/work/%.wlf: $(WORK_DIR)/%/work/work_% $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES) $(INCLUDE_FILES)
 	@mkdir -p $(WORK_DIR)/$*/work
 	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR)/$* SIM_NAME=$* DBG=$(DBG) FORCE_BUILD=0 \
 	DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) OBJ=$(VSIM_OBJ_PREFIX)$* \
