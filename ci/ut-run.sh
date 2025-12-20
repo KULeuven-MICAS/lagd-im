@@ -35,7 +35,7 @@ SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 SIM_TOOL="vsim"
-HDL_FILE_LIST=""
+HDL_FILES_LIST=""
 LEAF=""
 NO_GUI=1
 DBG=0
@@ -58,7 +58,7 @@ for i in "$@"; do
             shift
             ;;
         --hdl_flist=*)
-            HDL_FILE_LIST="${i#*=}"
+            HDL_FILES_LIST="${i#*=}"
             shift
             ;;
         --gui)
@@ -104,24 +104,27 @@ if [ -n "${LEAF}" ]; then
         echo "Error: Leaf test '${LEAF}' for '${TEST_PATH}' does not exist."
         exit 1
     else
-        HDL_FILE_LIST="${TEST_PATH}/tests/${LEAF}.tcl"
+        HDL_FILES_LIST="${TEST_PATH}/tests/${LEAF}.tcl"
     fi
 fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
     SIM_TOOL=${SIM_TOOL} make -C "${TEST_PATH}" clean
 else
-    if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
+    if [ -n "${HDL_FILES_LIST}" ]; then # HDL_FILES_LIST is not empty
         if [ -n "${LEAF}" ]; then
-            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
-            SIM_TOOL=${SIM_TOOL} \
+            echo "Running leaf test '${LEAF}' for test '${TEST_NAME}' with HDL file list '${HDL_FILES_LIST}'"
+            HDL_FILES_LIST=${HDL_FILES_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
+            SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} \
             make -C "${TEST_PATH}" ${CLEAN} run
         else
-            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
-            SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} \
+            echo "Running test '${TEST_NAME}' with HDL file list '${HDL_FILES_LIST}'"
+            HDL_FILES_LIST=${HDL_FILES_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
+            SIM_TOOL=${SIM_TOOL} \
             make -C "${TEST_PATH}" ${CLEAN} run
         fi
     else
+        echo "Running test '${TEST_NAME}'"
         DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} \
             make -C "${TEST_PATH}" ${CLEAN} run
     fi

@@ -15,6 +15,9 @@ ifdef LEAF
 else
 	SIM_NAME ?= $(shell basename $(CURDIR))
 endif
+
+$(info SIM_NAME: $(SIM_NAME))
+
 TEST_PATH ?= $(CURDIR)
 WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs
 DBG ?= 0
