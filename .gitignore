@@ -229,3 +229,5 @@ runs/
 
 # Autotest results
 results/
+
+.nfs*
