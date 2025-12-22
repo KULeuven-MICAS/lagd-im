@@ -129,7 +129,7 @@ module flip_engine #(
     `FFLARNC(flipped_spin_reg, flipped_spin_comb, en_i & prev_spin_handshake, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(icon_finish_o, icon_fifo_empty_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_raddr_reg, flip_raddr_n, en_i & flip_ren_p, flush_i, 'd0, clk_i, rst_ni);
-    `FFLARNC(flip_ren_n, flip_ren_p, en_i, flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(flip_ren_n, flip_ren_p, en_i & (~flip_disable_i), flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni); // assume read data is valid one cycle after read enable
 
 endmodule
