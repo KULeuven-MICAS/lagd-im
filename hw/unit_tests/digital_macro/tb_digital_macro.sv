@@ -64,6 +64,7 @@ module tb_digital_macro;
     logic config_valid_em_i, config_em_done;
     logic config_valid_fm_i, config_fm_done;
     logic config_valid_aw_i, config_aw_done;
+    logic config_galena_done;
     logic config_dut_done;
     logic [ $clog2(NumSpin)-1 : 0 ] config_counter_i;
     logic [ NumSpin-1 : 0 ] config_spin_initial_i;
@@ -76,12 +77,12 @@ module tb_digital_macro;
     logic [ NumSpin-1 : 0 ] spin_mode_i;
     logic [ $clog2(SynchronizerPipeDepth)-1 : 0 ] synchronizer_pipe_num_i;
     logic synchronizer_mode_i;
-    logic dt_cfg_enable_i;
+    logic dt_cfg_enable_i, dt_cfg_idle_o;
     logic j_mem_ren_o;
     logic [ $clog2(NumSpin / Parallelism)-1 : 0 ] j_raddr_o, weight_raddr_o;
     logic [ $clog2(NumSpin / Parallelism)-1 : 0 ] j_raddr_ref, weight_raddr_ref;
     logic [ NumSpin*BitJ*Parallelism-1 : 0 ] j_rdata_i, weight_i;
-    logic [ NumSpin*BitJ*Parallelism-1 : 0 ] j_rdata_latched, weight_latched;
+    logic [ NumSpin*BitJ*Parallelism-1 : 0 ] j_rdata_latched;
     logic h_ren_o;
     logic [ BitH*NumSpin-1 : 0 ] h_rdata_i;
     logic flush_i;
@@ -94,7 +95,7 @@ module tb_digital_macro;
     logic [ $clog2(FlipIconDepth)+1-1 : 0 ] icon_last_raddr_plus_one_i;
     logic [ NumSpin-1 : 0 ] flip_rdata_i, flip_rdata_latched;
     logic flip_disable_i;
-    logic weight_ren_o;
+    logic weight_ready_o, weight_valid_i;
     logic [ BitH*NumSpin-1 : 0 ] hbias_i;
     logic [ ScalingBit-1 : 0 ] hscaling_i;
     logic [ NumSpin-1 : 0 ] j_one_hot_wwl_o;
@@ -114,10 +115,6 @@ module tb_digital_macro;
     logic [FlipIconDepth-1+1:0] [NumSpin-1:0] state_in_analog_ref;
     logic [FlipIconDepth-1:0] [NumSpin-1:0] state_out_analog_ref;
     int unsigned total_cycles, transaction_cycles, total_time, transaction_time, start_time, end_time;
-
-    initial begin
-        en_i = 1;
-    end
 
     // module instantiation
     digital_macro #(
@@ -158,6 +155,7 @@ module tb_digital_macro;
         .j_rdata_i(j_rdata_i),
         .h_ren_o(h_ren_o),
         .h_rdata_i(h_rdata_i),
+        .dt_cfg_idle_o(dt_cfg_idle_o),
         .flush_i(flush_i),
         .en_comparison_i(en_comparison_i),
         .cmpt_en_i(cmpt_en_i),
@@ -168,7 +166,8 @@ module tb_digital_macro;
         .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .flip_rdata_i(flip_rdata_i),
         .flip_disable_i(flip_disable_i),
-        .weight_ren_o(weight_ren_o),
+        .weight_ready_o(weight_ready_o),
+        .weight_valid_i(weight_valid_i),
         .weight_raddr_o(weight_raddr_o),
         .weight_i(weight_i),
         .hbias_i(hbias_i),
@@ -188,9 +187,10 @@ module tb_digital_macro;
         forever #(CLKCYCLE/2) clk_i = ~clk_i;
     end
 
-    // Reset generation
+    // Reset and en_i generation
     initial begin
         rst_ni = 0;
+        en_i = 0;
         #(5 * CLKCYCLE);
         rst_ni = 1;
         #(5 * CLKCYCLE);
@@ -223,11 +223,9 @@ module tb_digital_macro;
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             j_rdata_i <= 'd0;
-            weight_i <= 'd0;
             flip_rdata_i <= 'd0;
         end else begin
             j_rdata_i <= j_rdata_latched;
-            weight_i <= weight_latched;
             flip_rdata_i <= flip_rdata_latched;
         end
     end
@@ -452,9 +450,10 @@ module tb_digital_macro;
                 if (|j_one_hot_wwl_o) begin
                     // check if one-hot encoded and matches galena_addr_idx
                     if ($countbits(j_one_hot_wwl_o, '1) != 1)
-                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o is not one-hot encoded", $time);
-                    if (j_one_hot_wwl_o[1'b1<<galena_addr_idx] != 1'b1) begin
-                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o does not match galena_addr_idx %0d", $time, galena_addr_idx);
+                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o is not one-hot encoded, j_one_hot_wwl_o: 'b%b", $time, j_one_hot_wwl_o);
+                    if (j_one_hot_wwl_o[galena_addr_idx] != 1'b1) begin
+                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o does not match galena_addr_idx, j_one_hot_wwl_o: 'b%b, galena_addr_idx: 'd%0d",
+                            $time, j_one_hot_wwl_o, galena_addr_idx);
                     end
                     dt_write_cycle_cnt = dt_write_cycle_cnt + 1;
                 end
@@ -484,7 +483,6 @@ module tb_digital_macro;
     // Sub-task for AW config interface
     task automatic aw_config_interface();
         wait (rst_ni == 0);
-        @(negedge clk_i);
         config_aw_done = 0;
         config_valid_aw_i = 0;
         cfg_trans_num_i = 'd0;
@@ -517,7 +515,6 @@ module tb_digital_macro;
     // Sub-task for EM config interface
     task automatic em_config_interface();
         wait (rst_ni == 0);
-        @(negedge clk_i);
         config_em_done = 0;
         config_valid_em_i = 0;
         config_counter_i = 'd0;
@@ -535,7 +532,6 @@ module tb_digital_macro;
     // Sub-task for FM config interface
     task automatic fm_config_interface();
         wait (rst_ni == 0);
-        @(negedge clk_i);
         config_fm_done = 0;
         config_valid_fm_i = 0;
         config_spin_initial_i = 'd0;
@@ -556,12 +552,27 @@ module tb_digital_macro;
         $display("[Time: %t] FM configuration finished.", $time);
     endtask
 
+    // Sub-task for galena config
+    task automatic galena_config_interface();
+        wait (rst_ni == 0);
+        config_galena_done = 0;
+        dt_cfg_enable_i = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_aw_done == 1 && config_em_done == 1 && config_fm_done == 1);
+        @(negedge clk_i);
+        $display("[Time: %t] Galena configuration starts.", $time);
+        dt_cfg_enable_i = 1;
+        @(negedge clk_i);
+        dt_cfg_enable_i = 0;
+        wait (dt_cfg_idle_o == 1);
+        config_galena_done = 1;
+        $display("[Time: %t] Galena configuration finished.", $time);
+    endtask
+
     // Sub-task for monitoring config done
     task automatic monitor_config_done();
         wait (rst_ni == 0);
-        @(negedge clk_i);
         config_dut_done = 0;
-        wait (config_aw_done == 1 && config_em_done == 1 && config_fm_done == 1);
+        wait (config_aw_done == 1 && config_em_done == 1 && config_fm_done == 1 && config_galena_done == 1);
         @(negedge clk_i);
         config_dut_done = 1;
         $display("[Time: %t] DUT configuration is done.", $time);
@@ -605,21 +616,24 @@ module tb_digital_macro;
             aw_config_interface(); // configure aw module
             em_config_interface(); // configure em module
             fm_config_interface(); // configure fm module
+            galena_config_interface(); // configure galena module
             monitor_config_done(); // monitor if dut config is done
         join_none
     endtask
 
-    // J mem interface
+    // Interface: J mem <-> analog wrap and energy monitor
     task automatic j_mem_interface();
         wait (rst_ni == 0);
         @(negedge clk_i);
         j_rdata_latched = 'd0;
-        weight_latched = 'd0;
+        weight_valid_i = 0;
+        weight_i = 'd0;
         j_raddr_ref = 'd0;
         weight_raddr_ref = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_dut_done == 1);
         forever begin
             @(negedge clk_i);
+            // Interface to analog wrap: standard 1-cycle-delay memory interface
             if (j_mem_ren_o == 1) begin
                 if (j_raddr_o != j_raddr_ref) begin
                     $fatal(1, "[Time: %t] Error: J memory read address mismatch. Expected: %0d, Got: %0d",
@@ -628,12 +642,14 @@ module tb_digital_macro;
                 j_rdata_latched = weights_in_mem[j_raddr_o];
                 j_raddr_ref = j_raddr_ref + 1;
             end
-            if (weight_ren_o == 1) begin
+            // Interface to energy monitor: valid-ready interface
+            weight_valid_i = 1;
+            weight_i = weights_in_mem[weight_raddr_ref];
+            if (weight_ready_o == 1) begin
                 if (weight_raddr_o != weight_raddr_ref) begin
                     $fatal(1, "[Time: %t] Error: Weight memory read address mismatch. Expected: %0d, Got: %0d",
                         $time, weight_raddr_ref, weight_raddr_o);
                 end
-                weight_latched = weights_in_mem[weight_raddr_o];
                 weight_raddr_ref = weight_raddr_ref + 1;
             end
         end
