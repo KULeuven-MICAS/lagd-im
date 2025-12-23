@@ -19,7 +19,7 @@ The module overview is provided in the picture below.
 
 ## Performance
 
-For each transaction starting with spin handshake, this module takes DATASPIN/PARALLELISM+PIPESMID+1 cycles in average to output energy value.
+For each transaction starting with spin handshake, this module takes NUM_SPIN/PARALLELISM+PIPESMID+1 cycles in average to output energy value.
 
 ## Module Parameters
 
@@ -27,7 +27,7 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *BITH:* [int] bit precision of each signed bias (default: 4).
 
-*DATASPIN:* [int] the number of spins, must be multiple of PARALLELISM  (default: 256).
+*NUM_SPIN:* [int] the number of spins, must be multiple of PARALLELISM  (default: 256).
 
 *SCALING_BIT:* [int] bit precision of the $h_{sfc}$ (default: 5).
 
@@ -51,19 +51,19 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *config_valid_i:* configuration valid input
 
-*config_counter_i:* [$clog2(DATASPIN)-1 : 0] configuration counter value
+*config_counter_i:* [$clog2(NUM_SPIN)-1 : 0] configuration counter value
 
 *config_ready_o:* configuration ready
 
 *spin_valid_i:* spin valid input
 
-*spin_i:* [DATASPIN-1:0] spin input data
+*spin_i:* [NUM_SPIN-1:0] spin input data
 
 *spin_ready_o:* spin ready output
 
 *weight_valid_i:* weight valid input
 
-*weight_i:* [DATASPIN*BITJ-1:0] weight input data
+*weight_i:* [NUM_SPIN*BITJ-1:0] weight input data
 
 *hbias_i:* [BITH-1:0] signed bias input
 

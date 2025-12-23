@@ -10,7 +10,7 @@
 // Parameters:
 // - BITJ: bit precision of J
 // - BITH: bit precision of h
-// - DATASPIN: number of spins, must be multiple of PARALLELISM
+// - NUM_SPIN: number of spins, must be multiple of PARALLELISM
 // - SCALING_BIT: number of bits of scaling factor for h
 // - PARALLELISM: number of parallel energy calculation units
 // - LOCAL_ENERGY_BIT: bit precision of partial energy value
@@ -40,7 +40,7 @@
 // - debug_en_i: debug enable signal
 //
 // Case tested:
-// - BITJ=4, BITH=4, DATASPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPESINTF=0/1/2
+// - BITJ=4, BITH=4, NUM_SPIN=256, SCALING_BIT=5, LOCAL_ENERGY_BIT=16, ENERGY_TOTAL_BIT=32, PIPESINTF=0/1/2
 // -- All spins are 1, all weights are +1, hbias=+1, hscaling=1, 20 same cases
 // -- All spins are 0, all weights are +1, hbias=+1, hscaling=1, 20 same cases
 // -- All spins are 0, all weights are -1, hbias=-1, hscaling=1, 20 same cases
@@ -57,18 +57,18 @@
 module energy_monitor #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
-    parameter int DATASPIN = 256,
+    parameter int NUM_SPIN = 256,
     parameter int SCALING_BIT = 4,
     parameter int PARALLELISM = 4,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int LITTLE_ENDIAN = `True,
     parameter int PIPESINTF = 0,
     parameter int PIPESMID = 0,
-    parameter int LOCAL_ENERGY_BIT = $clog2(DATASPIN) + BITH + SCALING_BIT - 1,
-    parameter int DATAJ = DATASPIN * BITJ * PARALLELISM,
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1,
+    parameter int DATAJ = NUM_SPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
-    parameter int SPINIDX_BIT = $clog2(DATASPIN)
+    parameter int SPINIDX_BIT = $clog2(NUM_SPIN)
 )(
     input logic clk_i,
     input logic rst_ni,
@@ -79,7 +79,7 @@ module energy_monitor #(
     output logic config_ready_o,
 
     input logic spin_valid_i,
-    input logic [DATASPIN-1:0] spin_i,
+    input logic [NUM_SPIN-1:0] spin_i,
     output logic spin_ready_o,
 
     input logic weight_valid_i,
@@ -98,7 +98,7 @@ module energy_monitor #(
     logic [SPINIDX_BIT-1:0] config_counter_pipe;
     logic config_ready_pipe;
 
-    logic [DATASPIN-1:0] spin_pipe;
+    logic [NUM_SPIN-1:0] spin_pipe;
     logic spin_valid_pipe;
     logic spin_ready_pipe;
 
@@ -109,7 +109,7 @@ module energy_monitor #(
     logic weight_ready_pipe;
 
     // internal signals
-    logic [DATASPIN-1:0] spin_cached;
+    logic [NUM_SPIN-1:0] spin_cached;
     logic [SPINIDX_BIT-1:0] counter_q;
     logic counter_ready;
     logic cmpt_done;
@@ -152,7 +152,7 @@ module energy_monitor #(
         .ready_o(config_ready_o)
     );
     bp_pipe #(
-        .DATAW(DATASPIN),
+        .DATAW(NUM_SPIN),
         .PIPES(PIPESINTF)
     ) u_pipe_spin (
         .clk_i(clk_i),
@@ -216,7 +216,7 @@ module energy_monitor #(
 
     // Spin path
     vector_caching #(
-        .DATAWIDTH(DATASPIN)
+        .DATAWIDTH(NUM_SPIN)
     ) u_spin_cache (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -230,7 +230,7 @@ module energy_monitor #(
     if (LITTLE_ENDIAN == `True) begin: little_endian_spin_vector
         assign current_spin_raw = en_i ? spin_cached[counter_q +: PARALLELISM] : '0;
     end else begin: big_endian_spin_vector
-        assign current_spin_raw = en_i ? spin_cached[DATASPIN - 1 - counter_q -: PARALLELISM] : '0;
+        assign current_spin_raw = en_i ? spin_cached[NUM_SPIN - 1 - counter_q -: PARALLELISM] : '0;
     end
 
     // map raw bits to current_spin
@@ -250,7 +250,7 @@ module energy_monitor #(
             partial_energy_calc #(
                 .BITJ(BITJ),
                 .BITH(BITH),
-                .DATASPIN(DATASPIN),
+                .NUM_SPIN(NUM_SPIN),
                 .SCALING_BIT(SCALING_BIT),
                 .PIPES(PIPESMID)
             ) u_partial_energy_calc (
@@ -260,7 +260,7 @@ module energy_monitor #(
                 .data_valid_i(weight_handshake),
                 .spin_vector_i(spin_cached),
                 .current_spin_i(current_spin[i]),
-                .weight_i(weight_pipe[i*BITJ*DATASPIN +: BITJ*DATASPIN]),
+                .weight_i(weight_pipe[i*BITJ*NUM_SPIN +: BITJ*NUM_SPIN]),
                 .hbias_i(hbias_pipe[i*BITH +: BITH]),
                 .hscaling_i(hscaling_pipe[i*SCALING_BIT +: SCALING_BIT]),
                 .energy_o(local_energy[i*LOCAL_ENERGY_BIT +: LOCAL_ENERGY_BIT])
