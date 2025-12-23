@@ -16,12 +16,12 @@
 module tb_analog_macro_wrap;
 
     // Module parameters
-    localparam int DATASPIN = 256; // number of spins
+    localparam int NUM_SPIN = 256; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 16;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
-    localparam int J_ADDRESS_WIDTH = $clog2(DATASPIN / PARALLELISM);
+    localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
@@ -35,31 +35,28 @@ module tb_analog_macro_wrap;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_dt_write_i;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i;
-    logic [DATASPIN-1:0] spin_wwl_strobe_i;
-    logic [DATASPIN-1:0] spin_mode_i;
+    logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
+    logic [NUM_SPIN-1:0] spin_mode_i;
     logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_pipe_num_i;
     logic synchronizer_mode_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
     logic [J_ADDRESS_WIDTH-1:0] j_raddr_o;
-    logic [DATASPIN*BITDATA*PARALLELISM-1:0] j_rdata_i;
+    logic [NUM_SPIN*BITDATA*PARALLELISM-1:0] j_rdata_i;
     logic h_ren_o;
-    logic [DATASPIN*BITDATA-1:0] h_rdata_i;
-    logic sfc_ren_o;
-    logic [DATASPIN*BITDATA-1:0] sfc_rdata_i;
-    logic [DATASPIN-1:0] j_one_hot_wwl_o;
+    logic [NUM_SPIN*BITDATA-1:0] h_rdata_i;
+    logic [NUM_SPIN-1:0] j_one_hot_wwl_o;
     logic h_wwl_o;
-    logic sfc_wwl_o;
-    logic [DATASPIN*BITDATA-1:0] wbl_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_o;
     logic spin_pop_valid_i;
     logic spin_pop_ready_o;
-    logic [DATASPIN-1:0] spin_pop_i;
-    logic [DATASPIN-1:0] spin_wwl_o;
-    logic [DATASPIN-1:0] spin_compute_en_o;
-    logic [DATASPIN-1:0] spin_i;
+    logic [NUM_SPIN-1:0] spin_pop_i;
+    logic [NUM_SPIN-1:0] spin_wwl_o;
+    logic [NUM_SPIN-1:0] spin_compute_en_o;
+    logic [NUM_SPIN-1:0] spin_i;
     logic spin_valid_o;
     logic spin_ready_i;
-    logic [DATASPIN-1:0] spin_o;
+    logic [NUM_SPIN-1:0] spin_o;
     logic dt_cfg_idle_o;
     logic analog_rx_idle_o;
     logic analog_tx_idle_o;
@@ -70,10 +67,11 @@ module tb_analog_macro_wrap;
 
     // Module instantiation
     analog_macro_wrap #(
-        .num_spin(DATASPIN),
-        .bit_data(BITDATA),
-        .counter_bitwidth(COUNTER_BITWIDTH),
-        .synchronizer_pipe_depth(SYNCHRONIZER_PIPE_DEPTH)
+        .NUM_SPIN(NUM_SPIN),
+        .BITDATA(BITDATA),
+        .PARALLELISM(PARALLELISM),
+        .COUNTER_BITWIDTH(COUNTER_BITWIDTH),
+        .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPE_DEPTH)
     ) dut (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -93,11 +91,8 @@ module tb_analog_macro_wrap;
         .j_rdata_i(j_rdata_i),
         .h_ren_o(h_ren_o),
         .h_rdata_i(h_rdata_i),
-        .sfc_ren_o(sfc_ren_o),
-        .sfc_rdata_i(sfc_rdata_i),
         .j_one_hot_wwl_o(j_one_hot_wwl_o),
         .h_wwl_o(h_wwl_o),
-        .sfc_wwl_o(sfc_wwl_o),
         .wbl_o(wbl_o),
         .spin_pop_valid_i(spin_pop_valid_i),
         .spin_pop_ready_o(spin_pop_ready_o),

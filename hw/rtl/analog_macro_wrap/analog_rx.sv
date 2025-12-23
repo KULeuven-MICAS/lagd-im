@@ -9,27 +9,27 @@
 `include "common_cells/registers.svh"
 
 module analog_rx #(
-    parameter integer num_spin = 256,
-    parameter integer counter_bitwidth = 8
+    parameter integer NUM_SPIN = 256,
+    parameter integer COUNTER_BITWIDTH = 8
 )(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
     // config interface
     input  logic rx_configure_enable_i,
-    input  logic [counter_bitwidth-1:0] cycle_per_spin_write_i,
-    input  logic [num_spin-1:0] spin_wwl_strobe_i,
-    input  logic [num_spin-1:0] spin_mode_i,
-    input  logic [counter_bitwidth-1:0] cycle_per_spin_compute_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
+    input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
+    input  logic [NUM_SPIN-1:0] spin_mode_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
     // spin interface: rx <-> digital
     input  logic spin_pop_valid_i,
     output logic spin_pop_ready_o,
-    input  logic [num_spin-1:0] spin_pop_i,
+    input  logic [NUM_SPIN-1:0] spin_pop_i,
     input  logic analog_macro_idle_i,
     // spin interface: tx -> analog macro
-    output logic [num_spin-1:0] spin_wwl_o,
-    output logic [num_spin-1:0] spin_compute_en_o,
-    output logic [num_spin-1:0] wbl_o,
+    output logic [NUM_SPIN-1:0] spin_wwl_o,
+    output logic [NUM_SPIN-1:0] spin_compute_en_o,
+    output logic [NUM_SPIN-1:0] wbl_o,
     // status
     output logic analog_rx_idle_o,
     output logic analog_macro_cmpt_finish_o
@@ -38,11 +38,11 @@ module analog_rx #(
     logic spin_pop_handshake;
     logic write_counter_overflow;
     logic compute_counter_overflow;
-    logic [num_spin-1:0] spin_pop_comb;
-    logic [num_spin-1:0] spin_wwl_strobe_reg;
-    logic [num_spin-1:0] spin_mode_reg;
-    logic [num_spin-1:0] spin_wwl_comb;
-    logic [num_spin-1:0] spin_compute_en_comb;
+    logic [NUM_SPIN-1:0] spin_pop_comb;
+    logic [NUM_SPIN-1:0] spin_wwl_strobe_reg;
+    logic [NUM_SPIN-1:0] spin_mode_reg;
+    logic [NUM_SPIN-1:0] spin_wwl_comb;
+    logic [NUM_SPIN-1:0] spin_compute_en_comb;
     logic rx_busy;
     logic spin_pop_cond, cmpt_finish_cond;
     logic spin_pop_ready_reset_cond;
@@ -76,7 +76,7 @@ module analog_rx #(
     `FFL(spin_mode_reg, spin_mode_i, config_cond, 'b0, clk_i, rst_ni)
 
     step_counter #(
-        .COUNTER_BITWIDTH (counter_bitwidth),
+        .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
         .PARALLELISM (1)
     ) u_step_counter_spin_write (
         .clk_i (clk_i),
@@ -91,7 +91,7 @@ module analog_rx #(
     );
 
     step_counter #(
-        .COUNTER_BITWIDTH (counter_bitwidth),
+        .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
         .PARALLELISM (1)
     ) u_step_counter_spin_compute (
         .clk_i (clk_i),

@@ -7,50 +7,50 @@
 // Analog macro wrapper
 
 module analog_macro_wrap #(
-    parameter integer num_spin = 256,
-    parameter integer bit_data = 4,
-    parameter integer parallelism = 1, // min: 1
-    parameter integer counter_bitwidth = 16,
-    parameter integer synchronizer_pipe_depth = 3,
-    parameter integer j_address_width = $clog2(num_spin / parallelism)
+    parameter integer NUM_SPIN = 256,
+    parameter integer BITDATA = 4,
+    parameter integer PARALLELISM = 1, // min: 1
+    parameter integer COUNTER_BITWIDTH = 16,
+    parameter integer SYNCHRONIZER_PIPEDEPTH = 3,
+    parameter integer J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM)
 )(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
     // config interface
     input  logic analog_wrap_configure_enable_i,
-    input  logic [counter_bitwidth-1:0] cfg_trans_num_i,
-    input  logic [counter_bitwidth-1:0] cycle_per_dt_write_i,
-    input  logic [counter_bitwidth-1:0] cycle_per_spin_write_i,
-    input  logic [counter_bitwidth-1:0] cycle_per_spin_compute_i,
-    input  logic [num_spin-1:0] spin_wwl_strobe_i,
-    input  logic [num_spin-1:0] spin_mode_i,
-    input  logic [$clog2(synchronizer_pipe_depth)-1:0] synchronizer_pipe_num_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cfg_trans_num_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_dt_write_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
+    input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
+    input  logic [NUM_SPIN-1:0] spin_mode_i,
+    input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
     input  logic synchronizer_mode_i,
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
     output logic j_mem_ren_o,
-    output logic [j_address_width-1:0] j_raddr_o,
-    input  logic [num_spin*bit_data*parallelism-1:0] j_rdata_i,
+    output logic [J_ADDRESS_WIDTH-1:0] j_raddr_o,
+    input  logic [NUM_SPIN*BITDATA*PARALLELISM-1:0] j_rdata_i,
     output logic h_ren_o,
-    input  logic [num_spin*bit_data-1:0] h_rdata_i,
+    input  logic [NUM_SPIN*BITDATA-1:0] h_rdata_i,
     // data config interface <-> analog macro
-    output logic [num_spin-1:0] j_one_hot_wwl_o,
+    output logic [NUM_SPIN-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
-    output logic [num_spin*bit_data-1:0] wbl_o,
+    output logic [NUM_SPIN*BITDATA-1:0] wbl_o,
     // spin interface: rx <-> digital
     input  logic spin_pop_valid_i,
     output logic spin_pop_ready_o,
-    input  logic [num_spin-1:0] spin_pop_i,
+    input  logic [NUM_SPIN-1:0] spin_pop_i,
     // spin interface: tx <-> analog macro
-    output logic [num_spin-1:0] spin_wwl_o,
-    output logic [num_spin-1:0] spin_compute_en_o,
+    output logic [NUM_SPIN-1:0] spin_wwl_o,
+    output logic [NUM_SPIN-1:0] spin_compute_en_o,
     // spin interface: rx <-> analog macro
-    input  logic [num_spin-1:0] spin_i,
+    input  logic [NUM_SPIN-1:0] spin_i,
     // spin interface: tx <-> digital
     output logic spin_valid_o,
     input  logic spin_ready_i,
-    output logic [num_spin-1:0] spin_o,
+    output logic [NUM_SPIN-1:0] spin_o,
     // status
     output logic dt_cfg_idle_o,
     output logic analog_rx_idle_o,
@@ -59,18 +59,18 @@ module analog_macro_wrap #(
 
     // Internal signals
     logic spin_tx_handshake;
-    logic [num_spin*bit_data-1:0] wbl_dt;
-    logic [num_spin-1:0] wbl_spin;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_dt;
+    logic [NUM_SPIN-1:0] wbl_spin;
     logic analog_macro_cmpt_finish;
 
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
-    assign wbl_o = dt_cfg_idle_o ? {{(num_spin*bit_data-num_spin){1'b0}}, wbl_spin} : wbl_dt;
+    assign wbl_o = dt_cfg_idle_o ? {{(NUM_SPIN*BITDATA-NUM_SPIN){1'b0}}, wbl_spin} : wbl_dt;
 
     analog_cfg #(
-        .num_spin (num_spin),
-        .bit_data (bit_data),
-        .counter_bitwidth (counter_bitwidth),
-        .parallelism (parallelism)
+        .NUM_SPIN (NUM_SPIN),
+        .BITDATA (BITDATA),
+        .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
+        .PARALLELISM (PARALLELISM)
     ) u_analog_cfg (
         .clk_i (clk_i),
         .rst_ni (rst_ni),
@@ -95,8 +95,8 @@ module analog_macro_wrap #(
     );
 
     analog_rx #(
-        .num_spin (num_spin),
-        .counter_bitwidth (counter_bitwidth)
+        .NUM_SPIN (NUM_SPIN),
+        .COUNTER_BITWIDTH (COUNTER_BITWIDTH)
     ) u_analog_rx (
         .clk_i (clk_i),
         .rst_ni (rst_ni),
@@ -122,9 +122,8 @@ module analog_macro_wrap #(
     );
 
     analog_tx #(
-        .num_spin (num_spin),
-        .counter_bitwidth (counter_bitwidth),
-        .synchronizer_pipe_depth (synchronizer_pipe_depth)
+        .NUM_SPIN (NUM_SPIN),
+        .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH)
     ) u_analog_tx (
         .clk_i (clk_i),
         .rst_ni (rst_ni),
