@@ -12,7 +12,7 @@
 // held, or deemed unnecessary ("push none") based on energy comparisons.
 //
 // Parameters:
-// - DATASPIN         : bit width of each spin entry
+// - NUM_SPIN         : bit width of each spin entry
 // - SPIN_DEPTH       : number of entries in the (conceptual) spin FIFO / depth used for addr width
 // - ENERGY_TOTAL_BIT : bit width of each energy entry
 // - ADDR_DEPTH       : width of debug FIFO usage output (derived from SPIN_DEPTH)
@@ -42,7 +42,7 @@
 `include "common_cells/registers.svh"
 
 module energy_fifo_maintainer #(
-    parameter int DATASPIN = 256,
+    parameter int NUM_SPIN = 256,
     parameter int SPIN_DEPTH = 2,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int unsigned ADDR_DEPTH = (SPIN_DEPTH > 1) ? $clog2(SPIN_DEPTH) : 1
@@ -55,12 +55,12 @@ module energy_fifo_maintainer #(
     input logic en_comparison_i,
 
     output logic spin_valid_o,
-    output logic [DATASPIN-1:0] spin_o,
+    output logic [NUM_SPIN-1:0] spin_o,
     output logic spin_push_none_o,
     input logic spin_ready_i,
 
     input logic spin_valid_i,
-    input logic [DATASPIN-1:0] spin_i,
+    input logic [NUM_SPIN-1:0] spin_i,
     output logic spin_ready_o,
 
     input logic energy_valid_i,
@@ -80,7 +80,7 @@ module energy_fifo_maintainer #(
     logic energy_handshake;
     logic spin_handshake_p;
     logic spin_handshake_n;
-    logic [DATASPIN-1:0] spin_reg;
+    logic [NUM_SPIN-1:0] spin_reg;
     logic spin_reg_full;
     logic spin_valid_comb;
     logic spin_valid_reg;

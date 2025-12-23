@@ -16,7 +16,7 @@
 //   unchanged to flipped_spin_o and disables icon reads.
 //
 // Parameters:
-// - DATASPIN               : bit width of each spin vector.
+// - NUM_SPIN               : bit width of each spin vector.
 // - FLIP_ICON_DEPTH        : number of flip-icon entries to read.
 // - FLIP_ICON_ADDR_DEPTH   : address width for flip-icon reads (derived).
 //
@@ -42,10 +42,10 @@
 // - cmpt_en_i             : enable/arm icon streaming (also used to gate reads)
 // - flush_i               : synchronous flush/clear of internal state
 // - prev_spin_valid_i     : input spin valid
-// - prev_spin_i           : input spin vector [DATASPIN-1:0]
+// - prev_spin_i           : input spin vector [NUM_SPIN-1:0]
 // - prev_spin_ready_o     : input spin ready (consumer to producer)
 // - flipped_spin_ready_i  : downstream ready for flipped output
-// - flipped_spin_o        : output flipped spin vector [DATASPIN-1:0]
+// - flipped_spin_o        : output flipped spin vector [NUM_SPIN-1:0]
 // - flipped_spin_valid_o  : output flipped valid
 // - flip_ren_o            : read enable to flip-icon memory
 // - flip_raddr_o          : read address to flip-icon memory
@@ -61,7 +61,7 @@
 `include "common_cells/registers.svh"
 
 module flip_engine #(
-    parameter int DATASPIN = 256,
+    parameter int NUM_SPIN = 256,
     parameter int FLIP_ICON_DEPTH = 1024,
     parameter int FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH)
 )(
@@ -73,17 +73,17 @@ module flip_engine #(
     input logic flush_i,
 
     input logic prev_spin_valid_i,
-    input logic [DATASPIN-1:0] prev_spin_i,
+    input logic [NUM_SPIN-1:0] prev_spin_i,
     output logic prev_spin_ready_o,
 
     input logic flipped_spin_ready_i,
-    output logic [DATASPIN-1:0] flipped_spin_o,
+    output logic [NUM_SPIN-1:0] flipped_spin_o,
     output logic flipped_spin_valid_o,
 
     output logic flip_ren_o,
     output logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_o,
     input logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
-    input logic [DATASPIN-1:0] flip_rdata_i,
+    input logic [NUM_SPIN-1:0] flip_rdata_i,
 
     output logic icon_finish_o,
 
@@ -98,11 +98,11 @@ module flip_engine #(
     logic flipped_spin_valid_comb;
     logic flipped_spin_valid_reg;
     logic flip_ren_p, flip_ren_n;
-    logic [DATASPIN-1:0] flip_icon;
-    logic [DATASPIN-1:0] flipped_spin_comb;
-    logic [DATASPIN-1:0] flipped_spin_reg;
+    logic [NUM_SPIN-1:0] flip_icon;
+    logic [NUM_SPIN-1:0] flipped_spin_comb;
+    logic [NUM_SPIN-1:0] flipped_spin_reg;
     logic [FLIP_ICON_ADDR_DEPTH:0] flip_raddr_n, flip_raddr_reg;
-    logic [DATASPIN-1:0] flip_rdata_reg;
+    logic [NUM_SPIN-1:0] flip_rdata_reg;
     logic icon_fifo_empty_comb;
 
     // Data logic

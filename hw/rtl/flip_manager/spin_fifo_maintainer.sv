@@ -12,7 +12,7 @@
 // 
 // Parameters:
 // - SPIN_DEPTH   : number of entries in the spin FIFO
-// - DATASPIN     : bit width of each spin entry
+// - NUM_SPIN     : bit width of each spin entry
 // - ADDR_DEPTH   : width of usage / address output (derived from SPIN_DEPTH)
 //
 // Behaviour summary:
@@ -48,7 +48,7 @@
 
 module spin_fifo_maintainer #(
     parameter int SPIN_DEPTH = 2,
-    parameter int DATASPIN = 256,
+    parameter int NUM_SPIN = 256,
     parameter int unsigned ADDR_DEPTH = (SPIN_DEPTH > 1) ? $clog2(SPIN_DEPTH) : 1
 )(
     input logic clk_i,
@@ -63,12 +63,12 @@ module spin_fifo_maintainer #(
     input logic icon_finish_i,
 
     input logic spin_push_valid_i,
-    input logic [DATASPIN-1:0] spin_push_i,
+    input logic [NUM_SPIN-1:0] spin_push_i,
     input logic spin_push_none_i,
     output logic spin_push_ready_o,
 
     output logic spin_pop_valid_o,
-    output logic [DATASPIN-1:0] spin_pop_o,
+    output logic [NUM_SPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
     output logic cmpt_busy_o,
     output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o
@@ -88,7 +88,7 @@ module spin_fifo_maintainer #(
     // FIFO to store the spins
     lagd_fifo_v3 #(
         .FALL_THROUGH(1'b0),
-        .DATA_WIDTH(DATASPIN),
+        .DATA_WIDTH(NUM_SPIN),
         .DEPTH(SPIN_DEPTH),
         .RESET_VALUE(0)
     ) spin_fifo (

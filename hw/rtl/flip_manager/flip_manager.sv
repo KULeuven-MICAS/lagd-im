@@ -9,7 +9,7 @@
 // Coordinates three sub-modules: energy_fifo_maintainer, spin_fifo_maintainer and flip_engine.
 //
 // Parameters:
-// - DATASPIN: width of a spin vector (number of spins per word)
+// - NUM_SPIN: width of a spin vector (number of spins per word)
 // - SPIN_DEPTH: depth (entries) of internal spin FIFOs
 // - ENERGY_TOTAL_BIT: bit-width of the total energy value
 // - FLIP_ICON_DEPTH: depth of flip icon memory
@@ -26,13 +26,13 @@
 //
 // Spin configuration input (configuration or energy-maintainer driven):
 // - spin_configure_valid_i: config push valid
-// - spin_configure_i: config spin vector (DATASPIN bits)
+// - spin_configure_i: config spin vector (NUM_SPIN bits)
 // - spin_configure_push_none_i: config push-none indicator
 // - spin_configure_ready_o: config ready
 //
 // Spin output (flipped spins from flip_engine):
 // - spin_pop_valid_o: popped/flipped spin valid
-// - spin_pop_o: popped/flipped spin vector (DATASPIN bits)
+// - spin_pop_o: popped/flipped spin vector (NUM_SPIN bits)
 // - spin_pop_ready_i: consumer ready for popped spin
 //
 // Spin input (direct spin stream for energy maintainer):
@@ -48,7 +48,7 @@
 // Flip memory interface:
 // - flip_ren_o: read enable to flip icon memory
 // - flip_raddr_o: read address to flip icon memory (FLIP_ICON_ADDR_DEPTH bits)
-// - flip_rdata_i: read data from flip icon memory (DATASPIN bits)
+// - flip_rdata_i: read data from flip icon memory (NUM_SPIN bits)
 //
 // Debug:
 // - flip_disable_i: disable flipping
@@ -60,7 +60,7 @@
 `include "common_cells/registers.svh"
 
 module flip_manager #(
-    parameter int DATASPIN = 256,
+    parameter int NUM_SPIN = 256,
     parameter int SPIN_DEPTH = 2,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int FLIP_ICON_DEPTH = 1024,
@@ -77,16 +77,16 @@ module flip_manager #(
     input logic host_readout_i,
 
     input logic spin_configure_valid_i,
-    input logic [DATASPIN-1:0] spin_configure_i,
+    input logic [NUM_SPIN-1:0] spin_configure_i,
     input logic spin_configure_push_none_i,
     output logic spin_configure_ready_o,
 
     output logic spin_pop_valid_o,
-    output logic [DATASPIN-1:0] spin_pop_o,
+    output logic [NUM_SPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
 
     input logic spin_valid_i,
-    input logic [DATASPIN-1:0] spin_i,
+    input logic [NUM_SPIN-1:0] spin_i,
     output logic spin_ready_o,
 
     input logic energy_valid_i,
@@ -96,19 +96,19 @@ module flip_manager #(
     output logic flip_ren_o,
     output logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_o,
     input logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
-    input logic [DATASPIN-1:0] flip_rdata_i,
+    input logic [NUM_SPIN-1:0] flip_rdata_i,
 
     input logic flip_disable_i
 );
     // Internal signals
     logic cmpt_busy;
     logic spin_pop_valid_p;
-    logic [DATASPIN-1:0] spin_pop_p;
+    logic [NUM_SPIN-1:0] spin_pop_p;
     logic spin_pop_ready_p;
     logic spin_maintainer_push;
-    logic [DATASPIN-1:0] spin_maintainer_income;
+    logic [NUM_SPIN-1:0] spin_maintainer_income;
     logic spin_maintainer_push_from_en;
-    logic [DATASPIN-1:0] spin_maintainer_income_from_en;
+    logic [NUM_SPIN-1:0] spin_maintainer_income_from_en;
     logic spin_maintainer_push_none_from_en;
     logic spin_maintainer_push_ready;
     logic spin_maintainer_push_none;
@@ -136,7 +136,7 @@ module flip_manager #(
 
     // Instantiate energy maintainer
     energy_fifo_maintainer #(
-        .DATASPIN(DATASPIN),
+        .NUM_SPIN(NUM_SPIN),
         .SPIN_DEPTH(SPIN_DEPTH),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT)
     ) u_energy_fifo_maintainer (
@@ -161,7 +161,7 @@ module flip_manager #(
     // Instantiate spin FIFO maintainer
     spin_fifo_maintainer #(
         .SPIN_DEPTH(SPIN_DEPTH),
-        .DATASPIN(DATASPIN)
+        .NUM_SPIN(NUM_SPIN)
     ) u_spin_fifo_maintainer (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -183,7 +183,7 @@ module flip_manager #(
 
     // Instantiate flip engine
     flip_engine #(
-        .DATASPIN(DATASPIN),
+        .NUM_SPIN(NUM_SPIN),
         .FLIP_ICON_DEPTH(FLIP_ICON_DEPTH),
         .FLIP_ICON_ADDR_DEPTH(FLIP_ICON_ADDR_DEPTH)
     ) u_flip_engine (

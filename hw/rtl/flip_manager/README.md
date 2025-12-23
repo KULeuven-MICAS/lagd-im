@@ -12,7 +12,7 @@ For each transaction starting with energy handshake, this module takes 3 cycles 
 
 ## Configurable Module Parameters
 
-*DATASPIN:* [int] the number of spins  (default: 256)
+*NUM_SPIN:* [int] the number of spins  (default: 256)
 
 *SPIN_DEPTH:* [int] depth (entries) of internal spin/energy FIFOs
 

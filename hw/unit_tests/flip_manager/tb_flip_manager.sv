@@ -16,7 +16,7 @@
 module tb_flip_manager;
 
     // Module parameters
-    localparam int DATASPIN = 256; // number of spins
+    localparam int NUM_SPIN = 256; // number of spins
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int SPIN_DEPTH = 2; // depth of spin/energy FIFOs
     localparam int FLIP_ICON_DEPTH = 1024; // number of entries in flip, must be multiply of SPIN_DEPTH
@@ -41,14 +41,14 @@ module tb_flip_manager;
     logic cmpt_en_i;
     logic cmpt_idle_o;
     logic spin_configure_valid_i;
-    logic [DATASPIN-1:0] spin_configure_i;
+    logic [NUM_SPIN-1:0] spin_configure_i;
     logic spin_configure_push_none_i;
     logic spin_configure_ready_o;
     logic spin_pop_valid_o;
-    logic [DATASPIN-1:0] spin_pop_o;
+    logic [NUM_SPIN-1:0] spin_pop_o;
     logic spin_pop_ready_i;
     logic spin_valid_i;
-    logic [DATASPIN-1:0] spin_i;
+    logic [NUM_SPIN-1:0] spin_i;
     logic spin_ready_o;
     logic spin_energy_monitor_ready;
     logic energy_valid_i;
@@ -57,12 +57,12 @@ module tb_flip_manager;
     logic flip_ren_o;
     logic [$clog2(FLIP_ICON_DEPTH)+1-1:0] flip_raddr_o;
     logic [$clog2(FLIP_ICON_DEPTH)+1-1:0] icon_last_raddr_plus_one_i;
-    logic [DATASPIN-1:0] flip_rdata_i;
+    logic [NUM_SPIN-1:0] flip_rdata_i;
     logic flip_disable_i;
     logic host_readout_i;
     logic spin_pop_ready_host;
     logic spin_pop_ready_analog;
-    logic [DATASPIN-1:0] spin_read_out_host;
+    logic [NUM_SPIN-1:0] spin_read_out_host;
 
     logic configure_test_done;
     logic spin_push_handshake;
@@ -71,7 +71,7 @@ module tb_flip_manager;
     // Task monitoring variables (moved to module level for VCD dumping)
     integer configure_counter;
     integer flush_counter;
-    logic [DATASPIN-1:0] spin_configure_prev;
+    logic [NUM_SPIN-1:0] spin_configure_prev;
     logic [$clog2(FLIP_ICON_DEPTH)-1:0] icon_addr;
     logic icon_finished;
     integer transaction_count_flip_icon;
@@ -95,7 +95,7 @@ module tb_flip_manager;
 
     // Module instantiation
     flip_manager #(
-        .DATASPIN(DATASPIN),
+        .NUM_SPIN(NUM_SPIN),
         .SPIN_DEPTH(SPIN_DEPTH),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
         .FLIP_ICON_DEPTH(FLIP_ICON_DEPTH)
@@ -199,7 +199,7 @@ module tb_flip_manager;
                     spin_configure_prev = spin_configure_i;
                     if (RANDOM_TEST) begin
                         // generate random bitstring: each bit randomly 0 or 1
-                        for (int i = 0; i < DATASPIN; i++) begin
+                        for (int i = 0; i < NUM_SPIN; i++) begin
                             spin_configure_i[i] = $urandom_range(0, 1);
                         end
                     end else begin
@@ -246,7 +246,7 @@ module tb_flip_manager;
 
             forever begin
                 if (RANDOM_TEST) begin
-                    for (int i = 0; i < DATASPIN; i++) begin
+                    for (int i = 0; i < NUM_SPIN; i++) begin
                         flip_rdata_i[i] = $urandom_range(0, 1);
                     end
                 end else begin
@@ -327,7 +327,7 @@ module tb_flip_manager;
                 end
                 while (!spin_energy_monitor_ready) @(posedge clk_i);
                 if (RANDOM_TEST) begin
-                    for (int i = 0; i < DATASPIN; i++) begin
+                    for (int i = 0; i < NUM_SPIN; i++) begin
                         spin_i[i] = $urandom_range(0, 1);
                     end
                 end else begin
@@ -395,7 +395,7 @@ module tb_flip_manager;
                     spin_read_out_host = spin_pop_o;
                     // check FIFO content
                     if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host]) begin
-                        // note: this check fails if SPIN_DEPTH % DATASPIN != 0
+                        // note: this check fails if SPIN_DEPTH % NUM_SPIN != 0
                         @(posedge clk_i);
                         $fatal(1, "Error: Host readout FIFO content ['d%0d] mismatch at time %t: expected 'h%h, got 'h%h",
                             readout_count_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
