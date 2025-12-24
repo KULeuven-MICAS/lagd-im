@@ -15,24 +15,34 @@
 
 module tb_analog_macro_wrap;
 
-    // Module parameters
-    localparam int NUM_SPIN = 256; // number of spins
-    localparam int BITDATA = 4; // bit width of J and h, sfc
+    // module parameters
+    localparam int NUM_SPIN = 8; // number of spins
+    localparam int BITDATA = 2; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 16;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
 
-    // Testbench parameters
+    // testbench parameters
     localparam int CLKCYCLE = 2;
 
-    // Testbench internal signals
+    // dut run-time configuration
+    localparam int CyclePerWwlHigh = 4;
+    localparam int CyclePerWwlLow = 5;
+    localparam int CyclePerSpinWrite = 6;
+    localparam int CyclePerSpinCompute = 8;
+    localparam int SynchronizerPipeNum = 2;
+    localparam int SynchronizerMode = 0; // 0: one-shot; 1: continuous
+    localparam int SpinWwlStrobe = {256{1'b1}}; // all spins enabled
+    localparam int SpinMode = {256{1'b1}}; // all spins in compute mode
+
+    // testbench internal signals
     logic clk_i;
     logic rst_ni;
     logic en_i;
     logic analog_wrap_configure_enable_i;
     logic [COUNTER_BITWIDTH-1:0] cfg_trans_num_i;
-    logic [COUNTER_BITWIDTH-1:0] cycle_per_dt_write_i;
+    logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_high_i, cycle_per_wwl_low_i;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
@@ -42,15 +52,16 @@ module tb_analog_macro_wrap;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
     logic [J_ADDRESS_WIDTH-1:0] j_raddr_o;
-    logic [NUM_SPIN*BITDATA*PARALLELISM-1:0] j_rdata_i;
+    logic [NUM_SPIN*BITDATA*PARALLELISM-1:0] j_rdata_i, j_rdata_latched;
     logic h_ren_o;
-    logic [NUM_SPIN*BITDATA-1:0] h_rdata_i;
+    logic [NUM_SPIN*BITDATA-1:0] h_rdata_i, hbias_in_reg;
     logic [NUM_SPIN-1:0] j_one_hot_wwl_o;
     logic h_wwl_o;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_o, wbl_copy;
     logic spin_pop_valid_i;
     logic spin_pop_ready_o;
-    logic [NUM_SPIN-1:0] spin_pop_i;
+    logic [NUM_SPIN-1:0] spin_pop_i, spin_pop_ref;
+    logic spin_pop_ref_valid;
     logic [NUM_SPIN-1:0] spin_wwl_o;
     logic [NUM_SPIN-1:0] spin_compute_en_o;
     logic [NUM_SPIN-1:0] spin_i;
@@ -60,6 +71,15 @@ module tb_analog_macro_wrap;
     logic dt_cfg_idle_o;
     logic analog_rx_idle_o;
     logic analog_tx_idle_o;
+
+    logic config_aw_done;
+    logic config_galena_done;
+    logic [NUM_SPIN/PARALLELISM-1:0][NUM_SPIN*BITDATA*PARALLELISM-1:0] weights_in_mem;
+    logic [NUM_SPIN-1:0][NUM_SPIN*BITDATA-1:0] weights_in_mem_ordered, weights_analog;
+    logic [NUM_SPIN*BITDATA-1:0] hbias_analog;
+    logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_ref;
+    integer galena_addr_idx;
+    integer dt_write_cycle_cnt_j, dt_write_cycle_cnt_hbias;
 
     initial begin
         en_i = 1;
@@ -78,7 +98,8 @@ module tb_analog_macro_wrap;
         .en_i(en_i),
         .analog_wrap_configure_enable_i(analog_wrap_configure_enable_i),
         .cfg_trans_num_i(cfg_trans_num_i),
-        .cycle_per_dt_write_i(cycle_per_dt_write_i),
+        .cycle_per_wwl_high_i(cycle_per_wwl_high_i),
+        .cycle_per_wwl_low_i(cycle_per_wwl_low_i),
         .cycle_per_spin_write_i(cycle_per_spin_write_i),
         .cycle_per_spin_compute_i(cycle_per_spin_compute_i),
         .spin_wwl_strobe_i(spin_wwl_strobe_i),
@@ -131,15 +152,352 @@ module tb_analog_macro_wrap;
             $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
             #(600 * CLKCYCLE); // To avoid generating huge VCD files
-            $display("Testbench timeout reached. Ending simulation.");
+            $display("testbench timeout reached. Ending simulation.");
             $finish;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
             #(2_000_000 * CLKCYCLE);
-            $display("Testbench timeout reached. Ending simulation.");
+            $display("testbench timeout reached. Ending simulation.");
             $finish;
         end
+    end
+
+    // ========================================================================
+    // Always blocks
+    // ========================================================================
+    // pipe j_rdata_i
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            j_rdata_i <= 'd0;
+        end else begin
+            j_rdata_i <= j_rdata_latched;
+        end
+    end
+    assign h_rdata_i = hbias_in_reg;
+
+    // ========================================================================
+    // Tasks
+    // ========================================================================
+    // Task for AW config interface
+    task automatic aw_config_interface();
+        wait (rst_ni == 0);
+        config_aw_done = 0;
+        analog_wrap_configure_enable_i = 0;
+        cfg_trans_num_i = 'd0;
+        cycle_per_wwl_high_i = 'd0;
+        cycle_per_wwl_low_i = 'd0;
+        cycle_per_spin_write_i = 'd0;
+        cycle_per_spin_compute_i = 'd0;
+        synchronizer_pipe_num_i = 'd0;
+        synchronizer_mode_i = 1'b0;
+        spin_wwl_strobe_i = 'd0;
+        spin_mode_i = 'd0;
+        // Apply configuration
+        wait (rst_ni == 1 && en_i == 1);
+        @(negedge clk_i);
+        $display("[Time: %t] AW configuration starts.", $time);
+        analog_wrap_configure_enable_i = 1;
+        cfg_trans_num_i = NUM_SPIN/PARALLELISM-1+1; // total transfer number (j + h)
+        cycle_per_wwl_high_i = CyclePerWwlHigh - 1;
+        cycle_per_wwl_low_i = CyclePerWwlLow - 1;
+        cycle_per_spin_write_i = CyclePerSpinWrite;
+        cycle_per_spin_compute_i = CyclePerSpinCompute;
+        synchronizer_pipe_num_i = SynchronizerPipeNum;;
+        synchronizer_mode_i = SynchronizerMode;
+        spin_wwl_strobe_i = SpinWwlStrobe;
+        spin_mode_i = SpinMode;
+        @(negedge clk_i);
+        analog_wrap_configure_enable_i = 0;
+        config_aw_done = 1;
+        $display("[Time: %t] AW configuration finished.", $time);
+    endtask
+
+    // Task for galena config
+    task automatic galena_config_interface();
+        wait (rst_ni == 0);
+        config_galena_done = 0;
+        dt_cfg_enable_i = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_aw_done == 1);
+        @(negedge clk_i);
+        $display("[Time: %t] Galena configuration starts.", $time);
+        dt_cfg_enable_i = 1;
+        @(negedge clk_i);
+        dt_cfg_enable_i = 0;
+        wait (dt_cfg_idle_o == 1);
+        config_galena_done = 1;
+        $display("[Time: %t] Galena configuration finished.", $time);
+    endtask
+
+    // Task for h generation
+    task automatic generate_hbias_input();
+        integer spin_idx;
+        hbias_in_reg = 'd0;
+        wait (rst_ni == 1 && en_i == 1);
+        @(negedge clk_i);
+        for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
+            hbias_in_reg[spin_idx*BITDATA +: BITDATA] = $urandom_range(0, 2**BITDATA - 1);
+            @(negedge clk_i);
+        end
+    endtask
+
+    // Task for j generation
+    task automatic generate_j_weights_in_mem();
+        integer j_mem_addr_idx;
+        integer spin_idx, inner_spin_idx;
+        logic [NUM_SPIN*BITDATA-1:0] temp_weight;
+        j_mem_addr_idx = 0;
+        wait (rst_ni == 1 && en_i == 1);
+        @(negedge clk_i);
+        while (j_mem_addr_idx < (NUM_SPIN / PARALLELISM)) begin
+            for (spin_idx = 0; spin_idx < PARALLELISM; spin_idx = spin_idx + 1) begin
+                weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA +: NUM_SPIN*BITDATA] = 'd0;
+                for (inner_spin_idx = 0; inner_spin_idx < NUM_SPIN; inner_spin_idx = inner_spin_idx + 1) begin
+                    temp_weight = $urandom_range(0, 2**BITDATA - 1);
+                    weights_in_mem_ordered[j_mem_addr_idx*PARALLELISM + spin_idx][inner_spin_idx*BITDATA +: BITDATA]
+                        = temp_weight;
+                    weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA + inner_spin_idx*BITDATA +: BITDATA]
+                        = temp_weight;
+                end
+            end
+            j_mem_addr_idx = j_mem_addr_idx + 1;
+        end
+    endtask
+
+    // Interface: J mem <-> analog wrap
+    task automatic j_mem_interface();
+        wait (rst_ni == 0);
+        @(negedge clk_i);
+        j_rdata_latched = 'd0;
+        j_raddr_ref = 'd0;
+        wait (rst_ni == 1 && en_i == 1);
+        forever begin
+            @(negedge clk_i);
+            // Interface to analog wrap: standard 1-cycle-delay memory interface
+            if (j_mem_ren_o == 1) begin
+                if (j_raddr_o != j_raddr_ref) begin
+                    $fatal(1, "[Time: %t] Error: J memory read address mismatch. Expected: %0d, Got: %0d",
+                        $time, j_raddr_ref, j_raddr_o);
+                end
+                j_rdata_latched = weights_in_mem[j_raddr_o];
+                j_raddr_ref = j_raddr_ref + 1;
+            end
+        end
+    endtask
+
+    // Interface: analog_wrap <-> galena spin wwl
+    task automatic galena_spin_wwl_interface();
+        integer galena_spin_write_cycle_cnt;
+        galena_spin_write_cycle_cnt = 0;
+        wait (rst_ni == 0);
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        forever begin
+            @(negedge clk_i);
+            if (spin_pop_valid_i & spin_pop_ready_o) begin
+                galena_spin_write_cycle_cnt = 0;
+            end
+            if ($countbits(spin_wwl_o, '1) == NUM_SPIN) begin: timer_start
+                if (galena_spin_write_cycle_cnt == -1) begin: spin_write_finished
+                    galena_spin_write_cycle_cnt = galena_spin_write_cycle_cnt;
+                end else begin
+                    if (galena_spin_write_cycle_cnt == CyclePerSpinWrite) begin: spin_write_finishing
+                        wbl_copy = wbl_o;
+                        galena_spin_write_cycle_cnt = -1;
+                    end else begin: spin_write_ongoing
+                        galena_spin_write_cycle_cnt = galena_spin_write_cycle_cnt + 1;
+                    end
+                end
+            end
+        end
+    endtask
+
+    // Interface: analog_wrap <-> galena spin_i output
+    task automatic galena_spin_output_interface();
+        integer galena_spin_cmpt_cycle_cnt;
+        galena_spin_cmpt_cycle_cnt = 0;
+        wait (rst_ni == 0);
+        spin_i = $urandom;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        forever begin
+            @(negedge clk_i);
+            if ($countbits(spin_wwl_o, '1) == NUM_SPIN) begin: timer_start
+                while (galena_spin_cmpt_cycle_cnt < CyclePerSpinCompute) begin
+                    galena_spin_cmpt_cycle_cnt = galena_spin_cmpt_cycle_cnt + 1;
+                    @(negedge clk_i);
+                end
+                // after compute cycles, output spin_i
+                spin_i = wbl_copy[NUM_SPIN-1:0];
+                galena_spin_cmpt_cycle_cnt = 0;
+            end
+        end
+    endtask
+
+    // Interface: analog_wrap <-> energy monitor
+    task automatic energy_monitor_interface();
+        wait (rst_ni == 0);
+        spin_ready_i = 1;
+    endtask
+
+    // Interface: analog_wrap <-> flip manager
+    task automatic flip_manager_interface();
+        wait (rst_ni == 0);
+        spin_pop_valid_i = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        spin_pop_valid_i = 1;
+    endtask
+
+    // ========================================================================
+    // Checks
+    // ========================================================================
+    // Task for analog galena interface: config data check: j
+    task automatic analog_interface_config_check_j();
+        galena_addr_idx = 0;
+        dt_write_cycle_cnt_j = 0;
+        wait (rst_ni == 1 && en_i == 1 && dt_cfg_enable_i == 1);
+        @(negedge clk_i);
+        // check if j and h are loaded correctly
+        while (galena_addr_idx < NUM_SPIN) begin
+            wait (j_one_hot_wwl_o != 0);
+            while (dt_write_cycle_cnt_j < CyclePerWwlHigh) begin
+                @(negedge clk_i);
+                // monitor if j_one_hot_wwl_o remains valid for the dedefined cycles
+                if (j_one_hot_wwl_o == 0 && dt_write_cycle_cnt_j != 0) begin
+                    $fatal(1, "[Time: %t] Warning: j_one_hot_wwl_o switches to zero during dt write cycle %0d for galena_addr_idx %0d",
+                        $time, dt_write_cycle_cnt_j, galena_addr_idx);
+                end
+                if (|j_one_hot_wwl_o) begin
+                    // check if one-hot encoded and matches galena_addr_idx
+                    if ($countbits(j_one_hot_wwl_o, '1) != 1)
+                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o is not one-hot encoded, j_one_hot_wwl_o: 'b%b", $time, j_one_hot_wwl_o);
+                    if (j_one_hot_wwl_o[galena_addr_idx] != 1'b1) begin
+                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o does not match galena_addr_idx, j_one_hot_wwl_o: 'b%b, galena_addr_idx: 'd%0d",
+                            $time, j_one_hot_wwl_o, galena_addr_idx);
+                    end
+                    dt_write_cycle_cnt_j = dt_write_cycle_cnt_j + 1;
+                end
+            end
+            weights_analog[galena_addr_idx] = wbl_o;
+            // compare data to reference
+            if (weights_analog[galena_addr_idx] != weights_in_mem_ordered[galena_addr_idx]) begin
+                $fatal(1, "[Time: %t] Error: Weights mismatch at galena_addr_idx %0d. Expected: 'h%h, Got: 'h%h",
+                    $time, galena_addr_idx, weights_in_mem_ordered[galena_addr_idx], weights_analog[galena_addr_idx]);
+            end
+            dt_write_cycle_cnt_j = 0;
+            galena_addr_idx = galena_addr_idx + 1;
+        end
+    endtask
+
+    // Task for analog galena interface: config data check: h
+    task automatic analog_interface_config_check_h();
+        dt_write_cycle_cnt_hbias = 0;
+        wait (rst_ni == 1 && en_i == 1 && galena_addr_idx == NUM_SPIN);
+        while (dt_write_cycle_cnt_hbias <  CyclePerWwlHigh) begin
+            @(negedge clk_i);
+            // monitor if h_wwl_o remains valid for the dedefined cycles
+            if (h_wwl_o == 0 && dt_write_cycle_cnt_hbias != 0) begin
+                $fatal(1, "[Time: %t] Warning: h_wwl_o switches to zero during dt write cycle %0d for hbias",
+                    $time, dt_write_cycle_cnt_hbias);
+            end
+            if (h_wwl_o == 1) begin
+                dt_write_cycle_cnt_hbias = dt_write_cycle_cnt_hbias + 1;
+            end
+        end
+        // after dt write cycles, check hbias
+        hbias_analog = wbl_o;
+        // compare data to reference
+        if (hbias_analog != hbias_in_reg) begin
+            $fatal(1, "[Time: %t] Error: Hbias mismatch. Expected: 'h%h, Got: 'h%h",
+                $time, hbias_in_reg, hbias_analog);
+        end
+    endtask
+
+    // Task for spin_wwl_o check
+    task automatic spin_wwl_check();
+        integer spin_wwl_cycle_cnt;
+        spin_wwl_cycle_cnt = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        @(negedge clk_i);
+        forever begin
+            @(negedge clk_i);
+            if ($countbits(spin_wwl_o, '1) != 0) begin
+                if ($countbits(spin_wwl_o, '1) != NUM_SPIN) begin
+                    $fatal(1, "[Time: %t] Error: spin_wwl_o is not all-one when enabled, spin_wwl_o: 'b%b",
+                        $time, spin_wwl_o);
+                end
+                while (spin_wwl_cycle_cnt < CyclePerSpinWrite) begin
+                    if (spin_wwl_cycle_cnt > 0 && $countbits(spin_wwl_o, '1) != NUM_SPIN) begin
+                        $fatal(1, "[Time: %t] Error: spin_wwl_o is not all-one during spin write cycle %0d, spin_wwl_o: 'b%b",
+                            $time, spin_wwl_cycle_cnt, spin_wwl_o);
+                    end
+                    spin_wwl_cycle_cnt = spin_wwl_cycle_cnt + 1;
+                    @(negedge clk_i);
+                end
+                spin_wwl_cycle_cnt = 0;
+            end
+        end
+    endtask
+
+    // Task for spin_o_check check (assume spin_o is a copy of spin_pop_i)
+    task automatic spin_o_check();
+        wait (rst_ni == 0 && en_i == 1);
+        spin_pop_ref_valid = 0;
+        spin_pop_ref = 'd0;
+        forever begin
+            @(negedge clk_i);
+            if (spin_pop_ready_o & spin_pop_valid_i) begin: fetch_spin_pop
+                if (spin_pop_ref_valid == 1)
+                    $fatal(1, "[Time: %t] Error: spin_pop_ref valid signal not cleared before new data arrival.",
+                        $time);
+                else begin
+                    spin_pop_ref = spin_pop_i;
+                    spin_pop_ref_valid = 1;
+                end
+            end
+            if (spin_ready_i & spin_valid_o) begin: clear_spin_pop_ref
+                if (spin_pop_ref_valid == 0)
+                    $fatal(1, "[Time: %t] Error: spin_pop_ref valid signal cleared before data arrival.",
+                        $time);
+                else begin
+                    if (spin_o != spin_pop_ref)
+                        $fatal(1, "[Time: %t] Error: spin_o data mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, spin_pop_ref, spin_o);
+                    else begin
+                        // correct data
+                        `ifdef DBG
+                            $display("[Time: %t] Info: spin_o/spin_pop_i match. Data: 'h%h",
+                                $time, spin_o);
+                        `endif
+                    end
+                    spin_pop_ref = 'd0;
+                    spin_pop_ref_valid = 0;
+                end
+            end
+        end
+    endtask
+
+    // ========================================================================
+    // Event execution
+    // ========================================================================
+    initial begin
+        fork
+            // Configurations
+            aw_config_interface();
+            galena_config_interface();
+            generate_hbias_input();
+            generate_j_weights_in_mem();
+            // Peripheral interfaces
+            j_mem_interface();
+            energy_monitor_interface();
+            flip_manager_interface();
+            // Galena interfaces
+            galena_spin_wwl_interface();
+            galena_spin_output_interface();
+            // Checks
+            analog_interface_config_check_j();
+            analog_interface_config_check_h();
+            spin_wwl_check();
+            spin_o_check();
+        join_none
     end
 
 endmodule

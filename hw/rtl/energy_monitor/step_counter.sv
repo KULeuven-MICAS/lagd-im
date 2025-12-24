@@ -9,6 +9,7 @@
 //
 // Parameters:
 // - COUNTER_BITWIDTH: bit width of the counter
+// - PARALLELISM: step size of the counter
 //
 // Port definitions:
 // - clk_i: input clock signal
@@ -39,6 +40,7 @@ module step_counter #(
     input logic recount_en_i,
     input logic step_en_i,
     output logic unsigned [COUNTER_BITWIDTH-1:0] q_o,
+    output logic maxed_o,
     output logic overflow_o
 );
     // Internal signals
@@ -57,6 +59,7 @@ module step_counter #(
     assign overflow_cond = en_i && step_en_i && (q_o == (counter_reg - PARALLELISM + 1));
     assign recount_cond = en_i && recount_en_i;
 
+    assign maxed_o = en_i & (q_o == counter_reg) & (~overflow);
     assign overflow_o = overflow;
 
     // Sequential logic to set the counter target value

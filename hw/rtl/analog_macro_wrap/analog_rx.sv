@@ -87,6 +87,7 @@ module analog_rx #(
         .recount_en_i (spin_pop_handshake),
         .step_en_i (en_i),
         .q_o (),
+        .maxed_o (),
         .overflow_o (write_counter_overflow)
     );
 
@@ -102,6 +103,7 @@ module analog_rx #(
         .recount_en_i (spin_pop_handshake),
         .step_en_i (en_i),
         .q_o (),
+        .maxed_o (),
         .overflow_o (compute_counter_overflow)
     );
 

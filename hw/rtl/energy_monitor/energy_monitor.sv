@@ -211,6 +211,7 @@ module energy_monitor #(
         .recount_en_i(spin_handshake),
         .step_en_i(weight_handshake),
         .q_o(counter_q),
+        .maxed_o(),
         .overflow_o(counter_ready)
     );
 

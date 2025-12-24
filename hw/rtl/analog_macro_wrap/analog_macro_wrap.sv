@@ -20,7 +20,8 @@ module analog_macro_wrap #(
     // config interface
     input  logic analog_wrap_configure_enable_i,
     input  logic [COUNTER_BITWIDTH-1:0] cfg_trans_num_i,
-    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_dt_write_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_high_i,
+    input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
@@ -77,7 +78,8 @@ module analog_macro_wrap #(
         .en_i (en_i),
         // config interface
         .cfg_configure_enable_i (analog_wrap_configure_enable_i),
-        .cycle_per_dt_write_i (cycle_per_dt_write_i),
+        .cycle_per_wwl_high_i (cycle_per_wwl_high_i),
+        .cycle_per_wwl_low_i (cycle_per_wwl_low_i),
         .cfg_trans_num_i (cfg_trans_num_i),
         // data config interface <-> digital
         .dt_cfg_enable_i (dt_cfg_enable_i),
