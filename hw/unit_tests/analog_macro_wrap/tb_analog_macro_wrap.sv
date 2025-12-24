@@ -16,12 +16,13 @@
 module tb_analog_macro_wrap;
 
     // module parameters
-    localparam int NUM_SPIN = 8; // number of spins
-    localparam int BITDATA = 2; // bit width of J and h, sfc
+    localparam int NUM_SPIN = 256; // number of spins
+    localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 16;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
+    localparam int OnloadingTestNum = 1000; // number of onloading tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
@@ -80,6 +81,7 @@ module tb_analog_macro_wrap;
     logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_ref;
     integer galena_addr_idx;
     integer dt_write_cycle_cnt_j, dt_write_cycle_cnt_hbias;
+    integer onloading_test_idx;
 
     initial begin
         en_i = 1;
@@ -149,7 +151,7 @@ module tb_analog_macro_wrap;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile(`VCD_FILE);
-            $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
+            $dumpvars(1, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
             #(600 * CLKCYCLE); // To avoid generating huge VCD files
             $display("testbench timeout reached. Ending simulation.");
@@ -157,7 +159,7 @@ module tb_analog_macro_wrap;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            #(2_000_000 * CLKCYCLE);
+            #(20_000_000 * CLKCYCLE);
             $display("testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -218,15 +220,19 @@ module tb_analog_macro_wrap;
         wait (rst_ni == 0);
         config_galena_done = 0;
         dt_cfg_enable_i = 0;
+        onloading_test_idx = 0;
         wait (rst_ni == 1 && en_i == 1 && config_aw_done == 1);
         @(negedge clk_i);
-        $display("[Time: %t] Galena configuration starts.", $time);
-        dt_cfg_enable_i = 1;
-        @(negedge clk_i);
-        dt_cfg_enable_i = 0;
-        wait (dt_cfg_idle_o == 1);
-        config_galena_done = 1;
-        $display("[Time: %t] Galena configuration finished.", $time);
+        while (onloading_test_idx < OnloadingTestNum) begin
+            $display("[Time: %t] Galena configuration testcase %0d starts.", $time, onloading_test_idx);
+            @(negedge clk_i);
+            dt_cfg_enable_i = 1;
+            @(negedge clk_i);
+            dt_cfg_enable_i = 0;
+            wait (dt_cfg_idle_o == 1);
+            onloading_test_idx = onloading_test_idx + 1;
+        end
+        $display("[Time: %t] Galena configuration testcases [%0d/%0d] passed.", $time, onloading_test_idx, OnloadingTestNum);
     endtask
 
     // Task for h generation
@@ -234,10 +240,12 @@ module tb_analog_macro_wrap;
         integer spin_idx;
         hbias_in_reg = 'd0;
         wait (rst_ni == 1 && en_i == 1);
-        @(negedge clk_i);
-        for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
-            hbias_in_reg[spin_idx*BITDATA +: BITDATA] = $urandom_range(0, 2**BITDATA - 1);
+        forever begin
             @(negedge clk_i);
+            for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
+                hbias_in_reg[spin_idx*BITDATA +: BITDATA] = $urandom_range(0, 2**BITDATA - 1);
+            end
+            wait (dt_cfg_idle_o == 1);
         end
     endtask
 
@@ -248,19 +256,23 @@ module tb_analog_macro_wrap;
         logic [NUM_SPIN*BITDATA-1:0] temp_weight;
         j_mem_addr_idx = 0;
         wait (rst_ni == 1 && en_i == 1);
-        @(negedge clk_i);
-        while (j_mem_addr_idx < (NUM_SPIN / PARALLELISM)) begin
-            for (spin_idx = 0; spin_idx < PARALLELISM; spin_idx = spin_idx + 1) begin
-                weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA +: NUM_SPIN*BITDATA] = 'd0;
-                for (inner_spin_idx = 0; inner_spin_idx < NUM_SPIN; inner_spin_idx = inner_spin_idx + 1) begin
-                    temp_weight = $urandom_range(0, 2**BITDATA - 1);
-                    weights_in_mem_ordered[j_mem_addr_idx*PARALLELISM + spin_idx][inner_spin_idx*BITDATA +: BITDATA]
-                        = temp_weight;
-                    weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA + inner_spin_idx*BITDATA +: BITDATA]
-                        = temp_weight;
+        forever begin
+            j_mem_addr_idx = 0;
+            @(negedge clk_i);
+            while (j_mem_addr_idx < (NUM_SPIN / PARALLELISM)) begin
+                for (spin_idx = 0; spin_idx < PARALLELISM; spin_idx = spin_idx + 1) begin
+                    weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA +: NUM_SPIN*BITDATA] = 'd0;
+                    for (inner_spin_idx = 0; inner_spin_idx < NUM_SPIN; inner_spin_idx = inner_spin_idx + 1) begin
+                        temp_weight = $urandom_range(0, 2**BITDATA - 1);
+                        weights_in_mem_ordered[j_mem_addr_idx*PARALLELISM + spin_idx][inner_spin_idx*BITDATA +: BITDATA]
+                            = temp_weight;
+                        weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA + inner_spin_idx*BITDATA +: BITDATA]
+                            = temp_weight;
+                    end
                 end
+                j_mem_addr_idx = j_mem_addr_idx + 1;
             end
-            j_mem_addr_idx = j_mem_addr_idx + 1;
+            wait (dt_cfg_idle_o == 1);
         end
     endtask
 
