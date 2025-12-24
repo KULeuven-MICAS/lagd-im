@@ -80,7 +80,7 @@ module analog_cfg #(
         (wwl_high_counter_maxed & (counter_addr_q != HADDR))
         | (wwl_low_counter_maxed & (j_mux_sel_q != 'd0)));
     assign j_wwl_idle_cond = cfg_idle_cond;
-    assign wbl_en_cond = en_i & (j_mem_ren_n | h_ren_n | (wwl_low_counter_maxed & (~j_mem_ren_o) & (~h_ren_o)));
+    assign wbl_en_cond = en_i & (!dt_cfg_finish) & (j_mem_ren_n | h_ren_n | ((~j_mem_ren_o) & (~h_ren_o) & wwl_low_counter_maxed));
     assign j_mux_sel_cond = en_i & wwl_high_counter_maxed & (counter_addr_q != HADDR);
     assign j_mux_sel_delayed_cond = en_i & wwl_low_counter_maxed;
     assign j_mux_sel_idle_cond = !en_i | dt_cfg_enable_i;
