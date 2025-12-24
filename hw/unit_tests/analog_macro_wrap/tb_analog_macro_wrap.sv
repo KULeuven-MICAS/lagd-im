@@ -151,9 +151,9 @@ module tb_analog_macro_wrap;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile(`VCD_FILE);
-            $dumpvars(1, tb_analog_macro_wrap); // Dump all variables in testbench module
+            $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(600 * CLKCYCLE); // To avoid generating huge VCD files
+            #(1_000 * CLKCYCLE); // To avoid generating huge VCD files
             $display("testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -231,6 +231,7 @@ module tb_analog_macro_wrap;
             dt_cfg_enable_i = 0;
             wait (dt_cfg_idle_o == 1);
             onloading_test_idx = onloading_test_idx + 1;
+            repeat ($urandom_range(0, 20)) @(negedge clk_i);
         end
         $display("[Time: %t] Galena configuration testcases [%0d/%0d] passed.", $time, onloading_test_idx, OnloadingTestNum);
     endtask
@@ -245,6 +246,8 @@ module tb_analog_macro_wrap;
             for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
                 hbias_in_reg[spin_idx*BITDATA +: BITDATA] = $urandom_range(0, 2**BITDATA - 1);
             end
+            wait (dt_cfg_enable_i == 1); // to avoid changing hbias continuously during idle
+            @(negedge clk_i);
             wait (dt_cfg_idle_o == 1);
         end
     endtask
