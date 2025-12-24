@@ -9,12 +9,14 @@ parser = ParserClass()
 file_list = []
 vars_dict = {}
 
+
 def parse_exec_command(line):
     start_idx = line.find('exec')
     end_idx = line.find(']', start_idx)
     exec_cmd = line[start_idx + 5:end_idx].strip()
     exec_output = os.popen(exec_cmd).read().strip()
     return start_idx, end_idx, exec_output
+
 
 with open(parser.args.file, 'r') as file:
     IN_FILE_LIST = False
