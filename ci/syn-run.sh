@@ -38,7 +38,7 @@ show_help()
     echo "  --hdl_flist=#flist_path: Path to HDL file list (default: \$DESIGN_INPUTS_DIR/hdl.flist)"
     echo "  --sdc_constraints=#sdc_path: Path to SDC constraints file (default: \$DESIGN_INPUTS_DIR/lagd.sdc)"
     echo "  --corner=#corner: Process corner for synthesis (default: tt)"
-    echo "  --ddc=#ddc_path: Path to DDC file (default: no path)"
+    echo "  --ddc=#ddc_path: Path to DDC file *relative to \$PROJECT_ROOT*. This skips synthesis (default: no path)"
     echo "  --help: Show this help message"
 }
 
