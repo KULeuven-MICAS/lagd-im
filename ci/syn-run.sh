@@ -22,7 +22,7 @@ set -e
 show_usage()
 {
     echo "LAGD: Synthesis run trigger script"
-    echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path --corner=#corner][--help]]"
+    echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path --corner=#corner --ddc=#ddc_path][--help]]"
     echo "Example: $0 --tech=sky130hd --run_id=001"
 }
 
@@ -38,6 +38,7 @@ show_help()
     echo "  --hdl_flist=#flist_path: Path to HDL file list (default: \$DESIGN_INPUTS_DIR/hdl.flist)"
     echo "  --sdc_constraints=#sdc_path: Path to SDC constraints file (default: \$DESIGN_INPUTS_DIR/lagd.sdc)"
     echo "  --corner=#corner: Process corner for synthesis (default: tt)"
+    echo "  --ddc=#ddc_path: Path to DDC file (default: no path)"
     echo "  --help: Show this help message"
 }
 
@@ -73,7 +74,25 @@ done
 TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
 mkdir -p "${TMP_DIR}"
 
-CMD="$ENV_VARS dc_shell -f ${PROJECT_ROOT}/target/syn/syn.tcl"
+# Extract DDC variable from ENV_VARS
+TCL_SCRIPT="${PROJECT_ROOT}/target/syn/src/syn.tcl"
+DDC=$(echo $ENV_VARS | tr ' ' '\n' | grep '^DDC=' | cut -d'=' -f2-)
+if [ -n "$DDC" ] then # if DDC variable is set
+  if [[ ! "$DDC" == *.ddc ]]; then # if DDC not a .ddc file
+    DDC_FILE_PATH=( "${DDC_FILE_PATH}/*.ddc" )
+  else
+    DDC_FILE_PATH="${DDC}"
+  fi
+  if [ ! -f "$DDC_FILE_PATH" ]; then
+    echo "[ERROR] ./ci/syn-run.sh: DDC file not found at path: ${DDC_FILE_PATH}"
+    exit 1
+  fi
+  echo "[INFO] ./ci/syn-run.sh: Reading DDC file: ${DDC_FILE_PATH}"
+  ENV_VARS="${ENV_VARS} DDC_FILE_PATH=${DDC_FILE_PATH}"
+  TCL_SCRIPT="${PROJECT_ROOT}/target/syn/src/read_ddc.tcl"
+fi
+
+CMD="$ENV_VARS dc_shell -f $TCL_SCRIPT"
 echo "Running synthesis with command:"
 echo "${CMD}"
 cd "${TMP_DIR}" && eval $CMD > ${TMP_DIR}/syn_run.log 2>&1
