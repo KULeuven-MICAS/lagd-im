@@ -32,7 +32,7 @@ show_help()
 {
   show_usage
   echo "  --tech=#tech_node: Technology node for synthesis (see target/syn/tech/ for supported nodes)"
-  echo "  --tle=#lagd_soc: Synthesis target (default: lagd_soc)"
+  echo "  --tle=#lagd_chip: Synthesis target (default: lagd_chip)"
   echo "  --run_id=#run_id: Unique identifier for this synthesis run (to distinguish multiple runs)"
   echo "  --run_dir=#run_dir: Root directory for this synthesis run (default: \$PROJECT_ROOT/runs/\$SYN_TLE-\$TECH_NODE-\$RUN_ID)"
   echo "  --work_dir=#work_dir: Working directory for this synthesis run (default: \$RUN_DIR/work)"
@@ -44,7 +44,10 @@ show_help()
   echo "  --help: Show this help message"
 }
 
-get_ci_var(log_file, var_name) {
+get_ci_var()
+{
+  local log_file="$1"
+  local var_name="$2"
   if [ -f "$log_file" ]; then
     grep "^${var_name}=" "$log_file" | cut -d'=' -f2-
   else
