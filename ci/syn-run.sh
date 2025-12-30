@@ -85,10 +85,6 @@ done
 
 # TODO: add make commands to generate all the files needed for synthesis/ before running this script
 
-# source /esat/micas-data/software/scripts/syn_vU-2022.12-SP2.rc
-TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
-mkdir -p "${TMP_DIR}"
-
 TCL_SCRIPT="${PROJECT_ROOT}/target/syn/src/syn.tcl"
 # Extract DDC variable from ENV_VARS
 DDC=$(echo $ENV_VARS | tr ' ' '\n' | grep '^DDC=' | cut -d'=' -f2-)
@@ -106,12 +102,23 @@ if [ -n "$DDC" ]; then # if DDC variable is set
   TCL_SCRIPT="${PROJECT_ROOT}/target/syn/src/read_ddc.tcl"
 fi
 
+TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
+CI_LOG="${TMP_DIR}/${CI_LOG_FILE}"
+mkdir -p "${TMP_DIR}"
+
+# source /esat/micas-data/software/scripts/syn_vU-2022.12-SP2.rc
+# Run synthesis
 CMD="$ENV_VARS dc_shell -f $TCL_SCRIPT -output_log_file ${TMP_DIR}/syn_run.log"
 echo "Running synthesis with command:"
 echo "${CMD}"
 cd "${TMP_DIR}" && eval $CMD
 
-LOG_PATH=$(get_ci_var "${TMP_DIR}/${CI_LOG_FILE}" "LOG_PATH")
-mv "${TMP_DIR}/syn_run.log" "${LOG_PATH}/syn_run.log"
+# Move log file to appropriate location
+LOG_PATH=$(get_ci_var "${CI_LOG}" "LOG_PATH")
+cp "${TMP_DIR}/syn_run.log" "${LOG_PATH}/syn_run.log"
+
+# Move CI log file to appropriate location
+OUTPUT_PATH=$(get_ci_var "${CI_LOG}" "OUTPUT_PATH")
+cp "${CI_LOG}" "${OUTPUT_PATH}/ci_syn_run.log"
 
 echo "[INFO] ./ci/syn-run.sh: Synthesis completed."
