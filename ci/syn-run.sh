@@ -74,14 +74,13 @@ done
 TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
 mkdir -p "${TMP_DIR}"
 
-# Extract DDC variable from ENV_VARS
 TCL_SCRIPT="${PROJECT_ROOT}/target/syn/src/syn.tcl"
+# Extract DDC variable from ENV_VARS
 DDC=$(echo $ENV_VARS | tr ' ' '\n' | grep '^DDC=' | cut -d'=' -f2-)
 if [ -n "$DDC" ] then # if DDC variable is set
+  DDC_FILE_PATH="${DDC}"
   if [[ ! "$DDC" == *.ddc ]]; then # if DDC not a .ddc file
     DDC_FILE_PATH=( "${DDC_FILE_PATH}/*.ddc" )
-  else
-    DDC_FILE_PATH="${DDC}"
   fi
   if [ ! -f "$DDC_FILE_PATH" ]; then
     echo "[ERROR] ./ci/syn-run.sh: DDC file not found at path: ${DDC_FILE_PATH}"
