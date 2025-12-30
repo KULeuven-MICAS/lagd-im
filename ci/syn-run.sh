@@ -15,37 +15,49 @@
 #   DESIGN_INPUTS_DIR
 #   HDL_FILE_LIST
 #   SDC_CONSTRAINTS
+#   CORNER
+#   DDC
 
 set -e
 
 # Parameters to override defaults
 show_usage()
 {
-    echo "LAGD: Synthesis run trigger script"
-    echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path --corner=#corner --ddc=#ddc_path][--help]]"
-    echo "Example: $0 --tech=sky130hd --run_id=001"
+  echo "LAGD: Synthesis run trigger script"
+  echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path --corner=#corner --ddc=#ddc_path][--help]]"
+  echo "Example: $0 --tech=sky130hd --run_id=001"
 }
 
 show_help()
 {
-    show_usage
-    echo "  --tech=#tech_node: Technology node for synthesis (see target/syn/tech/ for supported nodes)"
-    echo "  --tle=#lagd_soc: Synthesis target (default: lagd_soc)"
-    echo "  --run_id=#run_id: Unique identifier for this synthesis run (to distinguish multiple runs)"
-    echo "  --run_dir=#run_dir: Root directory for this synthesis run (default: \$PROJECT_ROOT/runs/\$SYN_TLE-\$TECH_NODE-\$RUN_ID)"
-    echo "  --work_dir=#work_dir: Working directory for this synthesis run (default: \$RUN_DIR/work)"
-    echo "  --design_inputs_dir=#design_inputs_dir: Directory containing design inputs (default: \$PROJECT_ROOT/inputs)"
-    echo "  --hdl_flist=#flist_path: Path to HDL file list (default: \$DESIGN_INPUTS_DIR/hdl.flist)"
-    echo "  --sdc_constraints=#sdc_path: Path to SDC constraints file (default: \$DESIGN_INPUTS_DIR/lagd.sdc)"
-    echo "  --corner=#corner: Process corner for synthesis (default: tt)"
-    echo "  --ddc=#ddc_path: Path to DDC file *relative to \$PROJECT_ROOT*. This skips synthesis (default: no path)"
-    echo "  --help: Show this help message"
+  show_usage
+  echo "  --tech=#tech_node: Technology node for synthesis (see target/syn/tech/ for supported nodes)"
+  echo "  --tle=#lagd_soc: Synthesis target (default: lagd_soc)"
+  echo "  --run_id=#run_id: Unique identifier for this synthesis run (to distinguish multiple runs)"
+  echo "  --run_dir=#run_dir: Root directory for this synthesis run (default: \$PROJECT_ROOT/runs/\$SYN_TLE-\$TECH_NODE-\$RUN_ID)"
+  echo "  --work_dir=#work_dir: Working directory for this synthesis run (default: \$RUN_DIR/work)"
+  echo "  --design_inputs_dir=#design_inputs_dir: Directory containing design inputs (default: \$PROJECT_ROOT/inputs)"
+  echo "  --hdl_flist=#flist_path: Path to HDL file list (default: \$DESIGN_INPUTS_DIR/hdl.flist)"
+  echo "  --sdc_constraints=#sdc_path: Path to SDC constraints file (default: \$DESIGN_INPUTS_DIR/lagd.sdc)"
+  echo "  --corner=#corner: Process corner for synthesis (default: tt)"
+  echo "  --ddc=#ddc_path: Path to DDC file *relative to \$PROJECT_ROOT*. This skips synthesis (default: no path)"
+  echo "  --help: Show this help message"
+}
+
+get_ci_var(log_file, var_name) {
+  if [ -f "$log_file" ]; then
+    grep "^${var_name}=" "$log_file" | cut -d'=' -f2-
+  else
+    echo ""
+  fi
 }
 
 SCRIPT_DIR=$(dirname "$0")
 PROJECT_ROOT=$(realpath "${SCRIPT_DIR}/..")
+CI_LOG_FILE="ci-syn-run.log"
 
 ENV_VARS="PROJECT_ROOT=${PROJECT_ROOT}"
+ENV_VARS="${ENV_VARS} CI_LOG_FILE=${CI_LOG_FILE}"
 
 for i in "$@"; do
   case $i in
@@ -91,8 +103,12 @@ if [ -n "$DDC" ]; then # if DDC variable is set
   TCL_SCRIPT="${PROJECT_ROOT}/target/syn/src/read_ddc.tcl"
 fi
 
-CMD="$ENV_VARS dc_shell -f $TCL_SCRIPT"
+CMD="$ENV_VARS dc_shell -f $TCL_SCRIPT -output_log_file ${TMP_DIR}/syn_run.log"
 echo "Running synthesis with command:"
 echo "${CMD}"
-cd "${TMP_DIR}" && eval $CMD > ${TMP_DIR}/syn_run.log 2>&1
-echo "[INFO] ./ci/syn-run.sh: Synthesis completed. Log available at ${TMP_DIR}/syn_run.log"
+cd "${TMP_DIR}" && eval $CMD
+
+LOG_PATH=$(get_ci_var "${TMP_DIR}/${CI_LOG_FILE}" "LOG_PATH")
+mv "${TMP_DIR}/syn_run.log" "${LOG_PATH}/syn_run.log"
+
+echo "[INFO] ./ci/syn-run.sh: Synthesis completed."
