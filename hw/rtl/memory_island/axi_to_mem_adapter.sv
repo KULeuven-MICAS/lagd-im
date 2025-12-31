@@ -140,10 +140,10 @@ module axi_to_mem_adapter #(
     `ifdef TARGET_LOG_INSTS
     $info("Instantiated axi_to_mem_adapter with parameters:");
     $info("Module: %m");
-    $info("  axi_req_t: %s", axi_req_t.name());
-    $info("  axi_rsp_t: %s", axi_rsp_t.name());
-    $info("  mem_req_t: %s", mem_req_t.name());
-    $info("  mem_rsp_t: %s", mem_rsp_t.name());
+    $info("  axi_req_t: %s", $typename(axi_req_t));
+    $info("  axi_rsp_t: %s", $typename(axi_rsp_t));
+    $info("  mem_req_t: %s", $typename(mem_req_t));
+    $info("  mem_rsp_t: %s", $typename(mem_rsp_t));
     $info("  AddrWidth: %d", AddrWidth);
     $info("  DataWidth: %d", DataWidth);
     $info("  IdWidth: %d", IdWidth);
