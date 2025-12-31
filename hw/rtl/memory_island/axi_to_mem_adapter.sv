@@ -136,4 +136,19 @@ module axi_to_mem_adapter #(
             );
         end
     endgenerate
+
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated axi_to_mem_adapter with parameters:");
+    $info("Module: %m");
+    $info("  axi_req_t: %s", axi_req_t.name());
+    $info("  axi_rsp_t: %s", axi_rsp_t.name());
+    $info("  mem_req_t: %s", mem_req_t.name());
+    $info("  mem_rsp_t: %s", mem_rsp_t.name());
+    $info("  AddrWidth: %d", AddrWidth);
+    $info("  DataWidth: %d", DataWidth);
+    $info("  IdWidth: %d", IdWidth);
+    $info("  MemDataWidth: %d", MemDataWidth);
+    $info("  BufDepth: %d", BufDepth);
+    $info("  ReadWrite: %b", ReadWrite);
+    `endif // TARGET_LOG_INSTS
 endmodule
