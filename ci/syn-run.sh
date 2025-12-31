@@ -6,25 +6,28 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # syn-run.sh - Run synthesis flow
-# List of parameters:
-#   TECH_NODE
-#   SYN_TLE
-#   RUN_ID
-#   RUN_DIR
-#   WORK_DIR
-#   DESIGN_INPUTS_DIR
-#   HDL_FILE_LIST
-#   SDC_CONSTRAINTS
-#   CORNER
-#   DDC
 
 set -e
 
 # Parameters to override defaults
 show_usage()
 {
-  echo "LAGD: Synthesis run trigger script"
-  echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path --corner=#corner --ddc=#ddc_path][--help]]"
+  cat <<'EOF'
+LAGD: Synthesis run trigger script
+Usage: ./ci/syn-run.sh [
+  --tech=#tech_node
+  --tle=#lagd_chip
+  --run_id=#run_id
+  --run_dir=#run_dir
+  --work_dir=#work_dir
+  --design_inputs_dir=#design_inputs_dir
+  --hdl_flist=#flist_path
+  --sdc_constraints=#sdc_path
+  --corner=#corner
+  --ddc=#ddc_path
+  --dry_run
+  --help]
+EOF
   echo "Example: $0 --tech=sky130hd --run_id=001"
 }
 
@@ -41,6 +44,7 @@ show_help()
   echo "  --sdc_constraints=#sdc_path: Path to SDC constraints file (default: \$DESIGN_INPUTS_DIR/lagd.sdc)"
   echo "  --corner=#corner: Process corner for synthesis (default: tt)"
   echo "  --ddc=#ddc_path: Path to DDC file *relative to \$PROJECT_ROOT*. This skips synthesis (default: no path)"
+  echo "  --dry_run: Flag to indicate a dry run (no actual synthesis)"
   echo "  --help: Show this help message"
 }
 
@@ -73,6 +77,12 @@ for i in "$@"; do
       val="${i#*=}"
       echo "[INFO] ./ci/syn-run.sh: Setting ${KEY}=${val}"
       ENV_VARS="${ENV_VARS} ${KEY}=${val}"
+      shift
+      ;;
+    --*)
+      key="${i#--}"; KEY="${key^^}"
+      echo "[INFO] ./ci/syn-run.sh: Setting ${KEY}=1"
+      ENV_VARS="${ENV_VARS} ${KEY}=1"
       shift
       ;;
     *)
