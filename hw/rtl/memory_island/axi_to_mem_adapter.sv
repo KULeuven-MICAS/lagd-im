@@ -139,7 +139,7 @@ module axi_to_mem_adapter #(
 
     `ifdef TARGET_LOG_INSTS
     $info("Instantiated axi_to_mem_adapter with parameters:");
-    `ifndef SYNOPSYS
+    `ifndef TARGET_SYNOPSYS
     $info("Module: %m");
     $info("  axi_req_t: %s", $typename(axi_req_i));
     $info("  axi_rsp_t: %s", $typename(axi_rsp_o));
