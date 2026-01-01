@@ -12,8 +12,8 @@ set -e
 # Parameters to override defaults
 show_usage()
 {
+  echo "LAGD: Synthesis run trigger script"
   cat <<'EOF'
-LAGD: Synthesis run trigger script
 Usage: ./ci/syn-run.sh [
   --tech=#tech_node
   --tle=#lagd_chip
