@@ -60,6 +60,13 @@ if { [info exists ::env(DBG)] } {
     set DBG 0
 }
 
+if { [info exists ::env(PARAMS)] } {
+    set pars [split $::env(PARAMS)]
+    set PARAMS [join [lmap def $pars { format "+g+%s" $def } ] " "]
+} else {
+    set PARAMS ""
+}
+
 set WLIB "${WORK_DIR}/work/work_${SIM_NAME}"
 
 puts "--------------------------------------------------------------------------------"
