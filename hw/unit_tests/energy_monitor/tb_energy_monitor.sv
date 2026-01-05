@@ -159,7 +159,8 @@ module tb_energy_monitor;
         .counter_spin_o(counter_spin_o),
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
-        .energy_o(energy_o)
+        .energy_o(energy_o),
+        .spin_o() // not connected in testbench
     );
 
     // Clock generation

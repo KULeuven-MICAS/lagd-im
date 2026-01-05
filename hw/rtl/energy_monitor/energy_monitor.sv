@@ -91,7 +91,8 @@ module energy_monitor #(
 
     output logic energy_valid_o,
     input logic energy_ready_i,
-    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o
+    output logic signed [ENERGY_TOTAL_BIT-1:0] energy_o,
+    output logic [NUM_SPIN-1:0] spin_o
 );
     // pipe all input signals
     logic config_valid_pipe;
@@ -126,6 +127,7 @@ module energy_monitor #(
 
     genvar i;
 
+    assign spin_o = spin_cached;
     assign counter_spin_o = counter_q;
     assign spin_handshake = spin_valid_pipe && spin_ready_pipe;
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
