@@ -25,13 +25,13 @@ if { [ info exists INCLUDE_DIRS ] == 0 } {
     set INCLUDES ""
 } else {
     # Add +incdir+ for each directory in INCLUDE_DIRS
-    set INCLUDES [join [lmap inc ${INCLUDE_DIRS} { format "+incdir+%s" $inc } ] " "]
+    set INCLUDES [lmap inc ${INCLUDE_DIRS} { format +incdir+%s $inc } ]
 }
 
 puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
-    vlog -incr -sv -work ${WLIB} {*}${DEFINES} ${INCLUDES} ${file}
+    vlog -incr -sv -work ${WLIB} {*}${DEFINES} {*}${INCLUDES} ${file}
 }
 
 

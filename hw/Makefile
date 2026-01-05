@@ -12,13 +12,15 @@ include $(CHS_ROOT)/cheshire.mk
 
 SIM_TOOL := vsim
 
+VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
+
 all: chs-hw-all test
 
 # Memory island hdl_file_list.tcl generation
 MI_TEST_PATH := ./unit_tests/memory_island
-MI_SIM_ARGS := -t rtl
+MI_SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
 
 test: $(MI_TEST_PATH)/bender_list.tcl
 
-$(MI_TEST_PATH)/bender_list.tcl:
+$(MI_TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(MI_SIM_ARGS) > $@

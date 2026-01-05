@@ -21,16 +21,17 @@
 `include "common_cells/assertions.svh"
 `include "lagd_test/tb_common.svh"
 
-module tb_axi_to_mem_adapter #(
-    parameter int unsigned AddrWidth = 0,
-    parameter int unsigned DataWidth = 0,
-    parameter int unsigned IdWidth = 0,
-    parameter int unsigned MemDataWidth = 0,
-    parameter int unsigned BufDepth = 0,
+module tb_axi_to_mem_adapter import lagd_pkg::*; #(
+    parameter int unsigned AddrWidth = 48,
+    parameter int unsigned DataWidth = 64,
+    parameter int unsigned IdWidth = 6,
+    parameter int unsigned MemDataWidth = 64,
+    parameter int unsigned BufDepth = 2,
     parameter bit ReadWrite = 1'b0
-) ();
-
-    `SETUP_DEBUG
+)();
+    localparam int unsigned dbg = `DBG;
+    localparam string vcd_file = `VCD_FILE;
+    `SETUP_DEBUG(dbg, vcd_file)
     `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
     
     // DUT ports declaration -----
@@ -42,19 +43,24 @@ module tb_axi_to_mem_adapter #(
     lagd_mem_narr_rsp_t mem_req_o;
     // --------------------------
     // Instantiate DUT
-    axi_to_mem_adapter DUT #(
+    axi_to_mem_adapter #(
         .axi_req_t(lagd_axi_slv_req_t),
         .axi_rsp_t(lagd_axi_slv_rsp_t),
         .mem_req_t(lagd_mem_narr_req_t),
         .mem_rsp_t(lagd_mem_narr_rsp_t),
-        .*
-    ) (.*);
+        .AddrWidth(AddrWidth),
+        .DataWidth(DataWidth),
+        .IdWidth(IdWidth),
+        .MemDataWidth(MemDataWidth),
+        .BufDepth(BufDepth),
+        .ReadWrite(ReadWrite)
+    ) DUT (.*);
     // --------------------------
 
     // Clock/Reset generation
     clk_rst_gen #(
         .RstClkCycles(3),
-        .ClkPeriod(CyclTime)
+        .ClkPeriod(`TC)
     ) i_clk_gen (
         .clk_o(clk_i),
         .rst_no(rst_ni)
@@ -62,11 +68,12 @@ module tb_axi_to_mem_adapter #(
 
     // Random Master AXI generator
     localparam int unsigned TxInFlight = 16;
+    localparam int unsigned UserWidth = 0;
     typedef axi_test::axi_rand_master#(
         .AW(AddrWidth),
         .DW(DataWidth),
-        .IW(AxiIdWidth),
-        .UW(AxiUserWidth),
+        .IW(IdWidth),
+        .UW(UserWidth),
         // Stimuli application and test time
         .TA(`TA),
         .TT(`TT),
@@ -89,8 +96,8 @@ module tb_axi_to_mem_adapter #(
     AXI_BUS_DV #(
         .AXI_ADDR_WIDTH(AddrWidth),
         .AXI_DATA_WIDTH(DataWidth),
-        .AXI_ID_WIDTH  (AxiIdWidth),
-        .AXI_USER_WIDTH(AxiUserWidth)
+        .AXI_ID_WIDTH  (IdWidth),
+        .AXI_USER_WIDTH(UserWidth)
     ) axi_dv (
         clk_i
     );
@@ -117,6 +124,4 @@ module tb_axi_to_mem_adapter #(
         wait (rand_mem_filled);
         end_of_sim <= 1'b1;
     end
-
-
 endmodule
