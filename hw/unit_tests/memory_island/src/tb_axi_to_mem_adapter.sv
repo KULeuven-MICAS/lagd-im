@@ -31,7 +31,7 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
 )();
     localparam int unsigned dbg = `DBG;
     localparam string vcd_file = `VCD_FILE;
-    `SETUP_DEBUG(dbg, vcd_file)
+    `SETUP_DEBUG(dbg, vcd_file, tb_axi_to_mem_adapter)
     `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
     
     // DUT ports declaration -----
@@ -39,8 +39,8 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
     logic rst_ni;
     lagd_axi_slv_req_t axi_req_i;
     lagd_axi_slv_rsp_t axi_rsp_o;
-    lagd_mem_narr_req_t mem_rsp_i;
-    lagd_mem_narr_rsp_t mem_req_o;
+    lagd_mem_narr_rsp_t [ReadWrite:0] mem_rsp_i;
+    lagd_mem_narr_req_t [ReadWrite:0] mem_req_o;
     // --------------------------
     // Instantiate DUT
     axi_to_mem_adapter #(
@@ -68,7 +68,7 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
 
     // Random Master AXI generator
     localparam int unsigned TxInFlight = 16;
-    localparam int unsigned UserWidth = 0;
+    localparam int unsigned UserWidth = 2;
     typedef axi_test::axi_rand_master#(
         .AW(AddrWidth),
         .DW(DataWidth),
@@ -121,7 +121,37 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
         @(posedge rst_ni);
         rand_master.run(0, TestNumWrites);
         rand_mem_filled <= 1'b1;
-        wait (rand_mem_filled);
+        // Wait for all transactions to complete
+        repeat(100) @(posedge clk_i);
         end_of_sim <= 1'b1;
+        $display("Test completed successfully!");
+        $finish;
+    end
+
+    // Mem rsp generation
+    initial begin
+        mem_rsp_i[0].p.valid <= 1'b0;
+        mem_rsp_i[0].p.data  <= '0;
+        mem_rsp_i[0].q_ready <= 1'b1;
+        wait (rst_ni == 1'b1);
+        forever begin
+            @(posedge clk_i);
+            if (!end_of_sim) begin
+                // Generate read responses
+                if (mem_req_o[0].q_valid && mem_rsp_i[0].q_ready) begin
+                    mem_rsp_i[0].p.valid <= 1'b1;
+                    // For simplicity, return address as data
+                end else begin
+                    mem_rsp_i[0].p.valid <= 1'b0;
+                end
+            end
+        end
+    end
+
+    // Simulation timeout watchdog
+    initial begin
+        #1000000ns;  // 1ms timeout
+        $error("Simulation timeout!");
+        $finish;
     end
 endmodule

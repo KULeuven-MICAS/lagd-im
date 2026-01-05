@@ -15,12 +15,12 @@
 `define VCD_FILE "tb.vcd"
 `endif
 
-`define SETUP_DEBUG(__dbg, __vcd_file) \
+`define SETUP_DEBUG(__dbg, __vcd_file, __scope) \
     initial begin \
         if (__dbg) begin \
             $display("Debug mode enabled. Running with detailed output."); \
             $dumpfile(__vcd_file); \
-            $dumpvars(0); \
+            $dumpvars(0, __scope); \
         end \
     end
 
