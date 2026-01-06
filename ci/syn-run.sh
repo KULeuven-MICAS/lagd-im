@@ -22,7 +22,7 @@ set -e
 show_usage()
 {
     echo "LAGD: Synthesis run trigger script"
-    echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path [--help]]"
+    echo "Usage: $0 [--tech=#tech_node [--tle=#lagd_soc --run_id=#run_id --run_dir=#run_dir --work_dir=#work_dir --design_inputs_dir=#design_inputs_dir --hdl_flist=#flist_path --sdc_constraints=#sdc_path --corner=#corner][--help]]"
     echo "Example: $0 --tech=sky130hd --run_id=001"
 }
 
@@ -37,6 +37,7 @@ show_help()
     echo "  --design_inputs_dir=#design_inputs_dir: Directory containing design inputs (default: \$PROJECT_ROOT/inputs)"
     echo "  --hdl_flist=#flist_path: Path to HDL file list (default: \$DESIGN_INPUTS_DIR/hdl.flist)"
     echo "  --sdc_constraints=#sdc_path: Path to SDC constraints file (default: \$DESIGN_INPUTS_DIR/lagd.sdc)"
+    echo "  --corner=#corner: Process corner for synthesis (default: tt)"
     echo "  --help: Show this help message"
 }
 
@@ -65,6 +66,8 @@ for i in "$@"; do
       ;;
   esac
 done
+
+# TODO: add make commands to generate all the files needed for synthesis/ before running this script
 
 # source /esat/micas-data/software/scripts/syn_vU-2022.12-SP2.rc
 TMP_DIR="${PROJECT_ROOT}/.dc-tmp"
