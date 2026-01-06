@@ -29,7 +29,8 @@ module tb_digital_macro;
     localparam int IterationNum = 150;
 
     // dut run-time configuration
-    localparam int CyclePerDtWrite = 20;
+    localparam int CyclePerWwlHigh = 20;
+    localparam int CyclePerWwlLow = 20;
     localparam int CyclePerSpinWrite = 10;
     localparam int CyclePerSpinCompute = 30;
     localparam int SynchronizerPipeNum = 2;
@@ -70,7 +71,8 @@ module tb_digital_macro;
     logic [ NUM_SPIN-1 : 0 ] config_spin_initial_i;
     logic config_spin_initial_skip_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cfg_trans_num_i;
-    logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_dt_write_i;
+    logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_wwl_high_i;
+    logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_wwl_low_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_spin_write_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_spin_compute_i;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_strobe_i;
@@ -143,7 +145,8 @@ module tb_digital_macro;
         .config_spin_initial_i(config_spin_initial_i),
         .config_spin_initial_skip_i(config_spin_initial_skip_i),
         .cfg_trans_num_i(cfg_trans_num_i),
-        .cycle_per_dt_write_i(cycle_per_dt_write_i),
+        .cycle_per_wwl_high_i(cycle_per_wwl_high_i),
+        .cycle_per_wwl_low_i(cycle_per_wwl_low_i),
         .cycle_per_spin_write_i(cycle_per_spin_write_i),
         .cycle_per_spin_compute_i(cycle_per_spin_compute_i),
         .spin_wwl_strobe_i(spin_wwl_strobe_i),
@@ -220,7 +223,7 @@ module tb_digital_macro;
     // ========================================================================
     // Always blocks
     // ========================================================================
-    // pipe j_rdata_i, weight_i, flip_rdata_i
+    // pipe j_rdata_i, flip_rdata_i
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             j_rdata_i <= 'd0;
@@ -449,7 +452,7 @@ module tb_digital_macro;
         @(negedge clk_i);
         // check if j and h are loaded correctly
         while (j_mem_addr_idx < (NUM_SPIN + 1)) begin
-            while (dt_write_cycle_cnt < cycle_per_dt_write_i) begin
+            while (dt_write_cycle_cnt < cycle_per_wwl_high_i) begin
                 @(negedge clk_i);
                 // monitor if j_one_hot_wwl_o remains valid for the dedefined cycles
                 if (j_one_hot_wwl_o == 0 && dt_write_cycle_cnt != 0) begin
@@ -467,7 +470,7 @@ module tb_digital_macro;
                     dt_write_cycle_cnt = dt_write_cycle_cnt + 1;
                 end
                 if (galena_addr_idx == (NUM_SPIN)) begin: load_hbias
-                    if (dt_write_cycle_cnt == (cycle_per_dt_write_i - 1))
+                    if (dt_write_cycle_cnt == (cycle_per_wwl_high_i - 1))
                         hbias_analog = wbl_o;
                     // compare data to reference
                     if (hbias_analog != hbias_in_reg) begin
@@ -475,7 +478,7 @@ module tb_digital_macro;
                             $time, hbias_in_reg, hbias_analog);
                     end
                 end else begin: load_j
-                    if (dt_write_cycle_cnt == (cycle_per_dt_write_i - 1))
+                    if (dt_write_cycle_cnt == (cycle_per_wwl_high_i - 1))
                         weights_analog[galena_addr_idx] = wbl_o;
                     // compare data to reference
                     if (weights_analog[galena_addr_idx] != weights_in_mem[galena_addr_idx]) begin
@@ -496,7 +499,7 @@ module tb_digital_macro;
         config_aw_done = 0;
         config_valid_aw_i = 0;
         cfg_trans_num_i = 'd0;
-        cycle_per_dt_write_i = 'd0;
+        cycle_per_wwl_high_i = 'd0;
         cycle_per_spin_write_i = 'd0;
         cycle_per_spin_compute_i = 'd0;
         synchronizer_pipe_num_i = 'd0;
@@ -508,10 +511,11 @@ module tb_digital_macro;
         @(negedge clk_i);
         $display("[Time: %t] AW configuration starts.", $time);
         config_valid_aw_i = 1;
-        cfg_trans_num_i = NUM_SPIN-1;
-        cycle_per_dt_write_i = CyclePerDtWrite;
-        cycle_per_spin_write_i = CyclePerSpinWrite;
-        cycle_per_spin_compute_i = CyclePerSpinCompute;
+        cfg_trans_num_i = NUM_SPIN/PARALLELISM-1+1;
+        cycle_per_wwl_high_i = CyclePerWwlHigh - 1;
+        cycle_per_wwl_low_i = CyclePerWwlLow - 1;
+        cycle_per_spin_write_i = CyclePerSpinWrite - 1;
+        cycle_per_spin_compute_i = CyclePerSpinCompute - 1;
         synchronizer_pipe_num_i = SynchronizerPipeNum;;
         synchronizer_mode_i = SynchronizerMode;
         spin_wwl_strobe_i = SpinWwlStrobe;
@@ -532,7 +536,7 @@ module tb_digital_macro;
         @(negedge clk_i);
         $display("[Time: %t] EM configuration starts.", $time);
         config_valid_em_i = 1;
-        config_counter_i = EmCfgCounter;;
+        config_counter_i = EmCfgCounter;
         @(negedge clk_i);
         config_valid_em_i = 0;
         config_em_done = 1;
