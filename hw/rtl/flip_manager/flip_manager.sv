@@ -85,13 +85,10 @@ module flip_manager #(
     output logic [NUM_SPIN-1:0] spin_pop_o,
     input logic spin_pop_ready_i,
 
-    input logic spin_valid_i,
-    input logic [NUM_SPIN-1:0] spin_i,
-    output logic spin_ready_o,
-
     input logic energy_valid_i,
     output logic energy_ready_o,
     input logic signed [ENERGY_TOTAL_BIT-1:0] energy_i,
+    input logic [NUM_SPIN-1:0] spin_i,
 
     output logic flip_ren_o,
     output logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_o,
@@ -149,11 +146,9 @@ module flip_manager #(
         .spin_o(spin_maintainer_income_from_en),
         .spin_push_none_o(spin_maintainer_push_none_from_en),
         .spin_ready_i(spin_maintainer_push_ready),
-        .spin_valid_i(spin_valid_i),
-        .spin_i(spin_i),
-        .spin_ready_o(spin_ready_o),
         .energy_valid_i(energy_valid_i),
         .energy_ready_o(energy_ready_o),
+        .spin_i(spin_i),
         .energy_i(energy_i),
         .debug_fifo_usage_o()
     );
