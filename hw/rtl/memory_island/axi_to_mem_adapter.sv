@@ -11,8 +11,8 @@
 // Parameters:
 //      axi_req_t / axi_rsp_t: AXI request/response typedefs.
 //      mem_req_t / mem_rsp_t: Memory request/response typedefs (see include/typedef.svh).
-//      AddrWidth DataWidth, IdWidth: AXI-side configuration.
-//      MemDataWidth: Memory port data width.
+//      AddrWidth, IdWidth: AXI-side configuration.
+//      DataWidth: Memory port data width.
 //      BufDepth: Internal buffering depth passed through.
 //      ReadWrite: 
 //          0 = read-only (single memory port). 
@@ -44,7 +44,6 @@ module axi_to_mem_adapter #(
     parameter int unsigned AddrWidth = 0,
     parameter int unsigned DataWidth = 0,
     parameter int unsigned IdWidth = 0,
-    parameter int unsigned MemDataWidth = 0,
     parameter int unsigned BufDepth = 0,
     parameter bit ReadWrite = 1'b0
 )(
@@ -63,11 +62,11 @@ module axi_to_mem_adapter #(
             logic [1:0] mem_req_valid;
             logic [1:0] mem_rsp_ready;
             logic [1:0][AddrWidth-1:0] mem_req_addr;
-            logic [1:0][MemDataWidth-1:0] mem_req_wdata;
-            logic [1:0][(MemDataWidth/8)-1:0] mem_req_strb;
+            logic [1:0][DataWidth-1:0] mem_req_wdata;
+            logic [1:0][(DataWidth/8)-1:0] mem_req_strb;
             logic [1:0] mem_req_we;
             logic [1:0] mem_rsp_rvalid;
-            logic [1:0][MemDataWidth-1:0] mem_rsp_rdata;
+            logic [1:0][DataWidth-1:0] mem_rsp_rdata;
 
             for(genvar i = 0; i < 2; i++) begin: mem_signals
                 assign mem_req_o[i].q_valid = mem_req_valid[i];
@@ -86,7 +85,7 @@ module axi_to_mem_adapter #(
                 .axi_rsp_t(axi_rsp_t),
                 .AddrWidth(AddrWidth),
                 .IdWidth(IdWidth),
-                .MemDataWidth(MemDataWidth),
+                .DataWidth(DataWidth),
                 .BufDepth(BufDepth),
                 .HideStrb(1'b0),
                 .OutFifoDepth(1)
@@ -113,7 +112,7 @@ module axi_to_mem_adapter #(
                 .axi_resp_t(axi_rsp_t),
                 .AddrWidth(AddrWidth),
                 .IdWidth(IdWidth),
-                .DataWidth(MemDataWidth),
+                .DataWidth(DataWidth),
                 .BufDepth(BufDepth),
                 .NumBanks    (1),
                 .HideStrb    (1'b0),
@@ -149,7 +148,6 @@ module axi_to_mem_adapter #(
     $info("  AddrWidth: %d", AddrWidth);
     $info("  DataWidth: %d", DataWidth);
     $info("  IdWidth: %d", IdWidth);
-    $info("  MemDataWidth: %d", MemDataWidth);
     $info("  BufDepth: %d", BufDepth);
     $info("  ReadWrite: %b", ReadWrite);
     `endif // TARGET_LOG_INSTS

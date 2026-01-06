@@ -127,7 +127,6 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .AddrWidth(Cfg.AddrWidth),
             .DataWidth(Cfg.NarrowDataWidth),
             .IdWidth(Cfg.AxiNarrowIdWidth),
-            .MemDataWidth(Cfg.NarrowDataWidth),
             .BufDepth(1 + NarrowMemRspLatency),
             .ReadWrite(Cfg.AxiNarrowRW[i])
         ) u_axi_to_mem_adapter_narrow (
@@ -149,7 +148,6 @@ module memory_island_wrap import memory_island_pkg::*; #(
             .AddrWidth(Cfg.AddrWidth),
             .DataWidth(Cfg.WideDataWidth),
             .IdWidth(Cfg.AxiWideIdWidth),
-            .MemDataWidth(Cfg.WideDataWidth),
             .BufDepth(1 + WideMemRspLatency),
             .ReadWrite(Cfg.AxiWideRW[i])
         ) u_axi_to_mem_adapter_wide (
