@@ -129,20 +129,21 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
     end
 
     // Mem rsp generation
+    localparam int unsigned TA = `TA;
     initial begin
-        mem_rsp_i[0].p.valid <= 1'b0;
-        mem_rsp_i[0].p.data  <= '0;
-        mem_rsp_i[0].q_ready <= 1'b1;
+        mem_rsp_i[0].p.valid <= #TA 1'b0;
+        mem_rsp_i[0].p.data  <= #TA '0;
+        mem_rsp_i[0].q_ready <= #TA 1'b1;
         wait (rst_ni == 1'b1);
         forever begin
             @(posedge clk_i);
             if (!end_of_sim) begin
                 // Generate read responses
                 if (mem_req_o[0].q_valid && mem_rsp_i[0].q_ready) begin
-                    mem_rsp_i[0].p.valid <= 1'b1;
+                    mem_rsp_i[0].p.valid <= #TA 1'b1;
                     // For simplicity, return address as data
                 end else begin
-                    mem_rsp_i[0].p.valid <= 1'b0;
+                    mem_rsp_i[0].p.valid <= #TA 1'b0;
                 end
             end
         end
