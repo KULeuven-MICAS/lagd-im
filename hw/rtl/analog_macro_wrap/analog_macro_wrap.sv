@@ -39,6 +39,7 @@ module analog_macro_wrap #(
     output logic [NUM_SPIN-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
     output logic [NUM_SPIN*BITDATA-1:0] wbl_o,
+    output logic [NUM_SPIN*BITDATA-1:0] wblb_o,
     // spin interface: rx <-> digital
     input  logic spin_pop_valid_i,
     output logic spin_pop_ready_o,
@@ -66,6 +67,7 @@ module analog_macro_wrap #(
 
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
     assign wbl_o = dt_cfg_idle_o ? {{(NUM_SPIN*BITDATA-NUM_SPIN){1'b0}}, wbl_spin} : wbl_dt;
+    assign wblb_o = ~wbl_o;
 
     analog_cfg #(
         .NUM_SPIN (NUM_SPIN),

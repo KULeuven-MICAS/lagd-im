@@ -122,6 +122,7 @@ module tb_analog_macro_wrap;
         .j_one_hot_wwl_o(j_one_hot_wwl_o),
         .h_wwl_o(h_wwl_o),
         .wbl_o(wbl_o),
+        .wblb_o(),
         .spin_pop_valid_i(spin_pop_valid_i),
         .spin_pop_ready_o(spin_pop_ready_o),
         .spin_pop_i(spin_pop_i),
