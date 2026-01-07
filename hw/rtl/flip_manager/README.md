@@ -1,7 +1,5 @@
 # Flip Manager
 
-![Flip Manager Overview](../../../doc/flip_manager_overview.png)
-
 ## Description
 
 This module maintains the flipping operation for each trail. It has the following submodules:
@@ -9,6 +7,11 @@ This module maintains the flipping operation for each trail. It has the followin
 - u_spin_fifo_maintainer has a spin register file, where the initial spin states are set and new spin states are updated. The depth of the register file is a design-time parameter.
 - u_flip_engine manages the interface to the flip icon interface and the spin pop interface. It takes spin input from u_spin_fifo_maintainer, flip spins if flip icon is applied, and send the flipped spins to spin pop.
 - u_energy_fifo_maintainer has an energy register file, whose depth is the same as the spin fifo. It receives a spin input and its energy value, compare the energy value with the saved value, check if the energy value is lower, and send the comparison result and spin to u_spin_fifo_maintainer.
+
+The module overview is provided in the picture below.
+<p align="center">
+<img src="../../../doc/flip_manager_overview.png" width="100%" alt="Flip Manager Overview">
+</p>
 
 The module has the following behaviors:
 
