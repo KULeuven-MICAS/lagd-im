@@ -128,7 +128,7 @@ module axi_to_mem_adapter #(
                 .mem_addr_o(mem_req_o[0].q.addr),
                 .mem_wdata_o(mem_req_o[0].q.data),
                 .mem_strb_o(mem_req_o[0].q.strb),
-                .mem_atop_o(mem_req_o[0].q.user),
+                .mem_atop_o(),
                 .mem_we_o(mem_req_o[0].q.write),
                 .mem_rvalid_i(mem_rsp_i[0].p.valid),
                 .mem_rdata_i(mem_rsp_i[0].p.data)
