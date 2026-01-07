@@ -11,7 +11,7 @@
 module analog_cfg #(
     parameter integer NUM_SPIN = 256,
     parameter integer BITDATA = 4,
-    parameter integer PARALLELISM = 1, // min: 1
+    parameter integer PARALLELISM = 4, // min: 1
     parameter integer COUNTER_BITWIDTH = 16,
     parameter integer J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM),
     parameter integer HADDR = NUM_SPIN / PARALLELISM

@@ -9,7 +9,7 @@
 module analog_macro_wrap #(
     parameter integer NUM_SPIN = 256,
     parameter integer BITDATA = 4,
-    parameter integer PARALLELISM = 1, // min: 1
+    parameter integer PARALLELISM = 4, // min: 1
     parameter integer COUNTER_BITWIDTH = 16,
     parameter integer SYNCHRONIZER_PIPEDEPTH = 3,
     parameter integer J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM)
