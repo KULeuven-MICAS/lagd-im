@@ -4,17 +4,29 @@
 
 This module maintains the flipping operation for each trail.
 
-## Testbench parameters
+## Testbench parameters (applied value)
 
-*CLKCYCLE:* clock cycle time (unit: ns)
+*NUM_SPIN* (256): number of spins.
 
-*MEM_LATENCY:* expected weight memory latency (unit: cycle) per read access
+*ENERGY_TOTAL_BIT* (32): bit precision of energy value.
 
-*SPIN_LATENCY:* expected spin latency interval (unit: cycle) for each two *spin_valid_i*
+*SPIN_DEPTH* (2): spin FIFO depth.
 
-*RANDOM_TEST:* if use random generated data as inputs
+*FLIP_ICON_DEPTH* (1024): flip icon memory depth.
 
-*NUM_TEST:* tested number of cases
+*CLKCYCLE* (2): clock cycle time (unit: ns)
+
+*ENABLE_ENERGY_COMPARISON* (1): whether or not to enable energy comparison.
+
+*FLIP_MEM_LATENCY* (1): memory latency of external flip icon memory (must be 1).
+
+*ENERGY_MONITOR_LATENCY*: expected energy monitor latency.
+
+*ANALOG_DELAY*: expected analog macro latency.
+
+*RANDOM_TEST*: whether the data is random or not.
+
+*FLUSH_NUM_TESTS*: number of flush tests.
 
 ## Testcases
 
@@ -22,16 +34,10 @@ This module maintains the flipping operation for each trail.
 
 | Testcase Name | Description                                         | Input Parameters                                               |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
+Fixed | Fix patten test | RANDOM_TEST=0, FLUSH_NUM_TESTS=3 |
+Random | Random test | RANDOM_TEST=1, FLUSH_NUM_TESTS=3 |
 
-
-## Register address
-
-| Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
-|:-----------------------:|:-----------:|:----------------------:|:--:|:--:|
-
-
-## Further Improvement TBD
+## Further Improvements TBD
 
 - The energy fifo can not be read out from the configure channel yet.
-- flush_i should be added to energy monitor as well.
 - interface should be exposed to the host so that host can take over the flipping process.
