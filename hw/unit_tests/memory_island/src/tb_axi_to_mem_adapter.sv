@@ -11,14 +11,19 @@
 //      BufDepth: 2
 //      ReadWrite: 0
 
-`timescale 1ns / 1ps
+`timescale 1ns/1ps
 
+// Project-wide includes
 `include "lagd_define.svh"
 `include "lagd_typedef.svh"
 
+// ETH AXI and memory interface includes
 `include "axi/assign.svh"
 `include "common_cells/assertions.svh"
+
+// Testbench includes
 `include "lagd_test/tb_common.svh"
+`include "tb_config.svh"
 
 module tb_axi_to_mem_adapter import lagd_pkg::*; #(
     parameter int unsigned AddrWidth = 48,
@@ -27,20 +32,40 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
     parameter int unsigned BufDepth = 2,
     parameter bit ReadWrite = 1'b0
 )();
-    localparam int unsigned dbg = `DBG;
-    localparam string vcd_file = `VCD_FILE;
+
+    // Debug setup
     `SETUP_DEBUG(dbg, vcd_file, tb_axi_to_mem_adapter)
     `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
-    
-    // DUT ports declaration -----
-    logic clk_i;
-    logic rst_ni;
-    lagd_axi_slv_req_t axi_req_i, mst_axi_req, ref_axi_req;
-    lagd_axi_slv_rsp_t axi_rsp_o, mst_axi_rsp, ref_axi_rsp;
-    lagd_mem_narr_rsp_t [ReadWrite:0] mem_rsp_i;
+
+    // ========================================================================
+    // SIGNALS AND INTERFACES
+    // ========================================================================
+
+    logic clk_i, rst_ni;
+    logic test_complete;
+    logic mismatch;
+
+    lagd_axi_slv_req_t axi_req_i, axi_mst_req;
+    lagd_axi_slv_rsp_t axi_rsp_o, axi_mst_rsp;
+
     lagd_mem_narr_req_t [ReadWrite:0] mem_req_o;
-    // --------------------------
-    // Instantiate DUT
+    lagd_mem_narr_rsp_t [ReadWrite:0] mem_rsp_i;
+
+    // AXI bus for stimulus generation
+    AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(AddrWidth),
+        .AXI_DATA_WIDTH(DataWidth),
+        .AXI_ID_WIDTH(IdWidth),
+        .AXI_USER_WIDTH(2)
+    ) axi_dv (clk_i);
+
+    `AXI_ASSIGN_TO_REQ(axi_mst_req, axi_dv)
+    `AXI_ASSIGN_FROM_RESP(axi_dv, axi_mst_rsp)
+
+    // ========================================================================
+    // DUT INSTANTIATION
+    // ========================================================================
+
     axi_to_mem_adapter #(
         .axi_req_t(lagd_axi_slv_req_t),
         .axi_rsp_t(lagd_axi_slv_rsp_t),
@@ -51,186 +76,108 @@ module tb_axi_to_mem_adapter import lagd_pkg::*; #(
         .IdWidth(IdWidth),
         .BufDepth(BufDepth),
         .ReadWrite(ReadWrite)
-    ) DUT (.*);
-    // --------------------------
+    ) i_dut (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .axi_req_i(axi_req_i),
+        .axi_rsp_o(axi_rsp_o),
+        .mem_req_o(mem_req_o),
+        .mem_rsp_i(mem_rsp_i)
+    );
 
-    // Stimulus generation and checking -----
-    // Clock/Reset generation
+    // ========================================================================
+    // STIMULUS GENERATION
+    // ========================================================================
+
     clk_rst_gen #(
-        .RstClkCycles(3),
-        .ClkPeriod(`TC)
+        .RstClkCycles(RST_CYCLES),
+        .ClkPeriod(CLK_PERIOD)
     ) i_clk_gen (
         .clk_o(clk_i),
         .rst_no(rst_ni)
     );
 
-    // Random Master AXI generator
-    localparam int unsigned TxInFlight = 16;
-    localparam int unsigned UserWidth = 2;
-    typedef axi_test::axi_rand_master#(
-        .AW(AddrWidth),
-        .DW(DataWidth),
-        .IW(IdWidth),
-        .UW(UserWidth),
-        // Stimuli application and test time
-        .TA(`TA),
-        .TT(`TT),
-        // Maximum number of read and write transactions in flight
-        .MAX_READ_TXNS(TxInFlight),
-        .MAX_WRITE_TXNS(TxInFlight),
-        .SIZE_ALIGN(0),
-        .AXI_MAX_BURST_LEN(0),
-        .TRAFFIC_SHAPING(0),
-        .AXI_EXCLS(1'b0),
-        .AXI_ATOPS(1'b0),
-        .AXI_BURST_FIXED(1'b0),
-        .AXI_BURST_INCR(1'b1),
-        .AXI_BURST_WRAP(1'b0),
-        .UNIQUE_IDS(1'b0)
-    ) axi_rand_master_t;
-    axi_rand_master_t rand_master;
-
-    // Response DV monitors
-    AXI_BUS_DV #(
-        .AXI_ADDR_WIDTH(AddrWidth),
-        .AXI_DATA_WIDTH(DataWidth),
-        .AXI_ID_WIDTH  (IdWidth),
-        .AXI_USER_WIDTH(UserWidth)
-    ) axi_dv (
-        clk_i
-    );
-
-    logic rand_mem_filled;
-    logic end_of_sim;
-    localparam int unsigned TestRegionStart = 0;
-    localparam int unsigned TestRegionEnd = 16*1024 - 1;
-    localparam int unsigned TestNumWrites = 200;
-    localparam int unsigned TestNumReads  = 0;
-
-    // Simulation generation
-    `AXI_ASSIGN_TO_REQ(mst_axi_req, axi_dv)
-    `AXI_ASSIGN_FROM_RESP(axi_dv, mst_axi_rsp)
-    initial begin
-        rand_master = new(axi_dv);
-        rand_mem_filled <= 1'b0;
-        end_of_sim <= 1'b0;
-        rand_master.add_memory_region(TestRegionStart, TestRegionEnd, 
-                                      axi_pkg::DEVICE_NONBUFFERABLE);
-        rand_master.reset();
-        @(posedge rst_ni);
-        rand_master.run(TestNumReads, TestNumWrites);
-        rand_mem_filled <= 1'b1;
-        // Wait for all transactions to complete
-        repeat(100) @(posedge clk_i);
-        end_of_sim <= 1'b1;
-        $display("Test completed successfully!");
-        $finish;
-    end
-    // --------------------------
-    
-    // Virtual memory model -----
-    // Instance tc_sram for memory model
-    localparam int unsigned NumWords = (TestRegionEnd - TestRegionStart + 1)*8 / DataWidth;
-    logic [ReadWrite:0] rdata_valid;
-    tc_sram #(
-        .NumWords(NumWords),
+    axi_rand_generator #(
+        .AddrWidth(AddrWidth),
         .DataWidth(DataWidth),
-        .NumPorts(1 + ReadWrite)
-    ) u_tc_sram (
+        .IdWidth(IdWidth),
+        .UserWidth(2)
+    ) i_axi_stimulus (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        .req_i(mem_req_o[0].q_valid),
-        .we_i(mem_req_o[0].q.write),
-        .addr_i(mem_req_o[0].q.addr[$clog2(DataWidth/8)+: $clog2(NumWords)]),
-        .wdata_i(mem_req_o[0].q.data),
-        .be_i(mem_req_o[0].q.strb),
-        .rdata_o(mem_rsp_i[0].p.data)
+        .axi_bus(axi_dv),
+        .test_complete_o(test_complete)
     );
 
-    assign mem_rsp_i[0].p.valid = rdata_valid[0];
-    assign mem_rsp_i[0].q_ready = 1'b1;
-    localparam int unsigned TA = `TA;
-    localparam int unsigned TT = `TT;
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-            rdata_valid <= '0;
-        end else begin
-        rdata_valid <= #TA mem_req_o[0].q_valid;
-        end
+    // ========================================================================
+    // MEMORY MODEL
+    // ========================================================================
+
+    // Memory model
+    localparam int unsigned NumWords = (TEST_REGION_END - TEST_REGION_START + 1) * 8 / DataWidth;
+    virtual_memory #(
+        .mem_req_t(lagd_mem_narr_req_t),
+        .mem_rsp_t(lagd_mem_narr_rsp_t),
+        .NumWords(NumWords),
+        .DataWidth(DataWidth),
+        .ReadWrite(ReadWrite)
+    ) i_memory (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .mem_req_i(mem_req_o),
+        .mem_rsp_o(mem_rsp_i)
+    );
+
+    // ========================================================================
+    // GOLDEN MODEL AND COMPARATOR
+    // ========================================================================
+
+    tb_golden_model #(
+        .axi_aw_chan_t(lagd_axi_slv_aw_chan_t),
+        .axi_w_chan_t(lagd_axi_slv_w_chan_t),
+        .axi_b_chan_t(lagd_axi_slv_b_chan_t),
+        .axi_ar_chan_t(lagd_axi_slv_ar_chan_t),
+        .axi_r_chan_t(lagd_axi_slv_r_chan_t),
+        .axi_req_t(lagd_axi_slv_req_t),
+        .axi_rsp_t(lagd_axi_slv_rsp_t),
+        .AddrWidth(AddrWidth),
+        .DataWidth(DataWidth),
+        .IdWidth(IdWidth),
+        .UserWidth(2)
+    ) i_golden (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .axi_mst_req_i(axi_mst_req),
+        .axi_mst_rsp_o(axi_mst_rsp),
+        .axi_dut_req_o(axi_req_i),
+        .axi_dut_rsp_i(axi_rsp_o),
+        .mismatch_o(mismatch)
+    );
+
+    // ========================================================================
+    // TEST CONTROL
+    // ========================================================================
+
+    initial begin
+        // Wait for test to complete
+        wait(test_complete);
+        $finish(0);
+
+        // Check for mismatches
+        // if (mismatch) begin
+        //     $error("Comparison mismatch detected!");
+        //     $finish(1);
+        // end else begin
+        //     $display("Test completed successfully - no mismatches!");
+        //     $finish(0);
+        // end
     end
-    // --------------------------
-
-    // Golden model checking -----
-    axi_sim_mem #(
-        .AddrWidth        (AddrWidth),
-        .DataWidth        (DataWidth),
-        .IdWidth          (IdWidth),
-        .UserWidth        (UserWidth),
-        .NumPorts         (1 + ReadWrite),
-        .axi_req_t        (lagd_axi_slv_req_t),
-        .axi_rsp_t        (lagd_axi_slv_rsp_t),
-        .WarnUninitialized(1'b0),
-        .UninitializedData("zeros"),
-        .ClearErrOnAccess (1'b0),
-        .ApplDelay        (TA),
-        .AcqDelay         (TT)
-    ) i_sim_mem (
-        .clk_i             (clk_i),
-        .rst_ni            (rst_ni),
-        .axi_req_i         (ref_axi_req),
-        .axi_rsp_o         (ref_axi_rsp),
-        .mon_w_valid_o     (),
-        .mon_w_addr_o      (),
-        .mon_w_data_o      (),
-        .mon_w_id_o        (),
-        .mon_w_user_o      (),
-        .mon_w_beat_count_o(),
-        .mon_w_last_o      (),
-        .mon_r_valid_o     (),
-        .mon_r_addr_o      (),
-        .mon_r_data_o      (),
-        .mon_r_id_o        (),
-        .mon_r_user_o      (),
-        .mon_r_beat_count_o(),
-        .mon_r_last_o      ()
-    );
-
-    logic mismatch;
-    axi_slave_compare #(
-      .AxiIdWidth   (IdWidth),
-      .FifoDepth    (32),
-      .UseSize      (1'b1),
-      .DataWidth    (DataWidth),
-      .axi_aw_chan_t(lagd_axi_slv_aw_chan_t),
-      .axi_w_chan_t (lagd_axi_slv_w_chan_t),
-      .axi_b_chan_t (lagd_axi_slv_b_chan_t),
-      .axi_ar_chan_t(lagd_axi_slv_ar_chan_t),
-      .axi_r_chan_t (lagd_axi_slv_r_chan_t),
-      .axi_req_t    (lagd_axi_slv_req_t),
-      .axi_rsp_t    (lagd_axi_slv_rsp_t)
-    ) i_compare (
-      .clk_i         (clk_i),
-      .rst_ni        (rst_ni),
-      .testmode_i    ('0),
-      .axi_mst_req_i (mst_axi_req),
-      .axi_mst_rsp_o (mst_axi_rsp),
-      .axi_ref_req_o (ref_axi_req),
-      .axi_ref_rsp_i (ref_axi_rsp),
-      .axi_test_req_o(axi_req_i),
-      .axi_test_rsp_i(axi_rsp_o),
-      .aw_mismatch_o (),
-      .w_mismatch_o  (),
-      .b_mismatch_o  (),
-      .ar_mismatch_o (),
-      .r_mismatch_o  (),
-      .mismatch_o    (mismatch),
-      .busy_o        ()
-    );
 
     // Simulation timeout watchdog
-    initial begin
-        #2000000ns;  // 1ms timeout
-    //    $error("Simulation timeout!");
-    //    $finish;
-    end
+    // initial begin
+    //     #(SIM_TIMEOUT);
+    //     $error("Simulation timeout after %0tns", SIM_TIMEOUT);
+    //     $finish(1);
+    // end
+
 endmodule

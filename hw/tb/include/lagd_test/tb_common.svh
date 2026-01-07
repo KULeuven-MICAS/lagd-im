@@ -24,8 +24,4 @@
         end \
     end
 
-`define TA 2 // Stimuli application time
-`define TC 10 // Clock period
-`define TT 9 // Test time
-
 `endif

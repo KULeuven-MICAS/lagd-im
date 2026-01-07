@@ -12,6 +12,9 @@ set HDL_PATH ../../rtl/memory_island
 
 set HDL_FILES [ list \
     ../../rtl/lagd_pkg.sv \
+    ./src/common/tb_golden_model.sv \
+    ./src/common/virtual_memory.sv \
+    ./src/common/axi_rand_stim_gen.sv \
     ./src/tb_axi_to_mem_adapter.sv \
     ${HDL_PATH}/axi_to_mem_adapter.sv \
 ]
@@ -19,6 +22,7 @@ set HDL_FILES [ list \
 set INCLUDE_DIRS [list \
     ../../tb/include \
     ../../rtl/include \
+    ./include \
     ${HDL_PATH}/include \
     [exec {*}$BENDER path common_cells]/include \
     [exec {*}$BENDER path axi]/include \
