@@ -1,9 +1,5 @@
 # Flip Manager Testbench
 
-## Description
-
-This module maintains the flipping operation for each trail.
-
 ## Testbench parameters (applied value)
 
 *NUM_SPIN* (256): number of spins.
