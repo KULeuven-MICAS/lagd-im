@@ -14,7 +14,7 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 The module overview is provided in the picture below.
 <p align="center">
-<img src="https://github.com/KULeuven-MICAS/lagd-im/tree/main/doc/energy_monitor_overview.png" width="100%" alt="energy monitor overview">
+<img src="../../../doc/energy_monitor_overview.png" width="100%" alt="Energy Monitor Overview">
 </p>
 
 ## Performance
