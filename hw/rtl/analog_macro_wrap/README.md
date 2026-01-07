@@ -29,6 +29,8 @@ The performance is different for different operations.
 
 **J/h Onloading**: once the onloading starts, the *j_mem_ren_o* is asserted next cycle and the WWL/WBL will be asserted from the 3rd cycle. WWL remains high for *cycle_per_wwl_high_i* cycles and then switches to low for *cycle_per_wwl_low_i* cycles before starting to assert next WWL signal. The entire latency is [(cycle_per_wwl_high_i+cycle_per_wwl_low_i)*cfg_trans_num_i+3] cycles.
 
+Note: it is assumed that *j_rdata_i* comes back one cycle later than *j_ren_o*.
+
 **Computation**: once u_analog_rx receives the spin, the *spin_wwl_o* and *wbl_o* are asserted from the next cycle and remains for *cycle_per_spin_write_i* cycles. At the same time, another counter is activated until it reaches *cycle_per_spin_compute_i*, followed by the synchronization in u_analog_tx.
 The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycle_per_spin_compute_i+synchronizer_pipe_num_i+1) cycles.
 
