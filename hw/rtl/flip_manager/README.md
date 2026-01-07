@@ -36,7 +36,7 @@ The module has the following behaviors:
 
 Starting from energy handshake, it takes 3 cycles to output a new spin vector.
 
-## Configurable Module Parameters
+## Module Parameters
 
 *NUM_SPIN:* [int] the number of spins  (default: 256)
 
