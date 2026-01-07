@@ -15,47 +15,8 @@
 // - FLIP_ICON_DEPTH: depth of flip icon memory
 // - FLIP_ICON_ADDR_DEPTH: address width for flip icon memory (usually $clog2(FLIP_ICON_DEPTH))
 //
-// Ports:
-// - clk_i, rst_ni: clock and active-low async reset
-// - en_i: module enable
-// - flush_i: synchronous flush/clear
-//
-// Completion/control interface:
-// - cmpt_en_i: completion mode enable
-// - cmpt_idle_o: completion finished indicator
-//
-// Spin configuration input (configuration or energy-maintainer driven):
-// - spin_configure_valid_i: config push valid
-// - spin_configure_i: config spin vector (NUM_SPIN bits)
-// - spin_configure_push_none_i: config push-none indicator
-// - spin_configure_ready_o: config ready
-//
-// Spin output (flipped spins from flip_engine):
-// - spin_pop_valid_o: popped/flipped spin valid
-// - spin_pop_o: popped/flipped spin vector (NUM_SPIN bits)
-// - spin_pop_ready_i: consumer ready for popped spin
-//
-// Spin input (direct spin stream for energy maintainer):
-// - spin_valid_i: incoming spin valid
-// - spin_i: incoming spin vector
-// - spin_ready_o: source ready
-//
-// Energy input (for energy FIFO maintainer):
-// - energy_valid_i: energy input valid
-// - energy_ready_o: energy input ready
-// - energy_i: signed total energy value (ENERGY_TOTAL_BIT bits)
-//
-// Flip memory interface:
-// - flip_ren_o: read enable to flip icon memory
-// - flip_raddr_o: read address to flip icon memory (FLIP_ICON_ADDR_DEPTH bits)
-// - flip_rdata_i: read data from flip icon memory (NUM_SPIN bits)
-//
-// Debug:
-// - flip_disable_i: disable flipping
-//
 // Notes:
 // - This module arbitrates between configuration-driven pushes and energy-driven pushes into the spin FIFO.
-// - It exposes FIFO usage debug signals from submodules (debug_*_fifo_usage).
 
 `include "common_cells/registers.svh"
 
@@ -64,6 +25,7 @@ module flip_manager #(
     parameter int SPIN_DEPTH = 2,
     parameter int ENERGY_TOTAL_BIT = 32,
     parameter int FLIP_ICON_DEPTH = 1024,
+    // Do not override
     parameter int FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH)
 )(
     input logic clk_i,
