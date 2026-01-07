@@ -69,7 +69,7 @@ module analog_tx #(
     assign spin_valid_cond = en_i & analog_macro_cmpt_finish_pulse_reg[synchronizer_pipe_num_reg-1'b1];
     assign spin_valid_reset_cond = !en_i | spin_handshake;
 
-    `FFL(synchronizer_pipe_num_reg, synchronizer_pipe_num_i, synchronizer_pip_num_reset_cond, SYNCHRONIZER_PIPEDEPTH, clk_i, rst_ni)
+    `FFL(synchronizer_pipe_num_reg, synchronizer_pipe_num_i, synchronizer_pip_num_reset_cond, {($clog2(SYNCHRONIZER_PIPEDEPTH)){1'b1}}, clk_i, rst_ni)
     `FFL(synchronizer_mode_reg, synchronizer_mode_i, synchronizer_mode_reset_cond, 1'b0, clk_i, rst_ni)
     `FFLARNC(spin_valid_o, 1'b1, spin_valid_cond, spin_valid_reset_cond, 1'b0, clk_i, rst_ni)
     `FFL(analog_macro_cmpt_finish_nxt, analog_macro_cmpt_finish_i, en_i, 1'b0, clk_i, rst_ni)
