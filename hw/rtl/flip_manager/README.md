@@ -52,7 +52,7 @@ Starting from energy handshake, it takes 3 cycles to output a new spin vector.
 
 *spin_configure_push_none_i*: if skip the current spin value configuration. If 1, no value is written into the spin FIFO and its read pointer moves to the next address.
 
-*flush_i*: whether or not to flush all saved values in spin FIFO and reload spin values.
+*flush_i*: whether or not to flush all saved values in spin FIFO, energy FIFO and reset flip icon address to 0.
 
 *en_comparison_i*: whether or not to enable energy comparison in u_energy_fifo_maintainer. If 0, new energy value and spin value are always updated into energy FIFO and spin FIFO.
 
