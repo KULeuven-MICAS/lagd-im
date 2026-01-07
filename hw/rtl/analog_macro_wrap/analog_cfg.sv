@@ -75,7 +75,7 @@ module analog_cfg #(
     assign h_wwl_en_cond = en_i & h_ren_n;
     assign h_wwl_idle_cond = !en_i | (h_wwl_o & wwl_high_counter_maxed);
     assign j_one_hot_wwl_nxt = wwl_high_counter_en ? 'd0 : 
-                    (counter_addr_q == 'd0 & j_mux_sel_q == 'd0) ? 'd1 : 1 << (counter_addr_q * PARALLELISM + j_mux_sel_q); // todo: check if switch back to 0 when finished
+                    (counter_addr_q == 'd0 & j_mux_sel_q == 'd0) ? 'd1 : 1 << (counter_addr_q * PARALLELISM + j_mux_sel_q);
     assign j_wwl_en_cond = en_i & (j_mem_ren_n |
         (wwl_high_counter_maxed & (counter_addr_q != HADDR))
         | (wwl_low_counter_maxed & (j_mux_sel_q != 'd0)));
