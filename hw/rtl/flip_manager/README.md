@@ -13,11 +13,11 @@ The module overview is provided in the picture below.
 <img src="../../../doc/flip_manager_overview.png" width="100%" alt="Flip Manager Overview">
 </p>
 
-The module has the following behaviors:
+The module supports the following operations:
 
-**During onloading**: the spin states in the spin register file must be configured by *spin_configure_i*, until spin register file is full. The spin register file behaves as a FIFO (namely spin FIFO afterwards).
+**Spin FIFO onloading**: the spin states in the spin register file are configured by *spin_configure_i*, until spin register file is full. The spin register file behaves as a FIFO (namely spin FIFO afterwards).
 
-**During computation**:
+**Computation**:
 
 - S1: Computation starts by setting *cmpt_en_i* as 1. This signal is internally routely to u_spin_fifo_maintainer.
 - S2: At the next cycle, the *cmpt_idle_o* switches to 0. At the same time, u_spin_fifo_maintainer rises the valid flag.
