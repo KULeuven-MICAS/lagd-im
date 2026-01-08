@@ -56,12 +56,13 @@ module mem_rsp_dummy_generator #(
     input logic rst_ni,
 
     output mem_rsp_t rsp_o,
+    input logic mem_ready_i,
     output logic test_complete_o
 );
     `include "tb_config.svh"
-
+    assign rsp_o.q_ready = mem_ready_i;
     initial begin
-        rsp_o = '0;
+        rsp_o.p = '0;
         test_complete_o = 1'b0;
         wait (!rst_ni);
         rsp_o.p.valid <= 1'b1;
@@ -93,6 +94,7 @@ module mem_dummy_generator #(
     output mem_req_t req_o,
     input logic read_ready_i,
     output mem_rsp_t rsp_o,
+    input logic mem_ready_i,
     output logic test_complete_o
 );
     `include "tb_config.svh"
@@ -119,6 +121,7 @@ module mem_dummy_generator #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .rsp_o(rsp_o),
+        .mem_ready_i(mem_ready_i),
         .test_complete_o(rsp_test_complete)
     );
 

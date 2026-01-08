@@ -4,6 +4,14 @@
 
 // Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+// Test from lagd_chip:
+//      AddrWidth: 48
+//      DataWidth: 64
+//      NumCutsReq: 0
+//      NumCutsRsp: 0
+
+//cuts do not work :)
+
 `timescale 1ns/1ps
 
 // Project-wide includes
@@ -34,10 +42,10 @@ module tb_mem_multicut import lagd_pkg::*; #(
 
     logic clk_i, rst_ni;
 
-    lagd_mem_narr_req_t mem_req_i, mem_mst_req;
+    lagd_mem_narr_req_t mem_req_o, mem_mst_req;
     lagd_mem_narr_rsp_t mem_rsp_o, mem_mst_rsp;
 
-    logic read_ready_i, read_ready_o;
+    logic read_ready_i, read_ready_o, mem_ready_i;
 
     logic test_complete;
 
@@ -56,8 +64,8 @@ module tb_mem_multicut import lagd_pkg::*; #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
 
-        .req_i(mem_req_i),
-        .req_o(mem_mst_req),
+        .req_i(mem_mst_req),
+        .req_o(mem_req_o),
 
         .rsp_i(mem_mst_rsp),
         .rsp_o(mem_rsp_o),
@@ -87,16 +95,19 @@ module tb_mem_multicut import lagd_pkg::*; #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
 
-        .req_o(mem_req_i),
-        .read_ready_i(read_ready_o),
+        .req_o(mem_mst_req),
+        .read_ready_i(read_ready_i),
 
         .rsp_o(mem_mst_rsp),
+        .mem_ready_i(mem_ready_i),
         .test_complete_o(test_complete)
     );
     // ========================================================================
     // TESTBENCH CONTROL
     // ========================================================================
     initial begin
+        read_ready_i = 1'b1;
+        mem_ready_i  = 1'b1;
         wait(test_complete);
         $finish(0);
     end
