@@ -130,7 +130,8 @@ if [ -n "${LEAF}" ]; then
 fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
-    SIM_TOOL=${SIM_TOOL} make -C "${TEST_PATH}" clean
+    SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} HDL_FILES_LIST=${HDL_FILES_LIST} \
+        make -C "${TEST_PATH}" clean
 else
     if [ -n "${HDL_FILES_LIST}" ]; then # HDL_FILES_LIST is not empty
         if [ -n "${LEAF}" ]; then

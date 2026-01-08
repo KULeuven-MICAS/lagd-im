@@ -19,7 +19,7 @@ endif
 $(info SIM_NAME: $(SIM_NAME))
 
 TEST_PATH ?= $(CURDIR)
-WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs
+WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 DBG ?= 0
 NO_GUI ?= 1
 DEFINES ?=
