@@ -23,6 +23,7 @@ WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 DBG ?= 0
 NO_GUI ?= 1
 DEFINES ?=
+PARAMS ?=
 
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils
