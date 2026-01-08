@@ -42,7 +42,7 @@ if { ${DBG} == 1 } {
         -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
         -voptargs=-debugdb \
     ]
-#        -voptargs=+acc
+    #   -voptargs=+acc # this was the old way but still questa rises a warning?
 } else {
     set VSIM_OPTS [list -novopt]
 }
