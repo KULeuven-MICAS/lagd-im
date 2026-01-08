@@ -80,4 +80,17 @@ module mem_multicut #(
         .ready_i(read_ready_i),
         .ready_o(read_ready_o)
     );
+
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated mem_multicut with parameters:");
+    `ifndef TARGET_SYNOPSYS
+    $info("Module: %m");=-
+    $info("  mem_req_t: %s", $typename(req_i));
+    $info("  mem_rsp_t: %s", $typename(rsp_i));
+    `endif
+    $info("  AddrWidth: %d", AddrWidth);
+    $info("  DataWidth: %d", DataWidth);
+    $info("  NumCutsReq: %d", NumCutsReq);
+    $info("  NumCutsRsp: %d", NumCutsRsp);
+    `endif // TARGET_LOG_INSTS
 endmodule

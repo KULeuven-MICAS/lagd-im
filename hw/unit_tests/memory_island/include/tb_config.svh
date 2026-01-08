@@ -9,6 +9,8 @@
 `ifndef TB_CONFIG_SVH
 `define TB_CONFIG_SVH
 
+`include "lagd_test/tb_common.svh"
+
 // ============================================================================
 // TEST ENVIRONMENT PARAMETERS
 // ============================================================================
