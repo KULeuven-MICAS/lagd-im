@@ -61,7 +61,7 @@ module tb_digital_macro;
     // dut signals
     logic clk_i;
     logic rst_ni;
-    logic en_i;
+    logic en_aw_i, en_fm_i, en_em_i, en_analog_loop_i;
     logic config_valid_em_i, config_em_done;
     logic config_valid_fm_i, config_fm_done;
     logic config_valid_aw_i, config_aw_done;
@@ -103,6 +103,7 @@ module tb_digital_macro;
     logic [ NUM_SPIN-1 : 0 ] j_one_hot_wwl_o;
     logic h_wwl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_o;
+    logic [NUM_SPIN*BITJ-1 : 0 ] wblb_o;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_o;
     logic [NUM_SPIN-1 : 0 ] spin_compute_en_o;
     logic [ NUM_SPIN-1 : 0 ] analog_spin_i;
@@ -121,67 +122,71 @@ module tb_digital_macro;
 
     // module instantiation
     digital_macro #(
-        .BITJ(BITJ),
-        .BITH(BITH),
-        .NUM_SPIN(NUM_SPIN),
-        .SCALING_BIT(SCALING_BIT),
-        .PARALLELISM(PARALLELISM),
-        .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
-        .LITTLE_ENDIAN(LITTLE_ENDIAN),
-        .PIPESINTF(PIPESINTF),
-        .PIPESMID(PIPESMID),
-        .SPIN_DEPTH(SPIN_DEPTH),
-        .FLIP_ICON_DEPTH(FLIP_ICON_DEPTH),
-        .COUNTER_BITWIDTH(COUNTER_BITWIDTH),
-        .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPEDEPTH)
+        .BITJ                       (BITJ                       ),
+        .BITH                       (BITH                       ),
+        .NUM_SPIN                   (NUM_SPIN                   ),
+        .SCALING_BIT                (SCALING_BIT                ),
+        .PARALLELISM                (PARALLELISM                ),
+        .ENERGY_TOTAL_BIT           (ENERGY_TOTAL_BIT           ),
+        .LITTLE_ENDIAN              (LITTLE_ENDIAN              ),
+        .PIPESINTF                  (PIPESINTF                  ),
+        .PIPESMID                   (PIPESMID                   ),
+        .SPIN_DEPTH                 (SPIN_DEPTH                 ),
+        .FLIP_ICON_DEPTH            (FLIP_ICON_DEPTH            ),
+        .COUNTER_BITWIDTH           (COUNTER_BITWIDTH           ),
+        .SYNCHRONIZER_PIPEDEPTH     (SYNCHRONIZER_PIPEDEPTH     )
     ) dut (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .en_i(en_i),
-        .config_valid_em_i(config_valid_em_i),
-        .config_valid_fm_i(config_valid_fm_i),
-        .config_valid_aw_i(config_valid_aw_i),
-        .config_counter_i(config_counter_i),
-        .config_spin_initial_i(config_spin_initial_i),
-        .config_spin_initial_skip_i(config_spin_initial_skip_i),
-        .cfg_trans_num_i(cfg_trans_num_i),
-        .cycle_per_wwl_high_i(cycle_per_wwl_high_i),
-        .cycle_per_wwl_low_i(cycle_per_wwl_low_i),
-        .cycle_per_spin_write_i(cycle_per_spin_write_i),
-        .cycle_per_spin_compute_i(cycle_per_spin_compute_i),
-        .spin_wwl_strobe_i(spin_wwl_strobe_i),
-        .spin_mode_i(spin_mode_i),
-        .synchronizer_pipe_num_i(synchronizer_pipe_num_i),
-        .synchronizer_mode_i(synchronizer_mode_i),
-        .dt_cfg_enable_i(dt_cfg_enable_i),
-        .j_mem_ren_o(j_mem_ren_o),
-        .j_raddr_o(j_raddr_o),
-        .j_rdata_i(j_rdata_i),
-        .h_ren_o(h_ren_o),
-        .h_rdata_i(h_rdata_i),
-        .dt_cfg_idle_o(dt_cfg_idle_o),
-        .flush_i(flush_i),
-        .en_comparison_i(en_comparison_i),
-        .cmpt_en_i(cmpt_en_i),
-        .cmpt_idle_o(cmpt_idle_o),
-        .host_readout_i(host_readout_i),
-        .flip_ren_o(flip_ren_o),
-        .flip_raddr_o(flip_raddr_o),
-        .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
-        .flip_rdata_i(flip_rdata_i),
-        .flip_disable_i(flip_disable_i),
-        .weight_ready_o(weight_ready_o),
-        .weight_valid_i(weight_valid_i),
-        .weight_raddr_o(weight_raddr_o),
-        .weight_i(weight_i),
-        .hbias_i(hbias_i),
-        .hscaling_i(hscaling_i),
-        .j_one_hot_wwl_o(j_one_hot_wwl_o),
-        .h_wwl_o(h_wwl_o),
-        .wbl_o(wbl_o),
-        .spin_wwl_o(spin_wwl_o),
-        .spin_compute_en_o(spin_compute_en_o),
-        .analog_spin_i(analog_spin_i)
+        .clk_i                      (clk_i                      ),
+        .rst_ni                     (rst_ni                     ),
+        .en_aw_i                    (en_aw_i                    ),
+        .en_em_i                    (en_em_i                    ),
+        .en_fm_i                    (en_fm_i                    ),
+        .en_analog_loop_i           (en_analog_loop_i           ),
+        .config_valid_em_i          (config_valid_em_i          ),
+        .config_valid_fm_i          (config_valid_fm_i          ),
+        .config_valid_aw_i          (config_valid_aw_i          ),
+        .config_counter_i           (config_counter_i           ),
+        .config_spin_initial_i      (config_spin_initial_i      ),
+        .config_spin_initial_skip_i (config_spin_initial_skip_i ),
+        .cfg_trans_num_i            (cfg_trans_num_i            ),
+        .cycle_per_wwl_high_i       (cycle_per_wwl_high_i       ),
+        .cycle_per_wwl_low_i        (cycle_per_wwl_low_i        ),
+        .cycle_per_spin_write_i     (cycle_per_spin_write_i     ),
+        .cycle_per_spin_compute_i   (cycle_per_spin_compute_i   ),
+        .spin_wwl_strobe_i          (spin_wwl_strobe_i          ),
+        .spin_mode_i                (spin_mode_i                ),
+        .synchronizer_pipe_num_i    (synchronizer_pipe_num_i    ),
+        .synchronizer_mode_i        (synchronizer_mode_i        ),
+        .dt_cfg_enable_i            (dt_cfg_enable_i            ),
+        .j_mem_ren_o                (j_mem_ren_o                ),
+        .j_raddr_o                  (j_raddr_o                  ),
+        .j_rdata_i                  (j_rdata_i                  ),
+        .h_ren_o                    (h_ren_o                    ),
+        .h_rdata_i                  (h_rdata_i                  ),
+        .dt_cfg_idle_o              (dt_cfg_idle_o              ),
+        .flush_i                    (flush_i                    ),
+        .en_comparison_i            (en_comparison_i            ),
+        .cmpt_en_i                  (cmpt_en_i                  ),
+        .cmpt_idle_o                (cmpt_idle_o                ),
+        .host_readout_i             (host_readout_i             ),
+        .flip_ren_o                 (flip_ren_o                 ),
+        .flip_raddr_o               (flip_raddr_o               ),
+        .icon_last_raddr_plus_one_i (icon_last_raddr_plus_one_i ),
+        .flip_rdata_i               (flip_rdata_i               ),
+        .flip_disable_i             (flip_disable_i             ),
+        .weight_ready_o             (weight_ready_o             ),
+        .weight_valid_i             (weight_valid_i             ),
+        .weight_raddr_o             (weight_raddr_o             ),
+        .weight_i                   (weight_i                   ),
+        .hbias_i                    (hbias_i                    ),
+        .hscaling_i                 (hscaling_i                 ),
+        .j_one_hot_wwl_o            (j_one_hot_wwl_o            ),
+        .h_wwl_o                    (h_wwl_o                    ),
+        .wbl_o                      (wbl_o                      ),
+        .wblb_o                     (wblb_o                     ),
+        .spin_wwl_o                 (spin_wwl_o                 ),
+        .spin_compute_en_o          (spin_compute_en_o          ),
+        .analog_spin_i              (analog_spin_i              )
     );
         
 
