@@ -8,14 +8,12 @@
 
 `ifndef LAGD_PLATFORM_SVH
 `define LAGD_PLATFORM_SVH
-`ifndef SYNTHESIS
+
+`ifndef TARGET_SYN
 `define PACKAGE_ASSERT(cond) \
     /* verilator lint_on UNUSED */ \
     typedef bit [((cond) ? 0 : -1) : 0] static_assertion_at_line_`__LINE__; \
     /* verilator lint_off UNUSED */
-`else
-`define PACKAGE_ASSERT(cond)
-`endif // SYNTHESIS
 
 `define STATIC_ASSERT(cond, msg) \
     /* verilator lint_off GENUNNAMED */ \
@@ -23,8 +21,6 @@
         $error(msg); \
     end \
     /* verilator lint_on GENUNNAMED */
-
-`endif // LAGD_PLATFORM_SVH
 
 `define ASSERT(cond, msg) \
     assert (cond) else $error("Time %0t: %s", $time, msg)
@@ -35,3 +31,12 @@
             `ASSERT(cond, msg);   \
         end                       \
     end
+
+`else // TARGET_SYN
+
+`define PACKAGE_ASSERT(cond)
+`define STATIC_ASSERT(cond, msg)
+`define ASSERT(cond, msg)
+`define RUNTIME_ASSERT(cond, msg, clk, reset)
+`endif // TARGET_SYN
+`endif // LAGD_PLATFORM_SVH

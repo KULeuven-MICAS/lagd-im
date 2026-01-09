@@ -12,11 +12,11 @@ set HDL_PATH ../../rtl/memory_island
 
 set HDL_FILES [ list \
     ../../rtl/lagd_pkg.sv \
-    ./src/common/tb_golden_model.sv \
-    ./src/common/virtual_memory.sv \
-    ./src/common/axi_rand_stim_gen.sv \
-    ./src/tb_axi_to_mem_adapter.sv \
-    ${HDL_PATH}/axi_to_mem_adapter.sv \
+    ./src/common/mem_dummy_stim_gen.sv \
+    ./src/tb_mem_multicut.sv \
+    ${HDL_PATH}/mem_req_multicut.sv \
+    ${HDL_PATH}/mem_rsp_multicut.sv \
+    ${HDL_PATH}/mem_multicut.sv \
 ]
 
 set INCLUDE_DIRS [list \

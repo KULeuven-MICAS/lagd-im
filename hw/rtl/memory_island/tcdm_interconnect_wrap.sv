@@ -146,5 +146,20 @@ module tcdm_interconnect_wrap #(
             );
         end
     endgenerate
-
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated tcdm_interconnect_wrap with parameters:");
+    `ifndef TARGET_SYNOPSYS
+    $info("Module: %m");=-
+    $info("  mem_req_t: %s", $typename(req_i));
+    $info("  mem_rsp_t: %s", $typename(rsp_i));
+    `endif
+    $info("  NumIn: %d", NumIn);
+    $info("  NumOut: %d", NumOut);
+    $info("  AddrWidth: %d", AddrWidth);
+    $info("  DataWidth: %d", DataWidth);
+    $info("  FullAddrWidth: %d", FullAddrWidth);
+    $info("  AddrMemWidth: %d", AddrMemWidth);
+    $info("  BeWidth: %d", BeWidth);
+    $info("  RespLat: %d", RespLat);
+    `endif // TARGET_LOG_INSTS
 endmodule : tcdm_interconnect_wrap

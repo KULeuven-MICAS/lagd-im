@@ -49,6 +49,7 @@ module mem_req_multicut #(
     localparam int unsigned AggDataWidth = 1 + StrbWidth + AddrWidth + DataWidth;
     if (NumCuts == 0) begin : gen_passthrough
         assign req_o = req_i;
+        assign ready_o = ready_i;
     end else begin : gen_cuts
         logic [NumCuts:0][AggDataWidth-1:0] data_agg;
         logic [NumCuts:0] valid, ready;
