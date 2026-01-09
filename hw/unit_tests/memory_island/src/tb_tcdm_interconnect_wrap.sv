@@ -26,8 +26,8 @@
 
 module tb_tcdm_interconnect_wrap #(
     parameter int unsigned NumIn = 1,
-    parameter int unsigned NumOut = 1,
-    parameter int unsigned AddrWidth = 14,
+    parameter int unsigned NumOut = 4,
+    parameter int unsigned AddrWidth = 16,
     parameter int unsigned DataWidth = 64,
     parameter int unsigned FullAddrWidth = 48,
     parameter int unsigned AddrMemWidth = 11,
@@ -39,18 +39,18 @@ module tb_tcdm_interconnect_wrap #(
 ) ();
 
     // Debug setup
-    `SETUP_DEBUG(dbg, vcd_file, tb_mem_multicut)
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
+    `SETUP_DEBUG(dbg, vcd_file, tb_tcdm_interconnect_wrap)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, lagd_pkg::CheshireCfg)
 
     // ========================================================================
     // SIGNALS AND INTERFACES
     // ========================================================================
 
     logic clk_i, rst_ni;
-    mem_req_t [NumIn-1:0] mem_req_i;
-    mem_rsp_t [NumIn-1:0] mem_rsp_o;
-    mem_req_t [NumOut-1:0] mem_req_o;
-    mem_rsp_t [NumOut-1:0] mem_rsp_i;
+    lagd_mem_narr_req_t [NumIn-1:0] mem_req_i;
+    lagd_mem_narr_rsp_t [NumIn-1:0] mem_rsp_o;
+    lagd_mem_narr_req_t [NumOut-1:0] mem_req_o;
+    lagd_mem_narr_rsp_t [NumOut-1:0] mem_rsp_i;
 
     logic test_complete;
 
@@ -67,8 +67,8 @@ module tb_tcdm_interconnect_wrap #(
         .AddrMemWidth(AddrMemWidth),
         .BeWidth(BeWidth),
         .RespLat(RespLat),
-        .mem_req_t(mem_req_t),
-        .mem_rsp_t(mem_rsp_t)
+        .mem_req_t(lagd_mem_narr_req_t),
+        .mem_rsp_t(lagd_mem_narr_rsp_t)
     ) dut (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -92,18 +92,40 @@ module tb_tcdm_interconnect_wrap #(
         .rst_no(rst_ni)
     );
 
+    logic [NumIn:0] daisy_chain_start;
+    initial begin
+        daisy_chain_start[0] = 1'b1;
+    end
     for(genvar i = 0; i < NumIn; i++) begin : mst_agent_gen
-        lagd_mem_narr_master_agent #(
+        mem_seq_generator #(
             .AddrWidth(AddrWidth),
             .DataWidth(DataWidth),
-            .BeWidth(BeWidth),
-            .mem_req_t(mem_req_t),
-            .mem_rsp_t(mem_rsp_t)
+            .TestRegionStart(0),
+            .TestRegionEnd(1 << AddrWidth),
+            .NumTransactions(16),
+            .mem_req_t(lagd_mem_narr_req_t)
         ) mst_agent (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
-
-            .mem_req_o(mem_req_i[i]),
-            .mem_rsp_i(mem_rsp_o[i])
+            .start_test_i(daisy_chain_start[i]),
+            .req_o(mem_req_i[i]),
+            .read_ready_i(mem_rsp_o[i].q_ready),
+            .test_complete_o(daisy_chain_start[i+1])
         );
     end
+    for(genvar j = 0; j < NumOut; j++) begin : slv_agent_gen
+        initial begin
+            mem_rsp_i[j].q_ready = 1'b1;
+        end
+    end
+    assign test_complete = daisy_chain_start[NumIn];
+    // ========================================================================
+    // TEST CONTROL
+    // ========================================================================
+
+    initial begin
+        wait(test_complete);
+        repeat (10) @(posedge clk_i);
+        $finish(0);
+    end
+endmodule

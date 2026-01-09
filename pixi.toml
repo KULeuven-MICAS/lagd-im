@@ -35,3 +35,6 @@ setuptools = "*"
 hjson = "*"
 markdown-grid-tables = "*"
 tclint = "==0.4.2"
+
+[activation.env]
+PATH = "$HOME/ising/lagd-im/.opt/riscv-gnu-toolchain/bin:$HOME/.cargo/bin:$PATH"
