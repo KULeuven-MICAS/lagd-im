@@ -57,7 +57,10 @@ module flip_manager #(
     input logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input logic [NUM_SPIN-1:0] flip_rdata_i,
 
-    input logic flip_disable_i
+    input logic flip_disable_i,
+
+    // for debugging purposes
+    output logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o
 );
     // Internal signals
     logic cmpt_busy;
@@ -88,10 +91,6 @@ module flip_manager #(
     assign energy_handshake = energy_valid_i & energy_ready_o & (~cmpt_idle_o);
 
     assign cmpt_idle_o = ~cmpt_busy;
-    // assign fifo_full_and_idle_comb = ~(cmpt_busy | spin_maintainer_push_ready);
-    // assign cmpt_idle_o = fifo_full_and_idle_comb ? fifo_full_and_idle_comb : fifo_full_and_idle_reg;
-
-    // `FFLARNC(fifo_full_and_idle_reg, 1'b1, fifo_full_and_idle_comb & en_i, cmpt_en_i | flush_i, 1'b0, clk_i, rst_ni);
 
     // Instantiate energy maintainer
     energy_fifo_maintainer #(
@@ -112,7 +111,8 @@ module flip_manager #(
         .energy_ready_o(energy_ready_o),
         .spin_i(spin_i),
         .energy_i(energy_i),
-        .debug_fifo_usage_o()
+        .debug_fifo_usage_o(),
+        .energy_fifo_o(energy_fifo_o)
     );
 
     // Instantiate spin FIFO maintainer
