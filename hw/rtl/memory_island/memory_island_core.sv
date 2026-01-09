@@ -157,7 +157,7 @@ module memory_island_core import memory_island_pkg::*; #(
                 .AddrWidth(AddrTopBit+1),
                 .DataWidth(Cfg.WideDataWidth),
                 .AddrMemWidth(InBankAddrWidth),
-                .BeWidth(AddrWideWordBit + 1),
+                .BeWidth(Cfg.WideDataWidth/8),
                 .RespLat(WideBankRespLat),
                 .mem_req_t(mem_wide_req_t),
                 .mem_rsp_t(mem_wide_rsp_t)
