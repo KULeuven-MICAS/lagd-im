@@ -64,7 +64,8 @@ module energy_fifo_maintainer #(
     input logic [NUM_SPIN-1:0] spin_i,
     input logic signed [ENERGY_TOTAL_BIT-1:0] energy_i,
 
-    output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o
+    output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o,
+    output logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o
 );
 
     // Internal signals
@@ -99,7 +100,8 @@ module energy_fifo_maintainer #(
         .push_none_i(fifo_push_none_comb),
         .push_i(fifo_push_comb),
         .data_o(energy_pop),
-        .pop_i(fifo_pop_comb)
+        .pop_i(fifo_pop_comb),
+        .mem_o(energy_fifo_o)
     );
 
     // Control logic

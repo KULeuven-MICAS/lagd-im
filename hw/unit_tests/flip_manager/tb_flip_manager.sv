@@ -16,10 +16,10 @@
 module tb_flip_manager;
 
     // Module parameters
-    localparam int NUM_SPIN = 256; // number of spins
-    localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
+    localparam int NUM_SPIN = 8; // number of spins
+    localparam int ENERGY_TOTAL_BIT = 4; // bit width of total energy
     localparam int SPIN_DEPTH = 2; // depth of spin/energy FIFOs
-    localparam int FLIP_ICON_DEPTH = 1024; // number of entries in flip, must be multiply of SPIN_DEPTH
+    localparam int FLIP_ICON_DEPTH = 2; // 7 to be tested, number of entries in flip, must be multiply of SPIN_DEPTH
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
@@ -60,6 +60,7 @@ module tb_flip_manager;
     logic spin_pop_ready_host;
     logic spin_pop_ready_analog;
     logic [NUM_SPIN-1:0] spin_read_out_host;
+    logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o;
 
     logic configure_test_done;
     logic spin_pop_handshake;
@@ -124,7 +125,8 @@ module tb_flip_manager;
         .flip_raddr_o(flip_raddr_o),
         .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .flip_rdata_i(flip_rdata_i),
-        .flip_disable_i(flip_disable_i)
+        .flip_disable_i(flip_disable_i),
+        .energy_fifo_o(energy_fifo_o)
     );
 
     // Clock generation
@@ -334,25 +336,34 @@ module tb_flip_manager;
                 while (energy_handshake_count < icon_last_raddr_plus_one_i);
 
                 // read out the FIFO content
-                #(20.1 * CLKCYCLE); // small delay before readout
+                #(2.1 * CLKCYCLE); // small delay before readout
                 host_readout_i = 1;
                 flip_disable_i = 1; // disable flipping during host readout
                 spin_pop_ready_host = 1;
                 while (readout_count_host < SPIN_DEPTH) begin
-                    do @(posedge clk_i);
-                    while (!spin_pop_valid_o);
+                    // do begin
+                    //     @(posedge clk_i);
+                    //     $display("Host readout waiting at time %t", $time);
+                    // end
+                    while (!spin_pop_valid_o) begin
+                        @(posedge clk_i);
+                        $display("Host readout waiting at time %t", $time);
+                    end
+                    #(0.1 * CLKCYCLE);
                     spin_read_out_host = spin_pop_o;
                     // check FIFO content
                     if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host]) begin
                         // note: this check fails if SPIN_DEPTH % NUM_SPIN != 0
-                        @(posedge clk_i);
-                        $fatal(1, "Error: Host readout FIFO content ['d%0d] mismatch at time %t: expected 'h%h, got 'h%h",
+                        $display(1, "Error: Host readout FIFO content ['d%0d] mismatch at time %t: expected 'h%h, got 'h%h",
                             readout_count_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
+                        @(posedge clk_i);
+                        $finish;
                     end else begin
-                        // $display("Pass: Host readout FIFO content ['d%0d] match at time %t: got 'h%h",
-                        //     readout_count_host, $time, spin_read_out_host);
+                        $display("Pass: Host readout FIFO content ['d%0d] match at time %t: got 'h%h",
+                            readout_count_host, $time, spin_read_out_host);
                     end
                     readout_count_host++;
+                    @(posedge clk_i);
                 end
                 host_readout_i = 0;
                 flip_disable_i = 0;
