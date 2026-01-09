@@ -111,7 +111,7 @@ module spin_fifo_maintainer #(
     assign within_cmpt = cmpt_busy_reg & ~cmpt_stop_comb;
     assign spin_pop_valid_o = en_i & ~fifo_empty & ((within_cmpt & (!icon_finish_i)) | host_readout_i);
     assign fifo_pop_comb = spin_pop_valid_o & spin_pop_ready_i;
-    assign spin_push_ready_o = ~fifo_full & en_i;
+    assign spin_push_ready_o = ~fifo_full;
     assign fifo_push_comb = spin_push_valid_i & spin_push_ready_o;
 
     assign cmpt_busy_o = cmpt_busy_reg;

@@ -146,7 +146,7 @@ module flip_manager #(
     ) u_flip_engine (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        .en_i(en_i),
+        .en_i(1'b1),
         .cmpt_en_i(cmpt_en_i),
         .flush_i(flush_i),
         .prev_spin_valid_i(spin_pop_valid_p),
