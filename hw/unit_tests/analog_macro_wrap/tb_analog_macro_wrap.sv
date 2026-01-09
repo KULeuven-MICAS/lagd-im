@@ -22,8 +22,8 @@ module tb_analog_macro_wrap;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 100; // number of onloading tests
-    localparam int CmptTestNum = 10000; // number of compute tests
+    localparam int OnloadingTestNum = 1_000_000; // number of onloading tests
+    localparam int CmptTestNum = 1_000_000; // number of compute tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
@@ -164,10 +164,10 @@ module tb_analog_macro_wrap;
             $finish;
         end
         else begin
-            $timeformat(-9, 1, " ns", 9);
-            #(20_000_000 * CLKCYCLE);
-            $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
-            $finish;
+            // $timeformat(-9, 1, " ns", 9);
+            // #(20_000_000 * CLKCYCLE);
+            // $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
+            // $finish;
         end
     end
 

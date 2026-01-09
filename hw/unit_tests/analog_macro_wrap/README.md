@@ -24,7 +24,7 @@
 
 | Testcase Name | Description                                         | Input Parameters                                               |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
-Random | Random test | OnloadingTestNum=100, CmptTestNum=10000 |
+Random | Random test | OnloadingTestNum=1_000_000, CmptTestNum=1_000_000 |
 
 ## Further Improvements TBD
 
