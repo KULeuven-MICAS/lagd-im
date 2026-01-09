@@ -103,6 +103,7 @@ module flip_engine #(
     logic [FLIP_ICON_ADDR_DEPTH:0] flip_raddr_n, flip_raddr_reg;
     logic [NUM_SPIN-1:0] flip_rdata_reg;
     logic icon_fifo_empty_comb;
+    logic icon_finish_reg;
 
     // Data logic
     assign flipped_spin_o = flip_disable_i ? prev_spin_pipe : (prev_spin_pipe ^ flip_icon);
@@ -119,9 +120,10 @@ module flip_engine #(
     assign icon_fifo_empty_comb = (flip_raddr_reg == icon_last_raddr_plus_one_i);
     assign flip_ren_o = flip_ren_p;
     assign flip_raddr_o = flip_raddr_reg;
+    assign icon_finish_o = icon_finish_reg || icon_fifo_empty_comb;
 
     // Sequential logic
-    `FFLARNC(icon_finish_o, icon_fifo_empty_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(icon_finish_reg, icon_fifo_empty_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_raddr_reg, flip_raddr_n, en_i & flip_ren_p, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_ren_n, flip_ren_p, en_i & (~flip_disable_i), flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni); // assume read data is valid one cycle after read enable
