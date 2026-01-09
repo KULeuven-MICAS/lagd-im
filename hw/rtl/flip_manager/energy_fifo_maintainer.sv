@@ -80,7 +80,6 @@ module energy_fifo_maintainer #(
     logic [NUM_SPIN-1:0] spin_reg;
     logic spin_push_none_comb;
     logic spin_push_none_reg;
-    logic flush_cond;
     logic spin_ready_pipe;
 
     // FIFO to store the spins
@@ -105,7 +104,7 @@ module energy_fifo_maintainer #(
     );
 
     // Control logic
-    assign energy_ready_o = ~fifo_full & spin_ready_pipe & en_i;
+    assign energy_ready_o = ~fifo_full & spin_ready_pipe;
     assign energy_handshake = energy_valid_i & energy_ready_o;
     assign fifo_push_comb = energy_handshake;
     assign fifo_push_none_comb = en_comparison_i & (energy_i >= energy_pop);
@@ -113,10 +112,9 @@ module energy_fifo_maintainer #(
     assign spin_handshake_n = spin_valid_o & spin_ready_i;
 
     assign spin_push_none_comb = fifo_push_none_comb;
-    assign flush_cond = spin_handshake_n | flush_i;
 
     // Sequential logic
-    `FFLARNC(spin_push_none_o, spin_push_none_comb, energy_handshake, flush_cond, 1'b0, clk_i, rst_ni);
+    `FFLARNC(spin_push_none_o, spin_push_none_comb, energy_handshake, flush_i, 1'b0, clk_i, rst_ni);
 
     bp_pipe #(
         .DATAW(NUM_SPIN),
