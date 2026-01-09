@@ -13,6 +13,13 @@
 // BeWidth:         [ 8,  8,    9,  8,   5,  8]
 // RespLat:         [ 1,  1,    1,  1,   1,  1]
 
+// [0] Stack Memory Test 16KB: it is a passthrough test with a single master and single bank
+// [1] L2 Memory Test 64KB: 1 input, 4 output banks
+// [2] J memory wide 32KB: 1 input, 1 output, wide data (4096 bits)
+// [3] J memory narr 32KB: 1 input, 64 output banks
+// [4] Flip memory wide 32KB: 1 input, 1 output, wide data (256 bits)
+// [5] Flip memory narr 32KB: 1 input, 4 output banks
+
 // Project-wide includes
 `include "lagd_define.svh"
 `include "lagd_typedef.svh"
@@ -101,8 +108,8 @@ module tb_tcdm_interconnect_wrap #(
             .AddrWidth(AddrWidth),
             .DataWidth(DataWidth),
             .TestRegionStart(0),
-            .TestRegionEnd(1 << AddrWidth),
-            .NumTransactions(16),
+            .TestRegionEnd(1 << ($clog2(BeWidth) + $clog2(NumOut))),
+            .NumTransactions(NumOut),
             .mem_req_t(lagd_mem_narr_req_t)
         ) mst_agent (
             .clk_i(clk_i),

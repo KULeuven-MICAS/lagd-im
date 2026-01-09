@@ -13,9 +13,11 @@ module mem_seq_generator #(
     parameter int unsigned TestRegionStart = 0,
     parameter int unsigned TestRegionEnd   = 1024,
     parameter int unsigned NumTransactions = 16,
+    parameter int unsigned ApplicationTime = 2,
     parameter type mem_req_t = logic,
 
-    parameter int unsigned AddrStep = $floor((TestRegionEnd - TestRegionStart) / NumTransactions)
+    parameter int unsigned AddrStep = $floor((TestRegionEnd - TestRegionStart) / NumTransactions),
+    parameter int unsigned TA = ApplicationTime
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -26,8 +28,6 @@ module mem_seq_generator #(
     output logic test_complete_o
 );
 
-    `include "tb_config.svh"
-
     initial begin
         req_o = '0;
         req_o.q.addr  <= TestRegionStart;
@@ -35,17 +35,16 @@ module mem_seq_generator #(
         wait (!rst_ni && start_test_i);
         @(posedge clk_i);
         while (req_o.q.addr < TestRegionEnd) begin
-            req_o.q_valid <= 1'b1;
-            req_o.q.addr  <= req_o.q.addr + AddrStep;
-            req_o.q.data  <= {$urandom_range(0, 2**DataWidth-1)};
-            req_o.q.strb  <= {BeWidth{1'b1}};
-            req_o.q.write <= $urandom_range(0,1);
+            req_o.q_valid <= #TA 1'b1;
+            req_o.q.data  <= #TA {$urandom_range(0, 2**DataWidth-1)};
+            req_o.q.strb  <= #TA {BeWidth{1'b1}};
+            req_o.q.write <= #TA $urandom_range(0,1);
             @(posedge clk_i);
             wait (read_ready_i);
             req_o.q_valid <= 1'b0;
+            req_o.q.addr  <= #TA req_o.q.addr + AddrStep;
             @(posedge clk_i);
         end
         test_complete_o = 1'b1;
     end
-
 endmodule
