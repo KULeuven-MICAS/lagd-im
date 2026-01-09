@@ -16,10 +16,10 @@
 module tb_flip_manager;
 
     // Module parameters
-    localparam int NUM_SPIN = 8; // number of spins
-    localparam int ENERGY_TOTAL_BIT = 4; // bit width of total energy
+    localparam int NUM_SPIN = 256; // number of spins
+    localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int SPIN_DEPTH = 2; // depth of spin/energy FIFOs
-    localparam int FLIP_ICON_DEPTH = 2; // 7 to be tested, number of entries in flip, must be multiply of SPIN_DEPTH
+    localparam int FLIP_ICON_DEPTH = 1024; // number of entries in flip, can be odd and even number
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
@@ -74,7 +74,8 @@ module tb_flip_manager;
     integer transaction_count_flip_icon;
     integer transaction_count_analog_rx;
     integer transaction_count_analog_tx;
-    integer readout_count_host;
+    logic [$clog2(SPIN_DEPTH):0] readout_count_host;
+    logic [$clog2(SPIN_DEPTH):0] readout_spin_addr_host;
     integer transaction_count_energy_monitor;
     integer rnd_delay;
     integer energy_handshake_count;
@@ -84,6 +85,7 @@ module tb_flip_manager;
     logic signed [ENERGY_TOTAL_BIT-1:0] energy_fifo_scoreboard [0:SPIN_DEPTH-1];
     logic [NUM_SPIN-1:0] spin_fifo_scoreboard [0:SPIN_DEPTH-1];
     logic [NUM_SPIN-1:0] expected_flipped_spin;
+    logic icon_last_raddr_plus_one_is_odd;
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
 
@@ -157,7 +159,7 @@ module tb_flip_manager;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            #(2_000_000 * CLKCYCLE);
+            #(20_000_000 * CLKCYCLE);
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -319,6 +321,7 @@ module tb_flip_manager;
                 host_readout_i = 0;
                 spin_pop_ready_host = 0;
                 cmpt_test_count = 0;
+                icon_last_raddr_plus_one_is_odd = 0;
                 @(posedge clk_i);
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
@@ -326,6 +329,7 @@ module tb_flip_manager;
             #(0.1 * CLKCYCLE);
             while (cmpt_test_count < 1) begin
                 readout_count_host = 0;
+                readout_spin_addr_host = 0;
                 host_readout_i = 0;
                 spin_pop_ready_host = 0;
                 cmpt_en_i = 1;
@@ -340,30 +344,27 @@ module tb_flip_manager;
                 host_readout_i = 1;
                 flip_disable_i = 1; // disable flipping during host readout
                 spin_pop_ready_host = 1;
+                icon_last_raddr_plus_one_is_odd = icon_last_raddr_plus_one_i[0];
                 while (readout_count_host < SPIN_DEPTH) begin
-                    // do begin
-                    //     @(posedge clk_i);
-                    //     $display("Host readout waiting at time %t", $time);
-                    // end
                     while (!spin_pop_valid_o) begin
-                        @(posedge clk_i);
-                        $display("Host readout waiting at time %t", $time);
+                        // $display("Host readout waiting at time %t", $time); // for debug
+                        @(negedge clk_i);
                     end
-                    #(0.1 * CLKCYCLE);
                     spin_read_out_host = spin_pop_o;
                     // check FIFO content
-                    if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host]) begin
+                    readout_spin_addr_host = icon_last_raddr_plus_one_is_odd ? (readout_count_host + 1) % SPIN_DEPTH : readout_count_host;
+                    if (spin_read_out_host !== dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_spin_addr_host]) begin
                         // note: this check fails if SPIN_DEPTH % NUM_SPIN != 0
                         $display(1, "Error: Host readout FIFO content ['d%0d] mismatch at time %t: expected 'h%h, got 'h%h",
-                            readout_count_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_count_host], spin_read_out_host);
-                        @(posedge clk_i);
+                            readout_spin_addr_host, $time, dut.u_spin_fifo_maintainer.spin_fifo.mem_n[readout_spin_addr_host], spin_read_out_host);
+                        @(negedge clk_i);
                         $finish;
                     end else begin
                         $display("Pass: Host readout FIFO content ['d%0d] match at time %t: got 'h%h",
-                            readout_count_host, $time, spin_read_out_host);
+                            readout_spin_addr_host, $time, spin_read_out_host);
                     end
                     readout_count_host++;
-                    @(posedge clk_i);
+                    @(negedge clk_i);
                 end
                 host_readout_i = 0;
                 flip_disable_i = 0;
@@ -371,9 +372,9 @@ module tb_flip_manager;
                 cmpt_en_i = 0;
 
                 if (readout_count_host == SPIN_DEPTH) begin
-                    $display("------------------ Host Readout Check ----------------");
-                    $display("-- All readout tests completed [Readout count: 'd%0d] --", readout_count_host);
-                    $display("------------------------------------------------------");
+                    $display("----------------------- Host Readout Check ---------------------");
+                    $display("-- All readout tests completed successfully [Readout count: 'd%0d]! --", readout_count_host);
+                    $display("----------------------------------------------------------------");
                     @(posedge clk_i);
                 end
                 cmpt_test_count++;
