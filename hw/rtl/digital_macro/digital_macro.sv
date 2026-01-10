@@ -79,6 +79,7 @@ module digital_macro #(
     input  logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input  logic [NUM_SPIN-1:0] flip_rdata_i,
     input  logic flip_disable_i,
+    output logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o,
     // runtime interface: energy monitor
     input  logic weight_valid_i,
     output logic [$clog2(NUM_SPIN / PARALLELISM)-1:0] weight_raddr_o,
@@ -186,7 +187,8 @@ module digital_macro #(
         .flip_raddr_o                   (flip_raddr_o               ),
         .icon_last_raddr_plus_one_i     (icon_last_raddr_plus_one_i ),
         .flip_rdata_i                   (flip_rdata_i               ),
-        .flip_disable_i                 (flip_disable_i             )
+        .flip_disable_i                 (flip_disable_i             ),
+        .energy_fifo_o                  (energy_fifo_o              )
     );
 
     analog_macro_wrap #(
@@ -203,6 +205,7 @@ module digital_macro #(
         .cfg_trans_num_i                (cfg_trans_num_i            ),
         .cycle_per_wwl_high_i           (cycle_per_wwl_high_i       ),
         .cycle_per_wwl_low_i            (cycle_per_wwl_low_i        ),
+        .cycle_per_spin_write_i         (cycle_per_spin_write_i     ),
         .cycle_per_spin_compute_i       (cycle_per_spin_compute_i   ),
         .spin_wwl_strobe_i              (spin_wwl_strobe_i          ),
         .spin_mode_i                    (spin_mode_i                ),

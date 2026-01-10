@@ -62,6 +62,7 @@ module tb_digital_macro;
     logic clk_i;
     logic rst_ni;
     logic en_aw_i, en_fm_i, en_em_i, en_analog_loop_i;
+    logic en_i;
     logic config_valid_em_i, config_em_done;
     logic config_valid_fm_i, config_fm_done;
     logic config_valid_aw_i, config_aw_done;
@@ -107,6 +108,7 @@ module tb_digital_macro;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_o;
     logic [NUM_SPIN-1 : 0 ] spin_compute_en_o;
     logic [ NUM_SPIN-1 : 0 ] analog_spin_i;
+    logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o;
 
     // testbench signals
     logic [NUM_SPIN-1:0][NUM_SPIN*BITJ-1:0] weights_in_txt, weights_analog;
@@ -186,9 +188,9 @@ module tb_digital_macro;
         .wblb_o                     (wblb_o                     ),
         .spin_wwl_o                 (spin_wwl_o                 ),
         .spin_compute_en_o          (spin_compute_en_o          ),
-        .analog_spin_i              (analog_spin_i              )
+        .analog_spin_i              (analog_spin_i              ),
+        .energy_fifo_o              (energy_fifo_o              )
     );
-        
 
     // Clock generation
     initial begin
@@ -196,14 +198,20 @@ module tb_digital_macro;
         forever #(CLKCYCLE/2) clk_i = ~clk_i;
     end
 
+    assign en_aw_i = en_i;
+    assign en_em_i = en_i;
+    assign en_fm_i = en_i;
+
     // Reset and en_i generation
     initial begin
         rst_ni = 0;
         en_i = 0;
+        en_analog_loop_i = 0;
         #(5 * CLKCYCLE);
         rst_ni = 1;
         #(5 * CLKCYCLE);
         en_i = 1;
+        en_analog_loop_i = 1;
     end
 
     // Run tests
