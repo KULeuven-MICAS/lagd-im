@@ -46,6 +46,8 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 
 *SYNCHRONIZER_PIPEDEPTH*: [int] maximal synchronizer depth (default: 3)
 
+*SPIN_WBL_OFFSET*: [int] since WBL is used by both data onloading operation and spin onloading operation. This parameter defines which bit in WBL is used for spin onloading for every *BITDATA* bits. (default: 0).
+
 ## Runtime Configurable Parameters
 
 *cfg_trans_num_i*: [COUNTER_BITWIDTH-1:0] targeted number of onloading transactions during data onloading (default: the maximal value).
@@ -63,8 +65,6 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 *spin_mode_i*: [NUM_SPIN-1:0] the spin mode input of the analog macro.
 
 *synchronizer_pipe_num_i*: [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] selected synchronizer depth (default: the maximal value).
-
-*synchronizer_mode_i*: synchronizer mode. If 1, synchronizer works continuously. If 0, it works only when an internal counter reaches *cycle_per_spin_compute_i* (default: 0).
 
 ## Module Interface
 
