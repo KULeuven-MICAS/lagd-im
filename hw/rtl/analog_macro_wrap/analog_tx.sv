@@ -51,20 +51,20 @@ module analog_tx #(
     assign spin_shift_reg[0] = spin_to_be_synchronized;
     assign analog_macro_cmpt_finish_pulse_reg[0] = analog_macro_cmpt_finish_pulse;
 
-    always_comb begin
-        for (int idx = 0; idx < NUM_SPIN; idx = idx + 1) begin
+    generate
+        for (i = 0; i < NUM_SPIN; i = i + 1) begin: gen_isolation_and2_cells
             if (`SYN == 1) begin: synthesis
                 AN2OPTDHD16BWP240H8P57PDLVT u_and_inst (
                     .A1(analog_macro_cmpt_finish_pulse),
-                    .A2(spin_i[idx]),
-                    .Z(spin_to_be_synchronized[idx])
+                    .A2(spin_i[i]),
+                    .Z(spin_to_be_synchronized[i])
                 );
             end
             else begin: function_simulation
-                spin_to_be_synchronized[idx] = spin_i[idx] & analog_macro_cmpt_finish_pulse;
+                assign spin_to_be_synchronized[i] = spin_i[i] & analog_macro_cmpt_finish_pulse;
             end
         end
-    end
+    endgenerate
 
     always_comb begin
         if (synchronizer_pipe_num_reg <= SYNCHRONIZER_PIPEDEPTH)
