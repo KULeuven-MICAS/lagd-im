@@ -47,7 +47,7 @@ module analog_cfg #(
     logic wwl_high_counter_en_cond, wwl_low_counter_en_cond;
     logic wwl_high_counter_maxed, wwl_low_counter_maxed;
     logic h_ren_n, j_mem_ren_n;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_comb, j_rdata_wbl;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_comb, wbl_comb_in_analog_format, j_rdata_wbl;
     logic [$clog2(PARALLELISM)-1:0] j_mux_sel_nxt, j_mux_sel_q;
     logic [$clog2(PARALLELISM)-1:0] j_mux_sel_nxt_delayed, j_mux_sel_q_delayed;
     logic cfg_busy_cond;
@@ -93,13 +93,38 @@ module analog_cfg #(
     `FFL(j_mem_ren_n, j_mem_ren_o, en_i, 1'b0, clk_i, rst_ni)
     `FFLARNC(h_wwl_o, 1'b1, h_wwl_en_cond, h_wwl_idle_cond, 1'b0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
     `FFLARNC(j_one_hot_wwl_o, j_one_hot_wwl_nxt, j_wwl_en_cond, j_wwl_idle_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
-    `FFL(wbl_o, wbl_comb, wbl_en_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
+    `FFL(wbl_o, wbl_comb_in_analog_format, wbl_en_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
     `FFLARNC(j_mux_sel_q, j_mux_sel_nxt, j_mux_sel_cond, j_mux_sel_idle_cond, 'd0, clk_i, rst_ni)
     `FFLARNC(j_mux_sel_q_delayed, j_mux_sel_nxt_delayed, j_mux_sel_delayed_cond, j_mux_sel_idle_cond, 'd0, clk_i, rst_ni)
     `FFL(dt_cfg_enable_dly1, dt_cfg_enable_i, en_i, 1'b0, clk_i, rst_ni)
     `FFLARNC(wwl_high_counter_en, 1'b1, wwl_high_counter_en_cond, wwl_high_counter_maxed, 1'b0, clk_i, rst_ni)
     `FFLARNC(wwl_low_counter_en, 1'b1, wwl_low_counter_en_cond, wwl_low_counter_maxed, 1'b0, clk_i, rst_ni)
 
+    // Convert wbl_comb to analog macro format
+    always_comb begin
+        for (int i = 0; i < NUM_SPIN; i++) begin
+            case(wbl_comb[i*BITDATA +: BITDATA])
+                4'b1001: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1110; // -7
+                4'b1010: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1100; // -6
+                4'b1011: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1010; // -5
+                4'b1100: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1000; // -4
+                4'b1101: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0110; // -3
+                4'b1110: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0100; // -2
+                4'b1111: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0010; // -1
+                4'b0000: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0000; // 0
+                4'b0001: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0011; // 1
+                4'b0010: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0101; // 2
+                4'b0011: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0111; // 3
+                4'b0100: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1001; // 4
+                4'b0101: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1011; // 5
+                4'b0110: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1101; // 6
+                4'b0111: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1111; // 7
+                default: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0000; // 0
+            endcase
+        end
+    end
+
+    // Generate j_rdata_wbl based on j_mux_sel_q_delayed
     always_comb begin
         j_rdata_wbl = '0;
         for (int i = 0; i < PARALLELISM; i++) begin

@@ -13,14 +13,19 @@
 `define VCD_FILE "tb_analog_macro_wrap.vcd"
 `endif
 
+`ifndef SYN
+`define SYN 0
+`endif
+
 module tb_analog_macro_wrap;
 
     // module parameters
     localparam int NUM_SPIN = 256; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
-    localparam int COUNTER_BITWIDTH = 16;
+    localparam int COUNTER_BITWIDTH = 8;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
+    localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
     localparam int OnloadingTestNum = 1_000_000; // number of onloading tests
     localparam int CmptTestNum = 1_000_000; // number of compute tests
@@ -29,12 +34,11 @@ module tb_analog_macro_wrap;
     localparam int CLKCYCLE = 2;
 
     // dut run-time configuration
-    localparam int CyclePerWwlHigh = 50;
-    localparam int CyclePerWwlLow = 50;
-    localparam int CyclePerSpinWrite = 50;
-    localparam int CyclePerSpinCompute = 100;
+    localparam int CyclePerWwlHigh = 5;
+    localparam int CyclePerWwlLow = 5;
+    localparam int CyclePerSpinWrite = 4;
+    localparam int CyclePerSpinCompute = 8;
     localparam int SynchronizerPipeNum = 3;
-    localparam int SynchronizerMode = 0; // 0: one-shot; 1: continuous
     localparam int SpinWwlStrobe = {256{1'b1}}; // all spins enabled
     localparam int SpinMode = {256{1'b1}}; // all spins in compute mode
 
@@ -50,7 +54,6 @@ module tb_analog_macro_wrap;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
     logic [NUM_SPIN-1:0] spin_mode_i;
     logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_pipe_num_i;
-    logic synchronizer_mode_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
     logic [J_ADDRESS_WIDTH-1:0] j_raddr_o;
@@ -59,14 +62,16 @@ module tb_analog_macro_wrap;
     logic [NUM_SPIN*BITDATA-1:0] h_rdata_i, hbias_in_reg;
     logic [NUM_SPIN-1:0] j_one_hot_wwl_o;
     logic h_wwl_o;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_o, wbl_copy;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_o, wbl_copy, wblb_o, wbl_floating_o;
     logic spin_pop_valid_i;
     logic spin_pop_ready_o;
+    logic spin_pop_handshake;
     logic [NUM_SPIN-1:0] spin_pop_i, spin_pop_ref;
     logic spin_pop_ref_valid;
     logic [NUM_SPIN-1:0] spin_wwl_o;
-    logic [NUM_SPIN-1:0] spin_compute_en_o;
-    logic [NUM_SPIN-1:0] spin_i;
+    logic [NUM_SPIN-1:0] spin_feedback_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_i;
+    logic [NUM_SPIN-1:0] spin_analog_i;
     logic spin_valid_o;
     logic spin_ready_i;
     logic [NUM_SPIN-1:0] spin_o;
@@ -88,6 +93,14 @@ module tb_analog_macro_wrap;
     integer config_test_correct_cnt_j, config_test_correct_cnt_h;
     integer cmpt_correct_cnt, cmpt_error_cnt;
 
+    assign spin_pop_handshake = spin_pop_valid_i & spin_pop_ready_o;
+
+    always_comb begin
+        for (int i=0; i < NUM_SPIN; i=i+1) begin
+            spin_analog_i[i] = wbl_i[i*BITDATA + SPIN_WBL_OFFSET];
+        end
+    end
+
     initial begin
         en_i = 1;
     end
@@ -98,7 +111,8 @@ module tb_analog_macro_wrap;
         .BITDATA(BITDATA),
         .PARALLELISM(PARALLELISM),
         .COUNTER_BITWIDTH(COUNTER_BITWIDTH),
-        .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPE_DEPTH)
+        .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPE_DEPTH),
+        .SPIN_WBL_OFFSET(SPIN_WBL_OFFSET)
     ) dut (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -112,7 +126,6 @@ module tb_analog_macro_wrap;
         .spin_wwl_strobe_i(spin_wwl_strobe_i),
         .spin_mode_i(spin_mode_i),
         .synchronizer_pipe_num_i(synchronizer_pipe_num_i),
-        .synchronizer_mode_i(synchronizer_mode_i),
         .dt_cfg_enable_i(dt_cfg_enable_i),
         .j_mem_ren_o(j_mem_ren_o),
         .j_raddr_o(j_raddr_o),
@@ -122,13 +135,14 @@ module tb_analog_macro_wrap;
         .j_one_hot_wwl_o(j_one_hot_wwl_o),
         .h_wwl_o(h_wwl_o),
         .wbl_o(wbl_o),
-        .wblb_o(),
+        .wblb_o(wblb_o),
+        .wbl_floating_o(wbl_floating_o),
         .spin_pop_valid_i(spin_pop_valid_i),
         .spin_pop_ready_o(spin_pop_ready_o),
         .spin_pop_i(spin_pop_i),
         .spin_wwl_o(spin_wwl_o),
-        .spin_compute_en_o(spin_compute_en_o),
-        .spin_i(spin_i),
+        .spin_analog_i(spin_analog_i),
+        .spin_feedback_o(spin_feedback_o),
         .spin_valid_o(spin_valid_o),
         .spin_ready_i(spin_ready_i),
         .spin_o(spin_o),
@@ -198,7 +212,6 @@ module tb_analog_macro_wrap;
         cycle_per_spin_write_i = 'd0;
         cycle_per_spin_compute_i = 'd0;
         synchronizer_pipe_num_i = 'd0;
-        synchronizer_mode_i = 1'b0;
         spin_wwl_strobe_i = 'd0;
         spin_mode_i = 'd0;
         // Apply configuration
@@ -212,7 +225,6 @@ module tb_analog_macro_wrap;
         cycle_per_spin_write_i = CyclePerSpinWrite - 1;
         cycle_per_spin_compute_i = CyclePerSpinCompute - 1;
         synchronizer_pipe_num_i = SynchronizerPipeNum;;
-        synchronizer_mode_i = SynchronizerMode;
         spin_wwl_strobe_i = SpinWwlStrobe;
         spin_mode_i = SpinMode;
         @(negedge clk_i);
@@ -245,12 +257,16 @@ module tb_analog_macro_wrap;
     // Task for h generation
     task automatic generate_hbias_input();
         integer spin_idx;
+        logic signed [BITDATA-1:0] temp_hbias;
         hbias_in_reg = 'd0;
         wait (rst_ni == 1 && en_i == 1);
         forever begin
             @(negedge clk_i);
             for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
-                hbias_in_reg[spin_idx*BITDATA +: BITDATA] = $urandom_range(0, 2**BITDATA - 1);
+                do begin
+                    temp_hbias = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                end while (temp_hbias == {1'b1, {BITDATA-1{1'b0}}});  // Exclude unsupported most negative value
+                hbias_in_reg[spin_idx*BITDATA +: BITDATA] = temp_hbias;
             end
             wait (dt_cfg_enable_i == 1); // to avoid changing hbias continuously during idle
             @(negedge clk_i);
@@ -262,7 +278,7 @@ module tb_analog_macro_wrap;
     task automatic generate_j_weights_in_mem();
         integer j_mem_addr_idx;
         integer spin_idx, inner_spin_idx;
-        logic [NUM_SPIN*BITDATA-1:0] temp_weight;
+        logic signed [BITDATA-1:0] temp_weight;
         j_mem_addr_idx = 0;
         wait (rst_ni == 1 && en_i == 1);
         forever begin
@@ -272,7 +288,9 @@ module tb_analog_macro_wrap;
                 for (spin_idx = 0; spin_idx < PARALLELISM; spin_idx = spin_idx + 1) begin
                     weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA +: NUM_SPIN*BITDATA] = 'd0;
                     for (inner_spin_idx = 0; inner_spin_idx < NUM_SPIN; inner_spin_idx = inner_spin_idx + 1) begin
-                        temp_weight = $urandom_range(0, 2**BITDATA - 1);
+                        do begin
+                            temp_weight = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                        end while (temp_weight == {1'b1, {BITDATA-1{1'b0}}});  // Exclude unsupported most negative value
                         weights_in_mem_ordered[j_mem_addr_idx*PARALLELISM + spin_idx][inner_spin_idx*BITDATA +: BITDATA]
                             = temp_weight;
                         weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA + inner_spin_idx*BITDATA +: BITDATA]
@@ -333,22 +351,29 @@ module tb_analog_macro_wrap;
         end
     endtask
 
-    // Interface: analog_wrap <-> galena spin_i output
+    // Interface: analog_wrap <-> galena output
     task automatic galena_spin_output_interface();
         integer galena_spin_cmpt_cycle_cnt;
         galena_spin_cmpt_cycle_cnt = 0;
         wait (rst_ni == 0);
-        spin_i = 'd0;
+        wbl_i = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         forever begin
             @(posedge clk_i);
+            wbl_i = 'z;
             if ($countbits(spin_wwl_o, '1) == NUM_SPIN) begin: timer_start
-                while (galena_spin_cmpt_cycle_cnt < (CyclePerSpinCompute-1)) begin
+                while (galena_spin_cmpt_cycle_cnt < (CyclePerSpinWrite+CyclePerSpinCompute-2)) begin
                     galena_spin_cmpt_cycle_cnt = galena_spin_cmpt_cycle_cnt + 1;
+                    if (galena_spin_cmpt_cycle_cnt >= CyclePerSpinWrite) begin
+                        // during compute cycles, generate random wbl_i
+                        for (int i = 0; i < NUM_SPIN * BITDATA; i = i + 1) begin
+                            wbl_i[i] = $urandom_range(0, 1);
+                        end
+                    end
                     @(posedge clk_i);
                 end
-                // after compute cycles, output spin_i
-                spin_i = wbl_copy[NUM_SPIN-1:0];
+                // after compute cycles, output wbl_i
+                wbl_i = wbl_copy;
                 galena_spin_cmpt_cycle_cnt = 0;
             end
         end
@@ -388,6 +413,32 @@ module tb_analog_macro_wrap;
     // ========================================================================
     // Checks
     // ========================================================================
+    // Function for converting wbl in analog format to signed integer
+    function automatic integer wbl_analog_to_signed_int(input logic [4-1:0] wbl_analog);
+        logic signed [4-1:0] signed_int;
+        begin
+            case (wbl_analog)
+                4'b1110: signed_int = -7;
+                4'b1100: signed_int = -6;
+                4'b1010: signed_int = -5;
+                4'b1000: signed_int = -4;
+                4'b0110: signed_int = -3;
+                4'b0100: signed_int = -2;
+                4'b0010: signed_int = -1;
+                4'b0000: signed_int = 0;
+                4'b0011: signed_int = 1;
+                4'b0101: signed_int = 2;
+                4'b0111: signed_int = 3;
+                4'b1001: signed_int = 4;
+                4'b1011: signed_int = 5;
+                4'b1101: signed_int = 6;
+                4'b1111: signed_int = 7;
+                default: signed_int = 'z;
+            endcase
+            return signed_int;
+        end
+    endfunction
+
     // Task for analog galena interface: config data check: j
     task automatic analog_interface_config_check_j();
         config_test_correct_cnt_j = 0;
@@ -418,7 +469,10 @@ module tb_analog_macro_wrap;
                         dt_write_cycle_cnt_j = dt_write_cycle_cnt_j + 1;
                     end
                 end
-                weights_analog[galena_addr_idx] = wbl_o;
+                for (int i=0; i<NUM_SPIN; i=i+1) begin
+                    weights_analog[galena_addr_idx][i*BITDATA +: BITDATA]
+                        = wbl_analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                end
                 // compare data to reference
                 if (weights_analog[galena_addr_idx] != weights_in_mem_ordered[galena_addr_idx]) begin
                     $fatal(1, "[Time: %t] Error: Weights mismatch at galena_addr_idx %0d. Expected: 'h%h, Got: 'h%h",
@@ -452,7 +506,10 @@ module tb_analog_macro_wrap;
                 end
             end
             // after dt write cycles, check hbias
-            hbias_analog = wbl_o;
+            for (int i=0; i<NUM_SPIN; i=i+1) begin
+                hbias_analog[i*BITDATA +: BITDATA]
+                    = wbl_analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+            end
             // compare data to reference
             if (hbias_analog != hbias_in_reg) begin
                 $fatal(1, "[Time: %t] Error: Hbias mismatch. Expected: 'h%h, Got: 'h%h",

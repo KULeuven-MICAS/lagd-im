@@ -6,6 +6,10 @@
 //
 // Analog TX module, which transmits spin data from analog macro to digital macro.
 
+`ifndef SYN
+`define SYN 0
+`endif
+
 `include "common_cells/registers.svh"
 
 module analog_tx #(
@@ -18,7 +22,6 @@ module analog_tx #(
     // config interface
     input  logic tx_configure_enable_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
-    input  logic synchronizer_mode_i, // 0: one-shot; 1: continuous
     // spin interface: tx <- analog macro
     input  logic [NUM_SPIN-1:0] spin_i,
     // spin interface: rx -> tx
@@ -32,9 +35,9 @@ module analog_tx #(
 );
     // Internal signals
     logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_reg;
-    logic synchronizer_mode_reg;
     logic spin_handshake;
-    logic analog_macro_cmpt_finish_nxt, analog_macro_cmpt_finish_pulse;
+    logic analog_macro_cmpt_finish_pulse;
+    logic [NUM_SPIN-1:0] spin_to_be_synchronized;
     logic [SYNCHRONIZER_PIPEDEPTH:0][NUM_SPIN-1:0] spin_shift_reg;
     logic [SYNCHRONIZER_PIPEDEPTH:0] analog_macro_cmpt_finish_pulse_reg, synchronizer_shift_cond;
     logic synchronizer_pip_num_reset_cond;
@@ -44,9 +47,24 @@ module analog_tx #(
 
     assign analog_tx_idle_o = !spin_valid_o;
     assign spin_handshake = spin_valid_o & spin_ready_i;
-    assign analog_macro_cmpt_finish_pulse = analog_macro_cmpt_finish_i & ~analog_macro_cmpt_finish_nxt;
-    assign spin_shift_reg[0] = spin_i;
+    assign analog_macro_cmpt_finish_pulse = analog_macro_cmpt_finish_i; // one-cycle pulse signal
+    assign spin_shift_reg[0] = spin_to_be_synchronized;
     assign analog_macro_cmpt_finish_pulse_reg[0] = analog_macro_cmpt_finish_pulse;
+
+    always_comb begin
+        for (int idx = 0; idx < NUM_SPIN; idx = idx + 1) begin
+            if (`SYN == 1) begin: synthesis
+                AN2OPTDHD16BWP240H8P57PDLVT u_and_inst (
+                    .A1(analog_macro_cmpt_finish_pulse),
+                    .A2(spin_i[idx]),
+                    .Z(spin_to_be_synchronized[idx])
+                );
+            end
+            else begin: function_simulation
+                spin_to_be_synchronized[idx] = spin_i[idx] & analog_macro_cmpt_finish_pulse;
+            end
+        end
+    end
 
     always_comb begin
         if (synchronizer_pipe_num_reg <= SYNCHRONIZER_PIPEDEPTH)
@@ -59,7 +77,7 @@ module analog_tx #(
     generate
         for (i = 0; i < SYNCHRONIZER_PIPEDEPTH; i = i + 1) begin : gen_spin_shift_reg
             `FFL(analog_macro_cmpt_finish_pulse_reg[i+1], analog_macro_cmpt_finish_pulse_reg[i], en_i, '0, clk_i, rst_ni)
-            assign synchronizer_shift_cond[i] = en_i & (synchronizer_mode_reg | analog_macro_cmpt_finish_pulse_reg[i]);
+            assign synchronizer_shift_cond[i] = en_i & (analog_macro_cmpt_finish_pulse_reg[i]);
             `FFL(spin_shift_reg[i+1], spin_shift_reg[i], synchronizer_shift_cond[i], '0, clk_i, rst_ni)
         end
     endgenerate
@@ -70,8 +88,6 @@ module analog_tx #(
     assign spin_valid_reset_cond = !en_i | spin_handshake;
 
     `FFL(synchronizer_pipe_num_reg, synchronizer_pipe_num_i, synchronizer_pip_num_reset_cond, {($clog2(SYNCHRONIZER_PIPEDEPTH)){1'b1}}, clk_i, rst_ni)
-    `FFL(synchronizer_mode_reg, synchronizer_mode_i, synchronizer_mode_reset_cond, 1'b0, clk_i, rst_ni)
     `FFLARNC(spin_valid_o, 1'b1, spin_valid_cond, spin_valid_reset_cond, 1'b0, clk_i, rst_ni)
-    `FFL(analog_macro_cmpt_finish_nxt, analog_macro_cmpt_finish_i, en_i, 1'b0, clk_i, rst_ni)
 
 endmodule
