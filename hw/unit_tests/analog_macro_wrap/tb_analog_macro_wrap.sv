@@ -51,6 +51,7 @@ module tb_analog_macro_wrap;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_high_i, cycle_per_wwl_low_i;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i;
+    logic bypass_data_conversion_i;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
     logic [NUM_SPIN-1:0] spin_mode_i;
     logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_pipe_num_i;
@@ -66,6 +67,7 @@ module tb_analog_macro_wrap;
     logic spin_pop_valid_i;
     logic spin_pop_ready_o;
     logic spin_pop_handshake;
+    logic spin_push_handshake;
     logic [NUM_SPIN-1:0] spin_pop_i, spin_pop_ref;
     logic spin_pop_ref_valid;
     logic [NUM_SPIN-1:0] spin_wwl_o;
@@ -94,6 +96,7 @@ module tb_analog_macro_wrap;
     integer cmpt_correct_cnt, cmpt_error_cnt;
 
     assign spin_pop_handshake = spin_pop_valid_i & spin_pop_ready_o;
+    assign spin_push_handshake = spin_valid_o & spin_ready_i;
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -103,6 +106,7 @@ module tb_analog_macro_wrap;
 
     initial begin
         en_i = 1;
+        bypass_data_conversion_i = 0;
     end
 
     // Module instantiation
@@ -123,6 +127,7 @@ module tb_analog_macro_wrap;
         .cycle_per_wwl_low_i(cycle_per_wwl_low_i),
         .cycle_per_spin_write_i(cycle_per_spin_write_i),
         .cycle_per_spin_compute_i(cycle_per_spin_compute_i),
+        .bypass_data_conversion_i(bypass_data_conversion_i),
         .spin_wwl_strobe_i(spin_wwl_strobe_i),
         .spin_mode_i(spin_mode_i),
         .synchronizer_pipe_num_i(synchronizer_pipe_num_i),
@@ -171,11 +176,11 @@ module tb_analog_macro_wrap;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile(`VCD_FILE);
-            $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
+            // $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(1_000 * CLKCYCLE); // To avoid generating huge VCD files
-            $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
-            $finish;
+            // #(1_000 * CLKCYCLE); // To avoid generating huge VCD files
+            // $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
+            // $finish;
         end
         else begin
             // $timeformat(-9, 1, " ns", 9);
@@ -203,7 +208,6 @@ module tb_analog_macro_wrap;
     // ========================================================================
     // Task for AW config interface
     task automatic aw_config_interface();
-        wait (rst_ni == 0);
         config_aw_done = 0;
         analog_wrap_configure_enable_i = 0;
         cfg_trans_num_i = 'd0;
@@ -307,8 +311,6 @@ module tb_analog_macro_wrap;
 
     // Interface: J mem <-> analog wrap
     task automatic j_mem_interface();
-        wait (rst_ni == 0);
-        @(negedge clk_i);
         j_rdata_latched = 'd0;
         j_raddr_ref = 'd0;
         wait (rst_ni == 1 && en_i == 1);
@@ -329,7 +331,6 @@ module tb_analog_macro_wrap;
     // Interface: analog_wrap <-> galena spin wwl
     task automatic galena_spin_wwl_interface();
         galena_spin_write_cycle_cnt = 0;
-        wait (rst_ni == 0);
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         forever begin
             @(posedge clk_i);
@@ -355,7 +356,6 @@ module tb_analog_macro_wrap;
     task automatic galena_spin_output_interface();
         integer galena_spin_cmpt_cycle_cnt;
         galena_spin_cmpt_cycle_cnt = 0;
-        wait (rst_ni == 0);
         wbl_i = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         forever begin
@@ -384,8 +384,8 @@ module tb_analog_macro_wrap;
         spin_ready_i = 1;
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         forever begin
-            @(negedge clk_i);
-            spin_ready_i = $urandom_range(0, 1); // randomly generate ready signal
+            @(posedge clk_i);
+            spin_ready_i = 1; // randomly generate ready signal
         end
     endtask
 
@@ -393,12 +393,12 @@ module tb_analog_macro_wrap;
     task automatic flip_manager_interface();
         integer spin_idx;
         integer spin_pop_handshake_cnt;
+        spin_pop_i = 'd0;
         spin_pop_handshake_cnt = 0;
-        wait (rst_ni == 0);
         spin_pop_valid_i = 0;
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         while (spin_pop_handshake_cnt < CmptTestNum) begin
-            @(negedge clk_i);
+            @(posedge clk_i);
             spin_pop_valid_i = $urandom_range(0, 1); // randomly generate valid signal
             if (spin_pop_ready_o == 1 && spin_pop_valid_i == 1) begin
                 // provide new spin_pop_i
@@ -418,22 +418,22 @@ module tb_analog_macro_wrap;
         logic signed [4-1:0] signed_int;
         begin
             case (wbl_analog)
-                4'b1110: signed_int = -7;
-                4'b1100: signed_int = -6;
-                4'b1010: signed_int = -5;
-                4'b1000: signed_int = -4;
-                4'b0110: signed_int = -3;
-                4'b0100: signed_int = -2;
-                4'b0010: signed_int = -1;
-                4'b0000: signed_int = 0;
-                4'b0011: signed_int = 1;
-                4'b0101: signed_int = 2;
-                4'b0111: signed_int = 3;
-                4'b1001: signed_int = 4;
-                4'b1011: signed_int = 5;
-                4'b1101: signed_int = 6;
-                4'b1111: signed_int = 7;
-                default: signed_int = 'z;
+                4'b1110: signed_int = -7; // 4'b1001
+                4'b1100: signed_int = -6; // 4'b1010
+                4'b1010: signed_int = -5; // 4'b1011
+                4'b1000: signed_int = -4; // 4'b1100
+                4'b0110: signed_int = -3; // 4'b1101
+                4'b0100: signed_int = -2; // 4'b1110
+                4'b0010: signed_int = -1; // 4'b1111
+                4'b0000: signed_int =  0; // 4'b0000
+                4'b0011: signed_int =  1; // 4'b0001
+                4'b0101: signed_int =  2; // 4'b0010
+                4'b0111: signed_int =  3; // 4'b0011
+                4'b1001: signed_int =  4; // 4'b0100
+                4'b1011: signed_int =  5; // 4'b0101
+                4'b1101: signed_int =  6; // 4'b0110
+                4'b1111: signed_int =  7; // 4'b0111
+                default: signed_int = 'z; // floating for invalid codes
             endcase
             return signed_int;
         end
@@ -470,8 +470,13 @@ module tb_analog_macro_wrap;
                     end
                 end
                 for (int i=0; i<NUM_SPIN; i=i+1) begin
-                    weights_analog[galena_addr_idx][i*BITDATA +: BITDATA]
-                        = wbl_analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                    if (bypass_data_conversion_i) begin
+                        weights_analog[galena_addr_idx][i*BITDATA +: BITDATA]
+                            = wbl_o[i*BITDATA +: BITDATA];
+                    end else begin
+                        weights_analog[galena_addr_idx][i*BITDATA +: BITDATA]
+                            = wbl_analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                    end
                 end
                 // compare data to reference
                 if (weights_analog[galena_addr_idx] != weights_in_mem_ordered[galena_addr_idx]) begin
@@ -507,8 +512,13 @@ module tb_analog_macro_wrap;
             end
             // after dt write cycles, check hbias
             for (int i=0; i<NUM_SPIN; i=i+1) begin
-                hbias_analog[i*BITDATA +: BITDATA]
-                    = wbl_analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                if (bypass_data_conversion_i) begin
+                    hbias_analog[i*BITDATA +: BITDATA]
+                    = wbl_o[i*BITDATA +: BITDATA];
+                end else begin
+                    hbias_analog[i*BITDATA +: BITDATA]
+                        = wbl_analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                end
             end
             // compare data to reference
             if (hbias_analog != hbias_in_reg) begin
@@ -549,11 +559,11 @@ module tb_analog_macro_wrap;
     task automatic spin_o_check();
         cmpt_correct_cnt = 0;
         cmpt_error_cnt = 0;
-        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         spin_pop_ref_valid = 0;
         spin_pop_ref = 'd0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         while (cmpt_correct_cnt + cmpt_error_cnt < CmptTestNum) begin
-            @(posedge clk_i);
+            @(negedge clk_i);
             if (spin_pop_ready_o & spin_pop_valid_i) begin: fetch_spin_pop
                 if (spin_pop_ref_valid == 1)
                     $fatal(1, "[Time: %t] Error: spin_pop_ref valid signal not cleared before new data arrival.",
@@ -589,7 +599,7 @@ module tb_analog_macro_wrap;
         $display("CMPT Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
             $time, cmpt_correct_cnt, CmptTestNum, cmpt_error_cnt, CmptTestNum);
         $display("----------------------------------------");
-        @(posedge clk_i);
+        repeat (10) @(posedge clk_i);
         $finish;
     endtask
 
