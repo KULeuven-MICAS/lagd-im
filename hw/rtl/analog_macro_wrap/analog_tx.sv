@@ -84,7 +84,7 @@ module analog_tx #(
 
     assign synchronizer_pip_num_reset_cond = en_i & tx_configure_enable_i;
     assign synchronizer_mode_reset_cond = en_i & tx_configure_enable_i;
-    assign spin_valid_cond = en_i & analog_macro_cmpt_finish_pulse_reg[synchronizer_pipe_num_reg-1'b1];
+    assign spin_valid_cond = en_i & analog_macro_cmpt_finish_pulse_reg[synchronizer_pipe_num_i];
     assign spin_valid_reset_cond = !en_i | spin_handshake;
 
     `FFL(synchronizer_pipe_num_reg, synchronizer_pipe_num_i, synchronizer_pip_num_reset_cond, {($clog2(SYNCHRONIZER_PIPEDEPTH)){1'b1}}, clk_i, rst_ni)
