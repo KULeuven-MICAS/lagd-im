@@ -29,6 +29,7 @@ module analog_macro_wrap #(
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
+    input  logic bypass_data_conversion_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_mode_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
@@ -96,6 +97,7 @@ module analog_macro_wrap #(
         .en_i (en_i),
         // config interface
         .cfg_configure_enable_i (analog_wrap_configure_enable_i),
+        .bypass_data_conversion_i (bypass_data_conversion_i),
         .cycle_per_wwl_high_i (cycle_per_wwl_high_i),
         .cycle_per_wwl_low_i (cycle_per_wwl_low_i),
         .cfg_trans_num_i (cfg_trans_num_i),

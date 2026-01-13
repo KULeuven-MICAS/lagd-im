@@ -24,6 +24,7 @@ module analog_cfg #(
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_high_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
     input  logic [COUNTER_BITWIDTH-1:0] cfg_trans_num_i,
+    input  logic bypass_data_conversion_i,
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
     output logic j_mem_ren_o,
@@ -60,6 +61,8 @@ module analog_cfg #(
     logic j_mux_sel_idle_cond;
     logic dt_cfg_enable_dly1;
     logic j_mem_ren_p;
+    logic bypass_data_conversion_reg;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_o_comb;
 
     assign h_ren_o = cfg_busy & (counter_addr_q == HADDR) & (~dt_cfg_finish) & wwl_low_counter_maxed;
     assign j_mem_ren_p = dt_cfg_enable_dly1 | 
@@ -88,17 +91,20 @@ module analog_cfg #(
     assign wwl_low_counter_en_cond = en_i & wwl_high_counter_maxed;
 
     assign j_mem_ren_o = j_mem_ren_p;
+    assign wbl_o_comb = bypass_data_conversion_reg ? wbl_comb : wbl_comb_in_analog_format;
+
     `FFLARNC(cfg_busy, 1'b1, cfg_busy_cond, cfg_idle_cond, 1'b0, clk_i, rst_ni)
     `FFL(h_ren_n, h_ren_o, en_i, 1'b0, clk_i, rst_ni)
     `FFL(j_mem_ren_n, j_mem_ren_o, en_i, 1'b0, clk_i, rst_ni)
     `FFLARNC(h_wwl_o, 1'b1, h_wwl_en_cond, h_wwl_idle_cond, 1'b0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
     `FFLARNC(j_one_hot_wwl_o, j_one_hot_wwl_nxt, j_wwl_en_cond, j_wwl_idle_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
-    `FFL(wbl_o, wbl_comb_in_analog_format, wbl_en_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
+    `FFL(wbl_o, wbl_o_comb, wbl_en_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
     `FFLARNC(j_mux_sel_q, j_mux_sel_nxt, j_mux_sel_cond, j_mux_sel_idle_cond, 'd0, clk_i, rst_ni)
     `FFLARNC(j_mux_sel_q_delayed, j_mux_sel_nxt_delayed, j_mux_sel_delayed_cond, j_mux_sel_idle_cond, 'd0, clk_i, rst_ni)
     `FFL(dt_cfg_enable_dly1, dt_cfg_enable_i, en_i, 1'b0, clk_i, rst_ni)
     `FFLARNC(wwl_high_counter_en, 1'b1, wwl_high_counter_en_cond, wwl_high_counter_maxed, 1'b0, clk_i, rst_ni)
     `FFLARNC(wwl_low_counter_en, 1'b1, wwl_low_counter_en_cond, wwl_low_counter_maxed, 1'b0, clk_i, rst_ni)
+    `FFL(bypass_data_conversion_reg, bypass_data_conversion_i, cfg_configure_enable_i, 1'b0, clk_i, rst_ni)
 
     // Convert wbl_comb to analog macro format
     always_comb begin

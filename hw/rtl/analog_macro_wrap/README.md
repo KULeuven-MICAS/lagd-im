@@ -60,6 +60,8 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 
 *cycle_per_spin_compute_i*: [COUNTER_BITWIDTH-1:0] cycle number before synchronization happens (default: the maximal value).
 
+*bypass_data_conversion_i*: whether to turn off the specific data conversion on J/h onloading (default: 0).
+
 *spin_wwl_strobe_i*: [NUM_SPIN-1:0] the spin WWL strobe. For every spin onloading, spin WWL is set as *spin_wwl_strobe*.
 
 *spin_mode_i*: [NUM_SPIN-1:0] the spin mode input of the analog macro.
