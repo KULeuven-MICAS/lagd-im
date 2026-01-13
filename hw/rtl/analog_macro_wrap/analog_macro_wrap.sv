@@ -82,7 +82,7 @@ module analog_macro_wrap #(
 
     generate
         for (i = 0; i < NUM_SPIN; i = i + 1) begin : expand_wbl_spin
-            assign wbl_spin_expanded[i*BITDATA +: BITDATA] = wbl_spin[i] << SPIN_WBL_OFFSET;
+            assign wbl_spin_expanded[i*BITDATA +: BITDATA] = {{(BITDATA-1){1'b0}}, wbl_spin[i]} << SPIN_WBL_OFFSET;
         end
     endgenerate
 
