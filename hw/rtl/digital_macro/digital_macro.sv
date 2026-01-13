@@ -29,6 +29,7 @@ module digital_macro #(
     // parameters: analog wrap
     parameter integer COUNTER_BITWIDTH = 16,
     parameter integer SYNCHRONIZER_PIPEDEPTH = 3,
+    parameter integer SPIN_WBL_OFFSET = 0,
     // derived parameters
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
     parameter integer FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH),
@@ -56,10 +57,10 @@ module digital_macro #(
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
+    input  logic bypass_data_conversion_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_mode_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
-    input  logic synchronizer_mode_i,
     // data loading interface
     input  logic dt_cfg_enable_i, // load enable
     output logic j_mem_ren_o,
@@ -95,7 +96,7 @@ module digital_macro #(
     output logic [NUM_SPIN*BITJ-1:0] wblb_o,
     // analog interface: runtime
     output logic [NUM_SPIN-1:0] spin_wwl_o,
-    output logic [NUM_SPIN-1:0] spin_compute_en_o,
+    output logic [NUM_SPIN-1:0] spin_feedback_o,
     input  logic [NUM_SPIN-1:0] analog_spin_i
 );
     // Internal signals
@@ -196,7 +197,8 @@ module digital_macro #(
         .BITDATA (BITJ),
         .PARALLELISM (PARALLELISM),
         .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
-        .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH)
+        .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH),
+        .SPIN_WBL_OFFSET (SPIN_WBL_OFFSET)
     ) u_analog_wrap (
         .clk_i                          (clk_i                      ),
         .rst_ni                         (rst_ni                     ),
@@ -207,10 +209,10 @@ module digital_macro #(
         .cycle_per_wwl_low_i            (cycle_per_wwl_low_i        ),
         .cycle_per_spin_write_i         (cycle_per_spin_write_i     ),
         .cycle_per_spin_compute_i       (cycle_per_spin_compute_i   ),
+        .bypass_data_conversion_i       (bypass_data_conversion_i   ),
         .spin_wwl_strobe_i              (spin_wwl_strobe_i          ),
         .spin_mode_i                    (spin_mode_i                ),
         .synchronizer_pipe_num_i        (synchronizer_pipe_num_i    ),
-        .synchronizer_mode_i            (synchronizer_mode_i        ),
         .dt_cfg_enable_i                (dt_cfg_enable_i            ),
         .j_mem_ren_o                    (j_mem_ren_o                ),
         .j_raddr_o                      (j_raddr_o                  ),
@@ -225,8 +227,8 @@ module digital_macro #(
         .spin_pop_ready_o               (aw_slv_ready               ),
         .spin_pop_i                     (fm_spin_out                ),
         .spin_wwl_o                     (spin_wwl_o                 ),
-        .spin_compute_en_o              (spin_compute_en_o          ),
-        .spin_i                         (analog_spin_i              ),
+        .spin_feedback_o                (spin_feedback_o            ),
+        .spin_analog_i                  (analog_spin_i              ),
         .spin_valid_o                   (aw_mst_valid               ),
         .spin_ready_i                   (em_slv_ready               ),
         .spin_o                         (analog_spin                ),
