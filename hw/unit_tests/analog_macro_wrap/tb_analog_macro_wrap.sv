@@ -176,11 +176,11 @@ module tb_analog_macro_wrap;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile(`VCD_FILE);
-            // $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
+            $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            // #(1_000 * CLKCYCLE); // To avoid generating huge VCD files
-            // $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
-            // $finish;
+            #(1_000 * CLKCYCLE); // To avoid generating huge VCD files
+            $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
+            $finish;
         end
         else begin
             // $timeformat(-9, 1, " ns", 9);
