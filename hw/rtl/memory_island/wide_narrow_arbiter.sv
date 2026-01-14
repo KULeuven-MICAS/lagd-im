@@ -121,4 +121,22 @@ module wide_narrow_arbiter #(
     `STATIC_ASSERT(WideDataWidth % NarrowDataWidth == 0,
         "Wide data width must be a multiple of narrow data width");
 
+
+    // -----------------
+    // Logs
+    // -----------------
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated mem_multicut with parameters:");
+    `ifndef TARGET_SYNOPSYS
+    $info("Module: %m");=-
+    $info("  mem_narrow_req_t: %s", $typename(mem_narrow_req_i[0]));
+    $info("  mem_narrow_rsp_t: %s", $typename(mem_narrow_rsp_o[0]));
+    $info("  mem_wide_req_t: %s", $typename(mem_wide_req_i[0]));
+    $info("  mem_wide_rsp_t: %s", $typename(mem_wide_rsp_o[0]));
+    `endif
+    $info("  NumNarrowBanks: %d", NumNarrowBanks);
+    $info("  NumWideBanks: %d", NumWideBanks);
+    $info("  WideDataWidth: %d", WideDataWidth);
+    $info("  NarrowDataWidth: %d", NarrowDataWidth);
+    `endif // TARGET_LOG_INSTS
 endmodule
