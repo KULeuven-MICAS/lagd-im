@@ -287,25 +287,34 @@ module memory_island_core import memory_island_pkg::*; #(
     localparam int unsigned WideToNarrowFactor = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
     mem_narrow_req_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_req;
     mem_narrow_rsp_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_rsp;
-    for (genvar i = 0; i < NumWideBanks; i++) begin: split_wide_req
-        wide_to_narrow_splitter #(
-            .MemAddrWidth(AddrWideWordBit + 1),
-            .BankAddrWidth(InBankAddrWidth),
-            .MemDataWidth(Cfg.WideDataWidth),
-            .BankDataWidth(Cfg.NarrowDataWidth),
-            .mem_req_t(mem_wide_req_t),
-            .mem_rsp_t(mem_wide_rsp_t),
-            .bank_req_t(mem_narrow_req_t),
-            .bank_rsp_t(mem_narrow_rsp_t)
-        ) u_split_wide_req (
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .mem_req_i(mem_wide_req_to_banks_q1[i]),
-            .mem_rsp_o(mem_wide_rsp_from_banks_q1[i]),
-            .bank_req_o(mem_wide_split_req[i]),
-            .bank_rsp_i(mem_wide_split_rsp[i])
-        );
-    end
+    generate
+        if (WideToNarrowFactor == 1) begin : gen_no_wide_split
+            // No splitting needed, connect directly
+            assign mem_wide_split_rsp[0] = mem_wide_rsp_from_banks_q1;
+            assign mem_wide_split_req[0] = mem_wide_req_to_banks_q1;
+        end else begin : gen_wide_split
+            // Splitting 
+            for (genvar i = 0; i < NumWideBanks; i++) begin: split_wide_req
+                wide_to_narrow_splitter #(
+                    .MemAddrWidth(AddrWideWordBit + 1),
+                    .BankAddrWidth(InBankAddrWidth),
+                    .MemDataWidth(Cfg.WideDataWidth),
+                    .BankDataWidth(Cfg.NarrowDataWidth),
+                    .mem_req_t(mem_wide_req_t),
+                    .mem_rsp_t(mem_wide_rsp_t),
+                    .bank_req_t(mem_narrow_req_t),
+                    .bank_rsp_t(mem_narrow_rsp_t)
+                ) u_split_wide_req (
+                    .clk_i(clk_i),
+                    .rst_ni(rst_ni),
+                    .mem_req_i(mem_wide_req_to_banks_q1[i]),
+                    .mem_rsp_o(mem_wide_rsp_from_banks_q1[i]),
+                    .bank_req_o(mem_wide_split_req[i]),
+                    .bank_rsp_i(mem_wide_split_rsp[i])
+                );
+            end
+        end
+    endgenerate
 
     // ------------
     // Bank access multiplexer
@@ -372,6 +381,7 @@ module memory_island_core import memory_island_pkg::*; #(
             .rdata_o(bank_rsp_q1[i].p.data)
         );
     end
+    // TODO: add valid answer signal back to tc_sram and connect to rsp.p.valid
 
     // ------------
     // Asserts
