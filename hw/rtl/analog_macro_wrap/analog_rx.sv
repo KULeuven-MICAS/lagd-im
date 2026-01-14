@@ -57,7 +57,7 @@ module analog_rx #(
 
     assign spin_pop_cond = en_i & spin_pop_handshake;
     assign spin_pop_ready_reset_cond = !en_i | analog_macro_idle_i;
-    assign spin_wwl_reset_cond = !en_i | wwl_high_counter_maxed;
+    assign spin_wwl_reset_cond = en_i & wwl_high_counter_maxed;
     assign analog_macro_cmpt_finish_o = en_i & cmpt_counter_maxed;
     assign config_cond = en_i & rx_configure_enable_i;
     assign wwl_high_counter_en_cond = en_i & spin_pop_handshake;
