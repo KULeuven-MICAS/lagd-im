@@ -121,7 +121,6 @@ module wide_narrow_arbiter #(
     `STATIC_ASSERT(WideDataWidth % NarrowDataWidth == 0,
         "Wide data width must be a multiple of narrow data width");
 
-
     // -----------------
     // Logs
     // -----------------
