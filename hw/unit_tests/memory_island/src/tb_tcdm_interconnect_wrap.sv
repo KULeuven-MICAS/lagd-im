@@ -20,12 +20,11 @@
 // [4] Flip memory wide 32KB: 1 input, 1 output, wide data (256 bits)
 // [5] Flip memory narr 32KB: 1 input, 4 output banks
 
+`timescale 1ns/1ps
+
 // Project-wide includes
 `include "lagd_define.svh"
 `include "lagd_typedef.svh"
-
-// ETH AXI and memory interface includes
-`include "common_cells/assertions.svh"
 
 // Testbench includes
 `include "lagd_test/tb_common.svh"
