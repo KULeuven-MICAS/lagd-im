@@ -39,8 +39,8 @@ module tb_analog_macro_wrap;
     localparam int CyclePerSpinWrite = 4;
     localparam int CyclePerSpinCompute = 8;
     localparam int SynchronizerPipeNum = 3;
-    localparam int SpinWwlStrobe = {256{1'b1}}; // all spins enabled
-    localparam int SpinMode = {256{1'b1}}; // all spins in compute mode
+    localparam int SpinWwlStrobe = {(NUM_SPIN){1'b1}}; // all spins enabled
+    localparam int SpinMode = {(NUM_SPIN){1'b1}}; // all spins in compute mode
 
     // testbench internal signals
     logic clk_i;
@@ -94,6 +94,7 @@ module tb_analog_macro_wrap;
     integer galena_spin_write_cycle_cnt;
     integer config_test_correct_cnt_j, config_test_correct_cnt_h;
     integer cmpt_correct_cnt, cmpt_error_cnt;
+    integer spin_pop_handshake_cnt;
 
     assign spin_pop_handshake = spin_pop_valid_i & spin_pop_ready_o;
     assign spin_push_handshake = spin_valid_o & spin_ready_i;
@@ -246,7 +247,8 @@ module tb_analog_macro_wrap;
         wait (rst_ni == 1 && en_i == 1 && config_aw_done == 1);
         @(negedge clk_i);
         while (onloading_test_idx < OnloadingTestNum) begin
-            $display("[Time: %t] Galena configuration testcase %0d starts.", $time, onloading_test_idx);
+            if (`DBG)
+                $display("[Time: %t] Galena configuration testcase %0d starts.", $time, onloading_test_idx);
             @(negedge clk_i);
             dt_cfg_enable_i = 1;
             @(negedge clk_i);
@@ -392,21 +394,22 @@ module tb_analog_macro_wrap;
     // Interface: analog_wrap <-> flip manager
     task automatic flip_manager_interface();
         integer spin_idx;
-        integer spin_pop_handshake_cnt;
         spin_pop_i = 'd0;
         spin_pop_handshake_cnt = 0;
         spin_pop_valid_i = 0;
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         while (spin_pop_handshake_cnt < CmptTestNum) begin
             @(posedge clk_i);
-            spin_pop_valid_i = $urandom_range(0, 1); // randomly generate valid signal
-            if (spin_pop_ready_o == 1 && spin_pop_valid_i == 1) begin
-                // provide new spin_pop_i
-                for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
-                    spin_pop_i[spin_idx] = $urandom_range(0, 1);
-                end
-                spin_pop_handshake_cnt = spin_pop_handshake_cnt + 1;
+            // generate new spin_pop_i
+            for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
+                spin_pop_i[spin_idx] = $urandom_range(0, 1);
             end
+            spin_pop_valid_i = $urandom_range(0, 1); // randomly generate valid signal
+            while (spin_pop_handshake == 0) begin
+                spin_pop_valid_i = $urandom_range(0, 1);
+                @(posedge clk_i);
+            end
+            spin_pop_handshake_cnt = spin_pop_handshake_cnt + 1;
         end
     endtask
 
@@ -489,7 +492,11 @@ module tb_analog_macro_wrap;
             config_test_correct_cnt_j = config_test_correct_cnt_j + 1;
             galena_addr_idx = 0;
         end
-        $display("[Time: %t] Galena configuration testcases [%0d/%0d] passed.", $time, config_test_correct_cnt_j, OnloadingTestNum);
+        // after all config tests
+        $display("----------------------------------------");
+        $display("Config Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+            $time, config_test_correct_cnt_j, OnloadingTestNum, OnloadingTestNum - config_test_correct_cnt_j, OnloadingTestNum);
+        $display("----------------------------------------");
     endtask
 
     // Task for analog galena interface: config data check: h
