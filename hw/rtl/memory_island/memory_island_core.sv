@@ -59,6 +59,7 @@
 // Testing:
 //      - Untested
 
+`include "lagd_platform.svh"
 
 module memory_island_core import memory_island_pkg::*; #(
     parameter type mem_narrow_req_t = logic,
@@ -216,10 +217,20 @@ module memory_island_core import memory_island_pkg::*; #(
     // Post route spilling
     // ------------
     mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks_q1;
-    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1;
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1,
+                                              mem_narrow_rsp_from_banks_q1_ready,
+                                              mem_narrow_rsp_from_banks_q1_p;
+    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: mem_narrow_rsp_from_banks_q1_assign
+        assign mem_narrow_rsp_from_banks_q1[i].q_ready = mem_narrow_rsp_from_banks_q1_ready[i].q_ready;
+        assign mem_narrow_rsp_from_banks_q1[i].p = mem_narrow_rsp_from_banks_q1_p[i].p;
+    end
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks_q1;
-    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1;
-
+    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1, mem_wide_rsp_from_banks_q1_ready,
+                                      mem_wide_rsp_from_banks_q1_p;
+    for (genvar i = 0; i < NumWideBanks; i++) begin: mem_wide_rsp_from_banks_q1_assign
+        assign mem_wide_rsp_from_banks_q1[i].q_ready = mem_wide_rsp_from_banks_q1_ready[i].q_ready;
+        assign mem_wide_rsp_from_banks_q1[i].p = mem_wide_rsp_from_banks_q1_p[i].p;
+    end
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: spill_narrow_routed
         mem_multicut #(
             .AddrWidth(Cfg.AddrWidth),
@@ -276,9 +287,9 @@ module memory_island_core import memory_island_pkg::*; #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .mem_narrow_req_i(mem_narrow_req_to_banks_q1),
-        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1),
+        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1_ready),
         .mem_wide_req_i(mem_wide_req_to_banks_q1),
-        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1)
+        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1_ready)
     );
 
     // ------------
@@ -290,8 +301,10 @@ module memory_island_core import memory_island_pkg::*; #(
     generate
         if (WideToNarrowFactor == 1) begin : gen_no_wide_split
             // No splitting needed, connect directly
-            assign mem_wide_split_rsp[0] = mem_wide_rsp_from_banks_q1;
-            assign mem_wide_split_req[0] = mem_wide_req_to_banks_q1;
+            for(genvar i = 0; i < NumWideBanks; i++) begin: connect_no_split
+                assign mem_wide_rsp_from_banks_q1_p[i].p = mem_wide_split_rsp[i][0].p;
+                assign mem_wide_split_req[i] = mem_wide_req_to_banks_q1[i][0];
+            end
         end else begin : gen_wide_split
             // Splitting 
             for (genvar i = 0; i < NumWideBanks; i++) begin: split_wide_req
@@ -308,7 +321,7 @@ module memory_island_core import memory_island_pkg::*; #(
                     .clk_i(clk_i),
                     .rst_ni(rst_ni),
                     .mem_req_i(mem_wide_req_to_banks_q1[i]),
-                    .mem_rsp_o(mem_wide_rsp_from_banks_q1[i]),
+                    .mem_rsp_o(mem_wide_rsp_from_banks_q1_p[i]),
                     .bank_req_o(mem_wide_split_req[i]),
                     .bank_rsp_i(mem_wide_split_rsp[i])
                 );
@@ -326,11 +339,10 @@ module memory_island_core import memory_island_pkg::*; #(
         for (int unsigned i = 0; i < Cfg.NumNarrowBanks; i++) begin
             automatic int unsigned wide_bank_idx = i / WideToNarrowFactor;
             automatic int unsigned narrow_part_idx = i % WideToNarrowFactor;
-
             bank_req[i] = '0;
             if (mem_narrow_rsp_from_banks_q1[i].q_ready) begin
                 bank_req[i] = mem_narrow_req_to_banks_q1[i];
-                mem_narrow_rsp_from_banks_q1[i].p = bank_rsp[i].p;
+                mem_narrow_rsp_from_banks_q1_p[i].p = bank_rsp[i].p;
             end else begin : wide_bank_access
                 bank_req[i] = mem_wide_split_req[wide_bank_idx][narrow_part_idx];
                 mem_wide_split_rsp[wide_bank_idx][narrow_part_idx].p = bank_rsp[i].p;
@@ -369,7 +381,8 @@ module memory_island_core import memory_island_pkg::*; #(
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
         tc_sram #(
             .NumWords(Cfg.WordsPerBank),
-            .DataWidth(Cfg.NarrowDataWidth)
+            .DataWidth(Cfg.NarrowDataWidth),
+            .NumPorts(1)
         ) u_bank (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
