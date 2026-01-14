@@ -128,7 +128,7 @@ module wide_narrow_arbiter #(
     `ifdef TARGET_LOG_INSTS
     $info("Instantiated wide_narrow_arbiter with parameters:");
     `ifndef TARGET_SYNOPSYS
-    $info("Module: %m");=-
+    $info("Module: %m");
     $info("  mem_narrow_req_t: %s", $typename(mem_narrow_req_i[0]));
     $info("  mem_narrow_rsp_t: %s", $typename(mem_narrow_rsp_o[0]));
     $info("  mem_wide_req_t: %s", $typename(mem_wide_req_i[0]));

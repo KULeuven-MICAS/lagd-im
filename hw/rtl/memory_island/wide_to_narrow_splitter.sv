@@ -107,4 +107,23 @@ module wide_to_narrow_splitter #(
     assign mem_rsp_o.p.valid = &rsp_valids;
     assign mem_rsp_o.q_ready = &rsp_readys;
 
+    // -----------------
+    // Logs
+    // -----------------
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated wide_to_narrow_splitter with parameters:");
+    `ifndef TARGET_SYNOPSYS
+    $info("Module: %m");
+    $info("  mem_req_t: %s", $typename(mem_req_i));
+    $info("  mem_rsp_t: %s", $typename(mem_rsp_o));
+    $info("  bank_req_t: %s", $typename(bank_req_o[0]));
+    $info("  bank_rsp_t: %s", $typename(bank_rsp_i[0]));
+    `endif
+    $info("  MemAddrWidth: %d", MemAddrWidth);
+    $info("  BankAddrWidth: %d", BankAddrWidth);
+    $info("  MemDataWidth: %d", MemDataWidth);
+    $info("  BankDataWidth: %d", BankDataWidth);
+    $info("  WordSize: %d", WordSize);
+    `endif // TARGET_LOG_INSTS
+
 endmodule

@@ -9,6 +9,8 @@
 // WideDataWidth:   [ 64, 64, 4096, 256]
 // NarrowDataWidth: [ 64, 64,   64,  64]
 
+// Validated only on the third configuration above.
+
 `timescale 1ns/1ps
 
 // Project-wide includes
