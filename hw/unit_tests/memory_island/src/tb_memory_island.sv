@@ -1,0 +1,86 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+// Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
+
+`timescale 1ns/1ps
+
+`include "lagd_define.svh"
+`include "lagd_typedef.svh"
+
+// ETH AXI and memory interface includes
+`include "axi/assign.svh"
+`include "common_cells/assertions.svh"
+
+// Testbench includes
+`include "lagd_test/tb_common.svh"
+`include "tb_config.svh"
+
+module tb_memory_island import lagd_pkg::*; #(
+    parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::L2MemCfg
+) ();
+
+    // Debug setup
+    `SETUP_DEBUG(dbg, vcd_file, tb_memory_island)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
+
+    // ========================================================================
+    // SIGNALS AND INTERFACES
+    // ========================================================================
+
+    logic clk_i, rst_ni;
+
+    lagd_axi_slv_req_t [Cfg.NumAxiNarrowReq-1:0] axi_narrow_req_i;
+    lagd_axi_slv_rsp_t [Cfg.NumAxiNarrowReq-1:0] axi_narrow_rsp_o;
+
+    lagd_axi_wide_slv_req_t [Cfg.NumAxiWideReq-1:0] axi_wide_req_i;
+    lagd_axi_wide_slv_rsp_t [Cfg.NumAxiWideReq-1:0] axi_wide_rsp_o;
+
+    lagd_mem_narr_req_t [Cfg.NumDirectNarrowReq-1:0] mem_narrow_req_i;
+    lagd_mem_narr_rsp_t [Cfg.NumDirectNarrowReq-1:0] mem_narrow_rsp_o;
+
+    lagd_mem_wide_req_t [Cfg.NumDirectWideReq-1:0] mem_wide_req_i;
+    lagd_mem_wide_rsp_t [Cfg.NumDirectWideReq-1:0] mem_wide_rsp_o;
+
+
+    // ========================================================================
+    // DUT INSTANTIATION
+    // ========================================================================
+
+    memory_island_wrap #(
+        .Cfg(Cfg),
+        .axi_narrow_req_t(lagd_axi_slv_req_t),
+        .axi_narrow_rsp_t(lagd_axi_slv_rsp_t),
+        .axi_wide_req_t(lagd_axi_wide_slv_req_t),
+        .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
+        .mem_narrow_req_t(lagd_mem_narr_req_t),
+        .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
+        .mem_wide_req_t(lagd_mem_wide_req_t),
+        .mem_wide_rsp_t(lagd_mem_wide_rsp_t)
+    ) dut (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .axi_narrow_req_i(axi_narrow_req_i),
+        .axi_narrow_rsp_o(axi_narrow_rsp_o),
+        .axi_wide_req_i(),  // Never used in lagd_soc
+        .axi_wide_rsp_o(),  // Never used in lagd_soc
+        .mem_narrow_req_i(mem_narrow_req_i),
+        .mem_narrow_rsp_o(mem_narrow_rsp_o),
+        .mem_wide_req_i(mem_wide_req_i),
+        .mem_wide_rsp_o(mem_wide_rsp_o)
+    );
+
+    // ========================================================================
+    // STIMULUS GENERATION
+    // ========================================================================
+
+    clk_rst_gen #(
+        .RstClkCycles(RST_CYCLES),
+        .ClkPeriod(CLK_PERIOD)
+    ) i_clk_gen (
+        .clk_o(clk_i),
+        .rst_no(rst_ni)
+    );
+
+endmodule
