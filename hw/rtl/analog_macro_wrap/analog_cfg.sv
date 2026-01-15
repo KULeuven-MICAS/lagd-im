@@ -62,7 +62,7 @@ module analog_cfg #(
     logic dt_cfg_enable_dly1;
     logic j_mem_ren_p;
     logic bypass_data_conversion_reg;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_o_comb;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_comb_muxed;
 
     assign h_ren_o = cfg_busy & (counter_addr_q == HADDR) & (~dt_cfg_finish) & wwl_low_counter_maxed;
     assign j_mem_ren_p = dt_cfg_enable_dly1 | 
@@ -91,14 +91,14 @@ module analog_cfg #(
     assign wwl_low_counter_en_cond = en_i & wwl_high_counter_maxed;
 
     assign j_mem_ren_o = j_mem_ren_p;
-    assign wbl_o_comb = bypass_data_conversion_reg ? wbl_comb : wbl_comb_in_analog_format;
+    assign wbl_comb_muxed = bypass_data_conversion_reg ? wbl_comb : wbl_comb_in_analog_format;
 
     `FFLARNC(cfg_busy, 1'b1, cfg_busy_cond, cfg_idle_cond, 1'b0, clk_i, rst_ni)
     `FFL(h_ren_n, h_ren_o, en_i, 1'b0, clk_i, rst_ni)
     `FFL(j_mem_ren_n, j_mem_ren_o, en_i, 1'b0, clk_i, rst_ni)
     `FFLARNC(h_wwl_o, 1'b1, h_wwl_en_cond, h_wwl_idle_cond, 1'b0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
     `FFLARNC(j_one_hot_wwl_o, j_one_hot_wwl_nxt, j_wwl_en_cond, j_wwl_idle_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
-    `FFL(wbl_o, wbl_o_comb, wbl_en_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
+    `FFL(wbl_o, wbl_comb_muxed, wbl_en_cond, 'd0, clk_i, rst_ni) // last for cycle_per_dt_write_i cycles
     `FFLARNC(j_mux_sel_q, j_mux_sel_nxt, j_mux_sel_cond, j_mux_sel_idle_cond, 'd0, clk_i, rst_ni)
     `FFLARNC(j_mux_sel_q_delayed, j_mux_sel_nxt_delayed, j_mux_sel_delayed_cond, j_mux_sel_idle_cond, 'd0, clk_i, rst_ni)
     `FFL(dt_cfg_enable_dly1, dt_cfg_enable_i, en_i, 1'b0, clk_i, rst_ni)
