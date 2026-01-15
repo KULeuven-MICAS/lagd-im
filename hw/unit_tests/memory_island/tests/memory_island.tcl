@@ -22,6 +22,7 @@ set HDL_FILES [ list \
     ${HDL_PATH}/memory_island/tcdm_interconnect_wrap.sv \
     ${HDL_PATH}/memory_island/wide_narrow_arbiter.sv \
     ${HDL_PATH}/memory_island/wide_to_narrow_splitter.sv \
+    ./src/common/axi_rand_stim_gen.sv \
     ./src/tb_memory_island.sv \
 ]
 

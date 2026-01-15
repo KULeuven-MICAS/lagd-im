@@ -18,7 +18,8 @@
 `include "tb_config.svh"
 
 module tb_memory_island import lagd_pkg::*; #(
-    parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::L2MemCfg
+    parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::L2MemCfg,
+    parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks
 ) ();
 
     // Debug setup
@@ -30,6 +31,7 @@ module tb_memory_island import lagd_pkg::*; #(
     // ========================================================================
 
     logic clk_i, rst_ni;
+    logic test_complete;
 
     lagd_axi_slv_req_t [Cfg.NumAxiNarrowReq-1:0] axi_narrow_req_i;
     lagd_axi_slv_rsp_t [Cfg.NumAxiNarrowReq-1:0] axi_narrow_rsp_o;
@@ -42,6 +44,17 @@ module tb_memory_island import lagd_pkg::*; #(
 
     lagd_mem_wide_req_t [Cfg.NumDirectWideReq-1:0] mem_wide_req_i;
     lagd_mem_wide_rsp_t [Cfg.NumDirectWideReq-1:0] mem_wide_rsp_o;
+
+    // AXI bus for stimulus generation
+    AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(Cfg.AddrWidth),
+        .AXI_DATA_WIDTH(Cfg.NarrowDataWidth),
+        .AXI_ID_WIDTH(Cfg.AxiNarrowIdWidth),
+        .AXI_USER_WIDTH(2)
+    ) axi_dv (clk_i);
+
+    `AXI_ASSIGN_TO_REQ(axi_narrow_req_i[0], axi_dv)
+    `AXI_ASSIGN_FROM_RESP(axi_dv, axi_narrow_rsp_o[0])
 
 
     // ========================================================================
@@ -82,5 +95,30 @@ module tb_memory_island import lagd_pkg::*; #(
         .clk_o(clk_i),
         .rst_no(rst_ni)
     );
+
+    axi_rand_generator #(
+        .AddrWidth(Cfg.AddrWidth),
+        .DataWidth(Cfg.NarrowDataWidth),
+        .IdWidth(Cfg.AxiNarrowIdWidth),
+        .UserWidth(2),
+        .TestRegionStart(0),
+        .TestRegionEnd(MemorySizeBytes)
+    ) i_axi_stimulus (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .axi_bus(axi_dv),
+        .test_complete_o(test_complete)
+    );
+
+    // ========================================================================
+    // TEST CONTROL
+    // ========================================================================
+
+    initial begin
+        // Wait for test to complete
+        wait(test_complete);
+        $finish(0);
+    end
+
 
 endmodule

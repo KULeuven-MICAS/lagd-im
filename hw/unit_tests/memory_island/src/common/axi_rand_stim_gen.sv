@@ -12,7 +12,9 @@ module axi_rand_generator #(
     parameter int unsigned AddrWidth = 48,
     parameter int unsigned DataWidth = 64,
     parameter int unsigned IdWidth   = 6,
-    parameter int unsigned UserWidth = 2
+    parameter int unsigned UserWidth = 2,
+    parameter longint unsigned TestRegionStart = 0,
+    parameter longint unsigned TestRegionEnd = 200
 ) (
     // Clock and reset
     input logic clk_i,
@@ -67,8 +69,8 @@ module axi_rand_generator #(
 
         // Define legal test region
         rand_master.add_memory_region(
-            TEST_REGION_START,
-            TEST_REGION_END,
+            TestRegionStart,
+            TestRegionEnd,
             axi_pkg::DEVICE_NONBUFFERABLE
         );
 
