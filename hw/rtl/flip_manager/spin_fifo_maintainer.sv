@@ -84,6 +84,7 @@ module spin_fifo_maintainer #(
     logic cmpt_stop_comb;
     logic cmpt_busy_cond;
     logic cmpt_idle_cond;
+    logic signed [NUM_SPIN-1:0] [SPIN_DEPTH-1:0] spin_fifo_data;
 
     // FIFO to store the spins
     lagd_fifo_v3 #(
@@ -103,7 +104,7 @@ module spin_fifo_maintainer #(
         .push_i(fifo_push_comb),
         .data_o(spin_pop_o),
         .pop_i(fifo_pop_comb),
-        .mem_o()  // unused
+        .mem_o(spin_fifo_data)
     );
 
     // Control logic
