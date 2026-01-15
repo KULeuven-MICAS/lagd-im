@@ -60,7 +60,7 @@ module flip_manager #(
     input logic flip_disable_i,
 
     // for debugging purposes
-    output logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o
+    output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o
 );
     // Internal signals
     logic cmpt_busy;

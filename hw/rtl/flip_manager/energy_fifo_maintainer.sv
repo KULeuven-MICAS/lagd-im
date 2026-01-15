@@ -65,7 +65,7 @@ module energy_fifo_maintainer #(
     input logic signed [ENERGY_TOTAL_BIT-1:0] energy_i,
 
     output logic [ADDR_DEPTH-1:0] debug_fifo_usage_o,
-    output logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o
+    output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o
 );
 
     // Internal signals

@@ -60,7 +60,7 @@ module tb_flip_manager;
     logic spin_pop_ready_host;
     logic spin_pop_ready_analog;
     logic [NUM_SPIN-1:0] spin_read_out_host;
-    logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o;
+    logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
 
     logic configure_test_done;
     logic spin_pop_handshake;
