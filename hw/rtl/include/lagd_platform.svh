@@ -39,4 +39,7 @@
 `define ASSERT(cond, msg)
 `define RUNTIME_ASSERT(cond, msg, clk, reset)
 `endif // TARGET_SYN
+
+`define ZWIDTH_SAFE(width) ((width) == 0 ? 1 : (width))
+
 `endif // LAGD_PLATFORM_SVH

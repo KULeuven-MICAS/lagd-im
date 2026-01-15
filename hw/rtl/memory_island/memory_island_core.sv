@@ -73,16 +73,18 @@ module memory_island_core import memory_island_pkg::*; #(
     parameter int unsigned NumNarrowReq = Cfg.NumDirectNarrowReq + $countones(Cfg.AxiNarrowRW) +
         Cfg.NumAxiNarrowReq,
     parameter int unsigned NumWideReq = Cfg.NumDirectWideReq + $countones(Cfg.AxiWideRW) +
-        Cfg.NumAxiWideReq
+        Cfg.NumAxiWideReq,
+    parameter int unsigned NumNarrowReqSafe = `ZWIDTH_SAFE(NumNarrowReq),
+    parameter int unsigned NumWideReqSafe = `ZWIDTH_SAFE(NumWideReq)
 )(
     input logic clk_i,
     input logic rst_ni,
 
-    input mem_narrow_req_t [NumNarrowReq-1:0] mem_narrow_req_i,
-    output mem_narrow_rsp_t [NumNarrowReq-1:0] mem_narrow_rsp_o,
+    input mem_narrow_req_t [NumNarrowReqSafe-1:0] mem_narrow_req_i,
+    output mem_narrow_rsp_t [NumNarrowReqSafe-1:0] mem_narrow_rsp_o,
 
-    input mem_wide_req_t [NumWideReq-1:0] mem_wide_req_i,
-    output mem_wide_rsp_t [NumWideReq-1:0] mem_wide_rsp_o
+    input mem_wide_req_t [NumWideReqSafe-1:0] mem_wide_req_i,
+    output mem_wide_rsp_t [NumWideReqSafe-1:0] mem_wide_rsp_o
 );
 
     // Address Wide Requests: 
@@ -378,6 +380,7 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     // Banks instances
     // ------------
+    logic [Cfg.NumNarrowBanks-1:0] bank_req_q1_valid;
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
         tc_sram #(
             .NumWords(Cfg.WordsPerBank),
@@ -393,6 +396,15 @@ module memory_island_core import memory_island_pkg::*; #(
             .be_i(bank_req_q1[i].q.strb),
             .rdata_o(bank_rsp_q1[i].p.data)
         );
+        // Update valid signal for response
+        always_ff @(posedge clk_i or negedge rst_ni) begin
+            if (!rst_ni) begin
+                bank_req_q1_valid[i] <= 1'b0;
+            end else begin
+                bank_req_q1_valid[i] <= bank_req_q1[i].q_valid;
+            end
+        end
+        assign bank_rsp_q1[i].p.valid = bank_req_q1_valid[i];
     end
     // TODO: add valid answer signal back to tc_sram and connect to rsp.p.valid
 

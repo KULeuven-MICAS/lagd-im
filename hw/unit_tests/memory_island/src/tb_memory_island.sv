@@ -7,6 +7,7 @@
 `timescale 1ns/1ps
 
 `include "lagd_define.svh"
+`include "lagd_platform.svh"
 `include "lagd_typedef.svh"
 
 // ETH AXI and memory interface includes
@@ -19,7 +20,12 @@
 
 module tb_memory_island import lagd_pkg::*; #(
     parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::L2MemCfg,
-    parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks
+    // Derived parameters - Do not override
+    parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks,
+    parameter int unsigned NumAxiNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiNarrowReq),
+    parameter int unsigned NumAxiWideReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiWideReq),
+    parameter int unsigned NumDirectNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumDirectNarrowReq),
+    parameter int unsigned NumDirectWideReqSafe = `ZWIDTH_SAFE(Cfg.NumDirectWideReq)
 ) ();
 
     // Debug setup
@@ -33,18 +39,17 @@ module tb_memory_island import lagd_pkg::*; #(
     logic clk_i, rst_ni;
     logic test_complete;
 
-    lagd_axi_slv_req_t [Cfg.NumAxiNarrowReq-1:0] axi_narrow_req_i;
-    lagd_axi_slv_rsp_t [Cfg.NumAxiNarrowReq-1:0] axi_narrow_rsp_o;
+    lagd_axi_slv_req_t [NumAxiNarrowReqSafe-1:0] axi_narrow_req_i;
+    lagd_axi_slv_rsp_t [NumAxiNarrowReqSafe-1:0] axi_narrow_rsp_o;
 
-    lagd_axi_wide_slv_req_t [Cfg.NumAxiWideReq-1:0] axi_wide_req_i;
-    lagd_axi_wide_slv_rsp_t [Cfg.NumAxiWideReq-1:0] axi_wide_rsp_o;
+    lagd_axi_wide_slv_req_t [NumAxiWideReqSafe-1:0] axi_wide_req_i;
+    lagd_axi_wide_slv_rsp_t [NumAxiWideReqSafe-1:0] axi_wide_rsp_o;
 
-    lagd_mem_narr_req_t [Cfg.NumDirectNarrowReq-1:0] mem_narrow_req_i;
-    lagd_mem_narr_rsp_t [Cfg.NumDirectNarrowReq-1:0] mem_narrow_rsp_o;
+    lagd_mem_narr_req_t [NumDirectNarrowReqSafe-1:0] mem_narrow_req_i;
+    lagd_mem_narr_rsp_t [NumDirectNarrowReqSafe-1:0] mem_narrow_rsp_o;
 
-    lagd_mem_wide_req_t [Cfg.NumDirectWideReq-1:0] mem_wide_req_i;
-    lagd_mem_wide_rsp_t [Cfg.NumDirectWideReq-1:0] mem_wide_rsp_o;
-
+    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i;
+    lagd_mem_wide_rsp_t [NumDirectWideReqSafe-1:0] mem_wide_rsp_o;
     // AXI bus for stimulus generation
     AXI_BUS_DV #(
         .AXI_ADDR_WIDTH(Cfg.AddrWidth),
