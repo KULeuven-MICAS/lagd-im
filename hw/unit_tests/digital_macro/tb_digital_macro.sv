@@ -16,20 +16,16 @@
 `define True 1'b1
 `define False 1'b0
 
-`define MODEL_FILE "./data/model_1"
-`define FLIP_ICON_FILE "./data/clusters_1"
-`define ENERGY_REF_FILE "./data/energy_1"
-`define STATE_IN_FILE "./data/states_in_1"
-`define STATE_OUT_FILE "./data/states_out_1"
-
 module tb_digital_macro;
     import analog_format_pkg::*;
     import energy_calc_pkg::*;
     import config_pkg::*;
+    import data_read_pkg::*;
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
-    localparam int NUM_TESTS = 1;
+    localparam int NUM_TESTS = 1; // number of computation processes (only 1 is supported currently)
+    localparam int DataFromFile = `True;
 
     // dut signals
     logic clk_i;
@@ -82,6 +78,7 @@ module tb_digital_macro;
     logic [NUM_SPIN-1 : 0 ] spin_feedback_o;
     logic [ NUM_SPIN-1 : 0 ] spin_analog_i;
     logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
+    logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o;
 
     // testbench signals
     logic [NUM_SPIN*BITJ-1:0] wbl_copy;
@@ -98,14 +95,13 @@ module tb_digital_macro;
     int unsigned total_cycles, transaction_cycles, total_time, transaction_time, start_time, end_time;
     int test_idx;
     logic cmpt_test_start, cmpt_test_end;
+    logic host_readout_check_end;
     integer dt_write_cycle_cnt_j;
     logic em_fm_handshake, fm_downstream_handshake, em_upstream_handshake;
-    logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo;
 
     assign em_fm_handshake = dut.em_mst_valid && dut.fm_slv_ready;
     assign fm_downstream_handshake = dut.fm_mst_valid && dut.muxed_slv_ready;
     assign em_upstream_handshake = dut.muxed_mst_valid && dut.em_slv_ready;
-    assign spin_fifo = dut.u_flip_manager.u_spin_fifo_maintainer.spin_fifo_data;
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -181,7 +177,8 @@ module tb_digital_macro;
         .spin_wwl_o                 (spin_wwl_o                 ),
         .spin_feedback_o            (spin_feedback_o            ),
         .spin_analog_i              (spin_analog_i              ),
-        .energy_fifo_o              (energy_fifo_o              )
+        .energy_fifo_o              (energy_fifo_o              ),
+        .spin_fifo_o                (spin_fifo_o                )
     );
 
     // Clock generation
@@ -242,58 +239,78 @@ module tb_digital_macro;
     task automatic gen_model();
         // generate random J
         // note: the most negative code (-8), though supported by the digital logic, is not supported by the analog part and its related data convertor
-        // therefore, we avoid generating this code here
-        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
-            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
-                if (LITTLE_ENDIAN) begin
-                    if (j == i) begin
-                        weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
+        // therefore, we should avoid generating this code here
+        if (DataFromFile == `False) begin: randomly_generate_model
+            for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+                for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                    if (LITTLE_ENDIAN) begin
+                        if (j == i) begin
+                            weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
+                        end else begin
+                            do begin
+                                weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
+                            end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
+                        end
                     end else begin
-                        do begin
-                            weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
-                        end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
-                    end
-                end else begin
-                    if (j == NUM_SPIN - 1 - i) begin
-                        weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
-                    end else begin
-                        do begin
-                            weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
-                        end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
+                        if (j == NUM_SPIN - 1 - i) begin
+                            weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
+                        end else begin
+                            do begin
+                                weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
+                            end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
+                        end
                     end
                 end
             end
+            // generate random h
+            for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+                do begin
+                    hbias_in_reg[i*BITH +: BITH] = $urandom_range(0, (1<<BITH)-1);
+                end while (hbias_in_reg[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
+            end
+            // generate random scaling factor
+            hscaling_in_reg = 1 << ($urandom_range(0, SCALING_BIT-1));
+            // constant
+            constant = 0;
+        end else begin: load_model_from_file
+            model_t model_data;
+            model_data = load_model();
+            weights_in_txt = model_data.weights;
+            hbias_in_reg = model_data.hbias;
+            hscaling_in_reg = model_data.scaling_factor;
+            constant = model_data.constant;
         end
+
         // map to memory format
         for (int i = 0; i < NUM_SPIN/PARALLELISM; i = i + 1) begin
             for (int j = 0; j < PARALLELISM; j = j + 1) begin
                 weights_in_mem[i][j*NUM_SPIN*BITJ +: NUM_SPIN*BITJ] = weights_in_txt[i*PARALLELISM + j];
             end
         end
-        // generate random h
-        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
-            do begin
-                hbias_in_reg[i*BITH +: BITH] = $urandom_range(0, (1<<BITH)-1);
-            end while (hbias_in_reg[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
-        end
-        // generate random scaling factor
-        hscaling_in_reg = 1 << ($urandom_range(0, SCALING_BIT-1));
     endtask
 
     // Generate flipping icons
     task automatic gen_flip_icons();
-        for (int i = 0; i < IconLastAddrPlusOne; i = i + 1) begin
-            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
-                flip_icons_in_mem[i][j] = $urandom_range(0, 1);
+        if (DataFromFile == `True) begin: load_flip_icons_from_file
+            flip_icons_in_mem = load_flip_icons();
+        end else begin: randomly_generate_flip_icons
+            for (int i = 0; i < IconLastAddrPlusOne; i = i + 1) begin
+                for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                    flip_icons_in_mem[i][j] = $urandom_range(0, 1);
+                end
             end
         end
     endtask
 
     // Generate initial spin states
     task automatic gen_initial_states();
-        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
-            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
-                spin_initial_states[i][j] = $urandom_range(0, 1);
+        if (DataFromFile == `True) begin: load_initial_states_from_file
+            spin_initial_states = load_initial_states();
+        end else begin: randomly_generate_initial_states
+            for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+                for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                    spin_initial_states[i][j] = $urandom_range(0, 1);
+                end
             end
         end
     endtask
@@ -450,9 +467,9 @@ module tb_digital_macro;
     // Pre-compute configuration
     task automatic pre_compute_config();
         fork
-            gen_model(); // generate weight model
             gen_flip_icons(); // generate flipping icons
             gen_initial_states(); // generate initial spin states
+            gen_model(); // generate weight model
             gen_ref_energy_spin_fifo(); // generate reference energy and spin fifo
             aw_config_interface(); // configure aw module
             em_config_interface(); // configure em module
@@ -584,12 +601,8 @@ module tb_digital_macro;
             cmpt_en_i = 1;
             @(posedge clk_i);
             cmpt_en_i = 0;
-            @(posedge clk_i);
-            wait (cmpt_idle_o == 1);
-            @(posedge clk_i);
-            host_readout_i = 1;
-            @(posedge clk_i);
-            host_readout_i = 0;
+            repeat (2) @(posedge clk_i);
+            wait (host_readout_check_end == 1);
             // wait some cycles between tests
             repeat (5) @(posedge clk_i);
             test_idx = test_idx + 1;
@@ -739,9 +752,9 @@ module tb_digital_macro;
                         $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], weights_in_txt, hbias_in_reg, hscaling_in_reg);
                 end
                 // check spin fifo
-                if (spin_fifo[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
+                if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
                     $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
-                        $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo[depth_idx]);
+                        $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
                 end
             end
             test_correct_cnt = test_correct_cnt + 1;
@@ -752,6 +765,27 @@ module tb_digital_macro;
         $display("Computation Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
             $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
         $display("----------------------------------------");
+    endtask
+
+    // Host readout check
+    task automatic host_readout_check();
+        integer readout_count_host = 0;
+
+        host_readout_check_end = 0;
+
+        while(test_idx < NUM_TESTS) begin
+            wait (cmpt_idle_o == 0); // wait for compute start
+            wait (cmpt_idle_o == 1); // wait for compute end
+            @(negedge clk_i);
+            while(readout_count_host < SPIN_DEPTH) begin
+                if (spin_fifo_o[readout_count_host] !== spin_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
+                    $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
+                        $time, test_idx, readout_count_host, spin_fifo_ref[IconLastAddrPlusOne][readout_count_host], spin_fifo_o[readout_count_host]);
+                end
+                readout_count_host = readout_count_host + 1;
+            end
+            host_readout_check_end = 1;
+        end
     endtask
 
     // Cmpt enable and timer
@@ -802,6 +836,7 @@ module tb_digital_macro;
             analog_interface_config_check_h();
             spin_wwl_check();
             energy_spin_fifo_check();
+            host_readout_check();
             // timer
             cmpt_enable_and_timer();
         join_none

@@ -61,6 +61,7 @@ module tb_flip_manager;
     logic spin_pop_ready_analog;
     logic [NUM_SPIN-1:0] spin_read_out_host;
     logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
+    logic [NUM_SPIN-1:0] [SPIN_DEPTH-1:0] spin_fifo_o;
 
     logic configure_test_done;
     logic spin_pop_handshake;
@@ -128,7 +129,8 @@ module tb_flip_manager;
         .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .flip_rdata_i(flip_rdata_i),
         .flip_disable_i(flip_disable_i),
-        .energy_fifo_o(energy_fifo_o)
+        .energy_fifo_o(energy_fifo_o),
+        .spin_fifo_o(spin_fifo_o)
     );
 
     // Clock generation
