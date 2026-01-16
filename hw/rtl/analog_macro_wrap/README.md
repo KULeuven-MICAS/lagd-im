@@ -64,7 +64,7 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 
 *spin_wwl_strobe_i*: [NUM_SPIN-1:0] the spin WWL strobe. For every spin onloading, spin WWL is set as *spin_wwl_strobe*.
 
-*spin_mode_i*: [NUM_SPIN-1:0] the spin mode input of the analog macro.
+*spin_feedback_i*: [NUM_SPIN-1:0] the spin feedback configuration input of the analog macro.
 
 *synchronizer_pipe_num_i*: [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] selected synchronizer depth (default: the maximal value).
 
