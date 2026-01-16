@@ -80,6 +80,8 @@ module digital_macro #(
     input  logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input  logic [NUM_SPIN-1:0] flip_rdata_i,
     input  logic flip_disable_i,
+    output logic spin_host_valid_o,
+    output logic [NUM_SPIN-1:0] spin_host_o,
     output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
     // runtime interface: energy monitor
     input  logic weight_valid_i,
@@ -131,6 +133,8 @@ module digital_macro #(
     assign muxed_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
     assign muxed_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
     assign em_spin_in = en_analog_loop_i ? analog_spin : fm_spin_out;
+    assign spin_host_valid_o = fm_mst_valid && muxed_slv_ready;
+    assign spin_host_o = fm_spin_out;
 
     // counter for weight reading address
     step_counter #(
