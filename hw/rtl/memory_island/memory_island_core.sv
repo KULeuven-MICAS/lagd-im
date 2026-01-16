@@ -219,13 +219,7 @@ module memory_island_core import memory_island_pkg::*; #(
     // Post route spilling
     // ------------
     mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks_q1;
-    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1,
-                                              mem_narrow_rsp_from_banks_q1_ready,
-                                              mem_narrow_rsp_from_banks_q1_p;
-    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: mem_narrow_rsp_from_banks_q1_assign
-        assign mem_narrow_rsp_from_banks_q1[i].q_ready = mem_narrow_rsp_from_banks_q1_ready[i].q_ready;
-        assign mem_narrow_rsp_from_banks_q1[i].p = mem_narrow_rsp_from_banks_q1_p[i].p;
-    end
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1;
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks_q1;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1, mem_wide_rsp_from_banks_q1_ready,
                                       mem_wide_rsp_from_banks_q1_p;
@@ -276,11 +270,16 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     // Narrow wide arbitration
     // ------------
+    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req;
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp;
     wide_narrow_arbiter #(
         .NumNarrowBanks(Cfg.NumNarrowBanks),
         .NumWideBanks(NumWideBanks),
+        .AddrWideWordBit(AddrWideWordBit),
+        .InBankAddrWidth(InBankAddrWidth),
         .WideDataWidth(Cfg.WideDataWidth),
         .NarrowDataWidth(Cfg.NarrowDataWidth),
+        .RspLatency(1 + Cfg.SpillReqBank + Cfg.SpillRspBank),
         .mem_narrow_req_t(mem_narrow_req_t),
         .mem_narrow_rsp_t(mem_narrow_rsp_t),
         .mem_wide_req_t(mem_wide_req_t),
@@ -289,68 +288,12 @@ module memory_island_core import memory_island_pkg::*; #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .mem_narrow_req_i(mem_narrow_req_to_banks_q1),
-        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1_ready),
+        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1),
         .mem_wide_req_i(mem_wide_req_to_banks_q1),
-        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1_ready)
+        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1),
+        .mem_bank_req_o(bank_req),
+        .mem_bank_rsp_i(bank_rsp)
     );
-
-    // ------------
-    // Wide request splitting
-    // ------------
-    localparam int unsigned WideToNarrowFactor = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
-    mem_narrow_req_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_req;
-    mem_narrow_rsp_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_rsp;
-    generate
-        if (WideToNarrowFactor == 1) begin : gen_no_wide_split
-            // No splitting needed, connect directly
-            for(genvar i = 0; i < NumWideBanks; i++) begin: connect_no_split
-                assign mem_wide_rsp_from_banks_q1_p[i].p = mem_wide_split_rsp[i][0].p;
-                assign mem_wide_split_req[i] = mem_wide_req_to_banks_q1[i][0];
-            end
-        end else begin : gen_wide_split
-            // Splitting 
-            for (genvar i = 0; i < NumWideBanks; i++) begin: split_wide_req
-                wide_to_narrow_splitter #(
-                    .MemAddrWidth(AddrWideWordBit + 1),
-                    .BankAddrWidth(InBankAddrWidth),
-                    .MemDataWidth(Cfg.WideDataWidth),
-                    .BankDataWidth(Cfg.NarrowDataWidth),
-                    .mem_req_t(mem_wide_req_t),
-                    .mem_rsp_t(mem_wide_rsp_t),
-                    .bank_req_t(mem_narrow_req_t),
-                    .bank_rsp_t(mem_narrow_rsp_t)
-                ) u_split_wide_req (
-                    .clk_i(clk_i),
-                    .rst_ni(rst_ni),
-                    .mem_req_i(mem_wide_req_to_banks_q1[i]),
-                    .mem_rsp_o(mem_wide_rsp_from_banks_q1_p[i]),
-                    .bank_req_o(mem_wide_split_req[i]),
-                    .bank_rsp_i(mem_wide_split_rsp[i])
-                );
-            end
-        end
-    endgenerate
-
-    // ------------
-    // Bank access multiplexer
-    // ------------
-    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req;
-    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp;
-
-    always_comb begin : bank_access_mux
-        for (int unsigned i = 0; i < Cfg.NumNarrowBanks; i++) begin
-            automatic int unsigned wide_bank_idx = i / WideToNarrowFactor;
-            automatic int unsigned narrow_part_idx = i % WideToNarrowFactor;
-            bank_req[i] = '0;
-            if (mem_narrow_rsp_from_banks_q1[i].q_ready) begin
-                bank_req[i] = mem_narrow_req_to_banks_q1[i];
-                mem_narrow_rsp_from_banks_q1_p[i].p = bank_rsp[i].p;
-            end else begin : wide_bank_access
-                bank_req[i] = mem_wide_split_req[wide_bank_idx][narrow_part_idx];
-                mem_wide_split_rsp[wide_bank_idx][narrow_part_idx].p = bank_rsp[i].p;
-            end
-        end
-    end
     
     // ------------
     // Banks multicut
