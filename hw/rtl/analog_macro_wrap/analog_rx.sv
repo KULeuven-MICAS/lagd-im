@@ -19,7 +19,7 @@ module analog_rx #(
     input  logic rx_configure_enable_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
-    input  logic [NUM_SPIN-1:0] spin_mode_i,
+    input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
     // spin interface: rx <-> digital
     input  logic spin_pop_valid_i,
@@ -38,7 +38,7 @@ module analog_rx #(
     logic spin_pop_handshake;
     logic [NUM_SPIN-1:0] spin_pop_comb;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_reg;
-    logic [NUM_SPIN-1:0] spin_mode_reg;
+    logic [NUM_SPIN-1:0] spin_feedback_reg;
     logic [NUM_SPIN-1:0] spin_wwl_comb;
     logic rx_busy;
     logic spin_pop_cond;
@@ -65,14 +65,14 @@ module analog_rx #(
     `FFLARNC(spin_pop_ready_o, 1'b0, spin_pop_cond, spin_pop_ready_reset_cond, 1'b1, clk_i, rst_ni)
     `FFL(wbl_o, spin_pop_comb, spin_pop_cond, 'd0, clk_i, rst_ni)
     `FFLARNC(spin_wwl_o, spin_wwl_strobe_reg, spin_pop_cond, spin_wwl_reset_cond, 'd0, clk_i, rst_ni)
-    `FFLARNC(spin_feedback_o, spin_mode_reg, spin_wwl_reset_cond, cmpt_counter_maxed, 'd0, clk_i, rst_ni)
+    `FFLARNC(spin_feedback_o, spin_feedback_reg, spin_wwl_reset_cond, cmpt_counter_maxed, 'd0, clk_i, rst_ni)
     `FFLARNC(wwl_high_counter_en, 1'b1, wwl_high_counter_en_cond, wwl_high_counter_maxed, 1'b0, clk_i, rst_ni)
     `FFLARNC(cmpt_counter_en, 1'b1, spin_wwl_reset_cond, cmpt_counter_maxed, 1'b0, clk_i, rst_ni)
 
     // configure registers
     `FFLARNC(rx_busy, 1'b1, spin_pop_cond, spin_wwl_reset_cond, 1'b0, clk_i, rst_ni)
     `FFL(spin_wwl_strobe_reg, spin_wwl_strobe_i, config_cond, 'b0, clk_i, rst_ni)
-    `FFL(spin_mode_reg, spin_mode_i, config_cond, 'b0, clk_i, rst_ni)
+    `FFL(spin_feedback_reg, spin_feedback_i, config_cond, 'b0, clk_i, rst_ni)
 
     step_counter #(
         .COUNTER_BITWIDTH (COUNTER_BITWIDTH),

@@ -40,7 +40,7 @@ module tb_analog_macro_wrap;
     localparam int CyclePerSpinCompute = 8;
     localparam int SynchronizerPipeNum = 3;
     localparam int SpinWwlStrobe = {(NUM_SPIN){1'b1}}; // all spins enabled
-    localparam int SpinMode = {(NUM_SPIN){1'b1}}; // all spins in compute mode
+    localparam int SpinFeedback = {(NUM_SPIN){1'b1}}; // all spins in feedback mode
 
     // testbench internal signals
     logic clk_i;
@@ -53,7 +53,7 @@ module tb_analog_macro_wrap;
     logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i;
     logic bypass_data_conversion_i;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
-    logic [NUM_SPIN-1:0] spin_mode_i;
+    logic [NUM_SPIN-1:0] spin_feedback_i;
     logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_pipe_num_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
@@ -130,7 +130,7 @@ module tb_analog_macro_wrap;
         .cycle_per_spin_compute_i(cycle_per_spin_compute_i),
         .bypass_data_conversion_i(bypass_data_conversion_i),
         .spin_wwl_strobe_i(spin_wwl_strobe_i),
-        .spin_mode_i(spin_mode_i),
+        .spin_feedback_i(spin_feedback_i),
         .synchronizer_pipe_num_i(synchronizer_pipe_num_i),
         .dt_cfg_enable_i(dt_cfg_enable_i),
         .j_mem_ren_o(j_mem_ren_o),
@@ -218,7 +218,7 @@ module tb_analog_macro_wrap;
         cycle_per_spin_compute_i = 'd0;
         synchronizer_pipe_num_i = 'd0;
         spin_wwl_strobe_i = 'd0;
-        spin_mode_i = 'd0;
+        spin_feedback_i = 'd0;
         // Apply configuration
         wait (rst_ni == 1 && en_i == 1);
         @(negedge clk_i);
@@ -231,7 +231,7 @@ module tb_analog_macro_wrap;
         cycle_per_spin_compute_i = CyclePerSpinCompute - 1;
         synchronizer_pipe_num_i = SynchronizerPipeNum;;
         spin_wwl_strobe_i = SpinWwlStrobe;
-        spin_mode_i = SpinMode;
+        spin_feedback_i = SpinFeedback;
         @(negedge clk_i);
         analog_wrap_configure_enable_i = 0;
         config_aw_done = 1;

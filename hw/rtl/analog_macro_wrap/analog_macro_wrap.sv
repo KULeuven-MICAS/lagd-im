@@ -31,7 +31,7 @@ module analog_macro_wrap #(
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
     input  logic bypass_data_conversion_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
-    input  logic [NUM_SPIN-1:0] spin_mode_i,
+    input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
@@ -127,7 +127,7 @@ module analog_macro_wrap #(
         .rx_configure_enable_i (analog_wrap_configure_enable_i),
         .cycle_per_spin_write_i (cycle_per_spin_write_i),
         .spin_wwl_strobe_i (spin_wwl_strobe_i),
-        .spin_mode_i (spin_mode_i),
+        .spin_feedback_i (spin_feedback_i),
         .cycle_per_spin_compute_i (cycle_per_spin_compute_i),
         // spin interface: rx <-> digital
         .spin_pop_valid_i (spin_pop_valid_i),
