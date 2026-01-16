@@ -6,6 +6,9 @@ set PROJECT_ROOT ../../..
 set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
+    "./config_pkg.sv" \
+    "./analog_format_pkg.sv" \
+    "./energy_calc_pkg.sv" \
     "./tb_digital_macro.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
