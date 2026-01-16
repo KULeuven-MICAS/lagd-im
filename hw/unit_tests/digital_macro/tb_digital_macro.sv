@@ -23,40 +23,13 @@
 `define STATE_OUT_FILE "./data/states_out_1"
 
 module tb_digital_macro;
+    import analog_format_pkg::*;
+    import energy_calc_pkg::*;
+    import config_pkg::*;
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
-    localparam int IterationNum = 150;
-
-    // dut run-time configuration
-    localparam int CyclePerWwlHigh = 20;
-    localparam int CyclePerWwlLow = 20;
-    localparam int CyclePerSpinWrite = 10;
-    localparam int CyclePerSpinCompute = 30;
-    localparam int SynchronizerPipeNum = 2;
-    localparam int SynchronizerMode = 0; // 0: one-shot; 1: continuous
-    localparam int SpinWwlStrobe = {256{1'b1}}; // all spins enabled??
-    localparam int SpinMode = {256{1'b1}}; // all spins in compute mode
-    localparam int Flush = `False;
-    localparam int EnComparison = `True;
-    localparam int FlipDisable = `False;
-    localparam int EmCfgCounter = 255;
-
-    // dut compile-time configuration
-    localparam int BITJ = 4;
-    localparam int BITH = 4;
-    localparam int NUM_SPIN = 256;
-    localparam int SCALING_BIT = 5;
-    localparam int PARALLELISM = 4;
-    localparam int LocalEnergyBit = 16;
-    localparam int ENERGY_TOTAL_BIT = 32;
-    localparam int LITTLE_ENDIAN = `False;
-    localparam int PIPESINTF = 1;
-    localparam int PIPESMID = 1;
-    localparam int SPIN_DEPTH = 1; // unused in this testbench
-    localparam int FLIP_ICON_DEPTH = 1024;
-    localparam int COUNTER_BITWIDTH = 16;
-    localparam int SYNCHRONIZER_PIPEDEPTH = 3;
+    localparam int NUM_TESTS = 1;
 
     // dut signals
     logic clk_i;
@@ -76,10 +49,10 @@ module tb_digital_macro;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_wwl_low_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_spin_write_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_spin_compute_i;
+    logic bypass_data_conversion_i;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_strobe_i;
-    logic [ NUM_SPIN-1 : 0 ] spin_mode_i;
+    logic [ NUM_SPIN-1 : 0 ] spin_feedback_i;
     logic [ $clog2(SYNCHRONIZER_PIPEDEPTH)-1 : 0 ] synchronizer_pipe_num_i;
-    logic synchronizer_mode_i;
     logic dt_cfg_enable_i, dt_cfg_idle_o;
     logic j_mem_ren_o;
     logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_o, weight_raddr_o;
@@ -106,21 +79,39 @@ module tb_digital_macro;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wblb_o;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_o;
-    logic [NUM_SPIN-1 : 0 ] spin_compute_en_o;
-    logic [ NUM_SPIN-1 : 0 ] analog_spin_i;
-    logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o;
+    logic [NUM_SPIN-1 : 0 ] spin_feedback_o;
+    logic [ NUM_SPIN-1 : 0 ] spin_analog_i;
+    logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
 
     // testbench signals
+    logic [NUM_SPIN*BITJ-1:0] wbl_copy;
     logic [NUM_SPIN-1:0][NUM_SPIN*BITJ-1:0] weights_in_txt, weights_analog;
     logic [NUM_SPIN/PARALLELISM-1:0][NUM_SPIN*BITJ*PARALLELISM-1:0] weights_in_mem;
     logic [NUM_SPIN*BITH-1:0] hbias_in_reg, hbias_analog;
     logic [SCALING_BIT-1:0] hscaling_in_reg;
+    logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_initial_states;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_i;
     int signed constant;
-    logic [FLIP_ICON_DEPTH-1:0] [NUM_SPIN-1:0] flip_icons_in_mem;
-    logic [FLIP_ICON_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_ref;
-    logic [FLIP_ICON_DEPTH-1+1:0] [NUM_SPIN-1:0] state_in_analog_ref;
-    logic [FLIP_ICON_DEPTH-1:0] [NUM_SPIN-1:0] state_out_analog_ref;
+    logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] flip_icons_in_mem;
+    logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_ref;
+    logic [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_ref;
     int unsigned total_cycles, transaction_cycles, total_time, transaction_time, start_time, end_time;
+    int test_idx;
+    logic cmpt_test_start, cmpt_test_end;
+    integer dt_write_cycle_cnt_j;
+    logic em_fm_handshake, fm_downstream_handshake, em_upstream_handshake;
+    logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo;
+
+    assign em_fm_handshake = dut.em_mst_valid && dut.fm_slv_ready;
+    assign fm_downstream_handshake = dut.fm_mst_valid && dut.muxed_slv_ready;
+    assign em_upstream_handshake = dut.muxed_mst_valid && dut.em_slv_ready;
+    assign spin_fifo = dut.u_flip_manager.u_spin_fifo_maintainer.spin_fifo_data;
+
+    always_comb begin
+        for (int i=0; i < NUM_SPIN; i=i+1) begin
+            spin_analog_i[i] = wbl_i[i*BITDATA + SPIN_WBL_OFFSET];
+        end
+    end
 
     // module instantiation
     digital_macro #(
@@ -136,7 +127,8 @@ module tb_digital_macro;
         .SPIN_DEPTH                 (SPIN_DEPTH                 ),
         .FLIP_ICON_DEPTH            (FLIP_ICON_DEPTH            ),
         .COUNTER_BITWIDTH           (COUNTER_BITWIDTH           ),
-        .SYNCHRONIZER_PIPEDEPTH     (SYNCHRONIZER_PIPEDEPTH     )
+        .SYNCHRONIZER_PIPEDEPTH     (SYNCHRONIZER_PIPEDEPTH     ),
+        .SPIN_WBL_OFFSET            (SPIN_WBL_OFFSET            )
     ) dut (
         .clk_i                      (clk_i                      ),
         .rst_ni                     (rst_ni                     ),
@@ -155,10 +147,10 @@ module tb_digital_macro;
         .cycle_per_wwl_low_i        (cycle_per_wwl_low_i        ),
         .cycle_per_spin_write_i     (cycle_per_spin_write_i     ),
         .cycle_per_spin_compute_i   (cycle_per_spin_compute_i   ),
+        .bypass_data_conversion_i   (bypass_data_conversion_i   ),
         .spin_wwl_strobe_i          (spin_wwl_strobe_i          ),
-        .spin_mode_i                (spin_mode_i                ),
+        .spin_feedback_i                (spin_feedback_i                ),
         .synchronizer_pipe_num_i    (synchronizer_pipe_num_i    ),
-        .synchronizer_mode_i        (synchronizer_mode_i        ),
         .dt_cfg_enable_i            (dt_cfg_enable_i            ),
         .j_mem_ren_o                (j_mem_ren_o                ),
         .j_raddr_o                  (j_raddr_o                  ),
@@ -187,8 +179,8 @@ module tb_digital_macro;
         .wbl_o                      (wbl_o                      ),
         .wblb_o                     (wblb_o                     ),
         .spin_wwl_o                 (spin_wwl_o                 ),
-        .spin_compute_en_o          (spin_compute_en_o          ),
-        .analog_spin_i              (analog_spin_i              ),
+        .spin_feedback_o            (spin_feedback_o            ),
+        .spin_analog_i              (spin_analog_i              ),
         .energy_fifo_o              (energy_fifo_o              )
     );
 
@@ -211,7 +203,7 @@ module tb_digital_macro;
         rst_ni = 1;
         #(5 * CLKCYCLE);
         en_i = 1;
-        en_analog_loop_i = 1;
+        en_analog_loop_i = EnableAnalogLoop;
     end
 
     // Run tests
@@ -219,7 +211,7 @@ module tb_digital_macro;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile(`VCD_FILE);
-            $dumpvars(4, tb_digital_macro); // Dump all variables in testbench module
+            $dumpvars(5, tb_digital_macro); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
             #(600 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
@@ -234,275 +226,120 @@ module tb_digital_macro;
     end
 
     // ========================================================================
-    // Always blocks
+    // Logics
     // ========================================================================
-    // pipe j_rdata_i, flip_rdata_i
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-            j_rdata_i <= 'd0;
-            flip_rdata_i <= 'd0;
-        end else begin
-            j_rdata_i <= j_rdata_latched;
-            flip_rdata_i <= flip_rdata_latched;
-        end
-    end
+    assign j_rdata_i = j_rdata_latched;
+    assign flip_rdata_i = flip_rdata_latched;
 
     // ========================================================================
     // Functions
     // ========================================================================
-    // Function to parse a line (max length: NUM_SPIN*BITJ) from the model file
-    function automatic logic [NUM_SPIN*BITJ-1:0] parse_bit_string(string line);
-        // Large endian assumed for data layout
-        logic [NUM_SPIN*BITJ-1:0] result = 'd0;
-        int bit_idx = 0;
-        int i = 0;
-        while (i < line.len() && bit_idx < NUM_SPIN*BITJ) begin
-            if (line[i] == "0" || line[i] == "1") begin
-                result[NUM_SPIN*BITJ-1-bit_idx] = $unsigned(line[i]);
-                bit_idx = bit_idx + 1;
-            end
-            i = i + 1;
-        end
-        return result;
-    endfunction
 
     // ========================================================================
     // Sub-tasks
     // ========================================================================
-    // Sub-task to read weight model from file
-    task automatic load_model();
-        int model_file;
-        string line;
-        int line_num = 0;
-        int weight_idx = 0;
-        int hbias_idx = 0;
-        real const_real;
-
-        model_file = $fopen(`MODEL_FILE, "r");
-        if (model_file == 0) begin
-            $display("Error: Could not open model file %s", `MODEL_FILE);
-            $finish;
-        end
-
-        // Read the file line by line
-        while (!$feof(model_file)) begin
-            line = "";
-            if ($fgets(line, model_file) != 0) begin
-                line_num = line_num + 1;
-                // Skip comment lines and header lines
-                if (line[0] == "#" || line[0] == "\n") begin
-                    continue;
-                end
-                // Read weights into memory (1024 bits per line)
-                if (line_num > 1 && line_num <= (1 + NUM_SPIN)) begin
-                    weights_in_txt[weight_idx] = parse_bit_string(line);
-                    weight_idx = weight_idx + 1;
-                end
-                // Read hbias (4 bits per line)
-                else if (line_num > (1 + NUM_SPIN) && line_num <= (2 + 2*NUM_SPIN)) begin
-                    hbias_in_reg[hbias_idx +: BITH] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: BITH];
-                    hbias_idx = hbias_idx + BITH;
-                end
-                // Read constant as a signed integer
-                else if (line_num > (2 + 2*NUM_SPIN)) begin
-                    if ($sscanf(line, "%f", const_real) != 1) begin
-                        $display("Error: Failed to parse constant from model file");
-                        $finish;
+    // Generate weight model
+    task automatic gen_model();
+        // generate random J
+        // note: the most negative code (-8), though supported by the digital logic, is not supported by the analog part and its related data convertor
+        // therefore, we avoid generating this code here
+        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                if (LITTLE_ENDIAN) begin
+                    if (j == i) begin
+                        weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
+                    end else begin
+                        do begin
+                            weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
+                        end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
                     end
-                    constant = $rtoi(const_real);
-                    break;
-                end
-            end
-        end
-        $fclose(model_file);
-        // Combine every PARALLELISM weights into one entry in weights_in_mem
-        for (int i = 0; i < NUM_SPIN/PARALLELISM; i++) begin
-            for (int p = 0; p < PARALLELISM; p++) begin
-                weights_in_mem[i][ (p+1)*NUM_SPIN*BITJ-1 -: NUM_SPIN*BITJ ] = weights_in_txt[i*PARALLELISM + p];
-            end
-        end
-        hscaling_in_reg = 1; // fixed to 1 based on the algorithm
-        $display("[Time: %t] Model file %s is loaded successfully.", $time, `MODEL_FILE);
-    endtask
-
-    // Sub-task to read flip icons from file
-    task automatic load_flip_icons();
-        int icon_file;
-        string line;
-        int line_num = 0;
-        int icon_idx = 0;
-
-        icon_file = $fopen(`FLIP_ICON_FILE, "r");
-        if (icon_file == 0) begin
-            $display("Error: Could not open cluster file %s", `FLIP_ICON_FILE);
-            $finish;
-        end
-
-        // Read the file line by line
-        while (!$feof(icon_file)) begin
-            line = "";
-            if ($fgets(line, icon_file) != 0) begin
-                line_num = line_num + 1;
-                // Skip comment lines and header lines
-                if (line[0] == "#" || line[0] == "\n") begin
-                    continue;
-                end
-                flip_icons_in_mem[icon_idx] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: NUM_SPIN];
-                icon_idx = icon_idx + 1;
-            end
-        end
-        $fclose(icon_file);
-        $display("[Time: %t] Flip icon file %s is loaded successfully.", $time, `FLIP_ICON_FILE);
-    endtask
-
-    // Sub-task to read energy reference from file
-    task automatic load_energy_reference();
-        int energy_file;
-        string line;
-        int line_num = 0;
-        int energy_idx = 0;
-
-        energy_file = $fopen(`ENERGY_REF_FILE, "r");
-        if (energy_file == 0) begin
-            $display("Error: Could not open energy reference file %s", `ENERGY_REF_FILE);
-            $finish;
-        end
-
-        // Read the file line by line
-        while (!$feof(energy_file)) begin
-            line = "";
-            if ($fgets(line, energy_file) != 0) begin
-                line_num = line_num + 1;
-                // Skip comment lines and header lines
-                if (line[0] == "#" || line[0] == "\n") begin
-                    continue;
-                end
-                // Skip the first line as it is not a valid icon
-                if (line_num == 1) begin
-                    continue;
-                end
-                energy_ref[energy_idx] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: ENERGY_TOTAL_BIT];
-                energy_idx = energy_idx + 1;
-            end
-        end
-        $fclose(energy_file);
-        $display("[Time: %t] Energy reference file %s is loaded successfully.", $time, `ENERGY_REF_FILE);
-    endtask
-
-    // Sub-task to read state in analog (without flips applied) from file
-    task automatic load_state_in_analog();
-        int state_in_file;
-        string line;
-        int line_num = 0;
-        int state_in_idx = 0;
-
-        state_in_file = $fopen(`STATE_IN_FILE, "r");
-        if (state_in_file == 0) begin
-            $display("Error: Could not open state in file %s", `STATE_IN_FILE);
-            $finish;
-        end
-
-        // Read the file line by line
-        while (!$feof(state_in_file)) begin
-            line = "";
-            if ($fgets(line, state_in_file) != 0) begin
-                line_num = line_num + 1;
-                // Skip comment lines and header lines
-                if (line[0] == "#" || line[0] == "\n") begin
-                    continue;
-                end
-                state_out_analog_ref[state_in_idx] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: NUM_SPIN];
-                state_in_idx = state_in_idx + 1;
-            end
-        end
-        $fclose(state_in_file);
-        $display("[Time: %t] State in file %s is loaded successfully.", $time, `STATE_IN_FILE);
-    endtask
-
-    // Sub-task to read state out analog from file
-    task automatic load_state_out_analog();
-        int state_out_file;
-        string line;
-        int line_num = 0;
-        int state_out_idx = 0;
-
-        state_out_file = $fopen(`STATE_OUT_FILE, "r");
-        if (state_out_file == 0) begin
-            $display("Error: Could not open state out file %s", `STATE_OUT_FILE);
-            $finish;
-        end
-
-        // Read the file line by line
-        while (!$feof(state_out_file)) begin
-            line = "";
-            if ($fgets(line, state_out_file) != 0) begin
-                line_num = line_num + 1;
-                // Skip comment lines and header lines
-                if (line[0] == "#" || line[0] == "\n") begin
-                    continue;
-                end
-                // Skip the first line as it is not a valid out
-                if (line_num == 1) begin
-                    continue;
-                end
-                state_out_analog_ref[state_out_idx] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: NUM_SPIN];
-                state_out_idx = state_out_idx + 1;
-            end
-        end
-        $fclose(state_out_file);
-        $display("[Time: %t] State out file %s is loaded successfully.", $time, `STATE_OUT_FILE);
-    endtask
-
-    // Sub-task for analog galena interface: config data check
-    task automatic analog_interface_config_check();
-        integer galena_addr_idx;
-        integer j_mem_addr_idx;
-        integer dt_write_cycle_cnt;
-        galena_addr_idx = 0;
-        j_mem_addr_idx = 0;
-        dt_write_cycle_cnt = 0;
-        wait (rst_ni == 1 && en_i == 1 && dt_cfg_enable_i == 1);
-        @(negedge clk_i);
-        // check if j and h are loaded correctly
-        while (j_mem_addr_idx < (NUM_SPIN + 1)) begin
-            while (dt_write_cycle_cnt < cycle_per_wwl_high_i) begin
-                @(negedge clk_i);
-                // monitor if j_one_hot_wwl_o remains valid for the dedefined cycles
-                if (j_one_hot_wwl_o == 0 && dt_write_cycle_cnt != 0) begin
-                    $fatal(1, "[Time: %t] Warning: j_one_hot_wwl_o switches to zero during dt write cycle %0d for galena_addr_idx %0d",
-                        $time, dt_write_cycle_cnt, galena_addr_idx);
-                end
-                if (|j_one_hot_wwl_o) begin
-                    // check if one-hot encoded and matches galena_addr_idx
-                    if ($countbits(j_one_hot_wwl_o, '1) != 1)
-                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o is not one-hot encoded, j_one_hot_wwl_o: 'b%b", $time, j_one_hot_wwl_o);
-                    if (j_one_hot_wwl_o[galena_addr_idx] != 1'b1) begin
-                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o does not match galena_addr_idx, j_one_hot_wwl_o: 'b%b, galena_addr_idx: 'd%0d",
-                            $time, j_one_hot_wwl_o, galena_addr_idx);
-                    end
-                    dt_write_cycle_cnt = dt_write_cycle_cnt + 1;
-                end
-                if (galena_addr_idx == (NUM_SPIN)) begin: load_hbias
-                    if (dt_write_cycle_cnt == (cycle_per_wwl_high_i - 1))
-                        hbias_analog = wbl_o;
-                    // compare data to reference
-                    if (hbias_analog != hbias_in_reg) begin
-                        $fatal(1, "[Time: %t] Error: Hbias mismatch. Expected: 'h%h, Got: 'h%h",
-                            $time, hbias_in_reg, hbias_analog);
-                    end
-                end else begin: load_j
-                    if (dt_write_cycle_cnt == (cycle_per_wwl_high_i - 1))
-                        weights_analog[galena_addr_idx] = wbl_o;
-                    // compare data to reference
-                    if (weights_analog[galena_addr_idx] != weights_in_mem[galena_addr_idx]) begin
-                        $fatal(1, "[Time: %t] Error: Weights mismatch at galena_addr_idx %0d. Expected: 'h%h, Got: 'h%h",
-                            $time, galena_addr_idx, weights_in_mem[galena_addr_idx], weights_analog[galena_addr_idx]);
+                end else begin
+                    if (j == NUM_SPIN - 1 - i) begin
+                        weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
+                    end else begin
+                        do begin
+                            weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
+                        end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
                     end
                 end
             end
-            galena_addr_idx = galena_addr_idx + 1;
-            dt_write_cycle_cnt = 0;
-            j_mem_addr_idx = j_mem_addr_idx + 1;
+        end
+        // map to memory format
+        for (int i = 0; i < NUM_SPIN/PARALLELISM; i = i + 1) begin
+            for (int j = 0; j < PARALLELISM; j = j + 1) begin
+                weights_in_mem[i][j*NUM_SPIN*BITJ +: NUM_SPIN*BITJ] = weights_in_txt[i*PARALLELISM + j];
+            end
+        end
+        // generate random h
+        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+            do begin
+                hbias_in_reg[i*BITH +: BITH] = $urandom_range(0, (1<<BITH)-1);
+            end while (hbias_in_reg[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
+        end
+        // generate random scaling factor
+        hscaling_in_reg = 1 << ($urandom_range(0, SCALING_BIT-1));
+    endtask
+
+    // Generate flipping icons
+    task automatic gen_flip_icons();
+        for (int i = 0; i < IconLastAddrPlusOne; i = i + 1) begin
+            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                flip_icons_in_mem[i][j] = $urandom_range(0, 1);
+            end
+        end
+    endtask
+
+    // Generate initial spin states
+    task automatic gen_initial_states();
+        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                spin_initial_states[i][j] = $urandom_range(0, 1);
+            end
+        end
+    endtask
+
+    // Generate reference model for spin fifo
+    task automatic gen_ref_energy_spin_fifo();
+        logic signed [ENERGY_TOTAL_BIT-1:0] energy_temp = 0;
+        integer spin_fifo_pointer = 0;
+        logic [NUM_SPIN-1:0] current_spin_state;
+
+        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+            spin_fifo_ref[0][i] = spin_initial_states[i];
+            energy_fifo_ref[0][i] = {1'b0, {(ENERGY_TOTAL_BIT-1){1'b1}}};
+        end
+
+        for (int icon_idx = 1; icon_idx <= IconLastAddrPlusOne; icon_idx = icon_idx + 1) begin
+            current_spin_state = FlipDisable ? spin_fifo_ref[icon_idx-1][spin_fifo_pointer] :
+                spin_fifo_ref[icon_idx-1][spin_fifo_pointer] ^ flip_icons_in_mem[icon_idx-1];
+            // calc energy
+            energy_temp = calculate_h_energy(
+                current_spin_state,
+                weights_in_txt,
+                hbias_in_reg,
+                hscaling_in_reg
+            );
+            // update fifo
+            for (int j = 0; j < SPIN_DEPTH; j = j + 1) begin
+                if (j != spin_fifo_pointer) begin
+                    spin_fifo_ref[icon_idx][j] = spin_fifo_ref[icon_idx-1][j];
+                    energy_fifo_ref[icon_idx][j] = energy_fifo_ref[icon_idx-1][j];
+                end
+            end
+            if (EnComparison == `False) begin: always_update_fifo
+                energy_fifo_ref[icon_idx][spin_fifo_pointer] = energy_temp;
+                spin_fifo_ref[icon_idx][spin_fifo_pointer] = current_spin_state;
+            end else begin: conditional_update_fifo
+                if (energy_temp < $signed(energy_fifo_ref[icon_idx-1][spin_fifo_pointer])) begin
+                    energy_fifo_ref[icon_idx][spin_fifo_pointer] = energy_temp;
+                    spin_fifo_ref[icon_idx][spin_fifo_pointer] = current_spin_state;
+                end else begin
+                    energy_fifo_ref[icon_idx][spin_fifo_pointer] = energy_fifo_ref[icon_idx-1][spin_fifo_pointer];
+                    spin_fifo_ref[icon_idx][spin_fifo_pointer] = spin_fifo_ref[icon_idx-1][spin_fifo_pointer];
+                end
+            end
+            // update pointer
+            spin_fifo_pointer = (spin_fifo_pointer + 1) % SPIN_DEPTH;
         end
     endtask
 
@@ -516,13 +353,13 @@ module tb_digital_macro;
         cycle_per_spin_write_i = 'd0;
         cycle_per_spin_compute_i = 'd0;
         synchronizer_pipe_num_i = 'd0;
-        synchronizer_mode_i = 1'b0;
         spin_wwl_strobe_i = 'd0;
-        spin_mode_i = 'd0;
+        spin_feedback_i = 'd0;
+        bypass_data_conversion_i = BypassDataConversion;
         // Apply configuration
         wait (rst_ni == 1 && en_i == 1);
-        @(negedge clk_i);
-        $display("[Time: %t] AW configuration starts.", $time);
+        @(posedge clk_i);
+        // $display("[Time: %t] AW configuration starts.", $time);
         config_valid_aw_i = 1;
         cfg_trans_num_i = NUM_SPIN/PARALLELISM-1+1;
         cycle_per_wwl_high_i = CyclePerWwlHigh - 1;
@@ -530,10 +367,9 @@ module tb_digital_macro;
         cycle_per_spin_write_i = CyclePerSpinWrite - 1;
         cycle_per_spin_compute_i = CyclePerSpinCompute - 1;
         synchronizer_pipe_num_i = SynchronizerPipeNum;;
-        synchronizer_mode_i = SynchronizerMode;
         spin_wwl_strobe_i = SpinWwlStrobe;
-        spin_mode_i = SpinMode;
-        @(negedge clk_i);
+        spin_feedback_i = SpinFeedback;
+        @(posedge clk_i);
         config_valid_aw_i = 0;
         config_aw_done = 1;
         $display("[Time: %t] AW configuration finished.", $time);
@@ -546,11 +382,11 @@ module tb_digital_macro;
         config_valid_em_i = 0;
         config_counter_i = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_aw_done == 1);
-        @(negedge clk_i);
-        $display("[Time: %t] EM configuration starts.", $time);
+        @(posedge clk_i);
+        // $display("[Time: %t] EM configuration starts.", $time);
         config_valid_em_i = 1;
         config_counter_i = EmCfgCounter;
-        @(negedge clk_i);
+        @(posedge clk_i);
         config_valid_em_i = 0;
         config_em_done = 1;
         $display("[Time: %t] EM configuration finished.", $time);
@@ -565,15 +401,17 @@ module tb_digital_macro;
         config_spin_initial_skip_i = `False;
         flush_i = Flush;
         en_comparison_i = EnComparison;
-        icon_last_raddr_plus_one_i = IterationNum;
+        icon_last_raddr_plus_one_i = IconLastAddrPlusOne;
         flip_disable_i = FlipDisable;
         wait (rst_ni == 1 && en_i == 1 && config_em_done == 1);
-        @(negedge clk_i);
-        $display("[Time: %t] FM configuration starts.", $time);
-        config_valid_fm_i = 1;
-        config_spin_initial_i = state_out_analog_ref[0];
-        config_spin_initial_skip_i = `False;
-        @(negedge clk_i);
+        @(posedge clk_i);
+        // $display("[Time: %t] FM configuration starts.", $time);
+        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+            config_valid_fm_i = 1;
+            config_spin_initial_i = spin_initial_states[i];
+            config_spin_initial_skip_i = `False;
+            @(posedge clk_i);
+        end
         config_valid_fm_i = 0;
         config_fm_done = 1;
         $display("[Time: %t] FM configuration finished.", $time);
@@ -585,11 +423,12 @@ module tb_digital_macro;
         config_galena_done = 0;
         dt_cfg_enable_i = 0;
         wait (rst_ni == 1 && en_i == 1 && config_aw_done == 1 && config_em_done == 1 && config_fm_done == 1);
-        @(negedge clk_i);
+        @(posedge clk_i);
         $display("[Time: %t] Galena configuration starts.", $time);
         dt_cfg_enable_i = 1;
-        @(negedge clk_i);
+        @(posedge clk_i);
         dt_cfg_enable_i = 0;
+        @(posedge clk_i);
         wait (dt_cfg_idle_o == 1);
         config_galena_done = 1;
         $display("[Time: %t] Galena configuration finished.", $time);
@@ -600,7 +439,7 @@ module tb_digital_macro;
         wait (rst_ni == 0);
         config_dut_done = 0;
         wait (config_aw_done == 1 && config_em_done == 1 && config_fm_done == 1 && config_galena_done == 1);
-        @(negedge clk_i);
+        @(posedge clk_i);
         config_dut_done = 1;
         $display("[Time: %t] DUT configuration is done.", $time);
     endtask
@@ -608,38 +447,13 @@ module tb_digital_macro;
     // ========================================================================
     // Tasks
     // ========================================================================
-    // Task to load all data references
-    task automatic data_ref_loading();
-        load_model();
-        load_flip_icons();
-        load_energy_reference();
-        load_state_in_analog();
-        load_state_out_analog();
-    endtask
-
-    // Analog galena interface: compute
-    task automatic analog_interface_cmpt();
-        integer iteration_cnt, cycle_analog_cnt;
-        iteration_cnt = 0;
-        wait (rst_ni == 1 && en_i == 1);
-        @(negedge clk_i);
-        while (iteration_cnt < IterationNum) begin
-            wait (|spin_wwl_o); // wait for any spin wwl
-            cycle_analog_cnt = 0;
-            while (cycle_analog_cnt < cycle_per_spin_compute_i) begin
-                @(negedge clk_i);
-                cycle_analog_cnt = cycle_analog_cnt + 1;
-            end
-            // Provide analog spin output
-            analog_spin_i = state_out_analog_ref[iteration_cnt];
-            iteration_cnt = iteration_cnt + 1;
-        end
-    endtask
-
     // Pre-compute configuration
     task automatic pre_compute_config();
         fork
-            analog_interface_config_check(); // check if j and h wwl are corretly generated
+            gen_model(); // generate weight model
+            gen_flip_icons(); // generate flipping icons
+            gen_initial_states(); // generate initial spin states
+            gen_ref_energy_spin_fifo(); // generate reference energy and spin fifo
             aw_config_interface(); // configure aw module
             em_config_interface(); // configure em module
             fm_config_interface(); // configure fm module
@@ -648,18 +462,68 @@ module tb_digital_macro;
         join_none
     endtask
 
+    // Interface: analog_wrap <-> galena spin wwl
+    task automatic galena_spin_wwl_interface();
+        integer galena_spin_write_cycle_cnt = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        forever begin
+            @(posedge clk_i);
+            if ($countbits(spin_wwl_o, '1) == NUM_SPIN) begin: timer_start
+                if (galena_spin_write_cycle_cnt == -1) begin: spin_write_finished
+                    galena_spin_write_cycle_cnt = galena_spin_write_cycle_cnt;
+                end else begin
+                    if (galena_spin_write_cycle_cnt == (CyclePerSpinWrite-1)) begin: spin_write_finishing
+                        wbl_copy = wbl_o;
+                        galena_spin_write_cycle_cnt = -1;
+                    end else begin: spin_write_ongoing
+                        galena_spin_write_cycle_cnt = galena_spin_write_cycle_cnt + 1;
+                    end
+                end
+            end else begin: spin_wwl_idle
+                galena_spin_write_cycle_cnt = 0;
+            end
+        end
+    endtask
+
+    // Interface: analog_wrap <-> galena output
+    task automatic galena_spin_output_interface();
+        integer galena_spin_cmpt_cycle_cnt = 0;
+        wbl_i = 'd0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        forever begin
+            @(posedge clk_i);
+            wbl_i = 'z;
+            if ($countbits(spin_wwl_o, '1) == NUM_SPIN) begin: timer_start
+                while (galena_spin_cmpt_cycle_cnt < (CyclePerSpinWrite+CyclePerSpinCompute-2)) begin
+                    galena_spin_cmpt_cycle_cnt = galena_spin_cmpt_cycle_cnt + 1;
+                    if (galena_spin_cmpt_cycle_cnt >= CyclePerSpinWrite) begin
+                        // during compute cycles, generate random wbl_i
+                        for (int i = 0; i < NUM_SPIN * BITDATA; i = i + 1) begin
+                            wbl_i[i] = $urandom_range(0, 1);
+                        end
+                    end
+                    @(posedge clk_i);
+                end
+                // after compute cycles, output wbl_i
+                wbl_i = wbl_copy;
+                galena_spin_cmpt_cycle_cnt = 0;
+            end
+        end
+    endtask
+
     // Interface: J mem <-> analog wrap and energy monitor
     task automatic j_mem_interface();
-        wait (rst_ni == 0);
-        @(negedge clk_i);
         j_rdata_latched = 'd0;
         weight_valid_i = 0;
         weight_i = 'd0;
         j_raddr_ref = 'd0;
         weight_raddr_ref = 'd0;
         wait (rst_ni == 1 && en_i == 1);
+        @(posedge clk_i);
+        weight_valid_i = 1;
+        weight_i = weights_in_mem[0];
         forever begin
-            @(negedge clk_i);
+            @(posedge clk_i);
             // Interface to analog wrap: standard 1-cycle-delay memory interface
             if (j_mem_ren_o == 1) begin
                 if (j_raddr_o != j_raddr_ref) begin
@@ -670,33 +534,31 @@ module tb_digital_macro;
                 j_raddr_ref = j_raddr_ref + 1;
             end
             // Interface to energy monitor: valid-ready interface
-            weight_valid_i = 1;
-            weight_i = weights_in_mem[weight_raddr_ref];
             if (weight_ready_o == 1) begin
                 if (weight_raddr_o != weight_raddr_ref) begin
-                    $fatal(1, "[Time: %t] Error: Weight memory read address mismatch. Expected: %0d, Got: %0d",
+                    $fatal(1, "[Time: %t] Error: Weight memory read address mismatch. Expected: 'h%0h, Got: 'h%0h",
                         $time, weight_raddr_ref, weight_raddr_o);
                 end
                 weight_raddr_ref = weight_raddr_ref + 1;
+                weight_i = weights_in_mem[weight_raddr_ref];
             end
         end
     endtask
 
     // H and scaling factor reg interface
     task automatic h_sfc_reg_interface();
-        h_rdata_i = hbias_in_reg;
-        hbias_i = hbias_in_reg;
+        h_rdata_i = hbias_in_reg; // for analog onloading
+        hbias_i = hbias_in_reg; // for digital energy monitor
         hscaling_i = hscaling_in_reg;
     endtask
 
     // Flip icon memory interface
     task automatic flip_mem_interface();
-        wait (rst_ni == 0);
         flip_rdata_latched = 'd0;
         flip_raddr_ref = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_dut_done == 1);
         forever begin
-            @(negedge clk_i);
+            @(posedge clk_i);
             if (flip_ren_o == 1) begin
                 if (flip_raddr_o != flip_raddr_ref) begin
                     $fatal(1, "[Time: %t] Error: Flip icon memory read address mismatch. Expected: %0d, Got: %0d",
@@ -708,6 +570,190 @@ module tb_digital_macro;
         end
     endtask
 
+    // Host interface
+    task automatic host_interface();
+        host_readout_i = 0;
+        test_idx = 0;
+        cmpt_en_i = 0;
+        cmpt_test_start = 0;
+        cmpt_test_end = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_dut_done == 1);
+        @(posedge clk_i);
+        cmpt_test_start = 1;
+        while (test_idx < NUM_TESTS) begin
+            cmpt_en_i = 1;
+            @(posedge clk_i);
+            cmpt_en_i = 0;
+            @(posedge clk_i);
+            wait (cmpt_idle_o == 1);
+            @(posedge clk_i);
+            host_readout_i = 1;
+            @(posedge clk_i);
+            host_readout_i = 0;
+            // wait some cycles between tests
+            repeat (5) @(posedge clk_i);
+            test_idx = test_idx + 1;
+        end
+        @(posedge clk_i);
+        cmpt_test_end = 1;
+    endtask
+
+    // ========================================================================
+    // Checks
+    // ========================================================================
+    // Task for analog galena interface: config data check: j
+    task automatic analog_interface_config_check_j();
+        integer config_test_correct_cnt_j = 0;
+        integer galena_addr_idx = 0;
+        dt_write_cycle_cnt_j = 0;
+        while (config_test_correct_cnt_j < 1) begin
+            wait (dt_cfg_enable_i == 1);
+            @(posedge clk_i);
+            // check if j and h are loaded correctly
+            while (galena_addr_idx < NUM_SPIN) begin
+                wait (j_one_hot_wwl_o != 0);
+                while (dt_write_cycle_cnt_j < CyclePerWwlHigh) begin
+                    @(negedge clk_i);
+                    // monitor if j_one_hot_wwl_o remains valid for the dedefined cycles
+                    if (j_one_hot_wwl_o == 0 && dt_write_cycle_cnt_j != 0) begin
+                        $fatal(1, "[Time: %t] Warning: j_one_hot_wwl_o switches to zero during dt write cycle %0d for galena_addr_idx %0d",
+                            $time, dt_write_cycle_cnt_j, galena_addr_idx);
+                    end
+                    if (|j_one_hot_wwl_o) begin
+                        // check if one-hot encoded and matches galena_addr_idx
+                        if ($countbits(j_one_hot_wwl_o, '1) != 1)
+                            $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o is not one-hot encoded, j_one_hot_wwl_o: 'b%b", $time, j_one_hot_wwl_o);
+                        if (j_one_hot_wwl_o[galena_addr_idx] != 1'b1) begin
+                            $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o does not match galena_addr_idx, j_one_hot_wwl_o: 'b%b, galena_addr_idx: 'd%0d",
+                                $time, j_one_hot_wwl_o, galena_addr_idx);
+                        end
+                        dt_write_cycle_cnt_j = dt_write_cycle_cnt_j + 1;
+                    end
+                end
+                for (int i=0; i<NUM_SPIN; i=i+1) begin
+                    if (bypass_data_conversion_i) begin: exact_copy_of_analog_data
+                        weights_analog[galena_addr_idx][i*BITDATA +: BITDATA]
+                            = wbl_o[i*BITDATA +: BITDATA];
+                    end else begin: convert_data_format_for_checker
+                        weights_analog[galena_addr_idx][i*BITDATA +: BITDATA]
+                            = analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                    end
+                end
+                // compare data to reference
+                if (weights_analog[galena_addr_idx] != weights_in_txt[galena_addr_idx]) begin
+                    $fatal(1, "[Time: %t] Error: Weights mismatch at galena_addr_idx %0d. Expected: 'h%h, Got: 'h%h",
+                        $time, galena_addr_idx, weights_in_txt[galena_addr_idx], weights_analog[galena_addr_idx]);
+                end
+                dt_write_cycle_cnt_j = 0;
+                galena_addr_idx = galena_addr_idx + 1;
+            end
+            config_test_correct_cnt_j = config_test_correct_cnt_j + 1;
+            galena_addr_idx = 0;
+        end
+        // after all config tests
+        $display("----------------------------------------");
+        $display("Config Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+            $time, config_test_correct_cnt_j, 1, 1 - config_test_correct_cnt_j, 1);
+        $display("----------------------------------------");
+    endtask
+
+    // Task for analog galena interface: config data check: h
+    task automatic analog_interface_config_check_h();
+        integer dt_write_cycle_cnt_hbias = 0;
+        integer config_test_correct_cnt_h = 0;
+        while (config_test_correct_cnt_h < 1) begin
+            wait (rst_ni == 1 && en_i == 1);
+            dt_write_cycle_cnt_hbias = 0;
+            wait (dt_cfg_enable_i == 1);
+            while (dt_write_cycle_cnt_hbias <  CyclePerWwlHigh) begin
+                @(negedge clk_i);
+                // monitor if h_wwl_o remains valid for the dedefined cycles
+                if (h_wwl_o == 0 && dt_write_cycle_cnt_hbias != 0) begin
+                    $fatal(1, "[Time: %t] Warning: h_wwl_o switches to zero during dt write cycle %0d for hbias",
+                        $time, dt_write_cycle_cnt_hbias);
+                end
+                if (h_wwl_o == 1) begin
+                    dt_write_cycle_cnt_hbias = dt_write_cycle_cnt_hbias + 1;
+                end
+            end
+            // after dt write cycles, check hbias
+            for (int i=0; i<NUM_SPIN; i=i+1) begin
+                if (bypass_data_conversion_i) begin
+                    hbias_analog[i*BITDATA +: BITDATA]
+                    = wbl_o[i*BITDATA +: BITDATA];
+                end else begin
+                    hbias_analog[i*BITDATA +: BITDATA]
+                        = analog_to_signed_int(wbl_o[i*BITDATA +: BITDATA]);
+                end
+            end
+            // compare data to reference
+            if (hbias_analog != hbias_in_reg) begin
+                $fatal(1, "[Time: %t] Error: Hbias mismatch. Expected: 'h%h, Got: 'h%h",
+                    $time, hbias_in_reg, hbias_analog);
+            end
+            config_test_correct_cnt_h = config_test_correct_cnt_h + 1;
+        end
+    endtask
+
+    // Task for spin_wwl_o check
+    task automatic spin_wwl_check();
+        integer spin_wwl_cycle_cnt;
+        spin_wwl_cycle_cnt = 0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        @(negedge clk_i);
+        forever begin
+            @(negedge clk_i);
+            if ($countbits(spin_wwl_o, '1) != 0) begin
+                if ($countbits(spin_wwl_o, '1) != NUM_SPIN) begin
+                    $fatal(1, "[Time: %t] Error: spin_wwl_o is not all-one when enabled, spin_wwl_o: 'b%b",
+                        $time, spin_wwl_o);
+                end
+                while (spin_wwl_cycle_cnt < CyclePerSpinWrite) begin
+                    if (spin_wwl_cycle_cnt > 0 && $countbits(spin_wwl_o, '1) != NUM_SPIN) begin
+                        $fatal(1, "[Time: %t] Error: spin_wwl_o is not all-one during spin write cycle %0d, spin_wwl_o: 'b%b",
+                            $time, spin_wwl_cycle_cnt, spin_wwl_o);
+                    end
+                    spin_wwl_cycle_cnt = spin_wwl_cycle_cnt + 1;
+                    @(negedge clk_i);
+                end
+                spin_wwl_cycle_cnt = 0;
+            end
+        end
+    endtask
+
+    // Check energy and spin fifo content
+    task automatic energy_spin_fifo_check();
+        integer test_correct_cnt = 0;
+        integer check_idx = 0;
+        wait (cmpt_test_start == 1);
+        while (check_idx < IconLastAddrPlusOne) begin
+            wait (dut.u_flip_manager.spin_maintainer_push_valid == 1 & dut.u_flip_manager.spin_maintainer_push_ready == 1);
+            // wait 1 cycle for fifo to update
+            @(posedge clk_i);
+            // switch to negedge to observe signals
+            @(negedge clk_i);
+            // check energy fifo
+            for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
+                if (energy_fifo_o[depth_idx] !== energy_fifo_ref[check_idx+1][depth_idx]) begin
+                    $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, weights: 'h%h, hbias: 'h%h, hscaling: 'h%h",
+                        $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], weights_in_txt, hbias_in_reg, hscaling_in_reg);
+                end
+                // check spin fifo
+                if (spin_fifo[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
+                    $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
+                        $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo[depth_idx]);
+                end
+            end
+            test_correct_cnt = test_correct_cnt + 1;
+            check_idx = check_idx + 1;
+        end
+        // after all tests
+        $display("----------------------------------------");
+        $display("Computation Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+            $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
+        $display("----------------------------------------");
+    endtask
+
     // Cmpt enable and timer
     task automatic cmpt_enable_and_timer();
         wait (rst_ni == 0);
@@ -717,30 +763,25 @@ module tb_digital_macro;
         transaction_time = 0;
         start_time = 0;
         end_time = 0;
-        cmpt_en_i = 0;
-        wait (rst_ni == 1 && en_i == 1 && config_dut_done == 1);
-
-        // start compute
-        @(negedge clk_i);
-        cmpt_en_i = 1;
-        start_time = $time;
-        @(negedge clk_i);
-        cmpt_en_i = 0;
-
-        wait (cmpt_idle_o == 0);
-        @(negedge clk_i);
-        // calculate compute cycles
-        end_time = $time;
-        total_time = end_time - start_time;
-        total_cycles = total_time / CLKCYCLE;
-        transaction_cycles = total_cycles / IterationNum;
-        transaction_time = transaction_cycles * CLKCYCLE;
-        $display("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        $display("Timer [Time %0d ns]: start time: %0d ns, end time: %0d ns, duration: %0d ns, transactions: %0d",
-            $time, start_time, end_time, total_time, IterationNum);
-        $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/transaction: %0d cc [%0d ns]",
-            $time, total_cycles, total_time, transaction_cycles, transaction_time);
-        $display("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        while (test_idx < NUM_TESTS) begin
+            wait (cmpt_test_start == 1);
+            start_time = $time;
+            @(posedge clk_i);
+            wait (cmpt_test_end == 1);
+            end_time = $time;
+            // calculate compute cycles
+            total_time = end_time - start_time;
+            total_cycles = total_time / CLKCYCLE;
+            transaction_cycles = total_cycles / IconLastAddrPlusOne;
+            transaction_time = transaction_cycles * CLKCYCLE;
+            $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
+            $display("Timer [Time %0d ns]: start time: %0d ns, end time: %0d ns, duration: %0d ns, flips: %0d",
+                $time, start_time, end_time, total_time, IconLastAddrPlusOne);
+            $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
+                $time, total_cycles, total_time, transaction_cycles, transaction_time);
+            $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
+        end
+        $finish;
     endtask
 
     // ========================================================================
@@ -748,13 +789,21 @@ module tb_digital_macro;
     // ========================================================================
     initial begin
         fork
-            data_ref_loading(); // load algorithm model/spin/flip/reference energy into memory
             pre_compute_config(); // configure aw, em, fm modules
-            analog_interface_cmpt(); // mimic galena, provide analog spin output by analog_spin_i
-            j_mem_interface(); // mimic j memory interface
-            h_sfc_reg_interface(); // mimic h and scaling factor register interface
-            flip_mem_interface(); // mimic flip icon memory interface
-            cmpt_enable_and_timer(); // enable compute and measure time
+            // interfaces
+            galena_spin_wwl_interface();
+            host_interface();
+            galena_spin_output_interface();
+            j_mem_interface();
+            h_sfc_reg_interface();
+            flip_mem_interface();
+            // checks
+            analog_interface_config_check_j();
+            analog_interface_config_check_h();
+            spin_wwl_check();
+            energy_spin_fifo_check();
+            // timer
+            cmpt_enable_and_timer();
         join_none
     end
 
