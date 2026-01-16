@@ -18,11 +18,13 @@ package config_pkg;
     parameter int COUNTER_BITWIDTH = 16;
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
+
     // run-time parameters (related to algorithm)
     parameter int IconLastAddrPlusOne = 1024;
     parameter int EnComparison = `True;
     parameter int FlipDisable = `False;
     parameter int EnableAnalogLoop = `True;
+
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 5;
     parameter int CyclePerWwlLow = 5;
@@ -32,6 +34,7 @@ package config_pkg;
     parameter int SpinWwlStrobe = {NUM_SPIN{1'b1}};
     parameter int SpinFeedback = {NUM_SPIN{1'b1}}; // all spins in feedback mode
     parameter int Flush = `False;
+
     // derived parameters
     parameter int BITJ = BITDATA;
     parameter int BITH = BITDATA;
