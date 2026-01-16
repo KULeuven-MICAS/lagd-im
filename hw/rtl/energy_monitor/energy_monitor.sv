@@ -250,24 +250,45 @@ module energy_monitor #(
     // Energy calculation and accumulation
     generate
         for (i = 0; i < PARALLELISM; i = i + 1) begin: partial_energy_calc_inst
-            partial_energy_calc #(
-                .BITJ(BITJ),
-                .BITH(BITH),
-                .NUM_SPIN(NUM_SPIN),
-                .SCALING_BIT(SCALING_BIT),
-                .PIPES(PIPESMID)
-            ) u_partial_energy_calc (
-                .clk_i(clk_i),
-                .rst_ni(rst_ni),
-                .en_i(en_i),
-                .data_valid_i(weight_handshake),
-                .spin_vector_i(spin_cached),
-                .current_spin_i(current_spin[i]),
-                .weight_i(weight_pipe[i*BITJ*NUM_SPIN +: BITJ*NUM_SPIN]),
-                .hbias_i(hbias_pipe[i*BITH +: BITH]),
-                .hscaling_i(hscaling_pipe[i*SCALING_BIT +: SCALING_BIT]),
-                .energy_o(local_energy[i*LOCAL_ENERGY_BIT +: LOCAL_ENERGY_BIT])
-            );
+            if (LITTLE_ENDIAN == `True) begin: select_hbias_in_little_endian
+                partial_energy_calc #(
+                    .BITJ(BITJ),
+                    .BITH(BITH),
+                    .NUM_SPIN(NUM_SPIN),
+                    .SCALING_BIT(SCALING_BIT),
+                    .PIPES(PIPESMID)
+                ) u_partial_energy_calc (
+                    .clk_i(clk_i),
+                    .rst_ni(rst_ni),
+                    .en_i(en_i),
+                    .data_valid_i(weight_handshake),
+                    .spin_vector_i(spin_cached),
+                    .current_spin_i(current_spin[i]),
+                    .weight_i(weight_pipe[i*BITJ*NUM_SPIN +: BITJ*NUM_SPIN]),
+                    .hbias_i(hbias_pipe[i*BITH +: BITH]),
+                    .hscaling_i(hscaling_pipe[i*SCALING_BIT +: SCALING_BIT]),
+                    .energy_o(local_energy[i*LOCAL_ENERGY_BIT +: LOCAL_ENERGY_BIT])
+                );
+            end else begin: select_hbias_in_big_endian
+                partial_energy_calc #(
+                    .BITJ(BITJ),
+                    .BITH(BITH),
+                    .NUM_SPIN(NUM_SPIN),
+                    .SCALING_BIT(SCALING_BIT),
+                    .PIPES(PIPESMID)
+                ) u_partial_energy_calc (
+                    .clk_i(clk_i),
+                    .rst_ni(rst_ni),
+                    .en_i(en_i),
+                    .data_valid_i(weight_handshake),
+                    .spin_vector_i(spin_cached),
+                    .current_spin_i(current_spin[i]),
+                    .weight_i(weight_pipe[i*BITJ*NUM_SPIN +: BITJ*NUM_SPIN]),
+                    .hbias_i(hbias_pipe[(PARALLELISM - 1 - i)*BITH +: BITH]),
+                    .hscaling_i(hscaling_pipe[(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT]),
+                    .energy_o(local_energy[i*LOCAL_ENERGY_BIT +: LOCAL_ENERGY_BIT])
+                );
+            end
         end
     endgenerate
 

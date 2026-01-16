@@ -305,13 +305,23 @@ module tb_energy_monitor;
 
                 if (`PIPESINTF == 0) begin: no_pipeline_mode
                     for (int i = 0; i < PARALLELISM; i++) begin
-                        expected_local_energy = compute_local_energy(
-                            spin_reg[testcase_counter-1],
-                            weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                            hbias_i[i*BITH +: BITH],
-                            hscaling_i[i*SCALING_BIT +: SCALING_BIT],
-                            expected_spin_counter_next + i
-                        );
+                        if (LITTLE_ENDIAN == `True) begin
+                            expected_local_energy = compute_local_energy(
+                                spin_reg[testcase_counter-1],
+                                weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                hbias_i[i*BITH +: BITH],
+                                hscaling_i[i*SCALING_BIT +: SCALING_BIT],
+                                expected_spin_counter_next + i
+                            );
+                        end else begin
+                            expected_local_energy = compute_local_energy(
+                                spin_reg[testcase_counter-1],
+                                weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                hbias_i[(PARALLELISM - 1 - i)*BITH +: BITH],
+                                hscaling_i[(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
+                                expected_spin_counter_next + i
+                            );
+                        end
                         expected_energy_next = expected_energy_next + expected_local_energy;
                     end
                     expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
@@ -322,26 +332,46 @@ module tb_energy_monitor;
                         for (int p = 0; p < pipe_valid_int; p++) begin
                             if (pipe_valid[p]) begin
                                 for (int i = 0; i < PARALLELISM; i++) begin
-                                    expected_local_energy = compute_local_energy(
-                                        spin_reg[testcase_counter-1],
-                                        weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                                        hbias_pipe[p][i*BITH +: BITH],
-                                        hscaling_pipe[p][i*SCALING_BIT +: SCALING_BIT],
-                                        expected_spin_counter_next + i
-                                    );
+                                    if (LITTLE_ENDIAN == `True) begin
+                                        expected_local_energy = compute_local_energy(
+                                            spin_reg[testcase_counter-1],
+                                            weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                            hbias_pipe[p][i*BITH +: BITH],
+                                            hscaling_pipe[p][i*SCALING_BIT +: SCALING_BIT],
+                                            expected_spin_counter_next + i
+                                        );
+                                    end else begin
+                                        expected_local_energy = compute_local_energy(
+                                            spin_reg[testcase_counter-1],
+                                            weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                            hbias_pipe[p][(PARALLELISM - 1 - i)*BITH +: BITH],
+                                            hscaling_pipe[p][(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
+                                            expected_spin_counter_next + i
+                                        );
+                                    end
                                     expected_energy_next = expected_energy_next + expected_local_energy;
                                 end
                                 expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
                             end
                         end
                         for (int i = 0; i < PARALLELISM; i++) begin
-                            expected_local_energy = compute_local_energy(
-                                spin_reg[testcase_counter-1],
-                                weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                                hbias_i[i*BITH +: BITH],
-                                hscaling_i[i*SCALING_BIT +: SCALING_BIT],
-                                expected_spin_counter_next + i
-                            );
+                            if (LITTLE_ENDIAN == `True) begin
+                                expected_local_energy = compute_local_energy(
+                                    spin_reg[testcase_counter-1],
+                                    weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                    hbias_i[i*BITH +: BITH],
+                                    hscaling_i[i*SCALING_BIT +: SCALING_BIT],
+                                    expected_spin_counter_next + i
+                                );
+                            end else begin
+                                expected_local_energy = compute_local_energy(
+                                    spin_reg[testcase_counter-1],
+                                    weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                    hbias_i[(PARALLELISM - 1 - i)*BITH +: BITH],
+                                    hscaling_i[(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
+                                    expected_spin_counter_next + i
+                                );
+                            end
                             expected_energy_next = expected_energy_next + expected_local_energy;
                         end
                         expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
