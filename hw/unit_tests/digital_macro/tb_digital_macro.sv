@@ -149,7 +149,7 @@ module tb_digital_macro;
         .cycle_per_spin_compute_i   (cycle_per_spin_compute_i   ),
         .bypass_data_conversion_i   (bypass_data_conversion_i   ),
         .spin_wwl_strobe_i          (spin_wwl_strobe_i          ),
-        .spin_feedback_i                (spin_feedback_i                ),
+        .spin_feedback_i            (spin_feedback_i            ),
         .synchronizer_pipe_num_i    (synchronizer_pipe_num_i    ),
         .dt_cfg_enable_i            (dt_cfg_enable_i            ),
         .j_mem_ren_o                (j_mem_ren_o                ),
