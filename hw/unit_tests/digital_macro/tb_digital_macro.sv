@@ -98,6 +98,7 @@ module tb_digital_macro;
     logic host_readout_check_end;
     integer dt_write_cycle_cnt_j;
     logic em_fm_handshake, fm_downstream_handshake, em_upstream_handshake;
+    logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
 
     assign em_fm_handshake = dut.em_mst_valid && dut.fm_slv_ready;
     assign fm_downstream_handshake = dut.fm_mst_valid && dut.muxed_slv_ready;
@@ -321,14 +322,25 @@ module tb_digital_macro;
         integer spin_fifo_pointer = 0;
         logic [NUM_SPIN-1:0] current_spin_state;
 
+        if (DataFromFile) begin
+            states_out_ref = load_state_out_ref();
+        end else begin
+            states_out_ref = 'd0;
+        end
+
         for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
             spin_fifo_ref[0][i] = spin_initial_states[i];
             energy_fifo_ref[0][i] = {1'b0, {(ENERGY_TOTAL_BIT-1){1'b1}}};
         end
 
         for (int icon_idx = 1; icon_idx <= IconLastAddrPlusOne; icon_idx = icon_idx + 1) begin
-            current_spin_state = FlipDisable ? spin_fifo_ref[icon_idx-1][spin_fifo_pointer] :
-                spin_fifo_ref[icon_idx-1][spin_fifo_pointer] ^ flip_icons_in_mem[icon_idx-1];
+            // get current spin state
+            if (DataFromFile == `True) begin
+                current_spin_state = states_out_ref[icon_idx-1];
+            end else begin
+                current_spin_state = FlipDisable ? spin_fifo_ref[icon_idx-1][spin_fifo_pointer] :
+                    spin_fifo_ref[icon_idx-1][spin_fifo_pointer] ^ flip_icons_in_mem[icon_idx-1];
+            end
             // calc energy
             energy_temp = calculate_h_energy(
                 current_spin_state,
@@ -505,6 +517,8 @@ module tb_digital_macro;
     // Interface: analog_wrap <-> galena output
     task automatic galena_spin_output_interface();
         integer galena_spin_cmpt_cycle_cnt = 0;
+        integer state_out_ref_idx = 0;
+
         wbl_i = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
         forever begin
@@ -522,7 +536,14 @@ module tb_digital_macro;
                     @(posedge clk_i);
                 end
                 // after compute cycles, output wbl_i
-                wbl_i = wbl_copy;
+                if (DataFromFile == `True) begin
+                    for (int k = 0; k < NUM_SPIN; k = k + 1) begin
+                        wbl_i[k*BITDATA] = {{(BITJ-1){1'b0}}, states_out_ref[state_out_ref_idx][k]} << SPIN_WBL_OFFSET;
+                    end
+                    state_out_ref_idx = (state_out_ref_idx + 1) % (IconLastAddrPlusOne);
+                end else begin
+                    wbl_i = wbl_copy;
+                end
                 galena_spin_cmpt_cycle_cnt = 0;
             end
         end
@@ -782,6 +803,14 @@ module tb_digital_macro;
                     $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
                         $time, test_idx, readout_count_host, spin_fifo_ref[IconLastAddrPlusOne][readout_count_host], spin_fifo_o[readout_count_host]);
                 end
+                $display("[Time: %t] Host readout spin fifo at idx 'd%0d, value: 'b%0b",
+                    $time, readout_count_host, spin_fifo_o[readout_count_host]);
+                if (energy_fifo_o[readout_count_host] !== energy_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
+                    $fatal(1, "[Time: %t] Error: Host readout energy fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
+                        $time, test_idx, readout_count_host, energy_fifo_ref[IconLastAddrPlusOne][readout_count_host], energy_fifo_o[readout_count_host]);
+                end
+                $display("[Time: %t] Host readout energy fifo at idx 'd%0d, value: 'b%b",
+                    $time, readout_count_host, energy_fifo_o[readout_count_host]);
                 readout_count_host = readout_count_host + 1;
             end
             host_readout_check_end = 1;

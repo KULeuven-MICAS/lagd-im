@@ -1,0 +1,230 @@
+package data_read_pkg;
+    import config_pkg::*;
+
+    `define MODEL_FILE "./data/model_1"
+    `define FLIP_ICON_FILE_1 "./data/clusters_1"
+    `define ENERGY_REF_FILE_1 "./data/energy_1"
+    `define STATE_IN_FILE_1 "./data/states_in_1"
+    `define STATE_OUT_FILE_1 "./data/states_out_1"
+    `define FLIP_ICON_FILE_2 "./data/clusters_2"
+    `define ENERGY_REF_FILE_2 "./data/energy_2"
+    `define STATE_IN_FILE_2 "./data/states_in_2"
+    `define STATE_OUT_FILE_2 "./data/states_out_2"
+
+    typedef struct {
+        logic [NUM_SPIN-1:0][NUM_SPIN*BITJ-1:0] weights;
+        logic [NUM_SPIN*BITH-1:0] hbias;
+        logic [SCALING_BIT-1:0] scaling_factor;
+        int signed constant;
+    } model_t;
+
+    // ========================================================================
+    // Data Reading Package
+    // ========================================================================
+    // Function to parse a line (max length: NUM_SPIN*BITJ) from the model file
+    function automatic logic [NUM_SPIN*BITJ-1:0] parse_bit_string(string line);
+        logic [NUM_SPIN*BITJ-1:0] result = 'd0;
+        int bit_idx = 0;
+        int i = 0;
+        while (i < line.len() && bit_idx < NUM_SPIN*BITJ) begin
+            if (line[i] == "0" || line[i] == "1") begin
+                if (LITTLE_ENDIAN)
+                    result[bit_idx] = $unsigned(line[i]);
+                else
+                    result[NUM_SPIN*BITJ-1-bit_idx] = $unsigned(line[i]);
+                bit_idx = bit_idx + 1;
+            end
+            i = i + 1;
+        end
+        return result;
+    endfunction
+
+    // Function to read weight model from file
+    function automatic model_t load_model();
+        int model_file;
+        string line;
+        int line_num = 0;
+        int weight_idx = 0;
+        int hbias_idx = 0;
+        model_t model;
+        real const_real;
+
+        model_file = $fopen(`MODEL_FILE, "r");
+        if (model_file == 0) begin
+            $display("Error: Could not open model file %s", `MODEL_FILE);
+            $finish;
+        end
+
+        // Read the file line by line
+        while (!$feof(model_file)) begin
+            line = "";
+            if ($fgets(line, model_file) != 0) begin
+                line_num = line_num + 1;
+                // Skip comment lines and header lines
+                if (line[0] == "#" || line[0] == "\n") begin
+                    continue;
+                end
+                // Read weights into memory (1024 bits per line)
+                if (line_num > 1 && line_num <= (1 + NUM_SPIN)) begin
+                    model.weights[weight_idx] = parse_bit_string(line);
+                    weight_idx = weight_idx + 1;
+                end
+                // Read hbias (4 bits per line)
+                else if (line_num > (1 + NUM_SPIN) && line_num <= (2 + 2*NUM_SPIN)) begin
+                    if (LITTLE_ENDIAN)
+                        model.hbias[hbias_idx * BITH +: BITH] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: BITH];
+                    else
+                        model.hbias[(NUM_SPIN - 1 - hbias_idx) * BITH +: BITH] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: BITH];
+                    hbias_idx = hbias_idx + 1;
+                end
+                // Read constant as a signed integer
+                else if (line_num > (2 + 2*NUM_SPIN)) begin
+                    if ($sscanf(line, "%f", const_real) != 1) begin
+                        $display("Error: Failed to parse constant from line: %s (@ line %0d)", line, line_num);
+                        $finish;
+                    end
+                    model.constant = $rtoi(const_real);
+                    break;
+                end
+            end
+        end
+        $fclose(model_file);
+        model.scaling_factor = 'd4; // fixed scaling factor according to the algorithm setup
+        $display("[Time: %t] Model file %s is loaded successfully.", $time, `MODEL_FILE);
+        return model;
+    endfunction
+
+    // Function to read flip icons from file
+    function automatic logic [1024-1:0] [NUM_SPIN-1:0] load_flip_icons();
+        int icon_file;
+        string line;
+        int line_num;
+        int icon_idx;
+        logic [1:0] [512-1:0] [NUM_SPIN-1:0] flip_icons_in_mem_txt;
+        logic [1024-1:0] [NUM_SPIN-1:0] flip_icons_in_mem;
+
+        for (int i = 0; i < 2; i = i + 1) begin
+            icon_idx = 0;
+            line_num = 0;
+            // Open the appropriate file
+            if (i == 0)
+                icon_file = $fopen(`FLIP_ICON_FILE_1, "r");
+            else
+                icon_file = $fopen(`FLIP_ICON_FILE_2, "r");
+            if (icon_file == 0) begin
+                $display("Error: Could not open cluster file %s", `FLIP_ICON_FILE_1);
+                $finish;
+            end
+
+            // Read the file line by line
+            while (!$feof(icon_file)) begin
+                if ($fgets(line, icon_file) != 0) begin
+                    line_num = line_num + 1;
+                    // Skip comment lines and header lines
+                    if (line[0] == "#" || line[0] == "\n") begin
+                        continue;
+                    end
+                    flip_icons_in_mem_txt[i][icon_idx] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: NUM_SPIN];
+                    icon_idx = icon_idx + 1;
+                end
+            end
+            $fclose(icon_file);
+        end
+        // shuffle two sets of icons into one memory
+        for (int j = 0; j < 512; j = j + 1) begin
+            flip_icons_in_mem[j*2] = flip_icons_in_mem_txt[0][j];
+            flip_icons_in_mem[j*2+1] = flip_icons_in_mem_txt[1][j];
+        end
+        $display("[Time: %t] Flip icon file %s and %s are loaded successfully.", $time, `FLIP_ICON_FILE_1, `FLIP_ICON_FILE_2);
+        return flip_icons_in_mem;
+    endfunction
+
+    // Function to load initial spin states from file
+    function automatic logic [1:0] [NUM_SPIN-1:0] load_initial_states();
+        int state_file;
+        string line;
+        int line_num;
+        logic [1:0] [NUM_SPIN-1:0] states_in_txt;
+
+        for (int i = 0; i < 2; i = i + 1) begin
+            line_num = 0;
+            // Open the appropriate file
+            if (i == 0)
+                state_file = $fopen(`STATE_IN_FILE_1, "r");
+            else
+                state_file = $fopen(`STATE_IN_FILE_2, "r");
+            if (state_file == 0) begin
+                $display("Error: Could not open state input file %s", `STATE_IN_FILE_1);
+                $finish;
+            end
+
+            // Read the file line by line
+            while (line_num == 0) begin
+                if ($fgets(line, state_file) != 0) begin
+                    // Skip comment lines and header lines
+                    if (line[0] == "#" || line[0] == "\n") begin
+                        continue;
+                    end
+                    line_num = line_num + 1;
+                    states_in_txt[i] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: NUM_SPIN];
+                end
+            end
+            $fclose(state_file);
+            // $display("Loaded initial states from file %s: %b", (i == 0) ? `STATE_IN_FILE_1 : `STATE_IN_FILE_2, states_in_txt[i]);
+        end
+        $display("[Time: %t] Initial state file %s and %s are loaded successfully.", $time, `STATE_IN_FILE_1, `STATE_IN_FILE_2);
+        return states_in_txt;
+    endfunction
+
+    // Function to load state out of the analog macro from files
+    function automatic logic [1023:0] [NUM_SPIN-1:0] load_state_out_ref();
+        int state_file;
+        string line;
+        int line_num;
+        int state_idx;
+        logic [1:0] [1024-1:0] [NUM_SPIN-1:0] states_out_in_txt;
+        logic [1023:0] [NUM_SPIN-1:0] states_out_ref;
+
+        for (int i = 0; i < 2; i = i + 1) begin
+            state_idx = 0;
+            line_num = 0;
+            // Open the appropriate file
+            if (i == 0)
+                state_file = $fopen(`STATE_OUT_FILE_1, "r");
+            else
+                state_file = $fopen(`STATE_OUT_FILE_2, "r");
+            if (state_file == 0) begin
+                $display("Error: Could not open state output file %s", `STATE_OUT_FILE_1);
+                $finish;
+            end
+
+            // Read the file line by line
+            while (!$feof(state_file)) begin
+                if ($fgets(line, state_file) != 0) begin
+                    // Skip comment lines and header lines
+                    if (line[0] == "#" || line[0] == "\n") begin
+                        continue;
+                    end
+                    if (line_num == 0) begin
+                        line_num = line_num + 1;
+                        continue;
+                    end
+                    if (line_num >= 513) begin
+                        $fatal(1, "Error: More than 512 effective lines of states found in file %s", (i == 0) ? `STATE_OUT_FILE_1 : `STATE_OUT_FILE_2);
+                    end
+                    line_num = line_num + 1;
+                    states_out_in_txt[i][state_idx] = parse_bit_string(line)[NUM_SPIN*BITJ-1 -: NUM_SPIN];
+                    state_idx = state_idx + 1;
+                end
+            end
+            $fclose(state_file);
+        end
+        // shuffle two sets of states into one memory
+        for (int j = 0; j < 512; j = j + 1) begin
+                states_out_ref[2*j] = states_out_in_txt[0][j];
+                states_out_ref[2*j+1] = states_out_in_txt[1][j];
+            end
+        $display("[Time: %t] State output file %s and %s are loaded successfully.", $time, `STATE_OUT_FILE_1, `STATE_OUT_FILE_2);
+        return states_out_ref;
+    endfunction
+endpackage

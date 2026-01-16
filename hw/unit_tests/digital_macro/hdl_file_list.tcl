@@ -7,6 +7,7 @@ set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
     "./config_pkg.sv" \
+    "./data_read_pkg.sv" \
     "./analog_format_pkg.sv" \
     "./energy_calc_pkg.sv" \
     "./tb_digital_macro.sv" \
