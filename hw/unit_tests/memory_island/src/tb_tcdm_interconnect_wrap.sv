@@ -121,7 +121,7 @@ module tb_tcdm_interconnect_wrap #(
     end
     for(genvar j = 0; j < NumOut; j++) begin : slv_agent_gen
         initial begin
-            mem_rsp_i[j].q_ready = 1'b1;
+            mem_rsp_i[j].q_ready = 1'b1; // not correct! should be a gnt
         end
     end
     assign test_complete = daisy_chain_start[NumIn];

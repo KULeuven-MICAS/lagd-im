@@ -39,8 +39,8 @@ module mem_seq_generator #(
             req_o.q.data  <= #TA {$urandom_range(0, 2**DataWidth-1)};
             req_o.q.strb  <= #TA {BeWidth{1'b1}};
             req_o.q.write <= #TA $urandom_range(0,1);
-            @(posedge clk_i);
             wait (read_ready_i);
+            @(posedge clk_i);
             req_o.q_valid <= 1'b0;
             req_o.q.addr  <= #TA req_o.q.addr + AddrStep;
             @(posedge clk_i);
