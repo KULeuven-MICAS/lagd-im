@@ -153,8 +153,8 @@ module wide_narrow_arbiter #(
     end
 
     // Narrow/Wide arbitration
-    always_comb begin : bank_access_mux
-        for (int unsigned i = 0; i < NumNarrowBanks; i++) begin
+    for (genvar i = 0; i < NumNarrowBanks; i++) begin : bank_request_routing
+        always_comb begin : bank_access_mux
             if (conflict_detected[i]) begin : conflict_case
                 if (arb_narrow_next) begin : conflict_narrow_priority
                     mem_bank_req_o[i] = mem_narrow_req_i[i];

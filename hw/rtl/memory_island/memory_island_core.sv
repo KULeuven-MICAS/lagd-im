@@ -221,12 +221,7 @@ module memory_island_core import memory_island_pkg::*; #(
     mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks_q1;
     mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1;
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks_q1;
-    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1, mem_wide_rsp_from_banks_q1_ready,
-                                      mem_wide_rsp_from_banks_q1_p;
-    for (genvar i = 0; i < NumWideBanks; i++) begin: mem_wide_rsp_from_banks_q1_assign
-        assign mem_wide_rsp_from_banks_q1[i].q_ready = mem_wide_rsp_from_banks_q1_ready[i].q_ready;
-        assign mem_wide_rsp_from_banks_q1[i].p = mem_wide_rsp_from_banks_q1_p[i].p;
-    end
+    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1;
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: spill_narrow_routed
         mem_multicut #(
             .AddrWidth(Cfg.AddrWidth),
