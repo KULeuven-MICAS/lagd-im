@@ -80,7 +80,7 @@ module digital_macro #(
     input  logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input  logic [NUM_SPIN-1:0] flip_rdata_i,
     input  logic flip_disable_i,
-    output logic signed [ENERGY_TOTAL_BIT-1:0] [SPIN_DEPTH-1:0] energy_fifo_o,
+    output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
     // runtime interface: energy monitor
     input  logic weight_valid_i,
     output logic [$clog2(NUM_SPIN / PARALLELISM)-1:0] weight_raddr_o,
@@ -89,15 +89,13 @@ module digital_macro #(
     input  logic [SCALING_BIT-1:0] hscaling_i,
     output logic weight_ready_o,
     // runtime interface: analog wrap
-    // analog interface: config
     output logic [NUM_SPIN-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
     output logic [NUM_SPIN*BITJ-1:0] wbl_o,
     output logic [NUM_SPIN*BITJ-1:0] wblb_o,
-    // analog interface: runtime
     output logic [NUM_SPIN-1:0] spin_wwl_o,
     output logic [NUM_SPIN-1:0] spin_feedback_o,
-    input  logic [NUM_SPIN-1:0] analog_spin_i
+    input  logic [NUM_SPIN-1:0] spin_analog_i
 );
     // Internal signals
     logic aw_mst_valid;
@@ -113,19 +111,42 @@ module digital_macro #(
     logic fm_mst_valid;
     logic [NUM_SPIN-1:0] fm_spin_out;
     logic aw_slv_ready;
-    logic [SPIN_IDX_BIT-1:0] counter_spin;
+    logic [SPIN_IDX_BIT-1:0] counter_spin_em, counter_weight;
     logic [SCALING_BIT*PARALLELISM-1:0] hscaling_expanded;
     logic [BITH*PARALLELISM-1:0] hbias_sliced;
     logic muxed_slv_ready, muxed_mst_valid;
+    logic counter_weight_maxed, counter_weight_overflow;
 
     assign hscaling_expanded = {PARALLELISM{hscaling_i}};
-    assign hbias_sliced = hbias_i[counter_spin * BITH +: BITH * PARALLELISM];
+
+    if (LITTLE_ENDIAN) begin
+        assign hbias_sliced = hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
+    end else begin
+        assign hbias_sliced = hbias_i[(NUM_SPIN - counter_weight - PARALLELISM) * BITH +: BITH * PARALLELISM];
+    end
 
     assign weight_ready_o = em_weight_ready;
     assign em_weight_valid = weight_valid_i;
-    assign weight_raddr_o = counter_spin / PARALLELISM;
+    assign weight_raddr_o = counter_weight / PARALLELISM;
     assign muxed_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
     assign muxed_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
+
+    // counter for weight reading address
+    step_counter #(
+        .COUNTER_BITWIDTH($clog2(NUM_SPIN)),
+        .PARALLELISM(PARALLELISM)
+    ) u_step_counter (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .en_i(en_em_i),
+        .load_i(config_valid_em_i),
+        .d_i(config_counter_i),
+        .recount_en_i(counter_weight_maxed && weight_valid_i && weight_ready_o),
+        .step_en_i(!counter_weight_maxed && weight_valid_i && weight_ready_o),
+        .q_o(counter_weight),
+        .maxed_o(counter_weight_maxed),
+        .overflow_o(counter_weight_overflow)
+    );
 
     energy_monitor #(
         .BITJ                           (BITJ                       ),
@@ -152,7 +173,7 @@ module digital_macro #(
         .hbias_i                        (hbias_sliced               ),
         .hscaling_i                     (hscaling_expanded          ),
         .weight_ready_o                 (em_weight_ready            ),
-        .counter_spin_o                 (counter_spin               ),
+        .counter_spin_o                 (counter_spin_em            ),
         .energy_valid_o                 (em_mst_valid               ),
         .energy_ready_i                 (fm_slv_ready               ),
         .energy_o                       (em_energy_output           ),
@@ -228,7 +249,7 @@ module digital_macro #(
         .spin_pop_i                     (fm_spin_out                ),
         .spin_wwl_o                     (spin_wwl_o                 ),
         .spin_feedback_o                (spin_feedback_o            ),
-        .spin_analog_i                  (analog_spin_i              ),
+        .spin_analog_i                  (spin_analog_i              ),
         .spin_valid_o                   (aw_mst_valid               ),
         .spin_ready_i                   (em_slv_ready               ),
         .spin_o                         (analog_spin                ),
