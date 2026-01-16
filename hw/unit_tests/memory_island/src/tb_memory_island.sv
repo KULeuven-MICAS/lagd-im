@@ -20,6 +20,7 @@
 
 module tb_memory_island import lagd_pkg::*; #(
     parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::L2MemCfg,
+    parameter int unsigned RandTest = 1,
     // Derived parameters - Do not override
     parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks,
     parameter int unsigned NumAxiNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiNarrowReq),
@@ -37,7 +38,7 @@ module tb_memory_island import lagd_pkg::*; #(
     // ========================================================================
 
     logic clk_i, rst_ni;
-    logic test_complete;
+    logic axi_write_complete, test_complete;
 
     lagd_axi_slv_req_t [NumAxiNarrowReqSafe-1:0] axi_narrow_req_i;
     lagd_axi_slv_rsp_t [NumAxiNarrowReqSafe-1:0] axi_narrow_rsp_o;
@@ -101,24 +102,31 @@ module tb_memory_island import lagd_pkg::*; #(
         .rst_no(rst_ni)
     );
 
-    axi_rand_generator #(
-        .AddrWidth(Cfg.AddrWidth),
-        .DataWidth(Cfg.NarrowDataWidth),
-        .IdWidth(Cfg.AxiNarrowIdWidth),
-        .UserWidth(2),
-        .TestRegionStart(0),
-        .TestRegionEnd(MemorySizeBytes)
-    ) i_axi_stimulus (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .axi_bus(axi_dv),
-        .test_complete_o(test_complete)
-    );
+    generate
+        if (RandTest) begin : gen_random_stimulus
+            // Random stimulus generation through AXI master
+            axi_rand_generator #(
+                .AddrWidth(Cfg.AddrWidth),
+                .DataWidth(Cfg.NarrowDataWidth),
+                .IdWidth(Cfg.AxiNarrowIdWidth),
+                .UserWidth(2),
+                .TestRegionStart(0),
+                .TestRegionEnd(MemorySizeBytes)
+            ) i_axi_stimulus (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .axi_bus(axi_dv),
+                .test_complete_o(axi_write_complete)
+            );
+        end else begin : gen_direct_stimulus
+            
+        end
+    endgenerate
 
     // ========================================================================
     // TEST CONTROL
     // ========================================================================
-
+    assign test_complete = axi_write_complete;
     initial begin
         // Wait for test to complete
         wait(test_complete);

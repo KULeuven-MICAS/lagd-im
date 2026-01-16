@@ -14,7 +14,9 @@ module axi_rand_generator #(
     parameter int unsigned IdWidth   = 6,
     parameter int unsigned UserWidth = 2,
     parameter longint unsigned TestRegionStart = 0,
-    parameter longint unsigned TestRegionEnd = 200
+    parameter longint unsigned TestRegionEnd = 200,
+    parameter int unsigned NumReadTransactions = 0,
+    parameter int unsigned NumWriteTransactions = 0
 ) (
     // Clock and reset
     input logic clk_i,
@@ -79,7 +81,7 @@ module axi_rand_generator #(
         @(posedge rst_ni);
 
         // Run transactions
-        rand_master.run(NUM_READ_TRANSACTIONS, NUM_WRITE_TRANSACTIONS);
+        rand_master.run(NumReadTransactions, NumWriteTransactions);
 
         // Wait for all responses
         repeat(100) @(posedge clk_i);
