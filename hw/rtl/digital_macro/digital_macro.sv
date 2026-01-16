@@ -99,7 +99,7 @@ module digital_macro #(
 );
     // Internal signals
     logic aw_mst_valid;
-    logic [NUM_SPIN-1:0] analog_spin;
+    logic [NUM_SPIN-1:0] analog_spin, em_spin_in;
     logic em_slv_ready;
     logic em_mst_valid;
     logic em_weight_valid;
@@ -130,6 +130,7 @@ module digital_macro #(
     assign weight_raddr_o = counter_weight / PARALLELISM;
     assign muxed_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
     assign muxed_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
+    assign em_spin_in = en_analog_loop_i ? analog_spin : fm_spin_out;
 
     // counter for weight reading address
     step_counter #(
@@ -166,7 +167,7 @@ module digital_macro #(
         .config_counter_i               (config_counter_i           ),
         .config_ready_o                 (                           ),
         .spin_valid_i                   (muxed_mst_valid            ),
-        .spin_i                         (analog_spin                ),
+        .spin_i                         (em_spin_in                 ),
         .spin_ready_o                   (em_slv_ready               ),
         .weight_valid_i                 (em_weight_valid            ),
         .weight_i                       (weight_i                   ),
