@@ -2,10 +2,6 @@
 
 ## Description
 
-<p align="center">
-<img src="https://github.com/KULeuven-MICAS/lagd-im/tree/main/doc/energy_monitor_overview.png" width="100%" alt="energy monitor overview">
-</p>
-
 This testbench is for testing the function and performance of energy monitor module. The module calculates the Hamiltonian energy results for a given spin and weight/bias matrix.
 
 The executed formula is as below:
