@@ -30,6 +30,7 @@ module digital_macro #(
     parameter integer COUNTER_BITWIDTH = 16,
     parameter integer SYNCHRONIZER_PIPEDEPTH = 3,
     parameter integer SPIN_WBL_OFFSET = 0,
+    parameter integer H_IS_NEGATIVE = `False,
     // derived parameters
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
     parameter integer FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH),
@@ -105,7 +106,7 @@ module digital_macro #(
     logic em_mst_valid;
     logic em_weight_valid;
     logic em_weight_ready;
-    logic [ENERGY_TOTAL_BIT-1:0] em_energy_output;
+    logic [ENERGY_TOTAL_BIT-1:0] em_energy_output, fm_energy_input;
     logic [NUM_SPIN-1:0] em_spin_output;
     logic flip_manager_spin_ready;
     logic fm_slv_ready;
@@ -132,6 +133,11 @@ module digital_macro #(
     assign muxed_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
     assign muxed_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
     assign em_spin_in = en_analog_loop_i ? analog_spin : fm_spin_out;
+
+    if (H_IS_NEGATIVE)
+        assign fm_energy_input = -em_energy_output; // flip energy sign to keep formula to be H = - ( ... )
+    else
+        assign fm_energy_input = em_energy_output;
 
     // counter for weight reading address
     step_counter #(
@@ -205,7 +211,7 @@ module digital_macro #(
         .spin_pop_ready_i               (muxed_slv_ready            ),
         .energy_valid_i                 (em_mst_valid               ),
         .energy_ready_o                 (fm_slv_ready               ),
-        .energy_i                       (em_energy_output           ),
+        .energy_i                       (fm_energy_input            ),
         .spin_i                         (em_spin_output             ),
         .flip_ren_o                     (flip_ren_o                 ),
         .flip_raddr_o                   (flip_raddr_o               ),

@@ -18,6 +18,7 @@ package config_pkg;
     parameter int COUNTER_BITWIDTH = 16;
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
+    parameter int H_IS_NEGATIVE = `True;
 
     // run-time parameters (related to algorithm)
     parameter int IconLastAddrPlusOne = 1024;

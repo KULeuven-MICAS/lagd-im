@@ -39,6 +39,8 @@ package energy_calc_pkg;
             energy += local_energy;
             // $display("i='h%h, spin_vec='h%h, current_spin='h%h, h_i='h%h, weight_vec='h%h, energy='h%h", i, spin_vec, current_spin, h_i, weight_vec, energy);
         end
+        if (H_IS_NEGATIVE)
+            energy = -energy; // flip energy sign to keep formula to be H = - ( ... )
         return energy;
     endfunction
 endpackage

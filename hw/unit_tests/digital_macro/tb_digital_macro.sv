@@ -125,7 +125,8 @@ module tb_digital_macro;
         .FLIP_ICON_DEPTH            (FLIP_ICON_DEPTH            ),
         .COUNTER_BITWIDTH           (COUNTER_BITWIDTH           ),
         .SYNCHRONIZER_PIPEDEPTH     (SYNCHRONIZER_PIPEDEPTH     ),
-        .SPIN_WBL_OFFSET            (SPIN_WBL_OFFSET            )
+        .SPIN_WBL_OFFSET            (SPIN_WBL_OFFSET            ),
+        .H_IS_NEGATIVE              (H_IS_NEGATIVE              )
     ) dut (
         .clk_i                      (clk_i                      ),
         .rst_ni                     (rst_ni                     ),
@@ -370,6 +371,11 @@ module tb_digital_macro;
             // update pointer
             spin_fifo_pointer = (spin_fifo_pointer + 1) % SPIN_DEPTH;
         end
+        // // debug: display reference energy fifo
+        // for (int i = 0; i < 20; i = i + 1) begin
+        //     $display("[Time: %t] Idx: 'd%0d, Reference energy fifo: [id: 'd%0d, energy: 'd%0d][id: 'd%0d, energy: 'd%0d]", $time, i, 1, $signed(energy_fifo_ref[i][1]), 0, $signed(energy_fifo_ref[i][0]));
+        // end
+        // $finish;
     endtask
 
     // Sub-task for AW config interface
