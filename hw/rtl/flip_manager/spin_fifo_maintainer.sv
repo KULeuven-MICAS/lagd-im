@@ -104,7 +104,8 @@ module spin_fifo_maintainer #(
         .push_i(fifo_push_comb),
         .data_o(spin_pop_o),
         .pop_i(fifo_pop_comb),
-        .mem_o(spin_fifo_o)
+        .mem_o(spin_fifo_o),
+        .almost_full_o()
     );
 
     // Control logic

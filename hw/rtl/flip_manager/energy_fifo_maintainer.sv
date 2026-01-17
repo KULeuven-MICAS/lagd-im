@@ -100,7 +100,8 @@ module energy_fifo_maintainer #(
         .push_i(fifo_push_comb),
         .data_o(energy_pop),
         .pop_i(fifo_pop_comb),
-        .mem_o(energy_fifo_o)
+        .mem_o(energy_fifo_o),
+        .almost_full_o()
     );
 
     // Control logic
