@@ -1,3 +1,11 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+
+// Package for configuration parameters, used in digital macro testbench
+
 `define True 1'b1
 `define False 1'b0
 
