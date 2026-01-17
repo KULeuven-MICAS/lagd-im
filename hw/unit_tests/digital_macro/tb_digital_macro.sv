@@ -25,12 +25,12 @@ module tb_digital_macro;
     // testbench parameters
     localparam int CLKCYCLE = 2;
     localparam int NUM_TESTS = 1; // number of computation processes (only 1 is supported currently)
-    localparam int DataFromFile = `True;
+    localparam int DataFromFile = `True; // True: load input data from file; False: randomly generate data
 
     // dut signals
     logic clk_i;
     logic rst_ni;
-    logic en_aw_i, en_fm_i, en_em_i, en_analog_loop_i;
+    logic en_aw_i, en_fm_i, en_em_i, en_ef_i, en_analog_loop_i;
     logic en_i;
     logic config_valid_em_i, config_em_done;
     logic config_valid_fm_i, config_fm_done;
@@ -51,10 +51,9 @@ module tb_digital_macro;
     logic [ $clog2(SYNCHRONIZER_PIPEDEPTH)-1 : 0 ] synchronizer_pipe_num_i;
     logic dt_cfg_enable_i, dt_cfg_idle_o;
     logic j_mem_ren_o;
-    logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_o, weight_raddr_o;
+    logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_o, dgt_weight_raddr_o;
     logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_ref, weight_raddr_ref;
-    logic [ NUM_SPIN*BITJ*PARALLELISM-1 : 0 ] j_rdata_i, weight_i;
-    logic [ NUM_SPIN*BITJ*PARALLELISM-1 : 0 ] j_rdata_latched;
+    logic [ NUM_SPIN*BITJ*PARALLELISM-1 : 0 ] j_rdata_i, dgt_weight_i;
     logic h_ren_o;
     logic [ BITH*NUM_SPIN-1 : 0 ] h_rdata_i;
     logic flush_i;
@@ -65,11 +64,10 @@ module tb_digital_macro;
     logic flip_ren_o;
     logic [ $clog2(FLIP_ICON_DEPTH)+1-1 : 0 ] flip_raddr_o, flip_raddr_ref;
     logic [ $clog2(FLIP_ICON_DEPTH)+1-1 : 0 ] icon_last_raddr_plus_one_i;
-    logic [ NUM_SPIN-1 : 0 ] flip_rdata_i, flip_rdata_latched;
+    logic [ NUM_SPIN-1 : 0 ] flip_rdata_i;
     logic flip_disable_i;
-    logic weight_ready_o, weight_valid_i;
-    logic [ BITH*NUM_SPIN-1 : 0 ] hbias_i;
-    logic [ SCALING_BIT-1 : 0 ] hscaling_i;
+    logic [ BITH*NUM_SPIN-1 : 0 ] dgt_hbias_i;
+    logic [ SCALING_BIT-1 : 0 ] dgt_hscaling_i;
     logic [ NUM_SPIN-1 : 0 ] j_one_hot_wwl_o;
     logic h_wwl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_o;
@@ -79,6 +77,8 @@ module tb_digital_macro;
     logic [ NUM_SPIN-1 : 0 ] spin_analog_i;
     logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
     logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o;
+    logic dgt_weight_ren_o;
+    logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] dgt_addr_upper_bound_i;
 
     // testbench signals
     logic [NUM_SPIN*BITJ-1:0] wbl_copy;
@@ -100,6 +100,10 @@ module tb_digital_macro;
     logic em_fm_handshake, fm_downstream_handshake, em_upstream_handshake;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
 
+    assign en_aw_i = en_i;
+    assign en_em_i = en_i;
+    assign en_fm_i = en_i;
+    assign dgt_addr_upper_bound_i = NUM_SPIN / PARALLELISM - 1;
     assign em_fm_handshake = dut.em_mst_valid && dut.fm_slv_ready;
     assign fm_downstream_handshake = dut.fm_mst_valid && dut.muxed_slv_ready;
     assign em_upstream_handshake = dut.muxed_mst_valid && dut.em_slv_ready;
@@ -133,6 +137,7 @@ module tb_digital_macro;
         .en_aw_i                    (en_aw_i                    ),
         .en_em_i                    (en_em_i                    ),
         .en_fm_i                    (en_fm_i                    ),
+        .en_ef_i                    (en_ef_i                    ),
         .en_analog_loop_i           (en_analog_loop_i           ),
         .config_valid_em_i          (config_valid_em_i          ),
         .config_valid_fm_i          (config_valid_fm_i          ),
@@ -166,12 +171,12 @@ module tb_digital_macro;
         .icon_last_raddr_plus_one_i (icon_last_raddr_plus_one_i ),
         .flip_rdata_i               (flip_rdata_i               ),
         .flip_disable_i             (flip_disable_i             ),
-        .weight_ready_o             (weight_ready_o             ),
-        .weight_valid_i             (weight_valid_i             ),
-        .weight_raddr_o             (weight_raddr_o             ),
-        .weight_i                   (weight_i                   ),
-        .hbias_i                    (hbias_i                    ),
-        .hscaling_i                 (hscaling_i                 ),
+        .dgt_weight_ren_o           (dgt_weight_ren_o           ),
+        .dgt_weight_raddr_o         (dgt_weight_raddr_o         ),
+        .dgt_addr_upper_bound_i     (dgt_addr_upper_bound_i     ),
+        .dgt_weight_i               (dgt_weight_i               ),
+        .dgt_hbias_i                (dgt_hbias_i                ),
+        .dgt_hscaling_i             (dgt_hscaling_i             ),
         .j_one_hot_wwl_o            (j_one_hot_wwl_o            ),
         .h_wwl_o                    (h_wwl_o                    ),
         .wbl_o                      (wbl_o                      ),
@@ -188,10 +193,6 @@ module tb_digital_macro;
         clk_i = 0;
         forever #(CLKCYCLE/2) clk_i = ~clk_i;
     end
-
-    assign en_aw_i = en_i;
-    assign en_em_i = en_i;
-    assign en_fm_i = en_i;
 
     // Reset and en_i generation
     initial begin
@@ -224,15 +225,12 @@ module tb_digital_macro;
         end
     end
 
-    // ========================================================================
-    // Logics
-    // ========================================================================
-    assign j_rdata_i = j_rdata_latched;
-    assign flip_rdata_i = flip_rdata_latched;
-
-    // ========================================================================
-    // Functions
-    // ========================================================================
+    initial begin
+        en_ef_i = 0;
+        wait (cmpt_en_i == 1);
+        en_ef_i = 1;
+        $display("[Time: %t] Digital fifo enabled.", $time);
+    end
 
     // ========================================================================
     // Sub-tasks
@@ -557,15 +555,12 @@ module tb_digital_macro;
 
     // Interface: J mem <-> analog wrap and energy monitor
     task automatic j_mem_interface();
-        j_rdata_latched = 'd0;
-        weight_valid_i = 0;
-        weight_i = 'd0;
+        j_rdata_i = 'd0;
+        dgt_weight_i = 'd0;
         j_raddr_ref = 'd0;
         weight_raddr_ref = 'd0;
         wait (rst_ni == 1 && en_i == 1);
         @(posedge clk_i);
-        weight_valid_i = 1;
-        weight_i = weights_in_mem[0];
         forever begin
             @(posedge clk_i);
             // Interface to analog wrap: standard 1-cycle-delay memory interface
@@ -574,17 +569,17 @@ module tb_digital_macro;
                     $fatal(1, "[Time: %t] Error: J memory read address mismatch. Expected: %0d, Got: %0d",
                         $time, j_raddr_ref, j_raddr_o);
                 end
-                j_rdata_latched = weights_in_mem[j_raddr_o];
+                j_rdata_i = weights_in_mem[j_raddr_o];
                 j_raddr_ref = j_raddr_ref + 1;
             end
-            // Interface to energy monitor: valid-ready interface
-            if (weight_ready_o == 1) begin
-                if (weight_raddr_o != weight_raddr_ref) begin
+            // Interface to energy monitor: standard 1-cycle-delay memory interface
+            if (dgt_weight_ren_o == 1) begin
+                if (dgt_weight_raddr_o != weight_raddr_ref) begin
                     $fatal(1, "[Time: %t] Error: Weight memory read address mismatch. Expected: 'h%0h, Got: 'h%0h",
-                        $time, weight_raddr_ref, weight_raddr_o);
+                        $time, weight_raddr_ref, dgt_weight_raddr_o);
                 end
+                dgt_weight_i = weights_in_mem[dgt_weight_raddr_o];
                 weight_raddr_ref = weight_raddr_ref + 1;
-                weight_i = weights_in_mem[weight_raddr_ref];
             end
         end
     endtask
@@ -592,13 +587,13 @@ module tb_digital_macro;
     // H and scaling factor reg interface
     task automatic h_sfc_reg_interface();
         h_rdata_i = hbias_in_reg; // for analog onloading
-        hbias_i = hbias_in_reg; // for digital energy monitor
-        hscaling_i = hscaling_in_reg;
+        dgt_hbias_i = hbias_in_reg; // for digital energy monitor
+        dgt_hscaling_i = hscaling_in_reg;
     endtask
 
     // Flip icon memory interface
     task automatic flip_mem_interface();
-        flip_rdata_latched = 'd0;
+        flip_rdata_i = 'd0;
         flip_raddr_ref = 'd0;
         wait (rst_ni == 1 && en_i == 1 && config_dut_done == 1);
         forever begin
@@ -608,7 +603,7 @@ module tb_digital_macro;
                     $fatal(1, "[Time: %t] Error: Flip icon memory read address mismatch. Expected: %0d, Got: %0d",
                         $time, flip_raddr_ref, flip_raddr_o);
                 end
-                flip_rdata_latched = flip_icons_in_mem[flip_raddr_o];
+                flip_rdata_i = flip_icons_in_mem[flip_raddr_o];
                 flip_raddr_ref = flip_raddr_ref + 1;
             end
         end

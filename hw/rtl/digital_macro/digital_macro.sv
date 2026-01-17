@@ -35,13 +35,15 @@ module digital_macro #(
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
     parameter integer FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH),
     parameter integer DATA_J_BIT = NUM_SPIN * BITJ * PARALLELISM,
-    parameter integer DATA_H_BIT = BITH * NUM_SPIN
+    parameter integer DATA_H_BIT = BITH * NUM_SPIN,
+    parameter integer J_MEM_ADDR_WIDTH = $clog2(NUM_SPIN / PARALLELISM)
 )(
     input  logic clk_i,
     input  logic rst_ni,
     input  logic en_aw_i,
     input  logic en_em_i,
     input  logic en_fm_i,
+    input  logic en_ef_i,
     input  logic en_analog_loop_i,
     // config interface: ctrl
     input  logic config_valid_em_i,
@@ -84,12 +86,11 @@ module digital_macro #(
     output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
     output logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o,
     // runtime interface: energy monitor
-    input  logic weight_valid_i,
-    output logic [$clog2(NUM_SPIN / PARALLELISM)-1:0] weight_raddr_o,
-    input  logic [DATA_J_BIT-1:0] weight_i,
-    input  logic [DATA_H_BIT-1:0] hbias_i,
-    input  logic [SCALING_BIT-1:0] hscaling_i,
-    output logic weight_ready_o,
+    output  logic dgt_weight_ren_o,
+    output logic [J_MEM_ADDR_WIDTH-1:0] dgt_weight_raddr_o,
+    input  logic [DATA_J_BIT-1:0] dgt_weight_i,
+    input  logic [DATA_H_BIT-1:0] dgt_hbias_i,
+    input  logic [SCALING_BIT-1:0] dgt_hscaling_i,
     // runtime interface: analog wrap
     output logic [NUM_SPIN-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
@@ -97,7 +98,9 @@ module digital_macro #(
     output logic [NUM_SPIN*BITJ-1:0] wblb_o,
     output logic [NUM_SPIN-1:0] spin_wwl_o,
     output logic [NUM_SPIN-1:0] spin_feedback_o,
-    input  logic [NUM_SPIN-1:0] spin_analog_i
+    input  logic [NUM_SPIN-1:0] spin_analog_i,
+    // runtime interface: energy fifo
+    input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i
 );
     // Internal signals
     logic aw_mst_valid;
@@ -118,18 +121,16 @@ module digital_macro #(
     logic [BITH*PARALLELISM-1:0] hbias_sliced;
     logic muxed_slv_ready, muxed_mst_valid;
     logic counter_weight_maxed, counter_weight_overflow;
+    logic [DATA_J_BIT-1:0] ef_weight_out;
 
-    assign hscaling_expanded = {PARALLELISM{hscaling_i}};
+    assign hscaling_expanded = {PARALLELISM{dgt_hscaling_i}};
 
     if (LITTLE_ENDIAN) begin
-        assign hbias_sliced = hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
+        assign hbias_sliced = dgt_hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
     end else begin
-        assign hbias_sliced = hbias_i[(NUM_SPIN - counter_weight - PARALLELISM) * BITH +: BITH * PARALLELISM];
+        assign hbias_sliced = dgt_hbias_i[(NUM_SPIN - counter_weight - PARALLELISM) * BITH +: BITH * PARALLELISM];
     end
 
-    assign weight_ready_o = em_weight_ready;
-    assign em_weight_valid = weight_valid_i;
-    assign weight_raddr_o = counter_weight / PARALLELISM;
     assign muxed_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
     assign muxed_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
     assign em_spin_in = en_analog_loop_i ? analog_spin : fm_spin_out;
@@ -139,7 +140,7 @@ module digital_macro #(
     else
         assign fm_energy_input = em_energy_output;
 
-    // counter for weight reading address
+    // counter for hbias slice selection
     step_counter #(
         .COUNTER_BITWIDTH($clog2(NUM_SPIN)),
         .PARALLELISM(PARALLELISM)
@@ -149,13 +150,34 @@ module digital_macro #(
         .en_i(en_em_i),
         .load_i(config_valid_em_i),
         .d_i(config_counter_i),
-        .recount_en_i(counter_weight_maxed && weight_valid_i && weight_ready_o),
-        .step_en_i(!counter_weight_maxed && weight_valid_i && weight_ready_o),
+        .recount_en_i(counter_weight_maxed && em_weight_valid && em_weight_ready),
+        .step_en_i(!counter_weight_maxed && em_weight_valid && em_weight_ready),
         .q_o(counter_weight),
         .maxed_o(counter_weight_maxed),
         .overflow_o(counter_weight_overflow)
     );
 
+    // memory to handshake fifo for weight loading
+    mem_to_handshake_fifo #(
+        .DEPTH                          (2                          ),
+        .ADDR_WIDTH                     (J_MEM_ADDR_WIDTH           ),
+        .DATA_WIDTH                     (DATA_J_BIT                 )
+    ) u_weight_mem_to_handshake_fifo (
+        .clk_i                          (clk_i                      ),
+        .rst_ni                         (rst_ni                     ),
+        .en_i                           (en_ef_i                    ),
+        .flush_i                        (flush_i                    ),
+        .addr_upper_bound_i             (dgt_addr_upper_bound_i     ),
+        .mem_ren_o                      (dgt_weight_ren_o           ),
+        .mem_raddr_o                    (dgt_weight_raddr_o         ),
+        .mem_rdata_i                    (dgt_weight_i               ),
+        .data_ready_i                   (em_weight_ready            ),
+        .data_valid_o                   (em_weight_valid            ),
+        .data_o                         (ef_weight_out              ),
+        .debug_fifo_usage_o             (                           )
+    );
+
+    // instantiate energy monitor for h energy calculation
     energy_monitor #(
         .BITJ                           (BITJ                       ),
         .BITH                           (BITH                       ),
@@ -177,7 +199,7 @@ module digital_macro #(
         .spin_i                         (em_spin_in                 ),
         .spin_ready_o                   (em_slv_ready               ),
         .weight_valid_i                 (em_weight_valid            ),
-        .weight_i                       (weight_i                   ),
+        .weight_i                       (ef_weight_out              ),
         .hbias_i                        (hbias_sliced               ),
         .hscaling_i                     (hscaling_expanded          ),
         .weight_ready_o                 (em_weight_ready            ),
@@ -188,6 +210,7 @@ module digital_macro #(
         .spin_o                         (em_spin_output             )
     );
 
+    // instantiate flip manager for spin flipping and spin management
     flip_manager #(
         .NUM_SPIN                       (NUM_SPIN                   ),
         .SPIN_DEPTH                     (SPIN_DEPTH                 ),
@@ -222,6 +245,7 @@ module digital_macro #(
         .spin_fifo_o                    (spin_fifo_o                )
     );
 
+    // instantiate analog macro wrapper for analog interface management
     analog_macro_wrap #(
         .NUM_SPIN (NUM_SPIN),
         .BITDATA (BITJ),

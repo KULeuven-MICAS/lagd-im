@@ -12,6 +12,7 @@ set HDL_FILES [ list \
     "./energy_calc_pkg.sv" \
     "./tb_digital_macro.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
+    "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
