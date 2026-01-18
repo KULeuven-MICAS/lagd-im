@@ -19,13 +19,6 @@ package data_read_pkg;
     `define STATE_IN_FILE_2 "./data/states_in_2"
     `define STATE_OUT_FILE_2 "./data/states_out_2"
 
-    typedef struct {
-        logic [NUM_SPIN-1:0][NUM_SPIN*BITJ-1:0] weights;
-        logic [NUM_SPIN*BITH-1:0] hbias;
-        logic [SCALING_BIT-1:0] scaling_factor;
-        int signed constant;
-    } model_t;
-
     // ========================================================================
     // Data Reading Package
     // ========================================================================

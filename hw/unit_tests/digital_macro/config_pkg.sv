@@ -48,4 +48,12 @@ package config_pkg;
     parameter int BITJ = BITDATA;
     parameter int BITH = BITDATA;
     parameter int EmCfgCounter = NUM_SPIN - 1;
+
+    // model type definition
+    typedef struct {
+        logic [NUM_SPIN-1:0][NUM_SPIN*BITJ-1:0] weights;
+        logic [NUM_SPIN*BITH-1:0] hbias;
+        logic [SCALING_BIT-1:0] scaling_factor;
+        int signed constant;
+    } model_t;
 endpackage

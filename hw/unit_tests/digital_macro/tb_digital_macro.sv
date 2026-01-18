@@ -233,53 +233,72 @@ module tb_digital_macro;
     end
 
     // ========================================================================
+    // Functions
+    // ========================================================================
+    // Generate random model
+    // note: the most negative code (-8), though supported by the digital logic, is not supported by the analog part and its related data convertor
+    // therefore, we should avoid generating this code here
+    function automatic model_t generate_random_model();
+        model_t model;
+        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+            for (int j = 0; j < NUM_SPIN; j = j + 1) begin
+                if (LITTLE_ENDIAN) begin
+                    if (j == i) begin
+                        model.weights[i][j*BITJ +: BITJ] = 'd0;
+                    end else begin
+                        do begin
+                            model.weights[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
+                        end while (model.weights[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
+                    end
+                end else begin
+                    if (j == NUM_SPIN - 1 - i) begin
+                        model.weights[i][j*BITJ +: BITJ] = 'd0;
+                    end else begin
+                        do begin
+                            model.weights[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
+                        end while (model.weights[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
+                    end
+                end
+            end
+        end
+        // ensure matrix J is symmetric
+        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+            for (int j = i+1; j < NUM_SPIN; j = j + 1) begin
+                if (LITTLE_ENDIAN) begin
+                    model.weights[j][i*BITJ +: BITJ] = model.weights[i][j*BITJ +: BITJ];
+                end else begin
+                    model.weights[j][(NUM_SPIN-1 - i)*BITJ +: BITJ] = model.weights[i][(NUM_SPIN-1 - j)*BITJ +: BITJ];
+                end
+            end
+        end
+        // generate random h
+        for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+            do begin
+                model.hbias[i*BITH +: BITH] = $urandom_range(0, (1<<BITH)-1);
+            end while (model.hbias[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
+        end
+        // generate random scaling factor
+        model.scaling_factor = 1 << ($urandom_range(0, SCALING_BIT-1));
+        // constant
+        model.constant = 0;
+        return model;
+    endfunction
+
+    // ========================================================================
     // Sub-tasks
     // ========================================================================
     // Generate weight model
     task automatic gen_model();
-        // generate random J
-        // note: the most negative code (-8), though supported by the digital logic, is not supported by the analog part and its related data convertor
-        // therefore, we should avoid generating this code here
+        model_t model_data;
         if (DataFromFile == `False) begin: randomly_generate_model
-            for (int i = 0; i < NUM_SPIN; i = i + 1) begin
-                for (int j = 0; j < NUM_SPIN; j = j + 1) begin
-                    if (LITTLE_ENDIAN) begin
-                        if (j == i) begin
-                            weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
-                        end else begin
-                            do begin
-                                weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
-                            end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
-                        end
-                    end else begin
-                        if (j == NUM_SPIN - 1 - i) begin
-                            weights_in_txt[i][j*BITJ +: BITJ] = 'd0;
-                        end else begin
-                            do begin
-                                weights_in_txt[i][j*BITJ +: BITJ] = $urandom_range(0, (1<<BITJ)-1);
-                            end while (weights_in_txt[i][j*BITJ +: BITJ] == {1'b1, {BITJ-1{1'b0}}}); // avoid generating the invalid code
-                        end
-                    end
-                end
-            end
-            // generate random h
-            for (int i = 0; i < NUM_SPIN; i = i + 1) begin
-                do begin
-                    hbias_in_reg[i*BITH +: BITH] = $urandom_range(0, (1<<BITH)-1);
-                end while (hbias_in_reg[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
-            end
-            // generate random scaling factor
-            hscaling_in_reg = 1 << ($urandom_range(0, SCALING_BIT-1));
-            // constant
-            constant = 0;
+            model_data = generate_random_model();
         end else begin: load_model_from_file
-            model_t model_data;
             model_data = load_model();
-            weights_in_txt = model_data.weights;
-            hbias_in_reg = model_data.hbias;
-            hscaling_in_reg = model_data.scaling_factor;
-            constant = model_data.constant;
         end
+        weights_in_txt = model_data.weights;
+        hbias_in_reg = model_data.hbias;
+        hscaling_in_reg = model_data.scaling_factor;
+        constant = model_data.constant;
 
         // map to memory format
         for (int i = 0; i < NUM_SPIN/PARALLELISM; i = i + 1) begin
