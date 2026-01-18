@@ -61,7 +61,7 @@ module mem_to_handshake_fifo #(
     logic fifo_push_en;
 
     // Memory read logic
-    assign mem_ren_o = en_i & ~fifo_almost_full;
+    assign mem_ren_o = en_i & ~fifo_almost_full & ~flush_i;
     assign mem_raddr_o = mem_raddr_q;
     assign mem_raddr_n = (mem_raddr_q == addr_upper_bound_i) ? '0 : (mem_raddr_q + 1);
     assign fifo_push_en = mem_ren_dly1;
