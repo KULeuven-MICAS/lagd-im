@@ -122,8 +122,12 @@ module digital_macro #(
     logic muxed_slv_ready, muxed_mst_valid;
     logic counter_weight_maxed, counter_weight_overflow;
     logic [DATA_J_BIT-1:0] ef_weight_out;
+    logic cmpt_en_dly1, cmpt_en_pos_trigger;
 
     assign hscaling_expanded = {PARALLELISM{dgt_hscaling_i}};
+    assign cmpt_en_pos_trigger = cmpt_en_i & ~cmpt_en_dly1;
+
+    `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
 
     if (LITTLE_ENDIAN) begin
         assign hbias_sliced = dgt_hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
@@ -222,7 +226,7 @@ module digital_macro #(
         .en_i                           (en_fm_i                    ),
         .flush_i                        (flush_i                    ),
         .en_comparison_i                (en_comparison_i            ),
-        .cmpt_en_i                      (cmpt_en_i                  ),
+        .cmpt_en_i                      (cmpt_en_pos_trigger        ),
         .cmpt_idle_o                    (cmpt_idle_o                ),
         .host_readout_i                 (host_readout_i             ),
         .spin_configure_valid_i         (config_valid_fm_i          ),

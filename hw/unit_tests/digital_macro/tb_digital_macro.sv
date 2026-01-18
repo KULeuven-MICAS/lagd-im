@@ -622,7 +622,6 @@ module tb_digital_macro;
         while (test_idx < NUM_TESTS) begin
             cmpt_en_i = 1;
             @(posedge clk_i);
-            cmpt_en_i = 0;
             repeat (2) @(posedge clk_i);
             wait (host_readout_check_end == 1);
             // wait some cycles between tests
