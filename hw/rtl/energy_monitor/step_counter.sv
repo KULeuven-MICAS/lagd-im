@@ -59,7 +59,7 @@ module step_counter #(
     assign overflow_cond = en_i && step_en_i && (q_o == (counter_reg - PARALLELISM + 1));
     assign recount_cond = en_i && recount_en_i;
 
-    assign maxed_o = en_i & (q_o == counter_reg) & (~overflow);
+    assign maxed_o = en_i & (q_o == (counter_reg - PARALLELISM + 1)) & (~overflow);
     assign overflow_o = overflow;
 
     // Sequential logic to set the counter target value
