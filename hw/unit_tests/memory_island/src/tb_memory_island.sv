@@ -111,7 +111,9 @@ module tb_memory_island import lagd_pkg::*; #(
                 .IdWidth(Cfg.AxiNarrowIdWidth),
                 .UserWidth(2),
                 .TestRegionStart(0),
-                .TestRegionEnd(MemorySizeBytes)
+                .TestRegionEnd(MemorySizeBytes),
+                .NumReadTransactions(0),
+                .NumWriteTransactions(1)
             ) i_axi_stimulus (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),

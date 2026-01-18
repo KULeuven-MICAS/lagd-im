@@ -22,7 +22,7 @@ localparam int unsigned CLK_PERIOD = 10; // Clock period in ns
 
 // AXI test parameters
 localparam int unsigned AXI_UserWidth = 2;
-localparam int unsigned MAX_TXN_IN_FLIGHT = 16;
+localparam int unsigned MAX_TXN_IN_FLIGHT = 1;
 
 // Clock parameters
 localparam int unsigned RST_CYCLES = 3;
