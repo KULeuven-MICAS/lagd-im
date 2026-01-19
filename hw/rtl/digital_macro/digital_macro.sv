@@ -30,7 +30,9 @@ module digital_macro #(
     parameter integer COUNTER_BITWIDTH = 16,
     parameter integer SYNCHRONIZER_PIPEDEPTH = 3,
     parameter integer SPIN_WBL_OFFSET = 0,
+    // parameters: entire macro
     parameter integer H_IS_NEGATIVE = `False,
+    parameter integer ENABLE_FLIP_DETECTION = `False,
     // derived parameters
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
     parameter integer FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH),
@@ -83,6 +85,8 @@ module digital_macro #(
     input  logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input  logic [NUM_SPIN-1:0] flip_rdata_i,
     input  logic flip_disable_i,
+    output logic energy_fifo_update_o,
+    output logic spin_fifo_update_o,
     output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
     output logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o,
     // runtime interface: energy monitor
@@ -100,7 +104,9 @@ module digital_macro #(
     output logic [NUM_SPIN-1:0] spin_feedback_o,
     input  logic [NUM_SPIN-1:0] spin_analog_i,
     // runtime interface: energy fifo
-    input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i
+    input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i,
+    // interface when ENABLE_FLIP_DETECTION = True
+    input  logic enable_flip_detection_i
 );
     // Internal signals
     logic aw_mst_valid;
@@ -123,11 +129,23 @@ module digital_macro #(
     logic counter_weight_maxed, counter_weight_overflow;
     logic [DATA_J_BIT-1:0] ef_weight_out;
     logic cmpt_en_dly1, cmpt_en_pos_trigger;
+    logic em_fifo_flush_comb;
+
+    // signals for flip detection
+    logic [NUM_SPIN-1:0] em_spin_baseline_reg;
+    logic [(SPIN_DEPTH>1 ? $clog2(SPIN_DEPTH) : 1)-1:0] baseline_idx;
+    logic baseline_idx_maxed;
+    logic prev_value_in_energy_fifo;
+    logic [ENERGY_TOTAL_BIT-1:0] em_energy_baseline_reg, em_energy_baseline_comb;
+    logic [NUM_SPIN-1:0] em_spin_baseline_comb;
+    logic [NUM_SPIN-1:0] bits_flipped;
+    logic em_fifo_start_cond;
+    logic em_fifo_flush_cond;
+    logic em_fifo_start_reg;
 
     assign hscaling_expanded = {PARALLELISM{dgt_hscaling_i}};
     assign cmpt_en_pos_trigger = cmpt_en_i & ~cmpt_en_dly1;
-
-    `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
+    assign em_fifo_flush_comb = ENABLE_FLIP_DETECTION == `True ? flush_i | (enable_flip_detection_i & (~em_fifo_start_reg | em_fifo_flush_cond)) : flush_i;
 
     if (LITTLE_ENDIAN) begin
         assign hbias_sliced = dgt_hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
@@ -144,18 +162,64 @@ module digital_macro #(
     else
         assign fm_energy_input = em_energy_output;
 
+    `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
+
+    generate
+        if (ENABLE_FLIP_DETECTION) begin
+            // control flow
+            assign em_fifo_start_cond = muxed_mst_valid & em_slv_ready;
+            assign em_fifo_flush_cond = flush_i | (counter_weight_maxed && em_weight_valid && em_weight_ready);
+
+            // data flow
+            assign bits_flipped = en_analog_loop_i ? (analog_spin ^ em_spin_baseline_reg) : (fm_spin_out ^ em_spin_baseline_reg);
+
+            always_comb begin
+                em_energy_baseline_comb = 'd0;
+                em_spin_baseline_comb = 'd0;
+                for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+                    if (baseline_idx == i) begin
+                        em_energy_baseline_comb = energy_fifo_o[i];
+                        em_spin_baseline_comb = spin_fifo_o[i];
+                    end
+                end
+            end
+
+            // sequential logic
+            `FFLARNC(em_spin_baseline_reg, em_spin_baseline_comb, fm_mst_valid & muxed_slv_ready, flush_i, 1'b0, clk_i, rst_ni);
+            `FFLARNC(em_energy_baseline_reg, em_energy_baseline_comb, fm_mst_valid & muxed_slv_ready, flush_i, 1'b0, clk_i, rst_ni);
+            `FFLARNC(em_fifo_start_reg, 1'b1, em_fifo_start_cond, em_fifo_flush_cond, 1'b0, clk_i, rst_ni);
+            `FFLARNC(prev_value_in_energy_fifo, 1'b1, (baseline_idx_maxed & fm_mst_valid & muxed_slv_ready), flush_i, 1'b0, clk_i, rst_ni);
+
+            step_counter #(
+                .COUNTER_BITWIDTH(SPIN_DEPTH>1 ? $clog2(SPIN_DEPTH) : 1),
+                .PARALLELISM(1)
+            ) u_fm_pointer_counter (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .en_i(en_fm_i),
+                .load_i(1'b0),
+                .d_i(1'b0),
+                .recount_en_i(flush_i | (baseline_idx_maxed & fm_mst_valid & muxed_slv_ready)),
+                .step_en_i(fm_mst_valid & muxed_slv_ready),
+                .q_o(baseline_idx),
+                .maxed_o(baseline_idx_maxed),
+                .overflow_o()
+            );
+        end
+    endgenerate
+
     // counter for hbias slice selection
     step_counter #(
         .COUNTER_BITWIDTH($clog2(NUM_SPIN)),
         .PARALLELISM(PARALLELISM)
-    ) u_step_counter (
+    ) u_em_weight_hdsk_counter (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_em_i),
         .load_i(config_valid_em_i),
         .d_i(config_counter_i),
         .recount_en_i(counter_weight_maxed && em_weight_valid && em_weight_ready),
-        .step_en_i(!counter_weight_maxed && em_weight_valid && em_weight_ready),
+        .step_en_i(em_weight_valid && em_weight_ready),
         .q_o(counter_weight),
         .maxed_o(counter_weight_maxed),
         .overflow_o(counter_weight_overflow)
@@ -166,11 +230,11 @@ module digital_macro #(
         .DEPTH                          (2                          ),
         .ADDR_WIDTH                     (J_MEM_ADDR_WIDTH           ),
         .DATA_WIDTH                     (DATA_J_BIT                 )
-    ) u_weight_mem_to_handshake_fifo (
+    ) u_em_fifo (
         .clk_i                          (clk_i                      ),
         .rst_ni                         (rst_ni                     ),
         .en_i                           (en_ef_i                    ),
-        .flush_i                        (flush_i                    ),
+        .flush_i                        (em_fifo_flush_comb         ),
         .addr_upper_bound_i             (dgt_addr_upper_bound_i     ),
         .mem_ren_o                      (dgt_weight_ren_o           ),
         .mem_raddr_o                    (dgt_weight_raddr_o         ),
@@ -245,6 +309,8 @@ module digital_macro #(
         .icon_last_raddr_plus_one_i     (icon_last_raddr_plus_one_i ),
         .flip_rdata_i                   (flip_rdata_i               ),
         .flip_disable_i                 (flip_disable_i             ),
+        .energy_fifo_update_o           (energy_fifo_update_o       ),
+        .spin_fifo_update_o             (spin_fifo_update_o         ),
         .energy_fifo_o                  (energy_fifo_o              ),
         .spin_fifo_o                    (spin_fifo_o                )
     );

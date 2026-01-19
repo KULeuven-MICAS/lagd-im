@@ -18,6 +18,8 @@ package data_read_pkg;
     `define ENERGY_REF_FILE_2 "./data/energy_2"
     `define STATE_IN_FILE_2 "./data/states_in_2"
     `define STATE_OUT_FILE_2 "./data/states_out_2"
+    `define ENERGY_OUTPUT_FILE "./output/ref_energy_output"
+    `define STATE_OUTPUT_FILE "./output/ref_state_output"
 
     // ========================================================================
     // Data Reading Package
@@ -49,6 +51,7 @@ package data_read_pkg;
         int hbias_idx = 0;
         model_t model;
         real const_real;
+        int const_round;
 
         model_file = $fopen(`MODEL_FILE, "r");
         if (model_file == 0) begin
@@ -84,8 +87,11 @@ package data_read_pkg;
                         $display("Error: Failed to parse constant from line: %s (@ line %0d)", line, line_num);
                         $finish;
                     end
-                    model.constant = $rtoi(const_real);
-                    break;
+                    if (const_real >= 0)
+                        const_round = $rtoi(const_real + 0.5);
+                    else
+                        const_round = $rtoi(const_real - 0.5);
+                    model.constant = const_round;
                 end
             end
         end
@@ -227,5 +233,60 @@ package data_read_pkg;
             end
         $display("[Time: %t] State output file %s and %s are loaded successfully.", $time, `STATE_OUT_FILE_1, `STATE_OUT_FILE_2);
         return states_out_ref;
+    endfunction
+
+    // Function to output energies to files
+    function automatic void output_energies_to_file(
+        input logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_values,
+        input int constant
+    );
+        int energy_file;
+        string file_name_with_depth;
+        int updating_idx;
+        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+            updating_idx = 0;
+            // Open the file corresponding to the current depth
+            file_name_with_depth = {`ENERGY_OUTPUT_FILE, "_depth_", $sformatf("%0d", i), ".txt"};
+            energy_file = $fopen(file_name_with_depth, "w");
+            if (energy_file == 0) begin
+                $display("Error: Could not open energy output file %s", file_name_with_depth);
+                $finish;
+            end
+            // Write energies to the file
+            for (int j = 0; j < IconLastAddrPlusOne; j = j + 1) begin
+                if (updating_idx == i)
+                    $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]) + constant);
+                updating_idx = (updating_idx + 1) % SPIN_DEPTH;
+            end
+            $fclose(energy_file);
+            $display("[Time: %t] Energy output file %s is written successfully.", $time, file_name_with_depth);
+        end
+    endfunction
+
+    // Function to output spins to files
+    function automatic void output_spins_to_file(
+        input logic [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_values
+    );
+        int state_file;
+        string file_name_with_depth;
+        int updating_idx;
+        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
+            updating_idx = 0;
+            // Open the file corresponding to the current depth
+            file_name_with_depth = {`STATE_OUTPUT_FILE, "_depth_", $sformatf("%0d", i), ".txt"};
+            state_file = $fopen(file_name_with_depth, "w");
+            if (state_file == 0) begin
+                $display("Error: Could not open state output file %s", file_name_with_depth);
+                $finish;
+            end
+            // Write spins to the file
+            for (int j = 0; j < IconLastAddrPlusOne; j = j + 1) begin
+                if (updating_idx == i)
+                    $fwrite(state_file, "%b\n", spin_values[j][i]);
+                updating_idx = (updating_idx + 1) % SPIN_DEPTH;
+            end
+            $fclose(state_file);
+            $display("[Time: %t] State output file %s is written successfully.", $time, file_name_with_depth);
+        end
     endfunction
 endpackage

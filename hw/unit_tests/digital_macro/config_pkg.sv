@@ -11,6 +11,9 @@
 
 // Configuration package for digital macro unit tests
 package config_pkg;
+    // testbench parameters
+    parameter int DataFromFile = `True; // True: load input data from file; False: randomly generate data
+
     // design-time parameters
     parameter int NUM_SPIN = 256;
     parameter int BITDATA = 4;
@@ -27,6 +30,7 @@ package config_pkg;
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
     parameter int H_IS_NEGATIVE = `True;
+    parameter int ENABLE_FLIP_DETECTION = `False;
 
     // run-time parameters (related to algorithm)
     parameter int IconLastAddrPlusOne = 1024;
