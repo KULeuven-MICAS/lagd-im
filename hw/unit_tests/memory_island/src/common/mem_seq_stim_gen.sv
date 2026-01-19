@@ -29,6 +29,7 @@ module mem_seq_stim_gen #(
     // Memory interface (to comparator)
     output mem_req_t mem_req_o,
     input mem_rsp_t mem_rsp_i,
+    input logic [AddrWidth-1:0] start_address_i,
 
     // Test control
     input logic test_start_i,
@@ -44,7 +45,7 @@ module mem_seq_stim_gen #(
         // Simple sequential read/write transactions
         @(posedge clk_i);
         for (int unsigned i = 0; i < NumTransactions; i++) begin
-            automatic longint unsigned Addr = TestRegionStart + (i * (DataWidth/8));
+            automatic longint unsigned Addr = start_address_i + (i * (DataWidth/8));
             automatic int unsigned RandomDelay = (RandMaster) ? $urandom_range(0, 5) : 0;
             mem_req_o.q.addr <= #TA Addr;
             mem_req_o.q.data <= #TA (DataRandom) ? $urandom() : Addr;

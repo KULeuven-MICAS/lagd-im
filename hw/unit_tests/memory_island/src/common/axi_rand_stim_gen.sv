@@ -48,8 +48,8 @@ module axi_rand_generator #(
         .MAX_READ_TXNS(MAX_TXN_IN_FLIGHT),
         .MAX_WRITE_TXNS(MAX_TXN_IN_FLIGHT),
         // Burst configuration
-        .SIZE_ALIGN(0),
-        .AXI_MAX_BURST_LEN(0),
+        .SIZE_ALIGN(3),
+        .AXI_MAX_BURST_LEN(10),
         .TRAFFIC_SHAPING(0),
         // Transaction types
         .AXI_EXCLS(1'b0),
@@ -86,7 +86,7 @@ module axi_rand_generator #(
         rand_master.run(NumReadTransactions, NumWriteTransactions);
 
         // Wait for all responses
-        repeat(100) @(posedge clk_i);
+        @(posedge clk_i);
 
         test_complete_o = 1'b1;
     end
