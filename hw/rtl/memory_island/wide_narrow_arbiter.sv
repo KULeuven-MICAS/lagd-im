@@ -93,7 +93,6 @@ module wide_narrow_arbiter #(
         localparam int unsigned wide_idx = i / NarrowPerWide;
         assign wide_valid_split[i] = mem_wide_req_i[wide_idx].q_valid;
     end
-
     logic [NumNarrowBanks-1:0] wide_ready_split;
     for (genvar j = 0; j < NumWideBanks; j++) begin : narrow_ready_splitting
         assign mem_wide_rsp_o[j].q_ready = |wide_ready_split[j * NarrowPerWide +: NarrowPerWide];
@@ -101,10 +100,11 @@ module wide_narrow_arbiter #(
     localparam int unsigned WideToNarrowFactor = WideDataWidth / NarrowDataWidth;
     mem_narrow_req_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_req;
     mem_narrow_rsp_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_rsp;
+    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_o_p;
     generate
         if (WideToNarrowFactor == 1) begin : gen_no_wide_split  // No splitting needed
             for(genvar i = 0; i < NumWideBanks; i++) begin: connect_no_split
-                assign mem_wide_rsp_o[i].p = mem_wide_split_rsp[i][0].p;
+                assign mem_wide_rsp_o_p[i].p = mem_wide_split_rsp[i][0].p;
                 assign mem_wide_split_req[i] = mem_wide_req_i[i][0];
             end
         end else begin : gen_wide_split  // Splitting 
@@ -122,10 +122,11 @@ module wide_narrow_arbiter #(
                     .clk_i(clk_i),
                     .rst_ni(rst_ni),
                     .mem_req_i(mem_wide_req_i[i]),
-                    .mem_rsp_o(mem_wide_rsp_o[i]),
+                    .mem_rsp_o(mem_wide_rsp_o_p[i]),
                     .bank_req_o(mem_wide_split_req[i]),
                     .bank_rsp_i(mem_wide_split_rsp[i])
                 );
+                assign mem_wide_rsp_o[i].p = mem_wide_rsp_o_p[i].p;
             end
         end
     endgenerate
@@ -154,6 +155,8 @@ module wide_narrow_arbiter #(
 
     // Narrow/Wide arbitration
     for (genvar i = 0; i < NumNarrowBanks; i++) begin : bank_request_routing
+        localparam int unsigned wide_idx = i / NarrowPerWide;
+        localparam int unsigned narrow_idx_in_wide = i % NarrowPerWide;
         always_comb begin : bank_access_mux
             if (conflict_detected[i]) begin : conflict_case
                 if (arb_narrow_next) begin : conflict_narrow_priority
@@ -161,7 +164,7 @@ module wide_narrow_arbiter #(
                     mem_narrow_rsp_o[i].q_ready = 1'b1;
                     wide_ready_split[i] = 1'b0;
                 end else begin : conflict_wide_priority
-                    mem_bank_req_o[i] = mem_wide_split_req[i];
+                    mem_bank_req_o[i] = mem_wide_split_req[wide_idx][narrow_idx_in_wide];
                     mem_narrow_rsp_o[i].q_ready = 1'b0;
                     wide_ready_split[i] = 1'b1;
                 end
@@ -171,7 +174,7 @@ module wide_narrow_arbiter #(
                     wide_ready_split[i] = 1'b0;
                     mem_narrow_rsp_o[i].q_ready = 1'b1;
                 end else begin : no_conflict_wide
-                    mem_bank_req_o[i] = mem_wide_split_req[i];
+                    mem_bank_req_o[i] = mem_wide_split_req[wide_idx][narrow_idx_in_wide];
                     wide_ready_split[i] = wide_valid_split[i];
                     mem_narrow_rsp_o[i].q_ready = 1'b0;
                 end
