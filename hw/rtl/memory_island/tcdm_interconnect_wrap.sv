@@ -102,7 +102,7 @@ module tcdm_interconnect_wrap #(
             if (NumIn == 1) begin
                 // Direct connection for 1x1 interconnect
                 assign mem_req_o_q_valid[0] = mem_req_i_q_valid[0];
-                assign mem_req_o_q_addr[0]  = mem_req_i_q_addr[0][AddrMemWidth-1:0];
+                assign mem_req_o_q_addr[0]  = mem_req_i_q_addr[0][AddrWidth-1 -: AddrMemWidth];
                 assign mem_req_o_q_write[0] = mem_req_i_q_write[0];
                 assign mem_req_o_q_data[0]  = mem_req_i_q_data[0];
                 assign mem_req_o_q_strb[0]  = mem_req_i_q_strb[0];

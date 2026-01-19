@@ -84,7 +84,7 @@ module wide_to_narrow_splitter #(
     generate
         for (i = 0; i < NumBanks; i++) begin : gen_split_req
             assign bank_req_o[i].q_valid = mem_req_i.q_valid;
-            assign bank_req_o[i].q.addr  = mem_req_i.q.addr + i*(1 << BankAddrOffset);
+            assign bank_req_o[i].q.addr  = mem_req_i.q.addr; //+ i*(1 << BankAddrOffset);
             assign bank_req_o[i].q.data  = mem_req_i.q.data[
                 (i+1)*BankDataWidth-1 -: BankDataWidth];
             assign bank_req_o[i].q.strb  = mem_req_i.q.strb[
