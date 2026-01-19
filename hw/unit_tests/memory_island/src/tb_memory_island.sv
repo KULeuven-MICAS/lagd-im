@@ -38,7 +38,7 @@ module tb_memory_island import lagd_pkg::*; #(
     // ========================================================================
 
     logic clk_i, rst_ni;
-    logic axi_write_complete, direct_write_complete;
+    logic axi_write_complete, direct_write_complete, direct_read_complete;
     logic test_complete;
 
     lagd_axi_slv_req_t [NumAxiNarrowReqSafe-1:0] axi_narrow_req_i;
@@ -50,7 +50,7 @@ module tb_memory_island import lagd_pkg::*; #(
     lagd_mem_narr_req_t [NumDirectNarrowReqSafe-1:0] mem_narrow_req_i;
     lagd_mem_narr_rsp_t [NumDirectNarrowReqSafe-1:0] mem_narrow_rsp_o;
 
-    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i;
+    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_r, mem_wide_req_i_w, mem_wide_req_i;
     lagd_mem_wide_rsp_t [NumDirectWideReqSafe-1:0] mem_wide_rsp_o;
     // AXI bus for stimulus generation
     AXI_BUS_DV #(
@@ -130,15 +130,15 @@ module tb_memory_island import lagd_pkg::*; #(
         end
     endgenerate
 
-    generate 
-        if (Cfg.NumDirectWideReq != 0) begin : mem_seq_generator
+    generate
+        if (Cfg.NumDirectWideReq != 0) begin : mem_seq_generator_write
             // Sequential memory stimulus generation
             mem_seq_stim_gen #(
                 .AddrWidth(Cfg.AddrWidth),
                 .DataWidth(Cfg.WideDataWidth),
                 .Write(1),
                 .DataRandom(0),
-                .RandMaster(0),
+                .RandMaster(1),
                 .NumTransactions(10),
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
@@ -147,21 +147,50 @@ module tb_memory_island import lagd_pkg::*; #(
             ) i_mem_seq_stimulus (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
-                .mem_req_o(mem_wide_req_i[0]),
+                .mem_req_o(mem_wide_req_i_w[0]),
                 .mem_rsp_i(mem_wide_rsp_o[0]),
                 .test_start_i(axi_write_complete),
                 .test_complete_o(direct_write_complete)
             );
-        end else begin : no_mem_req
+        end else begin : no_mem_req_write
             // No direct memory requests, test is complete immediately
             assign direct_write_complete = 1'b1;
         end
     endgenerate
 
+    generate
+        if (Cfg.NumDirectWideReq != 0) begin : mem_seq_generator_read
+            // Sequential memory stimulus generation
+            mem_seq_stim_gen #(
+                .AddrWidth(Cfg.AddrWidth),
+                .DataWidth(Cfg.WideDataWidth),
+                .Write(0),
+                .DataRandom(0),
+                .RandMaster(1),
+                .NumTransactions(10),
+                .TestRegionStart(0),
+                .TestRegionEnd(MemorySizeBytes),
+                .mem_req_t(lagd_mem_wide_req_t),
+                .mem_rsp_t(lagd_mem_wide_rsp_t)
+            ) i_mem_seq_stimulus (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .mem_req_o(mem_wide_req_i_r[0]),
+                .mem_rsp_i(mem_wide_rsp_o[0]),
+                .test_start_i(direct_write_complete),
+                .test_complete_o(direct_read_complete)
+            );
+        end else begin : no_mem_req_read
+            // No direct memory requests, test is complete immediately
+            assign direct_read_complete = 1'b1;
+        end
+    endgenerate
+
+    assign mem_wide_req_i = (direct_write_complete) ? mem_wide_req_i_r : mem_wide_req_i_w;
     // ========================================================================
     // TEST CONTROL
     // ========================================================================
-    assign test_complete = axi_write_complete & direct_write_complete;
+    assign test_complete = axi_write_complete & direct_write_complete & direct_read_complete;
     initial begin
         // Wait for test to complete
         wait(test_complete);
