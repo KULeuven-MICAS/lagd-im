@@ -36,7 +36,7 @@ module partial_energy_calc #(
     parameter int SCALING_BIT = 4,
     parameter int PIPES = 0,
     parameter int MULTBIT = BITH + SCALING_BIT - 1, // bit width of the multiplier output
-    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT + 1, // bit width of local energy output
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT, // bit width of local energy output
     parameter int DATAJ = NUM_SPIN * BITJ
     )(
     input logic clk_i,
@@ -48,7 +48,7 @@ module partial_energy_calc #(
     input logic [DATAJ-1:0] weight_i,
     input logic signed [BITH-1:0] hbias_i,
     input logic unsigned [SCALING_BIT-1:0] hscaling_i,
-    output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o
+    output logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_o
 );
     // Internal signals
     logic signed [NUM_SPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
@@ -56,7 +56,7 @@ module partial_energy_calc #(
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [NUM_SPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias; // local energy value without hbias
-    logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
+    logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local; // local energy value
     logic signed [MULTBIT-1:0] hbias_scaled_pipe;
     logic current_spin_pipe;
 
