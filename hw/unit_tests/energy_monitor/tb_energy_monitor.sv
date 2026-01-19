@@ -59,7 +59,7 @@ module tb_energy_monitor;
     localparam int NUM_SPIN = 256; // number of spins
     localparam int SCALING_BIT = 5; // bit width of scaling factor
     localparam int PARALLELISM = 4; // number of parallel energy calculation units, min: 1
-    localparam int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1; // bit width of local energy
+    localparam int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1 + 1; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
 
@@ -93,6 +93,7 @@ module tb_energy_monitor;
     logic unsigned [SCALING_BIT*PARALLELISM-1:0] hscaling_pipe [0:`PIPESINTF-1];
     logic unsigned [ $clog2(NUM_SPIN) : 0 ] expected_spin_counter;
     logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
+    logic signed [ENERGY_TOTAL_BIT-1+1:0] expected_energy_doubled;
     logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy;
     logic unsigned [31:0] testcase_counter;
     logic unsigned [ $clog2(NUM_SPIN)-1 : 0 ] transaction_count;
@@ -281,26 +282,29 @@ module tb_energy_monitor;
         if (!rst_ni) begin
             energy_ready_i <= 0;
             expected_spin_counter <= 0;
+            expected_energy_doubled <= 0;
             expected_energy <= 0;
             expected_local_energy <= 0;
             end else begin
             if (energy_valid_o && energy_ready_i) begin: new_testcase_start
                 energy_ready_i <= 0;
                 expected_spin_counter <= 0;
+                expected_energy_doubled <= 0;
                 expected_energy <= 0;
                 expected_local_energy <= 0;
             end
             else if (expected_spin_counter >= NUM_SPIN) begin: keep_waiting
                 energy_ready_i <= energy_ready_i;
                 expected_spin_counter <= expected_spin_counter;
-                expected_energy <= expected_energy;
+                expected_energy_doubled <= expected_energy_doubled;
+                expected_energy <= expected_energy_doubled / 2;
                 expected_local_energy <= expected_local_energy;
             end
             else if (weight_valid_i && weight_ready_o) begin: calculate_energy
                 // Use local accumulators to avoid non-blocking update ordering issues
-                logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy_next;
+                logic signed [ENERGY_TOTAL_BIT-1+1:0] expected_energy_next;
                 logic unsigned [$clog2(NUM_SPIN) : 0] expected_spin_counter_next;
-                expected_energy_next = expected_energy;
+                expected_energy_next = expected_energy_doubled;
                 expected_spin_counter_next = expected_spin_counter;
 
                 if (`PIPESINTF == 0) begin: no_pipeline_mode
@@ -379,7 +383,7 @@ module tb_energy_monitor;
                 end
 
                 // Commit accumulated values in non-blocking fashion
-                expected_energy <= expected_energy_next;
+                expected_energy_doubled <= expected_energy_next;
                 expected_spin_counter <= expected_spin_counter_next;
 
                 if (expected_spin_counter_next >= NUM_SPIN) begin
@@ -394,7 +398,7 @@ module tb_energy_monitor;
     // ========================================================================
     // Tasks and functions
     // ========================================================================
-    // Function to compute local energy
+    // Function to compute local energy, which = sum over j ( spin_j * weight_ij ) + 2 * hbias_i * hscaling
     function automatic signed [LOCAL_ENERGY_BIT-1:0] compute_local_energy(
         input logic [NUM_SPIN-1:0] spin_vec,
         input logic [NUM_SPIN*BITJ-1:0] weight_vec,
@@ -417,7 +421,7 @@ module tb_energy_monitor;
                     end
                 end else begin
                     if (i == (NUM_SPIN - 1 - spin_idx)) begin
-                        local_energy_temp += hbias * $signed({1'b0, hscaling});
+                        local_energy_temp += 2 * hbias * $signed({1'b0, hscaling});
                     end else begin
                         weight_temp = $signed(weight_vec[i*BITJ +: BITJ]);
                         local_energy_temp += spin_vec[i] ? weight_temp : -weight_temp;

@@ -7,7 +7,7 @@ This module calculates the Hamiltonian energy results for a given spin and weigh
 The executed formula is as below:
 
 $$
-H = \sum_{i} \sum_{j} w_{ij} \sigma_i \sigma_j + \sum_i h_{sfc} \cdot h_i \sigma_i
+H = 0.5\sum_{i} \sum_{j} w_{ij} \sigma_i \sigma_j + \sum_i h_{sfc} \cdot h_i \sigma_i
 $$
 
 In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's complement format. $\sigma_i$ is a 1-bit variable. The scaling factor $h_{sfc}$ is an unsigned integer in the power of 2.

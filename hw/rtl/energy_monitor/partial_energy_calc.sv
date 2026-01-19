@@ -36,7 +36,7 @@ module partial_energy_calc #(
     parameter int SCALING_BIT = 4,
     parameter int PIPES = 0,
     parameter int MULTBIT = BITH + SCALING_BIT - 1, // bit width of the multiplier output
-    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT,
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT + 1, // bit width of local energy output
     parameter int DATAJ = NUM_SPIN * BITJ
     )(
     input logic clk_i,
@@ -127,7 +127,8 @@ module partial_energy_calc #(
         .ready_o()
     );
 
-    assign energy_local = energy_local_wo_hbias + hbias_scaled_pipe;
+    // energy = energy_local_wo_hbias + 2 * hbias_scaled
+    assign energy_local = energy_local_wo_hbias + hbias_scaled_pipe * 2;
 
     // ========================================================================
     // Multiply with current spin

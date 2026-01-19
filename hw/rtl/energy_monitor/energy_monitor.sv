@@ -64,7 +64,7 @@ module energy_monitor #(
     parameter int LITTLE_ENDIAN = `True,
     parameter int PIPESINTF = 0,
     parameter int PIPESMID = 0,
-    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1,
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1 + 1,
     parameter int DATAJ = NUM_SPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
@@ -117,7 +117,8 @@ module energy_monitor #(
     logic [PARALLELISM-1:0] current_spin;
     logic [PARALLELISM-1:0] current_spin_raw;
     logic signed [LOCAL_ENERGY_BIT*PARALLELISM-1:0] local_energy;
-    logic signed [LOCAL_ENERGY_BIT + $clog2(PARALLELISM) - 1:0] local_energy_parallel;
+    logic signed [LOCAL_ENERGY_BIT + $clog2(PARALLELISM) - 1 + 1:0] local_energy_parallel;
+    logic signed [ENERGY_TOTAL_BIT-1+1:0] energy_doubled;
 
     // handshake signals
     logic spin_handshake;
@@ -133,6 +134,7 @@ module energy_monitor #(
     assign weight_handshake = weight_valid_pipe && weight_ready_pipe;
     assign energy_handshake = energy_valid_o && energy_ready_i;
     assign weight_handshake_accum[0] = weight_handshake;
+    assign energy_o = energy_doubled / 2; // divide by 2 to compensate double counting
     generate
         for (i = 0; i < PIPESMID; i++) begin: gen_weight_handshake_accum
             `FFL(weight_handshake_accum[i+1], weight_handshake_accum[i], en_i, 1'b0, clk_i, rst_ni);
@@ -302,8 +304,8 @@ module energy_monitor #(
 
     // Accumulator
     accumulator #(
-        .IN_WIDTH(LOCAL_ENERGY_BIT + $clog2(PARALLELISM)),
-        .ACCUM_WIDTH(ENERGY_TOTAL_BIT)
+        .IN_WIDTH(LOCAL_ENERGY_BIT + $clog2(PARALLELISM)+1),
+        .ACCUM_WIDTH(ENERGY_TOTAL_BIT+1)
     ) u_accumulator (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -311,7 +313,7 @@ module energy_monitor #(
         .clear_i(energy_handshake), // clear when the output energy is accepted
         .valid_i(weight_handshake_accum[PIPESMID]),
         .data_i(local_energy_parallel),
-        .accum_o(energy_o),
+        .accum_o(energy_doubled),
         .overflow_o(),
         .valid_o(cmpt_done)
     );
