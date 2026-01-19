@@ -25,7 +25,6 @@ module tb_digital_macro;
     // testbench parameters
     localparam int CLKCYCLE = 2;
     localparam int NUM_TESTS = 1; // number of computation processes (only 1 is supported currently)
-    localparam int DataFromFile = `True; // True: load input data from file; False: randomly generate data
 
     // dut signals
     logic clk_i;
@@ -79,6 +78,8 @@ module tb_digital_macro;
     logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o;
     logic dgt_weight_ren_o;
     logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] dgt_addr_upper_bound_i;
+    logic energy_fifo_update_o;
+    logic spin_fifo_update_o;
 
     // testbench signals
     logic [NUM_SPIN*BITJ-1:0] wbl_copy;
@@ -99,6 +100,7 @@ module tb_digital_macro;
     integer dt_write_cycle_cnt_j;
     logic em_fm_handshake, fm_downstream_handshake, em_upstream_handshake;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
+    model_t model_data;
 
     assign en_aw_i = en_i;
     assign en_em_i = en_i;
@@ -130,7 +132,8 @@ module tb_digital_macro;
         .COUNTER_BITWIDTH           (COUNTER_BITWIDTH           ),
         .SYNCHRONIZER_PIPEDEPTH     (SYNCHRONIZER_PIPEDEPTH     ),
         .SPIN_WBL_OFFSET            (SPIN_WBL_OFFSET            ),
-        .H_IS_NEGATIVE              (H_IS_NEGATIVE              )
+        .H_IS_NEGATIVE              (H_IS_NEGATIVE              ),
+        .ENABLE_FLIP_DETECTION      (ENABLE_FLIP_DETECTION      )
     ) dut (
         .clk_i                      (clk_i                      ),
         .rst_ni                     (rst_ni                     ),
@@ -184,8 +187,11 @@ module tb_digital_macro;
         .spin_wwl_o                 (spin_wwl_o                 ),
         .spin_feedback_o            (spin_feedback_o            ),
         .spin_analog_i              (spin_analog_i              ),
+        .energy_fifo_update_o       (energy_fifo_update_o       ),
+        .spin_fifo_update_o         (spin_fifo_update_o         ),
         .energy_fifo_o              (energy_fifo_o              ),
-        .spin_fifo_o                (spin_fifo_o                )
+        .spin_fifo_o                (spin_fifo_o                ),
+        .enable_flip_detection_i    (1'b1                       )
     );
 
     // Clock generation
@@ -289,7 +295,6 @@ module tb_digital_macro;
     // ========================================================================
     // Generate weight model
     task automatic gen_model();
-        model_t model_data;
         if (DataFromFile == `False) begin: randomly_generate_model
             model_data = generate_random_model();
         end else begin: load_model_from_file
@@ -388,11 +393,20 @@ module tb_digital_macro;
             // update pointer
             spin_fifo_pointer = (spin_fifo_pointer + 1) % SPIN_DEPTH;
         end
-        // // debug: display reference energy fifo
+        // debug: display reference energy fifo
         // for (int i = 0; i < 20; i = i + 1) begin
         //     $display("[Time: %t] Idx: 'd%0d, Reference energy fifo: [id: 'd%0d, energy: 'd%0d][id: 'd%0d, energy: 'd%0d]", $time, i, 1, $signed(energy_fifo_ref[i][1]), 0, $signed(energy_fifo_ref[i][0]));
         // end
         // $finish;
+        if (DataFromFile == `True) begin
+            $display("[Time: %t] Reference energy and spin fifo loaded from file.", $time);
+            // output energies and states to files
+            output_energies_to_file(energy_fifo_ref, model_data.constant);
+            output_spins_to_file(spin_fifo_ref);
+            $display("[Time: %t] Reference energy and spin fifo output to files.", $time);
+        end else begin
+            $display("[Time: %t] Reference energy and spin fifo generated.", $time);
+        end
     endtask
 
     // Sub-task for AW config interface
@@ -593,12 +607,17 @@ module tb_digital_macro;
             end
             // Interface to energy monitor: standard 1-cycle-delay memory interface
             if (dgt_weight_ren_o == 1) begin
-                if (dgt_weight_raddr_o != weight_raddr_ref) begin
-                    $fatal(1, "[Time: %t] Error: Weight memory read address mismatch. Expected: 'h%0h, Got: 'h%0h",
-                        $time, weight_raddr_ref, dgt_weight_raddr_o);
+                if (ENABLE_FLIP_DETECTION == `False) begin
+                    if (dgt_weight_raddr_o != weight_raddr_ref) begin
+                        $fatal(1, "[Time: %t] Error: Weight memory read address mismatch. Expected: 'h%0h, Got: 'h%0h",
+                            $time, weight_raddr_ref, dgt_weight_raddr_o);
+                    end
+                    dgt_weight_i = weights_in_mem[dgt_weight_raddr_o];
+                    weight_raddr_ref = weight_raddr_ref + 1;
+                end else begin
+                    dgt_weight_i = weights_in_mem[dgt_weight_raddr_o];
+                    weight_raddr_ref = dgt_weight_raddr_o + 1;
                 end
-                dgt_weight_i = weights_in_mem[dgt_weight_raddr_o];
-                weight_raddr_ref = weight_raddr_ref + 1;
             end
         end
     endtask
