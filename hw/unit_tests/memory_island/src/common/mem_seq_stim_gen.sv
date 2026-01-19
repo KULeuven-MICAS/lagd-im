@@ -17,6 +17,7 @@ module mem_seq_stim_gen #(
     parameter int unsigned NumTransactions = 100,
     parameter longint unsigned TestRegionStart = 0,
     parameter longint unsigned TestRegionEnd = 200,
+    parameter time TA = 1ns,
 
     parameter type mem_req_t = logic,
     parameter type mem_rsp_t = logic
@@ -26,8 +27,8 @@ module mem_seq_stim_gen #(
     input logic rst_ni,
 
     // Memory interface (to comparator)
-    mem_req_t mem_req_o,
-    mem_rsp_t mem_rsp_i,
+    output mem_req_t mem_req_o,
+    input mem_rsp_t mem_rsp_i,
 
     // Test control
     input logic test_start_i,
@@ -41,18 +42,19 @@ module mem_seq_stim_gen #(
         @(negedge rst_ni);
         wait (test_start_i);
         // Simple sequential read/write transactions
+        @(posedge clk_i);
         for (int unsigned i = 0; i < NumTransactions; i++) begin
             automatic longint unsigned Addr = TestRegionStart + (i * (DataWidth/8));
             automatic int unsigned RandomDelay = (RandMaster) ? $urandom_range(0, 5) : 0;
-            mem_req_o.q.addr <= Addr;
-            mem_req_o.q.data <= (DataRandom) ? $urandom() : Addr;
-            mem_req_o.q_valid <= 1'b1;
-            mem_req_o.q.strb <= '1; // All bytes valid
-            mem_req_o.q.user <= '0;
+            mem_req_o.q.addr <= #TA Addr;
+            mem_req_o.q.data <= #TA (DataRandom) ? $urandom() : Addr;
+            mem_req_o.q_valid <= #TA 1'b1;
+            mem_req_o.q.strb <= #TA '1; // All bytes valid
+            mem_req_o.q.user <= #TA '0;
             wait (mem_rsp_i.q_ready);
-            wait (mem_rsp_i.p.valid);
             @(posedge clk_i);
-            mem_req_o.q_valid <= 1'b0;
+            mem_req_o.q_valid <= #TA 1'b0;
+            wait (mem_rsp_i.p.valid);
             repeat (RandomDelay) @(posedge clk_i);
         end
         test_complete_o = 1'b1;

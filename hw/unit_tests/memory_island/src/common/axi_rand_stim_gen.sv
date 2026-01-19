@@ -68,6 +68,7 @@ module axi_rand_generator #(
 
     initial begin
         // Initialize random master
+        test_complete_o = 1'b0;
         rand_master = new(axi_bus);
 
         // Define legal test region
