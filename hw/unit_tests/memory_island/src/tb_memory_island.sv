@@ -19,7 +19,7 @@
 `include "tb_config.svh"
 
 module tb_memory_island import lagd_pkg::*; #(
-    parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::L2MemCfg,
+    parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip,
     parameter int unsigned RandTest = 1,
     // Derived parameters - Do not override
     parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks,
@@ -149,12 +149,14 @@ module tb_memory_island import lagd_pkg::*; #(
                 .rst_ni(rst_ni),
                 .mem_req_o(mem_wide_req_i[0]),
                 .mem_rsp_i(mem_wide_rsp_o[0]),
+                .test_start_i(axi_write_complete),
                 .test_complete_o(direct_write_complete)
             );
         end else begin : no_mem_req
             // No direct memory requests, test is complete immediately
             assign direct_write_complete = 1'b1;
         end
+    endgenerate
 
     // ========================================================================
     // TEST CONTROL
@@ -165,6 +167,5 @@ module tb_memory_island import lagd_pkg::*; #(
         wait(test_complete);
         $finish(0);
     end
-
 
 endmodule

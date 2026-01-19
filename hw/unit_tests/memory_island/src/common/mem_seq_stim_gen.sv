@@ -30,6 +30,7 @@ module mem_seq_stim_gen #(
     mem_rsp_t mem_rsp_i,
 
     // Test control
+    input logic test_start_i,
     output logic test_complete_o
 );
 
@@ -38,10 +39,11 @@ module mem_seq_stim_gen #(
         mem_req_o = '0;
         mem_req_o.q.write = Write;
         @(negedge rst_ni);
+        wait (test_start_i);
         // Simple sequential read/write transactions
         for (int unsigned i = 0; i < NumTransactions; i++) begin
-            localparam longint unsigned Addr = TestRegionStart + (i * (DataWidth/8));
-            localparam int unsigned RandomDelay = (RandMaster) ? $urandom_range(0, 5) : 0;
+            automatic longint unsigned Addr = TestRegionStart + (i * (DataWidth/8));
+            automatic int unsigned RandomDelay = (RandMaster) ? $urandom_range(0, 5) : 0;
             mem_req_o.q.addr <= Addr;
             mem_req_o.q.data <= (DataRandom) ? $urandom() : Addr;
             mem_req_o.q_valid <= 1'b1;
@@ -55,3 +57,4 @@ module mem_seq_stim_gen #(
         end
         test_complete_o = 1'b1;
     end
+endmodule

@@ -26,6 +26,7 @@ module axi_rand_generator #(
     AXI_BUS_DV.Master axi_bus,
 
     // Test control
+    input logic test_start_i,
     output logic test_complete_o
 );
 
@@ -79,7 +80,7 @@ module axi_rand_generator #(
         // Reset phase
         rand_master.reset();
         @(posedge rst_ni);
-
+        wait (test_start_i);
         // Run transactions
         rand_master.run(NumReadTransactions, NumWriteTransactions);
 
