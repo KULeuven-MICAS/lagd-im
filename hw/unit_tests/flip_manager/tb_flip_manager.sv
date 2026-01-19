@@ -87,6 +87,8 @@ module tb_flip_manager;
     logic [NUM_SPIN-1:0] spin_fifo_scoreboard [0:SPIN_DEPTH-1];
     logic [NUM_SPIN-1:0] expected_flipped_spin;
     logic icon_last_raddr_plus_one_is_odd;
+    logic energy_fifo_update_o;
+    logic spin_fifo_update_o;
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
 
@@ -129,6 +131,8 @@ module tb_flip_manager;
         .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .flip_rdata_i(flip_rdata_i),
         .flip_disable_i(flip_disable_i),
+        .energy_fifo_update_o(energy_fifo_update_o),
+        .spin_fifo_update_o(spin_fifo_update_o),
         .energy_fifo_o(energy_fifo_o),
         .spin_fifo_o(spin_fifo_o)
     );

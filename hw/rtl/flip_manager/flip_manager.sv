@@ -60,6 +60,8 @@ module flip_manager #(
     input logic flip_disable_i,
 
     // for debugging purposes
+    output logic energy_fifo_update_o,
+    output logic spin_fifo_update_o,
     output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
     output logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o
 );
@@ -92,6 +94,9 @@ module flip_manager #(
     assign energy_handshake = energy_valid_i & energy_ready_o & (~cmpt_idle_o);
 
     assign cmpt_idle_o = ~cmpt_busy;
+
+    assign energy_fifo_update_o = energy_handshake;
+    assign spin_fifo_update_o = spin_maintainer_push_valid & spin_maintainer_push_ready;
 
     // Instantiate energy maintainer
     energy_fifo_maintainer #(
