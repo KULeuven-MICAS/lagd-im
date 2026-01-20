@@ -20,7 +20,10 @@ all: chs-hw-all test
 MI_TEST_PATH := ./unit_tests/memory_island
 MI_SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
 
-test: $(MI_TEST_PATH)/bender_list.tcl
+test: $(MI_TEST_PATH)/bender_list.tcl $(MI_TEST_PATH)/bender_list_tsmc.tcl
 
 $(MI_TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(MI_SIM_ARGS) > $@
+
+$(MI_TEST_PATH)/bender_list_tsmc.tcl: $(PROJECT_ROOT)/Bender.yml
+	$(BENDER) script $(SIM_TOOL) $(MI_SIM_ARGS) -t tech_cells_generic_exclude_tc_sram > $@

@@ -71,6 +71,18 @@ sources:
       - hw/rtl/analog_macro_wrap/analog_rx.sv
       - hw/rtl/analog_macro_wrap/analog_tx.sv
       - hw/rtl/lib/bp_pipe.sv
+  # yamllint disable rule:line-length
+  - files:
+      - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
+      - /users/micas/shares/project_lagd/SRAM/UHDSPSRAM/ts1n7uhdlvta2048x64m4zhocp_130b/VERILOG/ts1n7uhdlvta2048x64m4zhocp.v
+      - /users/micas/shares/project_lagd/SRAM/UHDSPSRAM/ts1n7uhdlvta1024x64m2zhocp_130b/VERILOG/ts1n7uhdlvta1024x64m2zhocp.v
+      - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta256x128m4zhocp_130b/VERILOG/ts1n7sblvta256x128m4zhocp.v
+      - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta256x44m4zhocp_130b/VERILOG/ts1n7sblvta256x44m4zhocp.v
+      - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta256x136m4zhocp_130b/VERILOG/ts1n7sblvta256x136m4zhocp.v
+      - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta256x45m4zhocp_130b/VERILOG/ts1n7sblvta256x45m4zhocp.v
+      - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta64x64m2zhocp_130b/VERILOG/ts1n7sblvta64x64m2zhocp.v
+    target: all(test, tech_cells_generic_exclude_tc_sram)
+  # yamllint enable rule:line-length
 
 #  - target: any(simulation, test)
 #    files:
