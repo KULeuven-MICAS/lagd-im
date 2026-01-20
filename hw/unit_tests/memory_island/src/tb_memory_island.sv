@@ -40,6 +40,7 @@ module tb_memory_island import lagd_pkg::*; #(
     logic clk_i, rst_ni;
     logic axi_write_complete, axi_read_complete;
     logic direct_write_complete, direct_read_complete;
+    logic direct_test_complete;
     logic test_complete;
 
     lagd_axi_slv_req_t [NumAxiNarrowReqSafe-1:0] axi_narrow_req_i;
@@ -51,7 +52,8 @@ module tb_memory_island import lagd_pkg::*; #(
     lagd_mem_narr_req_t [NumDirectNarrowReqSafe-1:0] mem_narrow_req_i;
     lagd_mem_narr_rsp_t [NumDirectNarrowReqSafe-1:0] mem_narrow_rsp_o;
 
-    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_r, mem_wide_req_i_ar, mem_wide_req_i_w, mem_wide_req_i;
+    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_r, mem_wide_req_i_w;
+    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_ar, mem_wide_req_i, mem_wide_req_test;
     lagd_mem_wide_rsp_t [NumDirectWideReqSafe-1:0] mem_wide_rsp_o;
     // AXI bus for stimulus generation
     AXI_BUS_DV #(
@@ -64,6 +66,16 @@ module tb_memory_island import lagd_pkg::*; #(
     `AXI_ASSIGN_TO_REQ(axi_narrow_req_i[0], axi_dv)
     `AXI_ASSIGN_FROM_RESP(axi_dv, axi_narrow_rsp_o[0])
 
+    mem_bus_dv_if #(
+        .AddrWidth(Cfg.AddrWidth),
+        .DataWidth(Cfg.WideDataWidth),
+        .UserWidth(2)
+    ) mem_dv (clk_i);
+
+    assign mem_dv.p = mem_wide_rsp_o[0];
+    assign mem_wide_req_test[0].q = mem_dv.q;
+    assign mem_wide_req_test[0].q_valid = mem_dv.q_valid;
+    assign mem_dv.q_ready = mem_wide_req_test[0].q_ready;
 
     // ========================================================================
     // DUT INSTANTIATION
@@ -178,7 +190,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .TestRegionEnd(MemorySizeBytes),
                 .mem_req_t(lagd_mem_wide_req_t),
                 .mem_rsp_t(lagd_mem_wide_rsp_t)
-            ) i_mem_seq_stimulus (
+            ) i_mem_seq_stimulus_wr (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
                 .mem_req_o(mem_wide_req_i_w[0]),
@@ -187,15 +199,6 @@ module tb_memory_island import lagd_pkg::*; #(
                 .test_start_i(axi_read_complete),
                 .test_complete_o(direct_write_complete)
             );
-        end else begin : no_mem_req_write
-            // No direct memory requests, test is complete immediately
-            assign direct_write_complete = 1'b1;
-        end
-    endgenerate
-
-    generate
-        if (Cfg.NumDirectWideReq != 0) begin : mem_seq_generator_read
-            // Sequential memory stimulus generation
             mem_seq_stim_gen #(
                 .AddrWidth(Cfg.AddrWidth),
                 .DataWidth(Cfg.WideDataWidth),
@@ -207,7 +210,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .TestRegionEnd(MemorySizeBytes),
                 .mem_req_t(lagd_mem_wide_req_t),
                 .mem_rsp_t(lagd_mem_wide_rsp_t)
-            ) i_mem_seq_stimulus (
+            ) i_mem_seq_stimulus_rd (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
                 .mem_req_o(mem_wide_req_i_r[0]),
@@ -216,9 +219,27 @@ module tb_memory_island import lagd_pkg::*; #(
                 .test_start_i(direct_write_complete),
                 .test_complete_o(direct_read_complete)
             );
-        end else begin : no_mem_req_read
+            mem_rand_test #(
+                .AddrWidth(Cfg.AddrWidth),
+                .DataWidth(Cfg.WideDataWidth),
+                .UserWidth(2),
+                .TestRegionStart(0),
+                .TestRegionEnd(MemorySizeBytes),
+                .NumTransactions(100),
+                .RandInterval(5),
+                .RandBurst(0)
+            ) i_mem_rand_test (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .mem_bus(mem_dv),
+                .test_start_i(direct_read_complete),
+                .test_complete_o(direct_test_complete)
+            );
+        end else begin : no_mem_req_write
             // No direct memory requests, test is complete immediately
             assign direct_read_complete = 1'b1;
+            assign direct_write_complete = 1'b1;
+            assign direct_test_complete = 1'b1;
         end
     endgenerate
 
@@ -234,7 +255,7 @@ module tb_memory_island import lagd_pkg::*; #(
     // ========================================================================
     // TEST CONTROL
     // ========================================================================
-    assign test_complete = axi_read_complete & direct_read_complete;
+    assign test_complete = axi_read_complete & direct_read_complete & direct_test_complete;
     initial begin
         // Wait for test to complete
         wait(test_complete);
