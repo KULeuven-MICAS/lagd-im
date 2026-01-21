@@ -162,6 +162,7 @@ module tb_memory_island import lagd_pkg::*; #(
                     .NumTransactions(10),
                     .TestRegionStart(0),
                     .TestRegionEnd(MemorySizeBytes),
+                    .TA(TA),
                     .mem_req_t(lagd_mem_wide_req_t),
                     .mem_rsp_t(lagd_mem_wide_rsp_t)
                 ) i_mem_seq_stimulus (
@@ -192,6 +193,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .NumTransactions(10),
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
+                .TA(TA),
                 .mem_req_t(lagd_mem_wide_req_t),
                 .mem_rsp_t(lagd_mem_wide_rsp_t)
             ) i_mem_seq_stimulus_wr (
@@ -212,6 +214,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .NumTransactions(10),
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
+                .TA(TA),
                 .mem_req_t(lagd_mem_wide_req_t),
                 .mem_rsp_t(lagd_mem_wide_rsp_t)
             ) i_mem_seq_stimulus_rd (

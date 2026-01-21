@@ -16,9 +16,9 @@
 // ============================================================================
 
 // Timing parameters
-localparam int unsigned TA = 3;  // Application delay
-localparam int unsigned TT = 9;  // Test delay
-localparam int unsigned CLK_PERIOD = 10; // Clock period in ns
+localparam time TA = 3ns;  // Application delay
+localparam time TT = 9ns;  // Test delay
+localparam time CLK_PERIOD = 10ns; // Clock period in ns
 
 // AXI test parameters
 localparam int unsigned AXI_UserWidth = 2;
