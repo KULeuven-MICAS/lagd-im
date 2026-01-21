@@ -213,6 +213,7 @@ transcript*
 **.vcd
 **.mti
 **.mpf
+**.vstf
 **runs/
 
 # pixi environments

@@ -16,7 +16,7 @@ module mem_rand_test #(
     parameter longint unsigned TestRegionEnd = 200,
     parameter int unsigned NumTransactions = 100,
     parameter int unsigned RandInterval = 0,
-    parameter int unsigned RandBurst = 0,
+    parameter int unsigned RandBurst = 0
 ) (
     // Clock and reset
     input logic clk_i,

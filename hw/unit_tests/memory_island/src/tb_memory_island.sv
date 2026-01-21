@@ -72,10 +72,14 @@ module tb_memory_island import lagd_pkg::*; #(
         .UserWidth(2)
     ) mem_dv (clk_i);
 
-    assign mem_dv.p = mem_wide_rsp_o[0];
-    assign mem_wide_req_test[0].q = mem_dv.q;
+    assign mem_dv.p = mem_wide_rsp_o[0].p;
+    assign mem_dv.q_ready = mem_wide_rsp_o[0].q_ready;
+    assign mem_wide_req_test[0].q.addr = mem_dv.q.addr;
+    assign mem_wide_req_test[0].q.data = mem_dv.q.data;
+    assign mem_wide_req_test[0].q.strb = mem_dv.q.strb;
+    assign mem_wide_req_test[0].q.user = mem_dv.q.user;
+    assign mem_wide_req_test[0].q.write = mem_dv.q.write;
     assign mem_wide_req_test[0].q_valid = mem_dv.q_valid;
-    assign mem_dv.q_ready = mem_wide_req_test[0].q_ready;
 
     // ========================================================================
     // DUT INSTANTIATION
@@ -226,7 +230,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
                 .NumTransactions(100),
-                .RandInterval(5),
+                .RandInterval(0),
                 .RandBurst(0)
             ) i_mem_rand_test (
                 .clk_i(clk_i),
@@ -248,6 +252,8 @@ module tb_memory_island import lagd_pkg::*; #(
             mem_wide_req_i = mem_wide_req_i_ar;
         end else if (axi_read_complete && !direct_write_complete) begin
             mem_wide_req_i = mem_wide_req_i_w;
+        end else if (direct_read_complete && !direct_test_complete) begin
+            mem_wide_req_i = mem_wide_req_test;
         end else begin
             mem_wide_req_i = mem_wide_req_i_r;
         end

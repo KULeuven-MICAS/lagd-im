@@ -25,8 +25,8 @@ set HDL_FILES [ list \
     ./src/common/axi_rand_stim_gen.sv \
     ./src/common/mem_seq_stim_gen.sv \
     ./src/common/mem_intf.sv \
-    ./src/common/mem_rand_test.sv \
     ./src/common/mem_test.sv \
+    ./src/common/mem_rand_test.sv \
     ./src/tb_memory_island.sv \
 ]
 

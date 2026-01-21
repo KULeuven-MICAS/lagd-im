@@ -92,18 +92,23 @@ package mem_test;
       mem_bus.q.data <= #TA beat.data;
       mem_bus.q.strb <= #TA beat.strb;
       mem_bus.q.user <= #TA beat.user;
+      mem_bus.q.write <= #TA beat.write;
       mem_bus.q_valid <= #TA 1'b1;
-      wait (mem_bus.q_ready);
+      cycle_start();
+      while (!mem_bus.q_ready) begin cycle_start(); cycle_end(); end
       cycle_end();
-      wait (mem_bus.p.valid);
+      while (!mem_bus.q_valid) begin cycle_start(); cycle_end(); end
       mem_bus.q_valid <= #TA 1'b0;
     endtask : send_req
 
     task recv_rsp(
       output rsp_beat_t beat
     );
-      wait (mem_bus.p.valid);
+      cycle_start();
+      while (!mem_bus.p.valid) begin cycle_start(); cycle_end(); end
+      beat = new;
       beat.data = mem_bus.p.data;
+      cycle_end();
     endtask : recv_rsp
 
     //======================================================================
@@ -156,8 +161,8 @@ package mem_test;
     } mem_region_t;
     mem_region_t mem_map[$];
     
-    typedef mem_req_beat_c #(AddrWidth, DataWidth, UserWidth, StrbWidth) req_beat_t;
-
+    typedef mem_driver_t::req_beat_t req_beat_t;
+    typedef mem_driver_t::rsp_beat_t rsp_beat_t;
 
     function new(
       virtual mem_bus_dv_if #(
@@ -224,15 +229,18 @@ package mem_test;
     task run(input user_t user = '0, input int unsigned NumTransactions = 100,
              input int unsigned RandInterval = 1, input int unsigned RandBurst = 0);
       automatic req_beat_t write_beat, read_beat;
-      automatic mem_driver_t::rsp_beat_t rsp_beat_wr, rsp_beat_rd;
+      automatic rsp_beat_t rsp_beat_wr, rsp_beat_rd;
+      
+      // rsp_beat_wr = new();
+      // rsp_beat_rd = new();
       
       $display("[%0t] Starting memory test with %0d transactions", $time, NumTransactions);
       
       for (int i = 0; i < NumTransactions; i++) begin
         // Generate and send write request
         write_beat = new_rand_req(user);
-        $display("[%t] Transaction %d: Writing 0x%h to address 0x%h", 
-                 $time, i, write_beat.data, write_beat.addr);
+        $display("[%0t] Transaction %0d: Writing to address 0x%0h", 
+                 $time, i, write_beat.addr);
         fork
           drv.send_req(write_beat);
           drv.recv_rsp(rsp_beat_wr);
@@ -250,7 +258,7 @@ package mem_test;
           repeat (gen_rand_wait(RandInterval)) @(posedge drv.mem_bus.clk_i);
         end
 
-        $display("[%t] Transaction %d: Reading from address 0x%h", 
+        $display("[%0t] Transaction %0d: Reading from address 0x%0h", 
                  $time, i, read_beat.addr);
         fork
           drv.send_req(read_beat);
@@ -259,11 +267,11 @@ package mem_test;
         
         // Verify data matches
         if (rsp_beat_rd.data !== write_beat.data) begin
-          $error("[%t] Transaction %d: Data mismatch! Expected 0x%h, got 0x%h at address 0x%h",
+          $error("[%0t] Transaction %0d: Data mismatch! Expected 0x%0h, got 0x%0h at address 0x%0h",
                  $time, i, write_beat.data, rsp_beat_rd.data, write_beat.addr);
         end else begin
-          $display("[%t] Transaction %d: Data verified successfully (0x%h)", 
-                   $time, i, rsp_beat_rd.data);
+          $display("[%0t] Transaction %0d: Data verified successfully", 
+                   $time, i);
         end
 
         if(RandBurst > 0) begin
@@ -271,7 +279,7 @@ package mem_test;
         end
       end
       
-      $display("[%t] Memory test completed: %0d transactions", $time, NumTransactions);
+      $display("[%0t] Memory test completed: %0d transactions", $time, NumTransactions);
     endtask : run
 
   endclass : mem_rand_master
