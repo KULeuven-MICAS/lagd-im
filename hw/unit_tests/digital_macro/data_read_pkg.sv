@@ -253,9 +253,15 @@ package data_read_pkg;
                 $finish;
             end
             // Write energies to the file
-            for (int j = 0; j < IconLastAddrPlusOne; j = j + 1) begin
+            for (int j = 0; j <= IconLastAddrPlusOne; j = j + 1) begin
+                if (j == 0) begin
+                    updating_idx = - 1;
+                    $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]));
+                end
                 if (updating_idx == i)
-                    $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]) + constant);
+                    begin
+                        $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]) + constant);
+                    end
                 updating_idx = (updating_idx + 1) % SPIN_DEPTH;
             end
             $fclose(energy_file);
@@ -280,7 +286,11 @@ package data_read_pkg;
                 $finish;
             end
             // Write spins to the file
-            for (int j = 0; j < IconLastAddrPlusOne; j = j + 1) begin
+            for (int j = 0; j <= IconLastAddrPlusOne; j = j + 1) begin
+                if (j == 0) begin
+                    updating_idx = - 1;
+                    $fwrite(state_file, "%b\n", spin_values[j][i]);
+                end
                 if (updating_idx == i)
                     $fwrite(state_file, "%b\n", spin_values[j][i]);
                 updating_idx = (updating_idx + 1) % SPIN_DEPTH;
