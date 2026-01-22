@@ -35,9 +35,9 @@ package config_pkg;
 
     // run-time parameters (related to algorithm)
     parameter int IconLastAddrPlusOne = FLIP_ICON_DEPTH;
-    parameter int EnComparison = `False;
+    parameter int EnComparison = `True;
     parameter int FlipDisable = `False; // this has bug: the simulation never stop when EnComparison and FlipDisable are both true; I guess cmpt_done never goes high
-    parameter int EnableAnalogLoop = `False;
+    parameter int EnableAnalogLoop = `True; // this does not work when EnableAnalogLoop is false, need to fix it
 
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;
