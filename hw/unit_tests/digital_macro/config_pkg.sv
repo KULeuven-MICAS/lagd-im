@@ -21,6 +21,7 @@ package config_pkg;
     parameter int LITTLE_ENDIAN = `False; // True: little endian, False: big endian
     parameter int PIPESINTF = 1;
     parameter int PIPESMID = 1;
+    parameter int PIPESFLIPFILTER = 1;
     parameter int PARALLELISM = 4;
     parameter int BypassDataConversion = `False;
     parameter int ENERGY_TOTAL_BIT = 32;
@@ -30,20 +31,20 @@ package config_pkg;
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
     parameter int H_IS_NEGATIVE = `True;
-    parameter int ENABLE_FLIP_DETECTION = `False;
+    parameter int ENABLE_FLIP_DETECTION = `True;
 
     // run-time parameters (related to algorithm)
-    parameter int IconLastAddrPlusOne = 1024;
-    parameter int EnComparison = `True;
-    parameter int FlipDisable = `False;
-    parameter int EnableAnalogLoop = `True;
+    parameter int IconLastAddrPlusOne = FLIP_ICON_DEPTH;
+    parameter int EnComparison = `False;
+    parameter int FlipDisable = `False; // this has bug: the simulation never stop when EnComparison and FlipDisable are both true; I guess cmpt_done never goes high
+    parameter int EnableAnalogLoop = `False;
 
     // run-time parameters (related to hardware)
-    parameter int CyclePerWwlHigh = 5;
-    parameter int CyclePerWwlLow = 5;
-    parameter int CyclePerSpinWrite = 3;
-    parameter int CyclePerSpinCompute = 7;
-    parameter int SynchronizerPipeNum = 3;
+    parameter int CyclePerWwlHigh = 2;
+    parameter int CyclePerWwlLow = 2;
+    parameter int CyclePerSpinWrite = 2; // cannot be 1 since the real value set is CyclePerSpinWrite - 1
+    parameter int CyclePerSpinCompute = 2;
+    parameter int SynchronizerPipeNum = 1;
     parameter int SpinWwlStrobe = {NUM_SPIN{1'b1}};
     parameter int SpinFeedback = {NUM_SPIN{1'b1}}; // all spins in feedback mode
     parameter int Flush = `False;
