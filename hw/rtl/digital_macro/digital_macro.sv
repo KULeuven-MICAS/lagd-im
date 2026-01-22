@@ -43,6 +43,7 @@ module digital_macro #(
 )(
     input  logic clk_i,
     input  logic rst_ni,
+    input  logic flush_i,
     input  logic en_aw_i,
     input  logic en_em_i,
     input  logic en_fm_i,
@@ -68,6 +69,7 @@ module digital_macro #(
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
+    input  logic [NUM_SPIN*BITJ-1:0] wbl_floating_i,
     // data loading interface
     input  logic dt_cfg_enable_i, // load enable for the analog macro
     output logic j_mem_ren_o,
@@ -77,7 +79,6 @@ module digital_macro #(
     input  logic [DATA_H_BIT-1:0] h_rdata_i,
     output logic dt_cfg_idle_o,
     // runtime interface: flip manager
-    input  logic flush_i,
     input  logic en_comparison_i,
     input  logic cmpt_en_i,
     output logic cmpt_idle_o,
@@ -283,6 +284,7 @@ module digital_macro #(
                 .clk_i                  (clk_i                         ),
                 .rst_ni                 (rst_ni                        ),
                 .en_i                   (en_ff_i                       ),
+                .enable_flip_detection_i(enable_flip_detection_i       ),
                 .flush_i                (em_fifo_flush_comb            ),
                 .raddr_upper_bound_i    (dgt_addr_upper_bound_i        ),
                 .energy_baseline_i      (energy_fifo_o                 ),
@@ -476,6 +478,7 @@ module digital_macro #(
         .spin_wwl_strobe_i              (spin_wwl_strobe_i          ),
         .spin_feedback_i                (spin_feedback_i            ),
         .synchronizer_pipe_num_i        (synchronizer_pipe_num_i    ),
+        .wbl_floating_i                 (wbl_floating_i             ),
         .dt_cfg_enable_i                (dt_cfg_enable_i            ),
         .j_mem_ren_o                    (j_mem_ren_o                ),
         .j_raddr_o                      (j_raddr_o                  ),

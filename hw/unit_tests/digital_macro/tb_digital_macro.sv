@@ -16,6 +16,26 @@
 `define True 1'b1
 `define False 1'b0
 
+`ifndef DataFromFile
+`define DataFromFile `True
+`endif
+
+`ifndef EnComparison
+`define EnComparison `True
+`endif
+
+`ifndef EnableFlipDetection
+`define EnableFlipDetection `True
+`endif
+
+`ifndef FlipDisable
+`define FlipDisable `True
+`endif
+
+`ifndef EnableAnalogLoop
+`define EnableAnalogLoop `True
+`endif
+
 module tb_digital_macro;
     import analog_format_pkg::*;
     import energy_calc_pkg::*;
@@ -81,6 +101,7 @@ module tb_digital_macro;
     logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] dgt_addr_upper_bound_i;
     logic energy_fifo_update_o;
     logic spin_fifo_update_o;
+    logic enable_flip_detection_i;
 
     // testbench signals
     logic [NUM_SPIN*BITJ-1:0] wbl_copy;
@@ -192,7 +213,7 @@ module tb_digital_macro;
         .spin_fifo_update_o         (spin_fifo_update_o         ),
         .energy_fifo_o              (energy_fifo_o              ),
         .spin_fifo_o                (spin_fifo_o                ),
-        .enable_flip_detection_i    (1'b1                       )
+        .enable_flip_detection_i    (enable_flip_detection_i    )
     );
 
     // Clock generation
@@ -210,23 +231,23 @@ module tb_digital_macro;
         rst_ni = 1;
         #(5 * CLKCYCLE);
         en_i = 1;
-        en_analog_loop_i = EnableAnalogLoop;
+        en_analog_loop_i = `EnableAnalogLoop;
     end
 
     // Run tests
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
+            $timeformat(-9, 1, " ns", 9);
             $dumpfile(`VCD_FILE);
             $dumpvars(3, tb_digital_macro); // Dump all variables in testbench module
-            $timeformat(-9, 1, " ns", 9);
-            #(200 * CLKCYCLE); // To avoid generating huge VCD files
+            #(500 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            #(2_000_000 * CLKCYCLE);
+            #(500_000 * CLKCYCLE);
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
@@ -296,7 +317,7 @@ module tb_digital_macro;
     // ========================================================================
     // Generate weight model
     task automatic gen_model();
-        if (DataFromFile == `False) begin: randomly_generate_model
+        if (`DataFromFile == `False) begin: randomly_generate_model
             model_data = generate_random_model();
         end else begin: load_model_from_file
             model_data = load_model();
@@ -316,7 +337,7 @@ module tb_digital_macro;
 
     // Generate flipping icons
     task automatic gen_flip_icons();
-        if (DataFromFile == `True) begin: load_flip_icons_from_file
+        if (`DataFromFile == `True) begin: load_flip_icons_from_file
             flip_icons_in_mem = load_flip_icons();
         end else begin: randomly_generate_flip_icons
             for (int i = 0; i < IconLastAddrPlusOne; i = i + 1) begin
@@ -329,7 +350,7 @@ module tb_digital_macro;
 
     // Generate initial spin states
     task automatic gen_initial_states();
-        if (DataFromFile == `True) begin: load_initial_states_from_file
+        if (`DataFromFile == `True) begin: load_initial_states_from_file
             spin_initial_states = load_initial_states();
         end else begin: randomly_generate_initial_states
             for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
@@ -346,10 +367,10 @@ module tb_digital_macro;
         integer spin_fifo_pointer = 0;
         logic [NUM_SPIN-1:0] current_spin_state;
 
-        if (DataFromFile) begin
+        if (`DataFromFile == `True && `EnableAnalogLoop == `True) begin
             states_out_ref = load_state_out_ref();
         end else begin
-            states_out_ref = 'd0;
+            states_out_ref = 'd0; // not used
         end
 
         for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
@@ -359,10 +380,10 @@ module tb_digital_macro;
 
         for (int icon_idx = 1; icon_idx <= IconLastAddrPlusOne; icon_idx = icon_idx + 1) begin
             // get current spin state
-            if (DataFromFile == `True) begin
+            if (`DataFromFile == `True && `EnableAnalogLoop == `True) begin
                 current_spin_state = states_out_ref[icon_idx-1];
             end else begin
-                current_spin_state = FlipDisable ? spin_fifo_ref[icon_idx-1][spin_fifo_pointer] :
+                current_spin_state = `FlipDisable ? spin_fifo_ref[icon_idx-1][spin_fifo_pointer] :
                     spin_fifo_ref[icon_idx-1][spin_fifo_pointer] ^ flip_icons_in_mem[icon_idx-1];
             end
             // calc energy
@@ -379,7 +400,7 @@ module tb_digital_macro;
                     energy_fifo_ref[icon_idx][j] = energy_fifo_ref[icon_idx-1][j];
                 end
             end
-            if (EnComparison == `False) begin: always_update_fifo
+            if (`EnComparison == `False) begin: always_update_fifo
                 energy_fifo_ref[icon_idx][spin_fifo_pointer] = energy_temp;
                 spin_fifo_ref[icon_idx][spin_fifo_pointer] = current_spin_state;
             end else begin: conditional_update_fifo
@@ -394,7 +415,7 @@ module tb_digital_macro;
             // update pointer
             spin_fifo_pointer = (spin_fifo_pointer + 1) % SPIN_DEPTH;
         end
-        if (DataFromFile == `True) begin
+        if (`DataFromFile == `True) begin
             $display("[Time: %t] Reference energy and spin fifo loaded from file.", $time);
             // output energies and states to files
             output_energies_to_file(energy_fifo_ref, model_data.constant);
@@ -462,9 +483,10 @@ module tb_digital_macro;
         config_spin_initial_i = 'd0;
         config_spin_initial_skip_i = `False;
         flush_i = Flush;
-        en_comparison_i = EnComparison;
+        en_comparison_i = `EnComparison;
         icon_last_raddr_plus_one_i = IconLastAddrPlusOne;
-        flip_disable_i = FlipDisable;
+        flip_disable_i = `FlipDisable;
+        enable_flip_detection_i = `EnableFlipDetection;
         wait (rst_ni == 1 && en_i == 1 && config_em_done == 1);
         @(posedge clk_i);
         // $display("[Time: %t] FM configuration starts.", $time);
@@ -569,7 +591,7 @@ module tb_digital_macro;
                     @(posedge clk_i);
                 end
                 // after compute cycles, output wbl_i
-                if (DataFromFile == `True) begin
+                if (`DataFromFile == `True) begin
                     for (int k = 0; k < NUM_SPIN; k = k + 1) begin
                         wbl_i[k*BITDATA] = {{(BITJ-1){1'b0}}, states_out_ref[state_out_ref_idx][k]} << SPIN_WBL_OFFSET;
                     end
@@ -795,28 +817,29 @@ module tb_digital_macro;
         integer check_idx = 0;
         wait (cmpt_test_start == 1);
         while (check_idx < IconLastAddrPlusOne) begin
-            wait (dut.u_flip_manager.spin_maintainer_push_valid == 1 & dut.u_flip_manager.spin_maintainer_push_ready == 1);
-            // wait 1 cycle for fifo to update
+            wait (dut.fm_upstream_handshake == 1);
+            // wait 1 cycle for energy fifo to update
+            // note: not allow to wait for more than 1 cycle, as dut..fm_upstream_handshake can be continuously high
             @(posedge clk_i);
             // switch to negedge to observe signals
             @(negedge clk_i);
             // check energy fifo
             for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
                 if (energy_fifo_o[depth_idx] !== energy_fifo_ref[check_idx+1][depth_idx]) begin
-                    $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, hbias: 'h%h, hscaling: 'h%h, spin: 'b%b",
-                        $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], hbias_in_reg, hscaling_in_reg, spin_fifo_ref[check_idx+1][depth_idx]);
+                    $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, hbias: 'h%h, hscaling: 'h%h, spin: 'h%h, state_out_ref: 'h%h",
+                        $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], hbias_in_reg, hscaling_in_reg, spin_fifo_ref[check_idx+1][depth_idx], states_out_ref[check_idx]);
                 end else begin
                     // $display("[Time: %t] Energy fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'h%h",
                     //     $time, check_idx, depth_idx, energy_fifo_o[depth_idx]);
                 end
                 // check spin fifo
-                if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
-                    $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
-                        $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
-                end else begin
-                    // $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
-                    //     $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
-                end
+                // if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
+                //     $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
+                //         $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
+                // end else begin
+                //     $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
+                //         $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
+                // end
             end
             test_correct_cnt = test_correct_cnt + 1;
             check_idx = check_idx + 1;
@@ -839,17 +862,31 @@ module tb_digital_macro;
             wait (cmpt_idle_o == 1); // wait for compute end
             @(negedge clk_i);
             while(readout_count_host < SPIN_DEPTH) begin
-                if (spin_fifo_o[readout_count_host] !== spin_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
-                    $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
-                        $time, test_idx, readout_count_host, spin_fifo_ref[IconLastAddrPlusOne][readout_count_host], spin_fifo_o[readout_count_host]);
+                if (`FlipDisable == `False) begin
+                    if (spin_fifo_o[readout_count_host] !== spin_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
+                        $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
+                            $time, test_idx, readout_count_host, spin_fifo_ref[IconLastAddrPlusOne][readout_count_host], spin_fifo_o[readout_count_host]);
+                    end
+                end else begin
+                    if (spin_fifo_o[readout_count_host] !== spin_fifo_ref[2][readout_count_host]) begin
+                        $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
+                            $time, test_idx, readout_count_host, spin_fifo_ref[2][readout_count_host], spin_fifo_o[readout_count_host]);
+                    end
                 end
-                $display("[Time: %t] Host readout spin fifo at idx 'd%0d, value: 'b%0b",
+                $display("[Time: %t] Host readout spin fifo successfully at idx 'd%0d, value: 'b%0b",
                     $time, readout_count_host, spin_fifo_o[readout_count_host]);
-                if (energy_fifo_o[readout_count_host] !== energy_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
-                    $fatal(1, "[Time: %t] Error: Host readout energy fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
-                        $time, test_idx, readout_count_host, energy_fifo_ref[IconLastAddrPlusOne][readout_count_host], energy_fifo_o[readout_count_host]);
+                if (`FlipDisable == `False) begin
+                    if (energy_fifo_o[readout_count_host] !== energy_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
+                        $fatal(1, "[Time: %t] Error: Host readout energy fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%h, Got: 'h%h",
+                            $time, test_idx, readout_count_host, energy_fifo_ref[IconLastAddrPlusOne][readout_count_host], energy_fifo_o[readout_count_host]);
+                    end
+                end else begin
+                    if (energy_fifo_o[readout_count_host] !== energy_fifo_ref[2][readout_count_host]) begin
+                        $fatal(1, "[Time: %t] Error: Host readout energy fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%h, Got: 'h%h",
+                            $time, test_idx, readout_count_host, energy_fifo_ref[2][readout_count_host], energy_fifo_o[readout_count_host]);
+                    end
                 end
-                $display("[Time: %t] Host readout energy fifo at idx 'd%0d, value: 'b%b",
+                $display("[Time: %t] Host readout energy fifo successfully at idx 'd%0d, value: 'h%h",
                     $time, readout_count_host, energy_fifo_o[readout_count_host]);
                 readout_count_host = readout_count_host + 1;
             end

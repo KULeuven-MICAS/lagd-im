@@ -11,9 +11,6 @@
 
 // Configuration package for digital macro unit tests
 package config_pkg;
-    // testbench parameters
-    parameter int DataFromFile = `True; // True: load input data from file; False: randomly generate data
-
     // design-time parameters
     parameter int NUM_SPIN = 256;
     parameter int BITDATA = 4;
@@ -33,11 +30,8 @@ package config_pkg;
     parameter int H_IS_NEGATIVE = `True;
     parameter int ENABLE_FLIP_DETECTION = `True;
 
-    // run-time parameters (related to algorithm)
+    // run-time parameters (related to algorithm, others are defined at the beginning of the testbench)
     parameter int IconLastAddrPlusOne = FLIP_ICON_DEPTH;
-    parameter int EnComparison = `True;
-    parameter int FlipDisable = `False; // this has bug: the simulation never stop when EnComparison and FlipDisable are both true; I guess cmpt_done never goes high
-    parameter int EnableAnalogLoop = `True; // this does not work when EnableAnalogLoop is false, need to fix it
 
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;
