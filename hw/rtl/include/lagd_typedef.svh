@@ -36,21 +36,26 @@
     `REG_BUS_TYPEDEF_ALL(__name, __addr_t, logic [31:0], logic [3:0])
 
 // Note that the prefix does *not* include a leading underscore.
-`define LAGD_TYPEDEF_ALL(__prefix, __WideDataWidth, __cheshire_cfg) \
+`define LAGD_TYPEDEF_ALL(__prefix, __JDataWidth, __FDataWidth ,__cheshire_cfg) \
     localparam type __prefix``addr_t = logic [__cheshire_cfg.AddrWidth-1:0]; \
     localparam type __prefix``narr_data_t = logic [__cheshire_cfg.AxiDataWidth-1:0]; \
-    localparam type __prefix``wide_data_t = logic [__WideDataWidth-1:0]; \
+    localparam type __prefix``j_mem_data_t = logic [__JDataWidth-1:0]; \
+    localparam type __prefix``f_mem_data_t = logic [__FDataWidth-1:0]; \
     localparam type __prefix``narr_strb_t = logic [__cheshire_cfg.AxiDataWidth/8-1:0]; \
-    localparam type __prefix``wide_strb_t = logic [__WideDataWidth/8-1:0]; \
+    localparam type __prefix``j_mem_strb_t = logic [__JDataWidth/8-1:0]; \
+    localparam type __prefix``f_mem_strb_t = logic [__FDataWidth/8-1:0]; \
     localparam type __prefix``user_t = logic [__cheshire_cfg.AxiUserWidth-1:0]; \
+
     `LAGD_TYPEDEF_AXI(__prefix``axi, __prefix``addr_t, __prefix``narr_data_t, \
         __prefix``narr_strb_t, __prefix``user_t, __cheshire_cfg) \
-    `LAGD_TYPEDEF_AXI(__prefix``axi_wide, __prefix``addr_t, __prefix``wide_data_t, \
-        __prefix``wide_strb_t, __prefix``user_t, __cheshire_cfg) \
+    `LAGD_TYPEDEF_AXI(__prefix``axi_wide, __prefix``addr_t, __prefix``f_mem_data_t, \
+        __prefix``f_mem_strb_t, __prefix``user_t, __cheshire_cfg) \
     `LAGD_TYPEDEF_REG(__prefix``reg, __prefix``addr_t) \
     `MEM_TYPEDEF_ALL(__prefix``mem_narr, __prefix``addr_t, __prefix``narr_data_t, \
         __prefix``narr_strb_t, __prefix``user_t) \
-    `MEM_TYPEDEF_ALL(__prefix``mem_wide, __prefix``addr_t, __prefix``wide_data_t, \
-        __prefix``wide_strb_t, __prefix``user_t)
+    `MEM_TYPEDEF_ALL(__prefix``mem_f, __prefix``addr_t, __prefix``f_mem_data_t, \
+        __prefix``f_mem_strb_t, __prefix``user_t) \
+    `MEM_TYPEDEF_ALL(__prefix``mem_j, __prefix``addr_t, __prefix``j_mem_data_t, \
+        __prefix``j_mem_strb_t, __prefix``user_t)
 
 `endif // LAGD_TYPEDEF_SVH_
