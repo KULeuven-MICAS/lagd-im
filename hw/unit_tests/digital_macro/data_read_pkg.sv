@@ -20,6 +20,7 @@ package data_read_pkg;
     `define STATE_OUT_FILE_2 "./data/states_out_2"
     `define ENERGY_OUTPUT_FILE "./output/ref_energy_output"
     `define STATE_OUTPUT_FILE "./output/ref_state_output"
+    `define TIMING_RECORD_FILE "./output/timing_record_output"
 
     // ========================================================================
     // Data Reading Package
@@ -298,5 +299,27 @@ package data_read_pkg;
             $fclose(state_file);
             $display("[Time: %t] State output file %s is written successfully.", $time, file_name_with_depth);
         end
+    endfunction
+
+    // Function to output timing record to a file
+    function automatic void output_timing_record_to_file(
+        input logic [IconLastAddrPlusOne-1:0] [31:0] timing_record
+    );
+        int state_file;
+        string file_name_with_depth;
+
+        // Open the timing record file
+        file_name_with_depth = {`TIMING_RECORD_FILE, ".txt"};
+        state_file = $fopen(file_name_with_depth, "w");
+        if (state_file == 0) begin
+            $display("Error: Could not open timing record output file %s", file_name_with_depth);
+            $finish;
+        end
+        for (int i = 0; i < IconLastAddrPlusOne; i = i + 1) begin
+            $fwrite(state_file, "%0d\n", timing_record[i]);
+        end
+        $fclose(state_file);
+        $display("[Time: %t] Timing record output file %s is written successfully.", $time, file_name_with_depth);
+
     endfunction
 endpackage

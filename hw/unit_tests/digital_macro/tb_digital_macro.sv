@@ -91,7 +91,7 @@ module tb_digital_macro;
     logic h_wwl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wblb_o;
-    logic [NUM_SPIN*BITJ-1 : 0 ] wbl_floating_o;
+    logic [NUM_SPIN*BITJ-1 : 0 ] wbl_floating_i, wbl_floating_o;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_o;
     logic [NUM_SPIN-1 : 0 ] spin_feedback_o;
     logic [ NUM_SPIN-1 : 0 ] spin_analog_i;
@@ -128,6 +128,7 @@ module tb_digital_macro;
     assign en_fm_i = en_i;
     assign en_ff_i = en_i;
     assign dgt_addr_upper_bound_i = NUM_SPIN / PARALLELISM - 1;
+    assign wbl_floating_i = {NUM_SPIN*BITJ{1'b0}}; // not used in this testbench
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -178,6 +179,7 @@ module tb_digital_macro;
         .spin_wwl_strobe_i          (spin_wwl_strobe_i          ),
         .spin_feedback_i            (spin_feedback_i            ),
         .synchronizer_pipe_num_i    (synchronizer_pipe_num_i    ),
+        .wbl_floating_i             (wbl_floating_i             ),
         .dt_cfg_enable_i            (dt_cfg_enable_i            ),
         .j_mem_ren_o                (j_mem_ren_o                ),
         .j_raddr_o                  (j_raddr_o                  ),
@@ -924,6 +926,27 @@ module tb_digital_macro;
         $finish;
     endtask
 
+    // Task for timing record on each computation
+    task automatic timing_record();
+        logic [IconLastAddrPlusOne-1:0][31:0] cycle_cnt;
+        integer idx = 0;
+        integer time_a, time_b;
+
+        wait (cmpt_en_i == 1);
+        while (idx < IconLastAddrPlusOne) begin
+            @(posedge clk_i);
+            time_a = $time;
+            wait (dut.fm_upstream_handshake == 1);
+            @(posedge clk_i);
+            time_b = $time;
+            cycle_cnt[idx] = (time_b - time_a) / CLKCYCLE;
+            $display("[Time: %t] Timing record for icon idx %0d: %0d cycles", $time, idx, cycle_cnt[idx]);
+            idx = idx + 1;
+        end
+        output_timing_record_to_file(cycle_cnt);
+
+    endtask
+
     // ========================================================================
     // Event execution
     // ========================================================================
@@ -945,6 +968,7 @@ module tb_digital_macro;
             host_readout_check();
             // timer
             cmpt_enable_and_timer();
+            timing_record();
         join_none
     end
 
