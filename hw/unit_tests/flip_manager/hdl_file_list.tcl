@@ -14,6 +14,7 @@ set HDL_FILES [ list \
     "${HDL_PATH}/lib/registers.svh" \
     "${HDL_PATH}/flip_manager/energy_fifo_maintainer.sv" \
     "${HDL_PATH}/flip_manager/spin_fifo_maintainer.sv" \
+    "${HDL_PATH}/energy_monitor/step_counter.sv" \
 ]
 
 set INCLUDE_DIRS [list \
