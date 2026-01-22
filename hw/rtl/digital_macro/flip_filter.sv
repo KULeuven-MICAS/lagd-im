@@ -23,6 +23,7 @@ module flip_filter #(
     input  logic                        clk_i,
     input  logic                        rst_ni,
     input  logic                        en_i,
+    input  logic                        enable_flip_detection_i,
     input  logic                        flush_i,
     // configuration inputs
     input  logic [ADDR_WIDTH-1      :0] raddr_upper_bound_i,
@@ -116,7 +117,7 @@ module flip_filter #(
     assign spin_downstream_o = spin_upstream_pipe;
     assign raddr_o = raddr_gen;
     assign bits_flipped_merged = spin_upstream_handshake_pipe ? bits_flipped_comb : bits_flipped_reg;
-    assign bits_flipped_comb = (curr_baseline_valid & spin_upstream_handshake_pipe) ? (spin_baseline_selected ^ spin_upstream_pipe) : {NUM_SPIN{1'b1}};
+    assign bits_flipped_comb = (curr_baseline_valid & spin_upstream_handshake_pipe & enable_flip_detection_i) ? (spin_baseline_selected ^ spin_upstream_pipe) : {NUM_SPIN{1'b1}};
     assign bits_flipped_comb_muxed = empty_o ? {NUM_SPIN{1'b1}} : bits_flipped_comb;
     assign bits_unflipped_o = curr_baseline_valid ? ~bits_flipped_merged : {NUM_SPIN{1'b1}};
     assign energy_baseline_o = energy_baseline_selected;
