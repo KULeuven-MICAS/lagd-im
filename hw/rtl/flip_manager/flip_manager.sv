@@ -147,6 +147,7 @@ module flip_manager #(
 
     // Instantiate flip engine
     flip_engine #(
+        .SPIN_DEPTH(SPIN_DEPTH),
         .NUM_SPIN(NUM_SPIN),
         .FLIP_ICON_DEPTH(FLIP_ICON_DEPTH),
         .FLIP_ICON_ADDR_DEPTH(FLIP_ICON_ADDR_DEPTH)

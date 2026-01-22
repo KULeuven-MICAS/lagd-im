@@ -16,6 +16,7 @@
 //   unchanged to flipped_spin_o and disables icon reads.
 //
 // Parameters:
+// - SPIN_DEPTH             : depth of internal spin FIFO (for handshake buffering).
 // - NUM_SPIN               : bit width of each spin vector.
 // - FLIP_ICON_DEPTH        : number of flip-icon entries to read.
 // - FLIP_ICON_ADDR_DEPTH   : address width for flip-icon reads (derived).
@@ -61,6 +62,7 @@
 `include "common_cells/registers.svh"
 
 module flip_engine #(
+    parameter int SPIN_DEPTH = 2,
     parameter int NUM_SPIN = 256,
     parameter int FLIP_ICON_DEPTH = 1024,
     parameter int FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH)
@@ -104,6 +106,8 @@ module flip_engine #(
     logic [NUM_SPIN-1:0] flip_rdata_reg;
     logic icon_fifo_empty_comb;
     logic icon_finish_reg;
+    logic flip_disable_reg;
+    logic prev_hdsk_cnt_maxed;
 
     // Data logic
     assign flipped_spin_o = flip_disable_i ? prev_spin_pipe : (prev_spin_pipe ^ flip_icon);
@@ -120,13 +124,37 @@ module flip_engine #(
     assign icon_fifo_empty_comb = (flip_raddr_reg == icon_last_raddr_plus_one_i);
     assign flip_ren_o = flip_ren_p;
     assign flip_raddr_o = flip_raddr_reg;
-    assign icon_finish_o = icon_finish_reg || icon_fifo_empty_comb;
+    assign icon_finish_o = flip_disable_reg || (icon_finish_reg || icon_fifo_empty_comb);
 
     // Sequential logic
     `FFLARNC(icon_finish_reg, icon_fifo_empty_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_raddr_reg, flip_raddr_n, en_i & flip_ren_p, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_ren_n, flip_ren_p, en_i & (~flip_disable_i), flush_i, 'd0, clk_i, rst_ni);
+    `FFLARNC(flip_disable_reg, 1'b1, en_i & prev_hdsk_cnt_maxed & (prev_spin_handshake), flush_i | (~flip_disable_i), 'd0, clk_i, rst_ni);
     `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni); // assume read data is valid one cycle after read enable
+
+    // counter for completing at least one loop when flip_disable_i is high
+    generate
+        if (SPIN_DEPTH > 1) begin : gen_prev_hdsk_cnt
+            step_counter #(
+                .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
+                .PARALLELISM(1)
+            ) u_prev_hdsk_cnt (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .en_i(en_i),
+                .load_i(1'b0),
+                .d_i({$clog2(SPIN_DEPTH){1'b0}}),
+                .recount_en_i(flush_i | (~flip_disable_i)),
+                .step_en_i(en_i & flip_disable_i & prev_spin_handshake),
+                .q_o(),
+                .maxed_o(prev_hdsk_cnt_maxed),
+                .overflow_o()
+            );
+        end else begin
+            assign prev_hdsk_cnt_maxed = 1'b1;
+        end
+    endgenerate
 
     bp_pipe #(
         .DATAW(NUM_SPIN),
