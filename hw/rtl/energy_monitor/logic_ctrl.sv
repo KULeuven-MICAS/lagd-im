@@ -25,6 +25,8 @@
 // - energy_valid_o: output energy valid signal
 // - energy_ready_i: input energy ready signal
 // - debug_en_i: debug step signal
+// - flush_i: flush signal to go back to IDLE state
+// - busy_o: output busy signal
 
 `include "common_cells/registers.svh"
 
@@ -34,6 +36,7 @@ module logic_ctrl #(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
+    input logic flush_i,
 
     input logic config_valid_i,
     output logic config_ready_o,
@@ -105,7 +108,7 @@ module logic_ctrl #(
                 if (debug_en_i)
                     next_state = COMPUTE; // stay in COMPUTE in debug mode
                 else begin
-                    if (energy_handshake)
+                    if (energy_handshake | flush_i)
                         next_state = IDLE;
                     else
                         next_state = COMPUTE;
