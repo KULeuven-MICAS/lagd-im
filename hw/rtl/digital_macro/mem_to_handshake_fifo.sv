@@ -46,6 +46,7 @@ module mem_to_handshake_fifo #(
     // mem interface
     output logic mem_ren_o,
     output logic [ADDR_WIDTH-1:0] mem_raddr_o,
+    input  logic mem_rdata_valid_i,
     input  logic [DATA_WIDTH-1:0] mem_rdata_i,
     // handshake interface
     input  logic data_ready_i,
@@ -57,21 +58,19 @@ module mem_to_handshake_fifo #(
     logic fifo_full, fifo_empty;
     logic fifo_almost_full;
     logic [ADDR_WIDTH-1:0] mem_raddr_q, mem_raddr_n;
-    logic mem_ren_dly1;
     logic fifo_push_en;
 
     // Memory read logic
     assign mem_ren_o = en_i & ~fifo_almost_full & ~flush_i;
     assign mem_raddr_o = mem_raddr_q;
     assign mem_raddr_n = (mem_raddr_q == addr_upper_bound_i) ? '0 : (mem_raddr_q + 1);
-    assign fifo_push_en = mem_ren_dly1;
+    assign fifo_push_en = mem_rdata_valid_i;
 
     // Handshake interface logic
     assign data_valid_o = en_i & ~fifo_empty;
 
     // Sequential logic
     `FFLARNC(mem_raddr_q, mem_raddr_n, mem_ren_o, flush_i, 1'b0, clk_i, rst_ni);
-    `FFLARNC(mem_ren_dly1, mem_ren_o, en_i, flush_i, 1'b0, clk_i, rst_ni);
 
     // FIFO to cache data from memory
     lagd_fifo_v3 #(

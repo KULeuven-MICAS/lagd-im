@@ -23,6 +23,7 @@ module digital_macro #(
     parameter integer LITTLE_ENDIAN = `False,
     parameter integer PIPESINTF = 1,
     parameter integer PIPESMID = 1,
+    parameter integer PIPESFLIPFILTER = 1,
     // parameters: flip manager
     parameter integer SPIN_DEPTH = 2,
     parameter integer FLIP_ICON_DEPTH = 1024,
@@ -45,6 +46,7 @@ module digital_macro #(
     input  logic en_aw_i,
     input  logic en_em_i,
     input  logic en_fm_i,
+    input  logic en_ff_i,
     input  logic en_ef_i,
     input  logic en_analog_loop_i,
     // config interface: ctrl
@@ -67,7 +69,7 @@ module digital_macro #(
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
     // data loading interface
-    input  logic dt_cfg_enable_i, // load enable
+    input  logic dt_cfg_enable_i, // load enable for the analog macro
     output logic j_mem_ren_o,
     output logic [$clog2(NUM_SPIN / PARALLELISM)-1:0] j_raddr_o,
     input  logic [DATA_J_BIT-1:0] j_rdata_i,
@@ -87,7 +89,7 @@ module digital_macro #(
     input  logic flip_disable_i,
     output logic energy_fifo_update_o,
     output logic spin_fifo_update_o,
-    output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
+    output logic [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
     output logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o,
     // runtime interface: energy monitor
     output  logic dgt_weight_ren_o,
@@ -100,6 +102,7 @@ module digital_macro #(
     output logic h_wwl_o,
     output logic [NUM_SPIN*BITJ-1:0] wbl_o,
     output logic [NUM_SPIN*BITJ-1:0] wblb_o,
+    output logic [NUM_SPIN*BITJ-1:0] wbl_floating_o,
     output logic [NUM_SPIN-1:0] spin_wwl_o,
     output logic [NUM_SPIN-1:0] spin_feedback_o,
     input  logic [NUM_SPIN-1:0] spin_analog_i,
@@ -110,13 +113,21 @@ module digital_macro #(
 );
     // Internal signals
     logic aw_mst_valid;
-    logic [NUM_SPIN-1:0] analog_spin, em_spin_in;
+    logic [NUM_SPIN-1:0] analog_spin, muxed_analog_spin, em_spin_in;
     logic em_slv_ready;
     logic em_mst_valid;
     logic em_weight_valid;
     logic em_weight_ready;
-    logic [ENERGY_TOTAL_BIT-1:0] em_energy_output, fm_energy_input;
-    logic [NUM_SPIN-1:0] em_spin_output;
+    logic aw_downstream_ready;
+    logic fm_upstream_mst_valid;
+    logic fm_upstream_handshake;
+    logic em_ef_handshake;
+    logic em_upstream_handshake;
+    logic fm_downstream_handshake;
+    logic signed [ENERGY_TOTAL_BIT-1:0] em_energy_output, fm_energy_input, ff_energy_baseline, ff_energy_baseline_pipe;
+    logic signed [ENERGY_TOTAL_BIT-1:0] em_energy_baseline_out, em_energy_baseline_in;
+    logic [NUM_SPIN-1:0] ff_spin_baseline, ff_spin_baseline_pipe;
+    logic [NUM_SPIN-1:0] em_spin_output, fm_spin_input;
     logic flip_manager_spin_ready;
     logic fm_slv_ready;
     logic fm_mst_valid;
@@ -125,106 +136,220 @@ module digital_macro #(
     logic [SPIN_IDX_BIT-1:0] counter_spin_em, counter_weight;
     logic [SCALING_BIT*PARALLELISM-1:0] hscaling_expanded;
     logic [BITH*PARALLELISM-1:0] hbias_sliced;
-    logic muxed_slv_ready, muxed_mst_valid;
+    logic fm_downstream_slv_ready, em_upstream_mst_valid;
     logic counter_weight_maxed, counter_weight_overflow;
     logic [DATA_J_BIT-1:0] ef_weight_out;
     logic cmpt_en_dly1, cmpt_en_pos_trigger;
     logic em_fifo_flush_comb;
+    logic ff_slv_ready;
+    logic ff_mst_valid;
+    logic [J_MEM_ADDR_WIDTH-1:0] ff_raddr, ff_raddr_em, ff_raddr_em_fifo;
+    logic ff_raddr_last_one, em_raddr_last_one_fifo, em_raddr_last_one;
+    logic [NUM_SPIN-1:0] ff_bits_unflipped, ff_bits_unflipped_dly1;
+    logic [NUM_SPIN*BITJ-1:0] ff_bits_unflipped_expand;
+    logic [PARALLELISM-1:0] ff_block_bits_flipped;
+    logic enable_flip_detection_dly1;
+    logic dgt_weight_ren_ef;
+    logic dgt_weight_ren_dly1;
+    logic [ J_MEM_ADDR_WIDTH-1:0 ] dgt_weight_raddr_ef;
+    logic [PARALLELISM-1:0] em_weight_valid_parallel_fifo, em_weight_valid_parallel;
+    logic [DATA_J_BIT-1:0] dgt_weight_ef;
+    logic [SPIN_IDX_BIT-1:0] em_external_counter_q;
+    logic ff_baseline_valid;
+    logic parallel_fifo_empty;
+    logic em_double_weight_contri;
+    logic em_baseline_done;
+    logic em_busy;
 
-    // signals for flip detection
-    logic [NUM_SPIN-1:0] em_spin_baseline_reg;
-    logic [(SPIN_DEPTH>1 ? $clog2(SPIN_DEPTH) : 1)-1:0] baseline_idx;
-    logic baseline_idx_maxed;
-    logic prev_value_in_energy_fifo;
-    logic [ENERGY_TOTAL_BIT-1:0] em_energy_baseline_reg, em_energy_baseline_comb;
-    logic [NUM_SPIN-1:0] em_spin_baseline_comb;
-    logic [NUM_SPIN-1:0] bits_flipped;
-    logic em_fifo_start_cond;
-    logic em_fifo_flush_cond;
-    logic em_fifo_start_reg;
+    assign em_upstream_handshake = em_slv_ready & em_upstream_mst_valid;
+    assign fm_downstream_handshake = fm_mst_valid & fm_downstream_slv_ready;
+    assign em_ef_handshake = em_weight_valid & em_weight_ready;
 
     assign hscaling_expanded = {PARALLELISM{dgt_hscaling_i}};
     assign cmpt_en_pos_trigger = cmpt_en_i & ~cmpt_en_dly1;
-    assign em_fifo_flush_comb = ENABLE_FLIP_DETECTION == `True ? flush_i | (enable_flip_detection_i & (~em_fifo_start_reg | em_fifo_flush_cond)) : flush_i;
+    assign em_fifo_flush_comb = flush_i | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
-    if (LITTLE_ENDIAN) begin
-        assign hbias_sliced = dgt_hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
-    end else begin
-        assign hbias_sliced = dgt_hbias_i[(NUM_SPIN - counter_weight - PARALLELISM) * BITH +: BITH * PARALLELISM];
-    end
-
-    assign muxed_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
-    assign muxed_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
-    assign em_spin_in = en_analog_loop_i ? analog_spin : fm_spin_out;
-
-    if (H_IS_NEGATIVE)
-        assign fm_energy_input = -em_energy_output; // flip energy sign to keep formula to be H = - ( ... )
-    else
-        assign fm_energy_input = em_energy_output;
+    assign muxed_analog_spin = en_analog_loop_i ? analog_spin : fm_spin_out;
 
     `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
+    `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni);
 
     generate
-        if (ENABLE_FLIP_DETECTION) begin
-            // control flow
-            assign em_fifo_start_cond = muxed_mst_valid & em_slv_ready;
-            assign em_fifo_flush_cond = flush_i | (counter_weight_maxed && em_weight_valid && em_weight_ready);
+        if (ENABLE_FLIP_DETECTION) begin: initialize_flip_filter
+            logic ff_ef_handshake;
+            logic ff_upstream_mst_valid;
+            logic dgt_weight_ren_ff;
+            logic ff_mst_valid;
+            logic ff_empty, ff_empty_valid_pipe;
+            logic ff_empty_downstream_ready;
+            logic weight_info_fifo_push_en;
+            logic signed [ENERGY_TOTAL_BIT-1:0] ff_energy_baseline_to_ef;
 
-            // data flow
-            assign bits_flipped = en_analog_loop_i ? (analog_spin ^ em_spin_baseline_reg) : (fm_spin_out ^ em_spin_baseline_reg);
+            assign ff_ef_handshake = dgt_weight_ren_ff & dgt_weight_ren_ef;
 
-            always_comb begin
-                em_energy_baseline_comb = 'd0;
-                em_spin_baseline_comb = 'd0;
-                for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
-                    if (baseline_idx == i) begin
-                        em_energy_baseline_comb = energy_fifo_o[i];
-                        em_spin_baseline_comb = spin_fifo_o[i];
-                    end
+            assign aw_downstream_ready = ff_slv_ready;
+            assign fm_downstream_slv_ready = en_analog_loop_i ? aw_slv_ready : ff_slv_ready;
+            assign em_upstream_mst_valid = ff_mst_valid;
+            assign ff_upstream_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
+            assign fm_upstream_handshake = fm_upstream_mst_valid && fm_slv_ready;
+            assign weight_info_fifo_push_en = enable_flip_detection_i ? ff_ef_handshake && ~ff_empty : dgt_weight_ren_ef;
+
+            assign dgt_weight_ren_o = enable_flip_detection_i ? ff_ef_handshake : dgt_weight_ren_ef;
+            assign dgt_weight_raddr_o = enable_flip_detection_i ? ff_raddr : dgt_weight_raddr_ef;
+            assign dgt_weight_ef = enable_flip_detection_i ? dgt_weight_i & {(PARALLELISM){ff_bits_unflipped_expand}} : dgt_weight_i;
+            assign em_external_counter_q = ff_raddr_em * PARALLELISM;
+            assign em_weight_valid_parallel = (parallel_fifo_empty | ~em_weight_valid) ? 'd0 : em_weight_valid_parallel_fifo;
+            assign em_raddr_last_one = (parallel_fifo_empty | ~em_weight_valid) ? 1'b0 : em_raddr_last_one_fifo;
+            assign ff_raddr_em = (parallel_fifo_empty | ~em_weight_valid) ? 'd0 : ff_raddr_em_fifo;
+            assign ff_energy_baseline_to_ef = ff_raddr_last_one & ~ff_empty ? ff_energy_baseline : 'd0;
+
+            always_comb begin: priority_handshake
+                if (enable_flip_detection_i & em_baseline_done & ~em_busy) begin: baseline_path
+                    fm_upstream_mst_valid = ff_empty_valid_pipe;
+                    fm_energy_input = ff_energy_baseline_pipe;
+                    fm_spin_input = ff_spin_baseline_pipe;
+                    ff_empty_downstream_ready = fm_slv_ready;
+                end else begin: energy_monitor_path
+                    fm_upstream_mst_valid = em_mst_valid;
+                    fm_energy_input = em_energy_output;
+                    fm_spin_input = em_spin_output;
+                    ff_empty_downstream_ready = 1'b0;
                 end
             end
 
-            // sequential logic
-            `FFLARNC(em_spin_baseline_reg, em_spin_baseline_comb, fm_mst_valid & muxed_slv_ready, flush_i, 1'b0, clk_i, rst_ni);
-            `FFLARNC(em_energy_baseline_reg, em_energy_baseline_comb, fm_mst_valid & muxed_slv_ready, flush_i, 1'b0, clk_i, rst_ni);
-            `FFLARNC(em_fifo_start_reg, 1'b1, em_fifo_start_cond, em_fifo_flush_cond, 1'b0, clk_i, rst_ni);
-            `FFLARNC(prev_value_in_energy_fifo, 1'b1, (baseline_idx_maxed & fm_mst_valid & muxed_slv_ready), flush_i, 1'b0, clk_i, rst_ni);
+            always_comb begin
+                ff_bits_unflipped_expand = 'd0;
+                for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+                    ff_bits_unflipped_expand[i*BITJ +: BITJ] = {BITJ{ff_bits_unflipped_dly1[i]}};
+                end
+            end
 
-            step_counter #(
-                .COUNTER_BITWIDTH(SPIN_DEPTH>1 ? $clog2(SPIN_DEPTH) : 1),
-                .PARALLELISM(1)
-            ) u_fm_pointer_counter (
+            if (LITTLE_ENDIAN) begin
+                assign hbias_sliced = dgt_hbias_i[em_external_counter_q * BITH +: BITH * PARALLELISM];
+            end else begin
+                assign hbias_sliced = dgt_hbias_i[(NUM_SPIN - em_external_counter_q - PARALLELISM) * BITH +: BITH * PARALLELISM];
+            end
+
+            `FFLARNC(ff_bits_unflipped_dly1, ff_bits_unflipped, ff_ef_handshake, flush_i, {NUM_SPIN{1'b1}}, clk_i, rst_ni);
+
+            // pipeline to handle handshake conflict when both ff_empty and energy monitor handshake occur
+            // here its handshake has lower priority than energy monitor
+            // it can cache ONLY one baseline data since no handshake with ff_empty
+            bp_pipe #(
+                .DATAW(ENERGY_TOTAL_BIT + NUM_SPIN),
+                .PIPES(1)
+            ) u_pipe_ff_empty (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
-                .en_i(en_fm_i),
-                .load_i(1'b0),
-                .d_i(1'b0),
-                .recount_en_i(flush_i | (baseline_idx_maxed & fm_mst_valid & muxed_slv_ready)),
-                .step_en_i(fm_mst_valid & muxed_slv_ready),
-                .q_o(baseline_idx),
-                .maxed_o(baseline_idx_maxed),
-                .overflow_o()
+                .data_i({ff_energy_baseline, ff_spin_baseline}),
+                .data_o({ff_energy_baseline_pipe, ff_spin_baseline_pipe}),
+                .valid_i(ff_empty),
+                .valid_o(ff_empty_valid_pipe),
+                .ready_i(ff_empty_downstream_ready),
+                .ready_o()
+            );
+
+            // FIFO to cache data from memory
+            lagd_fifo_v3 #(
+                .FALL_THROUGH(1'b0),
+                .DATA_WIDTH(ENERGY_TOTAL_BIT + PARALLELISM+1+J_MEM_ADDR_WIDTH+1),
+                .DEPTH(3), // same as u_em_fifo + memory latency
+                .RESET_VALUE(0)
+            ) weight_info_fifo (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .flush_i(flush_i),
+                .full_o(),
+                .empty_o(parallel_fifo_empty),
+                .usage_o(),
+                .data_i({ff_energy_baseline_to_ef, ff_block_bits_flipped, ff_raddr_last_one, dgt_weight_raddr_o, ff_baseline_valid & enable_flip_detection_i}),
+                .push_none_i(1'b0),
+                .push_i(weight_info_fifo_push_en),
+                .data_o({em_energy_baseline_in, em_weight_valid_parallel_fifo, em_raddr_last_one_fifo, ff_raddr_em_fifo, em_double_weight_contri}),
+                .pop_i(em_ef_handshake),
+                .mem_o(),
+                .almost_full_o()
+            );
+
+            flip_filter #(
+                .NUM_SPIN          (NUM_SPIN               ),
+                .ENERGY_TOTAL_BIT  (ENERGY_TOTAL_BIT       ),
+                .PARALLELISM       (PARALLELISM            ),
+                .SPIN_DEPTH        (SPIN_DEPTH             ),
+                .LITTLE_ENDIAN     (LITTLE_ENDIAN          ),
+                .PIPESINTF         (PIPESFLIPFILTER        ),
+                .PIPES_IN_ARBITER  (0                      )
+            ) u_flip_filter (
+                .clk_i                  (clk_i                         ),
+                .rst_ni                 (rst_ni                        ),
+                .en_i                   (en_ff_i                       ),
+                .flush_i                (em_fifo_flush_comb            ),
+                .raddr_upper_bound_i    (dgt_addr_upper_bound_i        ),
+                .energy_baseline_i      (energy_fifo_o                 ),
+                .spin_baseline_i        (spin_fifo_o                   ),
+                .curr_baseline_valid_o  (ff_baseline_valid             ),
+                .spin_upstream_valid_i  (ff_upstream_mst_valid         ),
+                .spin_upstream_ready_o  (ff_slv_ready                  ),
+                .spin_upstream_i        (muxed_analog_spin             ),
+                .spin_downstream_valid_o(ff_mst_valid                  ),
+                .spin_downstream_ready_i(em_slv_ready                  ),
+                .spin_downstream_o      (em_spin_in                    ),
+                .raddr_valid_o          (dgt_weight_ren_ff             ),
+                .raddr_ready_i          (dgt_weight_ren_ef             ),
+                .raddr_o                (ff_raddr                      ),
+                .block_bits_flipped_o   (ff_block_bits_flipped         ),
+                .raddr_last_one_o       (ff_raddr_last_one             ),
+                .bits_unflipped_o       (ff_bits_unflipped             ),
+                .energy_baseline_o      (ff_energy_baseline            ),
+                .spin_baseline_o        (ff_spin_baseline              ),
+                .empty_o                (ff_empty                      )
+            );
+        end
+        else begin: energy_monitor_path_only
+            assign aw_downstream_ready = em_slv_ready;
+            assign fm_downstream_slv_ready = en_analog_loop_i ? aw_slv_ready : em_slv_ready;
+            assign em_upstream_mst_valid = en_analog_loop_i ? aw_mst_valid : fm_mst_valid;
+            assign fm_upstream_mst_valid = em_mst_valid;
+            assign fm_upstream_handshake = em_mst_valid & fm_slv_ready;
+
+            assign dgt_weight_ren_o = dgt_weight_ren_ef;
+            assign dgt_weight_raddr_o = dgt_weight_raddr_ef;
+            assign dgt_weight_ef = dgt_weight_i;
+            assign fm_energy_input = em_energy_output;
+            assign fm_spin_input = em_spin_output;
+            assign em_weight_valid_parallel = {(PARALLELISM){1'b1}};
+            assign em_external_counter_q = {SPIN_IDX_BIT{1'b0}};
+            assign em_raddr_last_one = 1'b0;
+            assign em_double_weight_contri = 1'b0;
+            assign em_spin_in = muxed_analog_spin;
+            assign em_energy_baseline_in = 'd0;
+
+            if (LITTLE_ENDIAN) begin
+                assign hbias_sliced = dgt_hbias_i[counter_weight * BITH +: BITH * PARALLELISM];
+            end else begin
+                assign hbias_sliced = dgt_hbias_i[(NUM_SPIN - counter_weight - PARALLELISM) * BITH +: BITH * PARALLELISM];
+            end
+
+            // counter for hbias slice selection
+            step_counter #(
+                .COUNTER_BITWIDTH($clog2(NUM_SPIN)),
+                .PARALLELISM(PARALLELISM)
+            ) u_em_weight_hdsk_counter (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .en_i(en_em_i),
+                .load_i(config_valid_em_i),
+                .d_i(config_counter_i),
+                .recount_en_i(counter_weight_maxed && em_ef_handshake),
+                .step_en_i(em_ef_handshake),
+                .q_o(counter_weight),
+                .maxed_o(counter_weight_maxed),
+                .overflow_o(counter_weight_overflow)
             );
         end
     endgenerate
 
-    // counter for hbias slice selection
-    step_counter #(
-        .COUNTER_BITWIDTH($clog2(NUM_SPIN)),
-        .PARALLELISM(PARALLELISM)
-    ) u_em_weight_hdsk_counter (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .en_i(en_em_i),
-        .load_i(config_valid_em_i),
-        .d_i(config_counter_i),
-        .recount_en_i(counter_weight_maxed && em_weight_valid && em_weight_ready),
-        .step_en_i(em_weight_valid && em_weight_ready),
-        .q_o(counter_weight),
-        .maxed_o(counter_weight_maxed),
-        .overflow_o(counter_weight_overflow)
-    );
-
+    `FFLARNC(dgt_weight_ren_dly1, dgt_weight_ren_o, en_ef_i, flush_i, 1'b0, clk_i, rst_ni);
     // memory to handshake fifo for weight loading
     mem_to_handshake_fifo #(
         .DEPTH                          (2                          ),
@@ -236,9 +361,10 @@ module digital_macro #(
         .en_i                           (en_ef_i                    ),
         .flush_i                        (em_fifo_flush_comb         ),
         .addr_upper_bound_i             (dgt_addr_upper_bound_i     ),
-        .mem_ren_o                      (dgt_weight_ren_o           ),
-        .mem_raddr_o                    (dgt_weight_raddr_o         ),
-        .mem_rdata_i                    (dgt_weight_i               ),
+        .mem_ren_o                      (dgt_weight_ren_ef          ),
+        .mem_raddr_o                    (dgt_weight_raddr_ef        ),
+        .mem_rdata_valid_i              (dgt_weight_ren_dly1        ),
+        .mem_rdata_i                    (dgt_weight_ef              ),
         .data_ready_i                   (em_weight_ready            ),
         .data_valid_o                   (em_weight_valid            ),
         .data_o                         (ef_weight_out              ),
@@ -249,33 +375,46 @@ module digital_macro #(
     energy_monitor #(
         .BITJ                           (BITJ                       ),
         .BITH                           (BITH                       ),
+        .SPIN_DEPTH                     (SPIN_DEPTH                 ),
         .NUM_SPIN                       (NUM_SPIN                   ),
         .SCALING_BIT                    (SCALING_BIT                ),
         .PARALLELISM                    (PARALLELISM                ),
         .ENERGY_TOTAL_BIT               (ENERGY_TOTAL_BIT           ),
         .LITTLE_ENDIAN                  (LITTLE_ENDIAN              ),
         .PIPESINTF                      (PIPESINTF                  ),
-        .PIPESMID                       (PIPESMID                   )
+        .PIPESMID                       (PIPESMID                   ),
+        .ENABLE_EXTERNAL_FINISH_SIGNAL  (ENABLE_FLIP_DETECTION      ),
+        .H_IS_NEGATIVE                  (H_IS_NEGATIVE              )
     ) u_energy_monitor (
         .clk_i                          (clk_i                      ),
         .rst_ni                         (rst_ni                     ),
         .en_i                           (en_em_i                    ),
+        .flush_i                        (em_fifo_flush_comb         ),
+        .en_external_counter_i          (enable_flip_detection_i    ),
         .config_valid_i                 (config_valid_em_i          ),
         .config_counter_i               (config_counter_i           ),
         .config_ready_o                 (                           ),
-        .spin_valid_i                   (muxed_mst_valid            ),
+        .spin_valid_i                   (em_upstream_mst_valid      ),
         .spin_i                         (em_spin_in                 ),
         .spin_ready_o                   (em_slv_ready               ),
         .weight_valid_i                 (em_weight_valid            ),
+        .weight_valid_parallel_i        (em_weight_valid_parallel   ),
+        .external_counter_q_i           (em_external_counter_q      ),
+        .external_finish_i              (em_raddr_last_one          ),
+        .double_weight_contri_i         (em_double_weight_contri    ),
         .weight_i                       (ef_weight_out              ),
         .hbias_i                        (hbias_sliced               ),
         .hscaling_i                     (hscaling_expanded          ),
+        .energy_baseline_in_i           (em_energy_baseline_in      ),
         .weight_ready_o                 (em_weight_ready            ),
         .counter_spin_o                 (counter_spin_em            ),
         .energy_valid_o                 (em_mst_valid               ),
         .energy_ready_i                 (fm_slv_ready               ),
         .energy_o                       (em_energy_output           ),
-        .spin_o                         (em_spin_output             )
+        .energy_baseline_out_o          (em_energy_baseline_out     ),
+        .spin_o                         (em_spin_output             ),
+        .baseline_done_o                (em_baseline_done           ),
+        .busy_o                         (em_busy                    )
     );
 
     // instantiate flip manager for spin flipping and spin management
@@ -299,11 +438,11 @@ module digital_macro #(
         .spin_configure_ready_o         (                           ),
         .spin_pop_valid_o               (fm_mst_valid               ),
         .spin_pop_o                     (fm_spin_out                ),
-        .spin_pop_ready_i               (muxed_slv_ready            ),
-        .energy_valid_i                 (em_mst_valid               ),
+        .spin_pop_ready_i               (fm_downstream_slv_ready    ),
+        .energy_valid_i                 (fm_upstream_mst_valid      ),
         .energy_ready_o                 (fm_slv_ready               ),
         .energy_i                       (fm_energy_input            ),
-        .spin_i                         (em_spin_output             ),
+        .spin_i                         (fm_spin_input              ),
         .flip_ren_o                     (flip_ren_o                 ),
         .flip_raddr_o                   (flip_raddr_o               ),
         .icon_last_raddr_plus_one_i     (icon_last_raddr_plus_one_i ),
@@ -347,6 +486,7 @@ module digital_macro #(
         .h_wwl_o                        (h_wwl_o                    ),
         .wbl_o                          (wbl_o                      ),
         .wblb_o                         (wblb_o                     ),
+        .wbl_floating_o                 (wbl_floating_o             ),
         .spin_pop_valid_i               (fm_mst_valid               ),
         .spin_pop_ready_o               (aw_slv_ready               ),
         .spin_pop_i                     (fm_spin_out                ),
@@ -354,7 +494,7 @@ module digital_macro #(
         .spin_feedback_o                (spin_feedback_o            ),
         .spin_analog_i                  (spin_analog_i              ),
         .spin_valid_o                   (aw_mst_valid               ),
-        .spin_ready_i                   (em_slv_ready               ),
+        .spin_ready_i                   (aw_downstream_ready        ),
         .spin_o                         (analog_spin                ),
         .dt_cfg_idle_o                  (dt_cfg_idle_o              ),
         .analog_rx_idle_o               (                           ),

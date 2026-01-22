@@ -29,7 +29,7 @@ module tb_digital_macro;
     // dut signals
     logic clk_i;
     logic rst_ni;
-    logic en_aw_i, en_fm_i, en_em_i, en_ef_i, en_analog_loop_i;
+    logic en_aw_i, en_fm_i, en_em_i, en_ff_i, en_ef_i, en_analog_loop_i;
     logic en_i;
     logic config_valid_em_i, config_em_done;
     logic config_valid_fm_i, config_fm_done;
@@ -71,6 +71,7 @@ module tb_digital_macro;
     logic h_wwl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wblb_o;
+    logic [NUM_SPIN*BITJ-1 : 0 ] wbl_floating_o;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_o;
     logic [NUM_SPIN-1 : 0 ] spin_feedback_o;
     logic [ NUM_SPIN-1 : 0 ] spin_analog_i;
@@ -98,17 +99,14 @@ module tb_digital_macro;
     logic cmpt_test_start, cmpt_test_end;
     logic host_readout_check_end;
     integer dt_write_cycle_cnt_j;
-    logic em_fm_handshake, fm_downstream_handshake, em_upstream_handshake;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
     model_t model_data;
 
     assign en_aw_i = en_i;
     assign en_em_i = en_i;
     assign en_fm_i = en_i;
+    assign en_ff_i = en_i;
     assign dgt_addr_upper_bound_i = NUM_SPIN / PARALLELISM - 1;
-    assign em_fm_handshake = dut.em_mst_valid && dut.fm_slv_ready;
-    assign fm_downstream_handshake = dut.fm_mst_valid && dut.muxed_slv_ready;
-    assign em_upstream_handshake = dut.muxed_mst_valid && dut.em_slv_ready;
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -127,6 +125,7 @@ module tb_digital_macro;
         .LITTLE_ENDIAN              (LITTLE_ENDIAN              ),
         .PIPESINTF                  (PIPESINTF                  ),
         .PIPESMID                   (PIPESMID                   ),
+        .PIPESFLIPFILTER            (PIPESFLIPFILTER            ),
         .SPIN_DEPTH                 (SPIN_DEPTH                 ),
         .FLIP_ICON_DEPTH            (FLIP_ICON_DEPTH            ),
         .COUNTER_BITWIDTH           (COUNTER_BITWIDTH           ),
@@ -139,6 +138,7 @@ module tb_digital_macro;
         .rst_ni                     (rst_ni                     ),
         .en_aw_i                    (en_aw_i                    ),
         .en_em_i                    (en_em_i                    ),
+        .en_ff_i                    (en_ff_i                    ),
         .en_fm_i                    (en_fm_i                    ),
         .en_ef_i                    (en_ef_i                    ),
         .en_analog_loop_i           (en_analog_loop_i           ),
@@ -184,6 +184,7 @@ module tb_digital_macro;
         .h_wwl_o                    (h_wwl_o                    ),
         .wbl_o                      (wbl_o                      ),
         .wblb_o                     (wblb_o                     ),
+        .wbl_floating_o             (wbl_floating_o             ),
         .spin_wwl_o                 (spin_wwl_o                 ),
         .spin_feedback_o            (spin_feedback_o            ),
         .spin_analog_i              (spin_analog_i              ),
@@ -217,9 +218,9 @@ module tb_digital_macro;
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
             $dumpfile(`VCD_FILE);
-            $dumpvars(5, tb_digital_macro); // Dump all variables in testbench module
+            $dumpvars(3, tb_digital_macro); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(600 * CLKCYCLE); // To avoid generating huge VCD files
+            #(200 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
@@ -235,7 +236,7 @@ module tb_digital_macro;
         en_ef_i = 0;
         wait (cmpt_en_i == 1);
         en_ef_i = 1;
-        $display("[Time: %t] Digital fifo enabled.", $time);
+        $display("[Time: %t] Energy monitor fifo starts to be enabled.", $time);
     end
 
     // ========================================================================
@@ -393,11 +394,6 @@ module tb_digital_macro;
             // update pointer
             spin_fifo_pointer = (spin_fifo_pointer + 1) % SPIN_DEPTH;
         end
-        // debug: display reference energy fifo
-        // for (int i = 0; i < 20; i = i + 1) begin
-        //     $display("[Time: %t] Idx: 'd%0d, Reference energy fifo: [id: 'd%0d, energy: 'd%0d][id: 'd%0d, energy: 'd%0d]", $time, i, 1, $signed(energy_fifo_ref[i][1]), 0, $signed(energy_fifo_ref[i][0]));
-        // end
-        // $finish;
         if (DataFromFile == `True) begin
             $display("[Time: %t] Reference energy and spin fifo loaded from file.", $time);
             // output energies and states to files
@@ -807,13 +803,19 @@ module tb_digital_macro;
             // check energy fifo
             for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
                 if (energy_fifo_o[depth_idx] !== energy_fifo_ref[check_idx+1][depth_idx]) begin
-                    $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, weights: 'h%h, hbias: 'h%h, hscaling: 'h%h",
-                        $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], weights_in_txt, hbias_in_reg, hscaling_in_reg);
+                    $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, hbias: 'h%h, hscaling: 'h%h, spin: 'b%b",
+                        $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], hbias_in_reg, hscaling_in_reg, spin_fifo_ref[check_idx+1][depth_idx]);
+                end else begin
+                    // $display("[Time: %t] Energy fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'h%h",
+                    //     $time, check_idx, depth_idx, energy_fifo_o[depth_idx]);
                 end
                 // check spin fifo
                 if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
                     $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
                         $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
+                end else begin
+                    // $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
+                    //     $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
                 end
             end
             test_correct_cnt = test_correct_cnt + 1;
