@@ -1,0 +1,50 @@
+/* Copyright 2025 KU Leuven. */
+/* Licensed under the Apache License, Version 2.0, see LICENSE for details. */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+/* Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be> */
+
+/* This header defines symbols and rules universal to bare-metal execution */
+/* Inspired from https://github.com/pulp-platform/cheshire/blob/5752880791a2beabc75a5e39387ffdd2c3ce4230/sw/link/common.ldh */
+
+ENTRY(_start)
+
+MEMORY {
+  bootrom (rx) : ORIGIN = 0x02000000, LENGTH = 16K
+  extrom (rx) : ORIGIN = 0x00000000, LENGTH = 48K
+  l2_spm (rwx) : ORIGIN = 0x80000000, LENGTH = 64K
+  stack_spm (rwx) : ORIGIN = 0x8FFF8000, LENGTH = 32K
+  l1_j_spm (rwx) : ORIGIN = 0x90000000, LENGTH = 32K
+  l1_f_spm (rwx) : ORIGIN = 0x90100000, LENGTH = 16K
+}
+
+SECTIONS {
+  /* Keep binaries lean */
+  /DISCARD/ : { *(.riscv.attributes) *(.comment) }
+
+  /* Global and stack pointer */
+  /* By default, keep the calling context (boot ROM) stack pointer */
+  __global_pointer$ = ADDR(.misc) + SIZEOF(.misc) / 2;
+  __stack_pointer$  = 0;
+
+  /* Further addresses */
+  __base_dma      = 0x01000000;
+  __base_bootrom  = 0x02000000;
+  __base_clint    = 0x02040000;
+  __base_axirt    = 0x020C0000;
+  __base_axirtgrd = 0x020C1ffc;
+  __base_regs     = 0x03000000;
+  __base_llc      = 0x03001000;
+  __base_uart     = 0x03002000;
+  __base_i2c      = 0x03003000;
+  __base_spih     = 0x03004000;
+  __base_gpio     = 0x03005000;
+  __base_slink    = 0x03006000;
+  __base_vga      = 0x03007000;
+  __base_usb      = 0x03008000;
+  __base_bus_err  = 0x03009000;
+  __base_plic     = 0x04000000;
+  __base_clic     = 0x08000000;
+  __base_spm      = ORIGIN(l2_spm);
+  __base_stack    = ORIGIN(stack_spm);
+}

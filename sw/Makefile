@@ -7,9 +7,10 @@
 PROJECT_ROOT := $(shell realpath ../)
 include $(PROJECT_ROOT)/common.mk
 
+CHS_SW_GCC_BINROOT ?= $(PROJECT_ROOT)/.opt/riscv-gnu-toolchain/bin
+CHS_SW_LD_DIR ?= ./link
+
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 include $(CHS_ROOT)/cheshire.mk
-
-CHS_SW_GCC_BINROOT ?= $(PROJECT_ROOT)/.opt/riscv-gnu-toolchain/bin
 
 all: chs-sw-all
