@@ -940,7 +940,7 @@ module tb_digital_macro;
             @(posedge clk_i);
             time_b = $time;
             cycle_cnt[idx] = (time_b - time_a) / CLKCYCLE;
-            $display("[Time: %t] Timing record for icon idx %0d: %0d cycles", $time, idx, cycle_cnt[idx]);
+            // $display("[Time: %t] Timing record for icon idx %0d: %0d cycles", $time, idx, cycle_cnt[idx]);
             idx = idx + 1;
         end
         output_timing_record_to_file(cycle_cnt);
