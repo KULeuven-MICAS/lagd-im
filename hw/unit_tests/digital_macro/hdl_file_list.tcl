@@ -15,9 +15,9 @@ set HDL_FILES [ list \
     "./popcount.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
     "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
-    "${HDL_PATH}/digital_macro/flip_filter.sv" \
-    "${HDL_PATH}/digital_macro/dgt_raddr_manager.sv" \
-    "${HDL_PATH}/digital_macro/customized_arbitor.sv" \
+    "${HDL_PATH}/flip_filter/flip_filter.sv" \
+    "${HDL_PATH}/flip_filter/dgt_raddr_manager.sv" \
+    "${HDL_PATH}/flip_filter/customized_arbitor.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
