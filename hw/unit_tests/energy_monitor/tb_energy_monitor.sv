@@ -63,6 +63,10 @@ module tb_energy_monitor;
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int LITTLE_ENDIAN = `False; // endianness of spin and weight storage
 
+    localparam int SPIN_DEPTH = 2; // depth of spin memory
+    localparam int ENABLE_EXTERNAL_FINISH_SIGNAL = `False; // disable external finish signal from energy fifo
+    localparam int H_IS_NEGATIVE = `False;
+
     // Testbench internal signals
     logic clk_i;
     logic rst_ni;
@@ -136,16 +140,21 @@ module tb_energy_monitor;
         .BITJ(BITJ),
         .BITH(BITH),
         .NUM_SPIN(NUM_SPIN),
+        .SPIN_DEPTH(SPIN_DEPTH),
         .SCALING_BIT(SCALING_BIT),
         .PARALLELISM(PARALLELISM),
         .ENERGY_TOTAL_BIT(ENERGY_TOTAL_BIT),
         .LITTLE_ENDIAN(LITTLE_ENDIAN),
         .PIPESINTF(`PIPESINTF),
-        .PIPESMID(`PIPESMID)
+        .PIPESMID(`PIPESMID),
+        .ENABLE_EXTERNAL_FINISH_SIGNAL(ENABLE_EXTERNAL_FINISH_SIGNAL),
+        .H_IS_NEGATIVE(H_IS_NEGATIVE)
     ) dut (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .en_i(en_i),
+        .flush_i(1'b0),
+        .en_external_counter_i(1'b0),
         .config_valid_i(config_valid_i),
         .config_counter_i(config_counter_i),
         .config_ready_o(config_ready_o),
@@ -153,15 +162,23 @@ module tb_energy_monitor;
         .spin_i(spin_i),
         .spin_ready_o(spin_ready_o),
         .weight_valid_i(weight_valid_i),
+        .weight_valid_parallel_i({PARALLELISM{1'b1}}), // always valid in this testbench
+        .external_counter_q_i({$clog2(NUM_SPIN){1'b1}}),
+        .external_finish_i(1'b0),
+        .double_weight_contri_i(1'b0),
         .weight_i(weight_i),
         .hbias_i(hbias_i),
         .hscaling_i(hscaling_i),
+        .energy_baseline_in_i('d0),
         .weight_ready_o(weight_ready_o),
         .counter_spin_o(counter_spin_o),
         .energy_valid_o(energy_valid_o),
         .energy_ready_i(energy_ready_i),
+        .energy_baseline_out_o(), // not connected in testbench
         .energy_o(energy_o),
-        .spin_o() // not connected in testbench
+        .spin_o(), // not connected in testbench
+        .busy_o(), // not connected in testbench
+        .baseline_done_o() // not connected in testbench
     );
 
     // Clock generation

@@ -48,6 +48,7 @@ module partial_energy_calc #(
     input logic [DATAJ-1:0] weight_i,
     input logic signed [BITH-1:0] hbias_i,
     input logic unsigned [SCALING_BIT-1:0] hscaling_i,
+    input logic double_weight_contri_i,
     output logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_o
 );
     // Internal signals
@@ -56,9 +57,11 @@ module partial_energy_calc #(
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [NUM_SPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias; // local energy value without hbias
+    logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local_wo_hbias_doubled; // local energy value without hbias
     logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local; // local energy value
     logic signed [MULTBIT-1:0] hbias_scaled_pipe;
     logic current_spin_pipe;
+    logic double_weight_contri_pipe;
 
     // Generate variables
     genvar i;
@@ -127,8 +130,24 @@ module partial_energy_calc #(
         .ready_o()
     );
 
+    bp_pipe #(
+        .DATAW(1),
+        .PIPES(PIPES)
+    ) u_pipe_double_weight_contri (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .data_i(double_weight_contri_i),
+        .data_o(double_weight_contri_pipe),
+        .valid_i(data_valid_i),
+        .valid_o(),
+        .ready_i(1'b1),
+        .ready_o()
+    );
+
+    // delta energy = 2 * local_energy_wo_hbias + 2 * hbias_scaled
+    assign energy_local_wo_hbias_doubled = double_weight_contri_pipe ? energy_local_wo_hbias << 1 : energy_local_wo_hbias;
     // energy = energy_local_wo_hbias + 2 * hbias_scaled
-    assign energy_local = energy_local_wo_hbias + hbias_scaled_pipe * 2;
+    assign energy_local = energy_local_wo_hbias_doubled + (hbias_scaled_pipe << 1);
 
     // ========================================================================
     // Multiply with current spin

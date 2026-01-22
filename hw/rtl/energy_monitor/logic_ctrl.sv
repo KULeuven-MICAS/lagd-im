@@ -50,7 +50,8 @@ module logic_ctrl #(
     output logic energy_valid_o,
     input logic energy_ready_i,
 
-    input logic debug_en_i
+    input logic debug_en_i,
+    output logic busy_o
 );
     // State enumeration
     typedef enum logic {
@@ -72,6 +73,8 @@ module logic_ctrl #(
     assign spin_ready_o = (current_state == IDLE) && !debug_en_i && (!config_valid_i);
     assign weight_ready_o = (current_state == COMPUTE) && (!counter_ready_i) && (!debug_en_i);
     assign energy_valid_comb = (current_state == COMPUTE) && counter_ready_pipe[PIPESMID] && cmpt_done_i;
+
+    assign busy_o = (current_state != IDLE);
 
     // Pipeline counter_ready_i signal
     assign counter_ready_pipe[0] = counter_ready_i;

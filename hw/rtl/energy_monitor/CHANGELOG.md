@@ -5,3 +5,6 @@
 
 ## 0.1.1 - 2026-01-16
 - Fix a bug that hbias_i and hscaling_i are not mapped to the corrent adder trees when PARALLELISM > 1.
+
+## 1.1.0 - 2026-01-22
+- Enable external counter to control the energy monitor's state machine, so that the flipping-based energy calculation is supported.

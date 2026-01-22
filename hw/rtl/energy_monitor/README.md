@@ -27,6 +27,8 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 
 *BITH:* [int] bit precision of each signed bias (default: 4).
 
+*SPIN_DEPTH:* [int] depth of the spin fifo (default: 2) (used only when ENABLE_EXTERNAL_FINISH_SIGNAL is True)
+
 *NUM_SPIN:* [int] the number of spins, must be multiple of PARALLELISM  (default: 256).
 
 *SCALING_BIT:* [int] bit precision of the $h_{sfc}$ (default: 5).
@@ -41,6 +43,10 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 
 *PIPESMID:* [int] the pipeline depth at the input interface of the middle adder trees (default: 0).
 
+*ENABLE_EXTERNAL_FINISH_SIGNAL:* [int] whether to enable an external counter to control the state machine. This parameter is useful when the flipping-based energy calculation is required. (default: 0).
+
+*H_IS_NEGATIVE:* [int] whether H=-0.5*J*spin-h*spin, or H = 0.5*J*spin+h*spin (default: 1).
+
 ## Module Interface
 
 *clk_i:* clock input
@@ -48,6 +54,8 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 *rst_ni:* active-low reset input
 
 *en_i:* active-high module enable signal
+
+*en_external_counter_i:* enable external counter
 
 *config_valid_i:* configuration valid input
 
@@ -63,11 +71,21 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 
 *weight_valid_i:* weight valid input
 
+*weight_valid_parallel_i:* flags for which adder trees are doing useful calculation.
+
+*external_counter_q_i:* [$clog2(NUM_SPIN)-1 : 0] external counter value
+
+*external_finish_i:* flag meaning current weight is the last one. This signal is used to rise energy_valid_o.
+
+*double_weight_contri_i:* flag for whether double the J contribution in the computation. The result corresponds to delta energy when the signal is enabled. Otherwise, the regular energy is calculated.
+
 *weight_i:* [NUM_SPIN*BITJ-1:0] weight input data
 
 *hbias_i:* [BITH-1:0] signed bias input
 
 *hscaling_i:* [SCALING_BIT-1:0] unsigned scaling factor input
+
+*energy_baseline_in_i:* [ENERGY_TOTAL_BIT-1:0] input baseline energy value
 
 *weight_ready_o:* weight ready output
 
@@ -75,7 +93,15 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 
 *energy_ready_i:* energy ready input
 
+*energy_baseline_out_o:* [ENERGY_TOTAL_BIT-1:0] output baseline energy value
+
 *energy_o:* [ENERGY_TOTAL_BIT-1:0] signed energy output
+
+*spin_o:* [NUM_SPIN-1:0] spin output
+
+*busy_o:* the status signal
+
+*baseline_done_o:* whether the energy and spin fifo have been filled with at least one value. This is useful to judge whether there is an energy and spin baseline when the delta energy is calculated.
 
 ## Register: the following registers are configurable
 
