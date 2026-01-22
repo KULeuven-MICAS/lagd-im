@@ -90,13 +90,15 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 
 *spin_wwl_strobe_i*: [NUM_SPIN-1:0] the spin WWL strobe. For every spin onloading, spin WWL is set as *spin_wwl_strobe*.
 
-*spin_mode_i*: [NUM_SPIN-1:0] the spin mode input of the analog macro.
+*spin_feedback_i*: [NUM_SPIN-1:0] the spin feedback configuration of the analog macro.
 
 *synchronizer_pipe_num_i*: [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] selected synchronizer depth.
 
 *synchronizer_mode_i*: synchronizer mode. If 1, synchronizer works continuously. If 0, it works only when an internal counter reaches *cycle_per_spin_compute_i*.
 
-*dt_cfg_enable_i*: enable signal of starting data onloading.
+*wbl_floating_i*: control signal for the analog wbl floating signal. Directly connected to *wbl_floating_o*.
+
+*dt_cfg_enable_i*: enable signal of starting data onloading to the analog macro.
 
 *j_mem_ren_o*: J memory read enable signal.
 
@@ -116,6 +118,8 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 
 *wblb_o*: [NUM_SPIN*BITDATA-1:0] WBLB to analog macro.
 
+*wbl_floating_o*: wbl floating signal for the analog macro.
+
 *spin_pop_valid_i*: spin valid signal from upstream.
 
 *spin_pop_ready_o*: spin ready signal to upstream.
@@ -124,9 +128,9 @@ The latency from having a spin pop handshake to having *spin_valid_o=1* is (cycl
 
 *spin_wwl_o*: [NUM_SPIN-1:0] spin WWL to analog macro.
 
-*spin_compute_en_o*: [NUM_SPIN-1:0] spin mode to analog macro. The value is set by *spin_mode_i*.
+*spin_feedback_o*: [NUM_SPIN-1:0] the spin feedback signal to analog macro. The value is set by *spin_feedback_i*.
 
-*spin_i*: [NUM_SPIN-1:0] returned spin value from analog macro.
+*spin_analog_i*: [NUM_SPIN-1:0] returned spin value from analog macro.
 
 *spin_valid_o*: spin valid signal to downstream.
 

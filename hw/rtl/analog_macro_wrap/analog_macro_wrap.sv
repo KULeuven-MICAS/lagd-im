@@ -33,6 +33,7 @@ module analog_macro_wrap #(
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
+    input  logic [NUM_SPIN*BITDATA-1:0] wbl_floating_i,
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
     output logic j_mem_ren_o,
@@ -77,7 +78,7 @@ module analog_macro_wrap #(
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
     assign wbl_o = dt_cfg_idle_o ? wbl_spin_expanded : wbl_dt;
     assign wblb_o = dt_cfg_idle_o ? '0 : ~wbl_o;
-    assign wbl_floating_o = {NUM_SPIN*BITDATA{1'b0}};
+    assign wbl_floating_o = wbl_floating_i;
     assign analog_spin = analog_macro_cmpt_finish ? spin_analog_i : {NUM_SPIN{1'b0}};
 
     generate
