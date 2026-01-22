@@ -45,7 +45,6 @@
     localparam type __prefix``j_mem_strb_t = logic [__JDataWidth/8-1:0]; \
     localparam type __prefix``f_mem_strb_t = logic [__FDataWidth/8-1:0]; \
     localparam type __prefix``user_t = logic [__cheshire_cfg.AxiUserWidth-1:0]; \
-
     `LAGD_TYPEDEF_AXI(__prefix``axi, __prefix``addr_t, __prefix``narr_data_t, \
         __prefix``narr_strb_t, __prefix``user_t, __cheshire_cfg) \
     `LAGD_TYPEDEF_AXI(__prefix``axi_wide, __prefix``addr_t, __prefix``f_mem_data_t, \
