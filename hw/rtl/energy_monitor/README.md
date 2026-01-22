@@ -39,6 +39,8 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 
 *ENERGY_TOTAL_BIT:* [int] bit precision of total energy output (i.e. $H$) (default: 32).
 
+*LITTLE_ENDIAN:* [int] whether the spin vector and bias vector follows little-endian format or not. Whatever endianness J vector follows does not matter as long as it matches with the spin vector.
+
 *PIPESINTF:* [int] the pipeline depth at the module input interface (default: 0).
 
 *PIPESMID:* [int] the pipeline depth at the input interface of the middle adder trees (default: 0).
@@ -54,6 +56,8 @@ For each transaction starting with spin handshake, this module takes NUM_SPIN/PA
 *rst_ni:* active-low reset input
 
 *en_i:* active-high module enable signal
+
+*flush_i*: whether or not to flush all saved values in the energy monitor.
 
 *en_external_counter_i:* enable external counter
 
