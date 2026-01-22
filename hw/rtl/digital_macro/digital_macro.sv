@@ -235,10 +235,10 @@ module digital_macro #(
 
             // pipeline to handle handshake conflict when both ff_empty and energy monitor handshake occur
             // here its handshake has lower priority than energy monitor
-            // it can cache ONLY one baseline data since no handshake with ff_empty
+            // note there is no handshake with upstream (ready_o is not connected)
             bp_pipe #(
                 .DATAW(ENERGY_TOTAL_BIT + NUM_SPIN),
-                .PIPES(1)
+                .PIPES(SPIN_DEPTH-1)
             ) u_pipe_ff_empty (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
