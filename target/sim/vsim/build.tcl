@@ -25,23 +25,36 @@ if { [ info exists INCLUDE_DIRS ] == 0 } {
     set INCLUDES ""
 } else {
     # Add +incdir+ for each directory in INCLUDE_DIRS
-    set INCLUDES [join [lmap inc ${INCLUDE_DIRS} { format "+incdir+%s" $inc } ] " "]
+    set INCLUDES [lmap inc ${INCLUDE_DIRS} { format +incdir+%s $inc } ]
 }
 
 puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
-    vlog -incr -sv -work ${WLIB} {*}${DEFINES} ${INCLUDES} ${file}
+    if { [catch {
+        vlog -incr -sv -work ${WLIB} {*}${DEFINES} {*}${INCLUDES} ${file}
+        } err] } {
+        puts "Error compiling file ${file}:"
+        puts $err
+        quit -code 1
+    }
 }
 
 
 # Optimization and object preparation
-if { $DBG == 1 } {
-    vopt -quiet -work ${WLIB} +acc tb_${SIM_NAME} -o dbg_${SIM_NAME}
-    set OBJ "dbg_${SIM_NAME}"
+if { ${DBG} == 1 } {
+    set PREFIX "dbg_"
+    set VOPT_FLAGS [list -debugdb]
 } else {
-    vopt -quiet -work ${WLIB} tb_${SIM_NAME} -o nodbg_${SIM_NAME}
-    set OBJ "nodbg_${SIM_NAME}"
+    set PREFIX "nodbg_"
+    set VOPT_FLAGS ""
+}
+if { [catch {
+    vopt -quiet -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} -o ${PREFIX}${SIM_NAME}
+    } err] } {
+    puts "Error during optimization:"
+    puts $err
+    quit -code 1
 }
 
 file rename -force ./modelsim.ini ${WORK_DIR}/modelsim.ini

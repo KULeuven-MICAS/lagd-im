@@ -14,7 +14,20 @@ set -e
 show_usage()
 {
     echo "LAGD: Unit test trigger script"
-    echo "Usage: $0 [--test=#test_name [--tool=#sim_tool --leaf=#leaf_name --hdl_flist=#flist_path --gui --dbg=#dbg_lvl --defines=#defines --clean --clean-only [--help]]"
+    cat <<'EOF'
+Usage: ./ci/ut-run.sh [
+    --test=#test_name [
+    --tool=#sim_tool
+    --leaf=#leaf_name
+    --hdl_flist=#flist_path
+    --gui
+    --dbg=#dbg_lvl
+    --defines=#defines
+    --parameters=#params
+    --clean
+    --clean-only
+    --help]]"
+EOF
     echo "Example: $0 --test=adder"
 }
 
@@ -28,6 +41,9 @@ show_help()
     echo "  --gui: Run simulation in GUI mode"
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --defines=#defines: Additional defines for the simulation, unit test specific"
+    echo "  --parameters=#params: Additional parameters for the simulation, unit test specific"
+    echo "  --clean: Clean previous simulation artifacts before running"
+    echo "  --clean-only: Only clean previous simulation artifacts and exit"
     echo "  --help: Show this help message"
 }
 
@@ -35,11 +51,12 @@ SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 SIM_TOOL="vsim"
-HDL_FILE_LIST=""
+HDL_FILES_LIST=""
 LEAF=""
 NO_GUI=1
 DBG=0
 DEFINES=""
+PARAMS=""
 CLEAN=""
 CLEAN_ONLY=0
 
@@ -58,7 +75,7 @@ for i in "$@"; do
             shift
             ;;
         --hdl_flist=*)
-            HDL_FILE_LIST="${i#*=}"
+            HDL_FILES_LIST="${i#*=}"
             shift
             ;;
         --gui)
@@ -71,6 +88,10 @@ for i in "$@"; do
             ;;
         --defines=*)
             DEFINES="${i#*=}"
+            shift
+            ;;
+        --parameters=*)
+            PARAMS="${i#*=}"
             shift
             ;;
         --clean)
@@ -104,25 +125,29 @@ if [ -n "${LEAF}" ]; then
         echo "Error: Leaf test '${LEAF}' for '${TEST_PATH}' does not exist."
         exit 1
     else
-        HDL_FILE_LIST="${TEST_PATH}/tests/${LEAF}.tcl"
+        HDL_FILES_LIST="${TEST_PATH}/tests/${LEAF}.tcl"
     fi
 fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
-    SIM_TOOL=${SIM_TOOL} make -C "${TEST_PATH}" clean
+    SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} HDL_FILES_LIST=${HDL_FILES_LIST} \
+        make -C "${TEST_PATH}" clean
 else
-    if [ -n "${HDL_FILE_LIST}" ]; then # HDL_FILE_LIST is not empty
+    if [ -n "${HDL_FILES_LIST}" ]; then # HDL_FILES_LIST is not empty
         if [ -n "${LEAF}" ]; then
-            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
-            SIM_TOOL=${SIM_TOOL} \
+            echo "Running leaf test ${LEAF} for test ${TEST_NAME} with HDL file list ${HDL_FILES_LIST}"
+            HDL_FILES_LIST=${HDL_FILES_LIST} DBG=${DBG} DEFINES=${DEFINES} PARAMS=${PARAMS} \
+            NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} \
             make -C "${TEST_PATH}" ${CLEAN} run
         else
-            HDL_FILE_LIST=${HDL_FILE_LIST} DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} \
-            SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} \
+            echo "Running test '${TEST_NAME}' with HDL file list '${HDL_FILES_LIST}'"
+            HDL_FILES_LIST=${HDL_FILES_LIST} DBG=${DBG} DEFINES=${DEFINES} PARAMS=${PARAMS} \
+            NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} \
             make -C "${TEST_PATH}" ${CLEAN} run
         fi
     else
-        DBG=${DBG} DEFINES=${DEFINES} NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} \
+        echo "Running test '${TEST_NAME}'"
+        DBG=${DBG} DEFINES=${DEFINES} PARAMS=${PARAMS} NO_GUI=${NO_GUI} SIM_TOOL=${SIM_TOOL} \
             make -C "${TEST_PATH}" ${CLEAN} run
     fi
 fi
