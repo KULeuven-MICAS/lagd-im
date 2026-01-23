@@ -813,20 +813,20 @@ module tb_digital_macro;
         end
     endtask
 
-    // Check energy and spin fifo content
-    task automatic energy_spin_fifo_check();
+    // Check energy fifo content
+    task automatic energy_fifo_check();
         integer test_correct_cnt = 0;
         integer check_idx = 0;
         wait (cmpt_test_start == 1);
         while (check_idx < IconLastAddrPlusOne) begin
-            wait (dut.fm_upstream_handshake == 1);
+            wait (energy_fifo_update_o == 1);
             // wait 1 cycle for energy fifo to update
             // note: not allow to wait for more than 1 cycle, as dut..fm_upstream_handshake can be continuously high
             @(posedge clk_i);
             // switch to negedge to observe signals
             @(negedge clk_i);
-            // check energy fifo
             for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
+                // check energy fifo
                 if (energy_fifo_o[depth_idx] !== energy_fifo_ref[check_idx+1][depth_idx]) begin
                     $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, hbias: 'h%h, hscaling: 'h%h, spin: 'h%h, state_out_ref: 'h%h",
                         $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], hbias_in_reg, hscaling_in_reg, spin_fifo_ref[check_idx+1][depth_idx], states_out_ref[check_idx]);
@@ -834,21 +834,45 @@ module tb_digital_macro;
                     // $display("[Time: %t] Energy fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'h%h",
                     //     $time, check_idx, depth_idx, energy_fifo_o[depth_idx]);
                 end
-                // check spin fifo
-                // if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
-                //     $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
-                //         $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
-                // end else begin
-                //     $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
-                //         $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
-                // end
             end
             test_correct_cnt = test_correct_cnt + 1;
             check_idx = check_idx + 1;
         end
         // after all tests
         $display("----------------------------------------");
-        $display("Computation Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+        $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+            $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
+        $display("----------------------------------------");
+    endtask
+
+    // Check spin fifo content
+    task automatic spin_fifo_check();
+        integer test_correct_cnt = 0;
+        integer check_idx = 0;
+        wait (cmpt_test_start == 1);
+        while (check_idx < IconLastAddrPlusOne) begin
+            wait (spin_fifo_update_o == 1);
+            // wait 1 cycle for energy fifo to update
+            // note: not allow to wait for more than 1 cycle, as dut..fm_upstream_handshake can be continuously high
+            @(posedge clk_i);
+            // switch to negedge to observe signals
+            @(negedge clk_i);
+            for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
+                // check spin fifo
+                if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
+                    $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
+                        $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
+                end else begin
+                    // $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
+                    //     $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
+                end
+            end
+            test_correct_cnt = test_correct_cnt + 1;
+            check_idx = check_idx + 1;
+        end
+        // after all tests
+        $display("----------------------------------------");
+        $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
             $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
         $display("----------------------------------------");
     endtask
@@ -964,7 +988,8 @@ module tb_digital_macro;
             analog_interface_config_check_j();
             analog_interface_config_check_h();
             spin_wwl_check();
-            energy_spin_fifo_check();
+            energy_fifo_check();
+            spin_fifo_check();
             host_readout_check();
             // timer
             cmpt_enable_and_timer();
