@@ -51,7 +51,7 @@ The module supports generally two different modes (only the regular mode is supp
 
 *PIPESFLIPFILTER*: [int] the pipeline depth at the module input interface of the flip filter (default: 1).
 
-*SPIN_DEPTH*: [int] depth (entries) of internal spin/energy FIFOs (default: 2).
+*SPIN_DEPTH*: [int] depth (entries) of internal spin/energy FIFOs (default: 2, min: 1).
 
 *FLIP_ICON_DEPTH*: [int] number of entries in the flip icon memory (default: 1024).
 

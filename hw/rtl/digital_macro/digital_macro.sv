@@ -238,7 +238,7 @@ module digital_macro #(
             // note there is no handshake with upstream (ready_o is not connected)
             bp_pipe #(
                 .DATAW(ENERGY_TOTAL_BIT + NUM_SPIN),
-                .PIPES(SPIN_DEPTH-1)
+                .PIPES(SPIN_DEPTH > 1 ? (SPIN_DEPTH-1) : 0) // In principle this can be 0 when SPIN_DEPTH=1. But lack of data for verification. Set to 1 for safety reason.
             ) u_pipe_ff_empty (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),

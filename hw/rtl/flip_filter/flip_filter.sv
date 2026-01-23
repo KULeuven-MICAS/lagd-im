@@ -12,7 +12,7 @@ module flip_filter #(
     parameter int unsigned NUM_SPIN = 256,
     parameter int unsigned ENERGY_TOTAL_BIT = 32,
     parameter int unsigned PARALLELISM = 4,
-    parameter int unsigned SPIN_DEPTH = 2, // must be >= 2
+    parameter int unsigned SPIN_DEPTH = 2,
     parameter int LITTLE_ENDIAN = 0,
     parameter int unsigned PIPESINTF = 0,
     parameter int unsigned PIPES_IN_ARBITER = 0,
@@ -75,7 +75,6 @@ module flip_filter #(
     logic spin_downstream_handshake;
     logic [NUM_SPIN/PARALLELISM-1:0] grant_block_one_hot_gen;
     logic baseline_valid_cnt_maxed;
-    logic baseline_valid_cnt_overflow;
     logic [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_baseline_pipe;
     logic [SPIN_DEPTH-1:0] [NUM_SPIN-1        :0] spin_baseline_pipe;
     logic raddr_last_one_handshake;
@@ -151,38 +150,46 @@ module flip_filter #(
     `FFLARNC(bits_flipped_reg, bits_flipped_comb_muxed, spin_upstream_handshake_pipe, flush_i, {NUM_SPIN{1'b1}}, clk_i, rst_ni);
 
     // counter for monitoring when baseline data is ready
-    step_counter #(
-        .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
-        .PARALLELISM(1)
-    ) u_baseline_valid_counter (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .en_i(en_i),
-        .load_i(1'b0),
-        .d_i(1'b0),
-        .recount_en_i(flush_i),
-        .step_en_i(raddr_last_one_handshake),
-        .q_o(),
-        .maxed_o(baseline_valid_cnt_maxed),
-        .overflow_o(baseline_valid_cnt_overflow)
-    );
+    if (SPIN_DEPTH > 1) begin
+        step_counter #(
+            .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
+            .PARALLELISM(1)
+        ) u_baseline_valid_counter (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .en_i(en_i),
+            .load_i(1'b0),
+            .d_i(1'b0),
+            .recount_en_i(flush_i),
+            .step_en_i(raddr_last_one_handshake),
+            .q_o(),
+            .maxed_o(baseline_valid_cnt_maxed),
+            .overflow_o()
+        );
+    end else begin
+        assign baseline_valid_cnt_maxed = 1'b1;
+    end
 
     // counter for selecting which baseline data to use
-    step_counter #(
-        .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
-        .PARALLELISM(1)
-    ) u_baseline_counter (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .en_i(en_i),
-        .load_i(1'b0),
-        .d_i(1'b0),
-        .recount_en_i(flush_i | (raddr_last_one_handshake & baseline_idx_maxed)),
-        .step_en_i(raddr_last_one_handshake),
-        .q_o(baseline_idx),
-        .maxed_o(baseline_idx_maxed),
-        .overflow_o()
-    );
+    if (SPIN_DEPTH > 1) begin
+        step_counter #(
+            .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
+            .PARALLELISM(1)
+        ) u_baseline_counter (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .en_i(en_i),
+            .load_i(1'b0),
+            .d_i(1'b0),
+            .recount_en_i(flush_i | (raddr_last_one_handshake & baseline_idx_maxed)),
+            .step_en_i(raddr_last_one_handshake),
+            .q_o(baseline_idx),
+            .maxed_o(baseline_idx_maxed),
+            .overflow_o()
+        );
+    end else begin
+        assign baseline_idx = 1'b0;
+    end
 
     // read address generator
     dgt_raddr_manager #(

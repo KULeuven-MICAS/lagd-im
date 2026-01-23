@@ -308,21 +308,25 @@ module energy_monitor #(
             );
 
             // first sweep counter for energy fifo
-            step_counter #(
-                .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
-                .PARALLELISM(1)
-            ) u_energy_fifo_sweep_counter (
-                .clk_i(clk_i),
-                .rst_ni(rst_ni),
-                .en_i(en_i),
-                .load_i(1'b0),
-                .d_i(1'b0),
-                .recount_en_i(flush_i),
-                .step_en_i(energy_handshake),
-                .q_o(),
-                .maxed_o(),
-                .overflow_o(energy_fifo_fst_sweep_finish)
-            );
+            if (SPIN_DEPTH > 1) begin
+                step_counter #(
+                    .COUNTER_BITWIDTH($clog2(SPIN_DEPTH)),
+                    .PARALLELISM(1)
+                ) u_energy_fifo_sweep_counter (
+                    .clk_i(clk_i),
+                    .rst_ni(rst_ni),
+                    .en_i(en_i),
+                    .load_i(1'b0),
+                    .d_i(1'b0),
+                    .recount_en_i(flush_i),
+                    .step_en_i(energy_handshake),
+                    .q_o(),
+                    .maxed_o(),
+                    .overflow_o(energy_fifo_fst_sweep_finish)
+                );
+            end else begin
+                `FFLARNC(energy_fifo_fst_sweep_finish, 1'b1, energy_handshake, flush_i, 1'b0, clk_i, rst_ni);
+            end
         end else begin: internal_counter_ctrl_state_machine
             assign counter_ready = counter_ready_int;
             assign counter_q = counter_q_int;
