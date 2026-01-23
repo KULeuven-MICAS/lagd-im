@@ -4,20 +4,28 @@
 
 This module is the top module of the digital logic for a single Ising core.
 
-The module overview is provided in the picture below.
+Depending on whether the parameter *ENABLE_FLIP_DETECTION* is set to 0 or 1, there are two version of the architecture overview.
+
+When *ENABLE_FLIP_DETECTION* is 0, the module overview is provided in the picture below.
 <p align="center">
-<img src="../../../doc/digital_macro_overview.png" width="100%" alt="Digital Macro Overview">
+<img src="../../../doc/digital_macro_overview_v1.png" width="100%" alt="Digital Macro Overview (V1)">
 </p>
+
+When *ENABLE_FLIP_DETECTION* is 1, the module overview is provided in the picture below.
+<p align="center">
+<img src="../../../doc/digital_macro_overview_v2.png" width="100%" alt="Digital Macro Overview (V2)">
+</p>
+
 
 **Note**: the module assumes all peripheral memories exactly take 1 clock cycle to return data.
 
 ## Performance
 
-The module supports generally two different modes:
+The module supports generally two different modes (only the regular mode is supported when *ENABLE_FLIP_DETECTION* is 0):
 
-- Regular mode (EnableFlipDetection==False): the digital logic does the energy calculation step by step. For a 256-spin problem with 4-parallel adders, it takes ~66 cycles (256/4+1 pipeline in adder + 1 for applying flipping).
+- **Regular mode**: the digital logic does the energy calculation step by step. For a 256-spin problem with 4-parallel adders, it takes ~66 cycles (256/4+1 pipeline in adder + 1 for applying flipping).
 
-- Smarter mode (EnableFlipDetection==True): this mode is for when there is not much change in the spin state. The exact delay depends on the targeted problems and data. Tested using the data under the folder [./data](../../unit_tests/digital_macro/data/), the average cycle delay per energy calculation is 17 cycles. Please note that if there is always big change in the spin state, switching to this mode can be ~4 cycles slower than the regular mode.
+- **Smarter mode**: this mode is for when there is not much change in the spin state. The exact delay depends on the targeted problems and data. If there is no change in spin states, it takes {4+PIPESFLIPFILTER} cycles per iteration. If there is changes in spin states, it takes {9+PIPESFLIPFILTER+#Address} cycles per iteration, where #Address means the number of requested addresses to J memory. Please note that this cycle cost can be overlapped due to the pipeline when SPIN_DEPTH > 1, and the average cycle cost per iteration can be smaller (here is the inclusive upper bound). Tested using the data under the folder [./data](../../unit_tests/digital_macro/data/), the average cycle delay per energy calculation is 17 cycles. Please note that if there is always big change in the spin state, switching to this mode can be ~4 cycles slower than the regular mode.
 
 ## Module Parameters
 
