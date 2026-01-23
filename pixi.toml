@@ -38,5 +38,9 @@ markdown-grid-tables = "*"
 tclint = "==0.4.2"
 
 [activation.env]
+<<<<<<< HEAD
 PATH = "$HOME/ising/lagd-im/.opt/riscv-gnu-toolchain/bin:$HOME/.cargo/bin:$PATH"
 LD_LIBRARY_PATH = "$HOME/ising/lagd-im/.pixi/envs/default/lib:$LD_LIBRARY_PATH"
+=======
+PATH = "$HOME/ising/lagd-im/.opt/riscv-gnu-toolchain/bin:$HOME/.cargo/bin:$PATH"
+>>>>>>> gs/ut.mem

@@ -213,7 +213,9 @@ transcript*
 **.vcd
 **.mti
 **.mpf
+**.vstf
 **runs/
+
 # pixi environments
 .pixi/*
 !.pixi/config.toml
@@ -228,3 +230,5 @@ runs/
 
 # Autotest results
 results/
+
+.nfs*

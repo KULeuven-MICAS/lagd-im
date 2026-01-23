@@ -59,6 +59,7 @@
 // Testing:
 //      - Untested
 
+`include "lagd_platform.svh"
 
 module memory_island_core import memory_island_pkg::*; #(
     parameter type mem_narrow_req_t = logic,
@@ -72,16 +73,18 @@ module memory_island_core import memory_island_pkg::*; #(
     parameter int unsigned NumNarrowReq = Cfg.NumDirectNarrowReq + $countones(Cfg.AxiNarrowRW) +
         Cfg.NumAxiNarrowReq,
     parameter int unsigned NumWideReq = Cfg.NumDirectWideReq + $countones(Cfg.AxiWideRW) +
-        Cfg.NumAxiWideReq
+        Cfg.NumAxiWideReq,
+    parameter int unsigned NumNarrowReqSafe = `ZWIDTH_SAFE(NumNarrowReq),
+    parameter int unsigned NumWideReqSafe = `ZWIDTH_SAFE(NumWideReq)
 )(
     input logic clk_i,
     input logic rst_ni,
 
-    input mem_narrow_req_t [NumNarrowReq-1:0] mem_narrow_req_i,
-    output mem_narrow_rsp_t [NumNarrowReq-1:0] mem_narrow_rsp_o,
+    input mem_narrow_req_t [NumNarrowReqSafe-1:0] mem_narrow_req_i,
+    output mem_narrow_rsp_t [NumNarrowReqSafe-1:0] mem_narrow_rsp_o,
 
-    input mem_wide_req_t [NumWideReq-1:0] mem_wide_req_i,
-    output mem_wide_rsp_t [NumWideReq-1:0] mem_wide_rsp_o
+    input mem_wide_req_t [NumWideReqSafe-1:0] mem_wide_req_i,
+    output mem_wide_rsp_t [NumWideReqSafe-1:0] mem_wide_rsp_o
 );
 
     // Address Wide Requests: 
@@ -157,7 +160,7 @@ module memory_island_core import memory_island_pkg::*; #(
                 .AddrWidth(AddrTopBit+1),
                 .DataWidth(Cfg.WideDataWidth),
                 .AddrMemWidth(InBankAddrWidth),
-                .BeWidth(AddrWideWordBit + 1),
+                .BeWidth(Cfg.WideDataWidth/8),
                 .RespLat(WideBankRespLat),
                 .mem_req_t(mem_wide_req_t),
                 .mem_rsp_t(mem_wide_rsp_t)
@@ -219,7 +222,6 @@ module memory_island_core import memory_island_pkg::*; #(
     mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1;
     mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks_q1;
     mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1;
-
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: spill_narrow_routed
         mem_multicut #(
             .AddrWidth(Cfg.AddrWidth),
@@ -263,11 +265,16 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     // Narrow wide arbitration
     // ------------
+    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req;
+    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp;
     wide_narrow_arbiter #(
         .NumNarrowBanks(Cfg.NumNarrowBanks),
         .NumWideBanks(NumWideBanks),
+        .AddrWideWordBit(AddrWideWordBit),
+        .InBankAddrWidth(InBankAddrWidth),
         .WideDataWidth(Cfg.WideDataWidth),
         .NarrowDataWidth(Cfg.NarrowDataWidth),
+        .RspLatency(1 + Cfg.SpillReqBank + Cfg.SpillRspBank),
         .mem_narrow_req_t(mem_narrow_req_t),
         .mem_narrow_rsp_t(mem_narrow_rsp_t),
         .mem_wide_req_t(mem_wide_req_t),
@@ -278,56 +285,10 @@ module memory_island_core import memory_island_pkg::*; #(
         .mem_narrow_req_i(mem_narrow_req_to_banks_q1),
         .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1),
         .mem_wide_req_i(mem_wide_req_to_banks_q1),
-        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1)
+        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1),
+        .mem_bank_req_o(bank_req),
+        .mem_bank_rsp_i(bank_rsp)
     );
-
-    // ------------
-    // Wide request splitting
-    // ------------
-    localparam int unsigned WideToNarrowFactor = Cfg.WideDataWidth / Cfg.NarrowDataWidth;
-    mem_narrow_req_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_req;
-    mem_narrow_rsp_t [NumWideBanks-1:0][WideToNarrowFactor-1:0] mem_wide_split_rsp;
-    for (genvar i = 0; i < NumWideBanks; i++) begin: split_wide_req
-        wide_to_narrow_splitter #(
-            .MemAddrWidth(AddrWideWordBit + 1),
-            .BankAddrWidth(InBankAddrWidth),
-            .MemDataWidth(Cfg.WideDataWidth),
-            .BankDataWidth(Cfg.NarrowDataWidth),
-            .mem_req_t(mem_wide_req_t),
-            .mem_rsp_t(mem_wide_rsp_t),
-            .bank_req_t(mem_narrow_req_t),
-            .bank_rsp_t(mem_narrow_rsp_t)
-        ) u_split_wide_req (
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .mem_req_i(mem_wide_req_to_banks_q1[i]),
-            .mem_rsp_o(mem_wide_rsp_from_banks_q1[i]),
-            .bank_req_o(mem_wide_split_req[i]),
-            .bank_rsp_i(mem_wide_split_rsp[i])
-        );
-    end
-
-    // ------------
-    // Bank access multiplexer
-    // ------------
-    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req;
-    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp;
-
-    always_comb begin : bank_access_mux
-        for (int unsigned i = 0; i < Cfg.NumNarrowBanks; i++) begin
-            automatic int unsigned wide_bank_idx = i / WideToNarrowFactor;
-            automatic int unsigned narrow_part_idx = i % WideToNarrowFactor;
-
-            bank_req[i] = '0;
-            if (mem_narrow_rsp_from_banks_q1[i].q_ready) begin
-                bank_req[i] = mem_narrow_req_to_banks_q1[i];
-                mem_narrow_rsp_from_banks_q1[i].p = bank_rsp[i].p;
-            end else begin : wide_bank_access
-                bank_req[i] = mem_wide_split_req[wide_bank_idx][narrow_part_idx];
-                mem_wide_split_rsp[wide_bank_idx][narrow_part_idx].p = bank_rsp[i].p;
-            end
-        end
-    end
     
     // ------------
     // Banks multicut
@@ -357,21 +318,33 @@ module memory_island_core import memory_island_pkg::*; #(
     // ------------
     // Banks instances
     // ------------
+    logic [Cfg.NumNarrowBanks-1:0] bank_req_q1_valid;
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks
         tc_sram #(
             .NumWords(Cfg.WordsPerBank),
-            .DataWidth(Cfg.NarrowDataWidth)
+            .DataWidth(Cfg.NarrowDataWidth),
+            .NumPorts(1)
         ) u_bank (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
             .req_i(bank_req_q1[i].q_valid),
-            .addr_i(bank_req_q1[i].q.addr[AddrTopBit -: InBankAddrWidth]),
+            .addr_i(bank_req_q1[i].q.addr[InBankAddrWidth-1:0]),
             .we_i(bank_req_q1[i].q.write),
             .wdata_i(bank_req_q1[i].q.data),
             .be_i(bank_req_q1[i].q.strb),
             .rdata_o(bank_rsp_q1[i].p.data)
         );
+        // Update valid signal for response
+        always_ff @(posedge clk_i or negedge rst_ni) begin
+            if (!rst_ni) begin
+                bank_req_q1_valid[i] <= 1'b0;
+            end else begin
+                bank_req_q1_valid[i] <= bank_req_q1[i].q_valid;
+            end
+        end
+        assign bank_rsp_q1[i].p.valid = bank_req_q1_valid[i];
     end
+    // TODO: add valid answer signal back to tc_sram and connect to rsp.p.valid
 
     // ------------
     // Asserts

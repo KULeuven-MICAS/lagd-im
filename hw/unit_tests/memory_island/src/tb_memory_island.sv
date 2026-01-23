@@ -1,0 +1,274 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+// Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
+
+`timescale 1ns/1ps
+
+`include "lagd_define.svh"
+`include "lagd_platform.svh"
+`include "lagd_typedef.svh"
+
+// ETH AXI and memory interface includes
+`include "axi/assign.svh"
+`include "common_cells/assertions.svh"
+
+// Testbench includes
+`include "lagd_test/tb_common.svh"
+`include "tb_config.svh"
+
+module tb_memory_island import lagd_pkg::*; #(
+    parameter memory_island_pkg::mem_cfg_t Cfg = lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ,
+    parameter int unsigned RandTest = 1,
+    // Derived parameters - Do not override
+    parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks,
+    parameter int unsigned NumAxiNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiNarrowReq),
+    parameter int unsigned NumAxiWideReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiWideReq),
+    parameter int unsigned NumDirectNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumDirectNarrowReq),
+    parameter int unsigned NumDirectWideReqSafe = `ZWIDTH_SAFE(Cfg.NumDirectWideReq)
+) ();
+
+    // Debug setup
+    `SETUP_DEBUG(dbg, vcd_file, tb_memory_island)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
+
+    // ========================================================================
+    // SIGNALS AND INTERFACES
+    // ========================================================================
+
+    logic clk_i, rst_ni;
+    logic axi_write_complete, axi_read_complete;
+    logic direct_write_complete, direct_read_complete;
+    logic direct_test_complete;
+    logic test_complete;
+
+    lagd_axi_slv_req_t [NumAxiNarrowReqSafe-1:0] axi_narrow_req_i;
+    lagd_axi_slv_rsp_t [NumAxiNarrowReqSafe-1:0] axi_narrow_rsp_o;
+
+    lagd_axi_wide_slv_req_t [NumAxiWideReqSafe-1:0] axi_wide_req_i;
+    lagd_axi_wide_slv_rsp_t [NumAxiWideReqSafe-1:0] axi_wide_rsp_o;
+
+    lagd_mem_narr_req_t [NumDirectNarrowReqSafe-1:0] mem_narrow_req_i;
+    lagd_mem_narr_rsp_t [NumDirectNarrowReqSafe-1:0] mem_narrow_rsp_o;
+
+    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_r, mem_wide_req_i_w;
+    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_ar, mem_wide_req_i, mem_wide_req_test;
+    lagd_mem_wide_rsp_t [NumDirectWideReqSafe-1:0] mem_wide_rsp_o;
+    // AXI bus for stimulus generation
+    AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(Cfg.AddrWidth),
+        .AXI_DATA_WIDTH(Cfg.NarrowDataWidth),
+        .AXI_ID_WIDTH(Cfg.AxiNarrowIdWidth),
+        .AXI_USER_WIDTH(2)
+    ) axi_dv (clk_i);
+
+    `AXI_ASSIGN_TO_REQ(axi_narrow_req_i[0], axi_dv)
+    `AXI_ASSIGN_FROM_RESP(axi_dv, axi_narrow_rsp_o[0])
+
+    mem_bus_dv_if #(
+        .AddrWidth(Cfg.AddrWidth),
+        .DataWidth(Cfg.WideDataWidth),
+        .UserWidth(2)
+    ) mem_dv (clk_i);
+
+    assign mem_dv.p = mem_wide_rsp_o[0].p;
+    assign mem_dv.q_ready = mem_wide_rsp_o[0].q_ready;
+    assign mem_wide_req_test[0].q.addr = mem_dv.q.addr;
+    assign mem_wide_req_test[0].q.data = mem_dv.q.data;
+    assign mem_wide_req_test[0].q.strb = mem_dv.q.strb;
+    assign mem_wide_req_test[0].q.user = mem_dv.q.user;
+    assign mem_wide_req_test[0].q.write = mem_dv.q.write;
+    assign mem_wide_req_test[0].q_valid = mem_dv.q_valid;
+
+    // ========================================================================
+    // DUT INSTANTIATION
+    // ========================================================================
+
+    memory_island_wrap #(
+        .Cfg(Cfg),
+        .axi_narrow_req_t(lagd_axi_slv_req_t),
+        .axi_narrow_rsp_t(lagd_axi_slv_rsp_t),
+        .axi_wide_req_t(lagd_axi_wide_slv_req_t),
+        .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
+        .mem_narrow_req_t(lagd_mem_narr_req_t),
+        .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
+        .mem_wide_req_t(lagd_mem_wide_req_t),
+        .mem_wide_rsp_t(lagd_mem_wide_rsp_t)
+    ) dut (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .axi_narrow_req_i(axi_narrow_req_i),
+        .axi_narrow_rsp_o(axi_narrow_rsp_o),
+        .axi_wide_req_i(),  // Never used in lagd_soc
+        .axi_wide_rsp_o(),  // Never used in lagd_soc
+        .mem_narrow_req_i(mem_narrow_req_i),
+        .mem_narrow_rsp_o(mem_narrow_rsp_o),
+        .mem_wide_req_i(mem_wide_req_i),
+        .mem_wide_rsp_o(mem_wide_rsp_o)
+    );
+
+    // ========================================================================
+    // STIMULUS GENERATION
+    // ========================================================================
+
+    clk_rst_gen #(
+        .RstClkCycles(RST_CYCLES),
+        .ClkPeriod(CLK_PERIOD)
+    ) i_clk_gen (
+        .clk_o(clk_i),
+        .rst_no(rst_ni)
+    );
+
+    logic [Cfg.AddrWidth-1:0] burst_start_addr;
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            burst_start_addr <= '0;
+        end else begin
+            if (axi_narrow_req_i[0].aw_valid) begin
+                burst_start_addr <= axi_narrow_req_i[0].aw.addr;
+            end else begin
+                burst_start_addr <= burst_start_addr;
+            end
+        end
+    end
+    generate
+        if (Cfg.NumAxiNarrowReq != 0) begin  : axi_rand_generator
+            if (RandTest) begin : gen_random_stimulus
+                // Random stimulus generation through AXI master
+                axi_rand_generator #(
+                    .AddrWidth(Cfg.AddrWidth),
+                    .DataWidth(Cfg.NarrowDataWidth),
+                    .IdWidth(Cfg.AxiNarrowIdWidth),
+                    .UserWidth(2),
+                    .TestRegionStart(0),
+                    .TestRegionEnd(MemorySizeBytes),
+                    .NumReadTransactions(0),
+                    .NumWriteTransactions(1)
+                ) i_axi_stimulus (
+                    .clk_i(clk_i),
+                    .rst_ni(rst_ni),
+                    .axi_bus(axi_dv),
+                    .test_start_i(1'b1),
+                    .test_complete_o(axi_write_complete)
+                );
+
+                mem_seq_stim_gen #(
+                    .AddrWidth(Cfg.AddrWidth),
+                    .DataWidth(Cfg.WideDataWidth),
+                    .Write(0),
+                    .DataRandom(0),
+                    .RandMaster(1),
+                    .NumTransactions(10),
+                    .TestRegionStart(0),
+                    .TestRegionEnd(MemorySizeBytes),
+                    .TA(TA),
+                    .mem_req_t(lagd_mem_wide_req_t),
+                    .mem_rsp_t(lagd_mem_wide_rsp_t)
+                ) i_mem_seq_stimulus (
+                    .clk_i(clk_i),
+                    .rst_ni(rst_ni),
+                    .mem_req_o(mem_wide_req_i_ar[0]),
+                    .mem_rsp_i(mem_wide_rsp_o[0]),
+                    .start_address_i(burst_start_addr),
+                    .test_start_i(axi_write_complete),
+                    .test_complete_o(axi_read_complete)
+                );
+            end
+        end else begin : no_axi_req
+            // No AXI requests, test is complete immediately
+            assign axi_write_complete = 1'b1;
+        end
+    endgenerate
+
+    generate
+        if (Cfg.NumDirectWideReq != 0) begin : mem_seq_generator_write
+            // Sequential memory stimulus generation
+            mem_seq_stim_gen #(
+                .AddrWidth(Cfg.AddrWidth),
+                .DataWidth(Cfg.WideDataWidth),
+                .Write(1),
+                .DataRandom(0),
+                .RandMaster(1),
+                .NumTransactions(10),
+                .TestRegionStart(0),
+                .TestRegionEnd(MemorySizeBytes),
+                .TA(TA),
+                .mem_req_t(lagd_mem_wide_req_t),
+                .mem_rsp_t(lagd_mem_wide_rsp_t)
+            ) i_mem_seq_stimulus_wr (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .mem_req_o(mem_wide_req_i_w[0]),
+                .mem_rsp_i(mem_wide_rsp_o[0]),
+                .start_address_i('0),
+                .test_start_i(axi_read_complete),
+                .test_complete_o(direct_write_complete)
+            );
+            mem_seq_stim_gen #(
+                .AddrWidth(Cfg.AddrWidth),
+                .DataWidth(Cfg.WideDataWidth),
+                .Write(0),
+                .DataRandom(0),
+                .RandMaster(1),
+                .NumTransactions(10),
+                .TestRegionStart(0),
+                .TestRegionEnd(MemorySizeBytes),
+                .TA(TA),
+                .mem_req_t(lagd_mem_wide_req_t),
+                .mem_rsp_t(lagd_mem_wide_rsp_t)
+            ) i_mem_seq_stimulus_rd (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .mem_req_o(mem_wide_req_i_r[0]),
+                .mem_rsp_i(mem_wide_rsp_o[0]),
+                .start_address_i('0),
+                .test_start_i(direct_write_complete),
+                .test_complete_o(direct_read_complete)
+            );
+            mem_rand_test #(
+                .AddrWidth(Cfg.AddrWidth),
+                .DataWidth(Cfg.WideDataWidth),
+                .UserWidth(2),
+                .TestRegionStart(0),
+                .TestRegionEnd(MemorySizeBytes),
+                .NumTransactions(100),
+                .RandInterval(0),
+                .RandBurst(0)
+            ) i_mem_rand_test (
+                .clk_i(clk_i),
+                .rst_ni(rst_ni),
+                .mem_bus(mem_dv),
+                .test_start_i(direct_read_complete),
+                .test_complete_o(direct_test_complete)
+            );
+        end else begin : no_mem_req_write
+            // No direct memory requests, test is complete immediately
+            assign direct_read_complete = 1'b1;
+            assign direct_write_complete = 1'b1;
+            assign direct_test_complete = 1'b1;
+        end
+    endgenerate
+
+    always_comb begin : mem_wide_req_i_comb
+        if (axi_write_complete && !axi_read_complete) begin
+            mem_wide_req_i = mem_wide_req_i_ar;
+        end else if (axi_read_complete && !direct_write_complete) begin
+            mem_wide_req_i = mem_wide_req_i_w;
+        end else if (direct_read_complete && !direct_test_complete) begin
+            mem_wide_req_i = mem_wide_req_test;
+        end else begin
+            mem_wide_req_i = mem_wide_req_i_r;
+        end
+    end
+    // ========================================================================
+    // TEST CONTROL
+    // ========================================================================
+    assign test_complete = axi_read_complete & direct_read_complete & direct_test_complete;
+    initial begin
+        // Wait for test to complete
+        wait(test_complete);
+        $finish(0);
+    end
+
+endmodule
