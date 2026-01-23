@@ -7,7 +7,6 @@
 // Top-level module for LAGD system-on-chip
 
 `include "lagd_define.svh"
-`include "lagd_config.svh"
 `include "lagd_typedef.svh"
 
 

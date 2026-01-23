@@ -12,6 +12,6 @@ set -e
 show_usage()
 {
     echo "LAGD: System test trigger script"
-    echo "Usage: $0 [ --flist --bootmode=<mode> --cheshire_cfg=<config> --preload=<mode> --binary=<binary> --image=<image> [--help]]"
+    echo "Usage: $0 [ --flist --bootmode=<mode> --preload=<mode> --binary=<binary> [--help]]"
     echo "Example: $0"
 }
