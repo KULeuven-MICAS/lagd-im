@@ -36,6 +36,9 @@ vmap
 # Apply the IterationLimit attribute
 # set IterationLimit 20000000
 
+# TODO
+# vopt_flag is redundant here because vopt is already applied in build.tcl
+
 # Run simulation
 if { [info exists DBG] && ${DBG} == 1 } {
     set vopt_flag "-voptargs=+acc"
