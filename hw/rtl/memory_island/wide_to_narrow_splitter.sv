@@ -84,7 +84,7 @@ module wide_to_narrow_splitter #(
     generate
         for (i = 0; i < NumBanks; i++) begin : gen_split_req
             assign bank_req_o[i].q_valid = mem_req_i.q_valid;
-            assign bank_req_o[i].q.addr  = mem_req_i.q.addr + i*(1 << BankAddrOffset);
+            assign bank_req_o[i].q.addr  = mem_req_i.q.addr;
             assign bank_req_o[i].q.data  = mem_req_i.q.data[
                 (i+1)*BankDataWidth-1 -: BankDataWidth];
             assign bank_req_o[i].q.strb  = mem_req_i.q.strb[
@@ -106,5 +106,24 @@ module wide_to_narrow_splitter #(
     endgenerate
     assign mem_rsp_o.p.valid = &rsp_valids;
     assign mem_rsp_o.q_ready = &rsp_readys;
+
+    // -----------------
+    // Logs
+    // -----------------
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated wide_to_narrow_splitter with parameters:");
+    `ifndef TARGET_SYNOPSYS
+    $info("Module: %m");
+    $info("  mem_req_t: %s", $typename(mem_req_i));
+    $info("  mem_rsp_t: %s", $typename(mem_rsp_o));
+    $info("  bank_req_t: %s", $typename(bank_req_o[0]));
+    $info("  bank_rsp_t: %s", $typename(bank_rsp_i[0]));
+    `endif
+    $info("  MemAddrWidth: %d", MemAddrWidth);
+    $info("  BankAddrWidth: %d", BankAddrWidth);
+    $info("  MemDataWidth: %d", MemDataWidth);
+    $info("  BankDataWidth: %d", BankDataWidth);
+    $info("  WordSize: %d", WordSize);
+    `endif // TARGET_LOG_INSTS
 
 endmodule
