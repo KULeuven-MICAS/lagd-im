@@ -11,8 +11,8 @@ set HDL_FILES [ list \
     "./analog_format_pkg.sv" \
     "./energy_calc_pkg.sv" \
     "./tb_digital_macro.sv" \
-    "./onehot_to_bin.sv" \
-    "./popcount.sv" \
+    "[exec bender path common_cells]/src/onehot_to_bin.sv" \
+    "[exec bender path common_cells]/src/popcount.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
     "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
     "${HDL_PATH}/flip_filter/flip_filter.sv" \
