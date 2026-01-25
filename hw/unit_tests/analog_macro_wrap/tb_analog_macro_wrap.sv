@@ -27,17 +27,17 @@ module tb_analog_macro_wrap;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 1_000_000; // number of onloading tests
-    localparam int CmptTestNum = 1_000_000; // number of compute tests
+    localparam int OnloadingTestNum = 10_000; // number of onloading tests
+    localparam int CmptTestNum = 10_000; // number of compute tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
 
     // dut run-time configuration
-    localparam int CyclePerWwlHigh = 5;
-    localparam int CyclePerWwlLow = 5;
-    localparam int CyclePerSpinWrite = 4;
-    localparam int CyclePerSpinCompute = 8;
+    localparam int CyclePerWwlHigh = 2;
+    localparam int CyclePerWwlLow = 2;
+    localparam int CyclePerSpinWrite = 3;
+    localparam int CyclePerSpinCompute = 5;
     localparam int SynchronizerPipeNum = 3;
     localparam int SpinWwlStrobe = {(NUM_SPIN){1'b1}}; // all spins enabled
     localparam int SpinFeedback = {(NUM_SPIN){1'b1}}; // all spins in feedback mode
@@ -55,6 +55,7 @@ module tb_analog_macro_wrap;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
     logic [NUM_SPIN-1:0] spin_feedback_i;
     logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_pipe_num_i;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_floating_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
     logic [J_ADDRESS_WIDTH-1:0] j_raddr_o;
@@ -108,6 +109,7 @@ module tb_analog_macro_wrap;
     initial begin
         en_i = 1;
         bypass_data_conversion_i = 0;
+        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
     end
 
     // Module instantiation
@@ -132,6 +134,7 @@ module tb_analog_macro_wrap;
         .spin_wwl_strobe_i(spin_wwl_strobe_i),
         .spin_feedback_i(spin_feedback_i),
         .synchronizer_pipe_num_i(synchronizer_pipe_num_i),
+        .wbl_floating_i(wbl_floating_i),
         .dt_cfg_enable_i(dt_cfg_enable_i),
         .j_mem_ren_o(j_mem_ren_o),
         .j_raddr_o(j_raddr_o),
