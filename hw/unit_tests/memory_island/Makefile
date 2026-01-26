@@ -4,6 +4,14 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+
+SIM_TOOL := vsim
+VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
+MI_TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+PROJECT_ROOT ?= $(abspath $(CURDIR)/../../..)
+include $(PROJECT_ROOT)/common.mk
+
 # ============================================================
 # Simulation directives
 # ============================================================
@@ -16,15 +24,9 @@ else
 endif
 HDL_FILES_LIST ?= $(CURDIR)/tests/memory_island.tcl
 
-include ../common.mk
-
 # ============================================================
 # Memory Island flist generation
 # ============================================================
-
-SIM_TOOL := vsim
-
-VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 
 ifdef TECH_MODELS
 	TECH_ARGS := -t tech_cells_generic_include_tc_sram
@@ -33,7 +35,6 @@ else
 endif
 
 # Memory island hdl_file_list.tcl generation
-MI_TEST_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MI_SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
 
 flists: $(MI_TEST_PATH)/bender_list.tcl

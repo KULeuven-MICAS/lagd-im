@@ -10,9 +10,9 @@ include $(PROJECT_ROOT)/common.mk
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 include $(CHS_ROOT)/cheshire.mk
 
-all: chs-hw-all tests
+all: chs-hw-all uts
 
-tests: memory_island_flist
+uts: memory_island_flist
 
 memory_island_flist:
-	$(MAKE) -C memory_island flists
+	$(MAKE) -C unit_tests/memory_island flists
