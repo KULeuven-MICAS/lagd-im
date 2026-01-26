@@ -20,7 +20,7 @@
 module tb_analog_macro_wrap;
 
     // module parameters
-    localparam int NUM_SPIN = 16; // number of spins
+    localparam int NUM_SPIN = 256; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 8;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
@@ -28,8 +28,8 @@ module tb_analog_macro_wrap;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 0; // number of onloading tests
-    localparam int CmptTestNum = 20; // number of compute tests
+    localparam int OnloadingTestNum = 10_000; // number of onloading tests
+    localparam int CmptTestNum = 10_000; // number of compute tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
@@ -131,7 +131,6 @@ module tb_analog_macro_wrap;
     initial begin
         en_i = 1;
         bypass_data_conversion_i = 0;
-        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
     end
 
     // Module instantiation
@@ -460,6 +459,26 @@ module tb_analog_macro_wrap;
         end
     endtask
 
+    task automatic debug_model_wr();
+    begin
+        debug_j_write_en_i = 1'b0;
+        debug_j_read_en_i = 1'b0;
+        debug_j_one_hot_wwl_i = 'd0;
+        debug_h_wwl_i = 1'b0;
+        debug_wbl_i = 'd0;
+        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+    end
+    endtask
+
+    task automatic debug_model_spin_wr();
+    begin
+        debug_spin_write_en_i = 1'b0;
+        debug_spin_read_en_i = 1'b0;
+        debug_spin_wwl_i = 'd0;
+        debug_spin_feedback_i = 'd0;
+    end
+    endtask
+
     // ========================================================================
     // Checks
     // ========================================================================
@@ -737,6 +756,9 @@ module tb_analog_macro_wrap;
             // Timer
             config_timer();
             cmpt_timer();
+            // Debug
+            debug_model_wr();
+            debug_model_spin_wr();
         join_none
     end
 
