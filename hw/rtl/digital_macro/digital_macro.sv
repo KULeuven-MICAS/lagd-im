@@ -15,7 +15,6 @@
 module digital_macro #(
     // parameters: energy monitor
     parameter integer BITJ = 4,
-    parameter integer BITH = 4,
     parameter integer NUM_SPIN = 256,
     parameter integer SCALING_BIT = 4,
     parameter integer PARALLELISM = 4,
@@ -35,11 +34,13 @@ module digital_macro #(
     parameter integer H_IS_NEGATIVE = `False,
     parameter integer ENABLE_FLIP_DETECTION = `False,
     // derived parameters
+    parameter integer BITH = BITJ,
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
     parameter integer FLIP_ICON_ADDR_DEPTH = $clog2(FLIP_ICON_DEPTH),
     parameter integer DATA_J_BIT = NUM_SPIN * BITJ * PARALLELISM,
     parameter integer DATA_H_BIT = BITH * NUM_SPIN,
-    parameter integer J_MEM_ADDR_WIDTH = $clog2(NUM_SPIN / PARALLELISM)
+    parameter integer J_MEM_ADDR_WIDTH = $clog2(NUM_SPIN / PARALLELISM),
+    parameter integer DEBUG_WADDR_WIDTH = FLIP_ICON_ADDR_DEPTH
 )(
     input  logic clk_i,
     input  logic rst_ni,
@@ -69,6 +70,8 @@ module digital_macro #(
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
+    input  logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_i,
+    input  logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_i,
     input  logic [NUM_SPIN*BITJ-1:0] wbl_floating_i,
     // data loading interface
     input  logic dt_cfg_enable_i, // load enable for the analog macro
@@ -110,7 +113,21 @@ module digital_macro #(
     // runtime interface: energy fifo
     input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i,
     // interface when ENABLE_FLIP_DETECTION = True
-    input  logic enable_flip_detection_i
+    input  logic enable_flip_detection_i,
+    // debugging interface
+    input  logic debug_j_write_en_i,
+    input  logic debug_j_read_en_i,
+    input  logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i,
+    input  logic debug_h_wwl_i,
+    input  logic [NUM_SPIN*BITJ-1:0] debug_wbl_i,
+    input  logic debug_spin_write_en_i,
+    input  logic [NUM_SPIN-1:0] debug_spin_wwl_i,
+    input  logic [NUM_SPIN-1:0] debug_spin_feedback_i,
+    input  logic debug_spin_read_en_i,
+    output logic debug_spin_read_busy_o,
+    output logic debug_spin_valid_o,
+    output logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o,
+    output logic [NUM_SPIN-1:0] debug_spin_o
 );
     // Internal signals
     logic aw_mst_valid;
@@ -463,7 +480,8 @@ module digital_macro #(
         .PARALLELISM (PARALLELISM),
         .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
         .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH),
-        .SPIN_WBL_OFFSET (SPIN_WBL_OFFSET)
+        .SPIN_WBL_OFFSET (SPIN_WBL_OFFSET),
+        .DEBUG_WADDR_WIDTH(DEBUG_WADDR_WIDTH)
     ) u_analog_wrap (
         .clk_i                          (clk_i                      ),
         .rst_ni                         (rst_ni                     ),
@@ -478,7 +496,8 @@ module digital_macro #(
         .spin_wwl_strobe_i              (spin_wwl_strobe_i          ),
         .spin_feedback_i                (spin_feedback_i            ),
         .synchronizer_pipe_num_i        (synchronizer_pipe_num_i    ),
-        .wbl_floating_i                 (wbl_floating_i             ),
+        .debug_cycle_per_synchronization_i (debug_cycle_per_synchronization_i),
+        .debug_synchronization_num_i       (debug_synchronization_num_i      ),
         .dt_cfg_enable_i                (dt_cfg_enable_i            ),
         .j_mem_ren_o                    (j_mem_ren_o                ),
         .j_raddr_o                      (j_raddr_o                  ),
@@ -499,6 +518,22 @@ module digital_macro #(
         .spin_valid_o                   (aw_mst_valid               ),
         .spin_ready_i                   (aw_downstream_ready        ),
         .spin_o                         (analog_spin                ),
+        // debugging interface
+        .debug_j_write_en_i             (debug_j_write_en_i         ),
+        .debug_j_read_en_i              (debug_j_read_en_i          ),
+        .debug_j_one_hot_wwl_i          (debug_j_one_hot_wwl_i      ),
+        .debug_h_wwl_i                  (debug_h_wwl_i              ),
+        .debug_wbl_i                    (debug_wbl_i                ),
+        .debug_spin_write_en_i          (debug_spin_write_en_i      ),
+        .debug_spin_wwl_i               (debug_spin_wwl_i           ),
+        .debug_spin_feedback_i          (debug_spin_feedback_i      ),
+        .wbl_floating_i                 (wbl_floating_i             ),
+        .debug_spin_read_en_i           (debug_spin_read_en_i       ),
+        .debug_spin_read_busy_o         (debug_spin_read_busy_o     ),
+        .debug_spin_valid_o             (debug_spin_valid_o         ),
+        .debug_spin_waddr_o             (debug_spin_waddr_o         ),
+        .debug_spin_o                   (debug_spin_o               ),
+        // status
         .dt_cfg_idle_o                  (dt_cfg_idle_o              ),
         .analog_rx_idle_o               (                           ),
         .analog_tx_idle_o               (                           )

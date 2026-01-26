@@ -47,6 +47,7 @@ package config_pkg;
     parameter int BITJ = BITDATA;
     parameter int BITH = BITDATA;
     parameter int EmCfgCounter = NUM_SPIN - 1;
+    parameter int DEBUG_WADDR_WIDTH = $clog2(FLIP_ICON_DEPTH);
 
     // model type definition
     typedef struct {

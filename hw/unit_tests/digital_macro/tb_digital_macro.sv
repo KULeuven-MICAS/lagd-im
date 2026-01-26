@@ -103,6 +103,23 @@ module tb_digital_macro;
     logic spin_fifo_update_o;
     logic enable_flip_detection_i;
 
+    // debugging interface
+    logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_i;
+    logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_i;
+    logic debug_j_write_en_i;
+    logic debug_j_read_en_i;
+    logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i;
+    logic debug_h_wwl_i;
+    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_i;
+    logic debug_spin_write_en_i;
+    logic [NUM_SPIN-1:0] debug_spin_wwl_i;
+    logic [NUM_SPIN-1:0] debug_spin_feedback_i;
+    logic debug_spin_read_en_i;
+    logic debug_spin_read_busy_o;
+    logic debug_spin_valid_o;
+    logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o;
+    logic [NUM_SPIN-1:0] debug_spin_o;
+
     // testbench signals
     logic [NUM_SPIN*BITJ-1:0] wbl_copy;
     logic [NUM_SPIN-1:0][NUM_SPIN*BITJ-1:0] weights_in_txt, weights_analog;
@@ -179,7 +196,8 @@ module tb_digital_macro;
         .spin_wwl_strobe_i          (spin_wwl_strobe_i          ),
         .spin_feedback_i            (spin_feedback_i            ),
         .synchronizer_pipe_num_i    (synchronizer_pipe_num_i    ),
-        .wbl_floating_i             (wbl_floating_i             ),
+        .debug_cycle_per_synchronization_i (debug_cycle_per_synchronization_i),
+        .debug_synchronization_num_i       (debug_synchronization_num_i      ),
         .dt_cfg_enable_i            (dt_cfg_enable_i            ),
         .j_mem_ren_o                (j_mem_ren_o                ),
         .j_raddr_o                  (j_raddr_o                  ),
@@ -215,7 +233,22 @@ module tb_digital_macro;
         .spin_fifo_update_o         (spin_fifo_update_o         ),
         .energy_fifo_o              (energy_fifo_o              ),
         .spin_fifo_o                (spin_fifo_o                ),
-        .enable_flip_detection_i    (enable_flip_detection_i    )
+        .enable_flip_detection_i    (enable_flip_detection_i    ),
+        // debugging interface
+        .debug_j_write_en_i         (debug_j_write_en_i         ),
+        .debug_j_read_en_i          (debug_j_read_en_i          ),
+        .debug_j_one_hot_wwl_i      (debug_j_one_hot_wwl_i      ),
+        .debug_h_wwl_i              (debug_h_wwl_i              ),
+        .debug_wbl_i                (debug_wbl_i                ),
+        .debug_spin_write_en_i      (debug_spin_write_en_i      ),
+        .debug_spin_wwl_i           (debug_spin_wwl_i           ),
+        .debug_spin_feedback_i      (debug_spin_feedback_i      ),
+        .wbl_floating_i             (wbl_floating_i             ),
+        .debug_spin_read_en_i       (debug_spin_read_en_i       ),
+        .debug_spin_read_busy_o     (debug_spin_read_busy_o     ),
+        .debug_spin_valid_o         (debug_spin_valid_o         ),
+        .debug_spin_waddr_o         (debug_spin_waddr_o         ),
+        .debug_spin_o               (debug_spin_o               )
     );
 
     // Clock generation
