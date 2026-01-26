@@ -4,7 +4,7 @@
 
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 //
-// Analog debugging module for j/h writing
+// Analog debugging module for j/h writing and reading.
 
 `include "common_cells/registers.svh"
 
