@@ -27,6 +27,7 @@ export_include_dirs:
   - hw/rtl/include
   - hw/rtl/memory_island/include
   - target/syn/tech/tsmc7ff/include
+  - hw/tb/include
 
 sources:
   - files:
@@ -82,6 +83,10 @@ sources:
       - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta256x45m4zhocp_130b/VERILOG/ts1n7sblvta256x45m4zhocp.v
       - /users/micas/shares/project_lagd/SRAM/SPSBSRAM/ts1n7sblvta64x64m2zhocp_130b/VERILOG/ts1n7sblvta64x64m2zhocp.v
     target: all(test, tech_cells_generic_exclude_tc_sram)
+  - files:
+      - hw/tb/tb_lagd_chip.sv
+      - hw/tb/fixture_lagd_chip.sv
+    target: any(simulation, test)
   # yamllint enable rule:line-length
 
 #  - target: any(simulation, test)
