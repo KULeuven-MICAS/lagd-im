@@ -166,7 +166,7 @@ module analog_macro_wrap #(
         .clk_i            (clk_i                                              ),
         .rst_ni           (rst_ni                                             ),
         .en_i             (en_i                                               ),
-        .load_i           (cfg_configure_enable_i                             ),
+        .load_i           (analog_wrap_configure_enable_i                     ),
         .d_i              (debug_cycle_per_synchronization_i                  ),
         .recount_en_i     ((~debug_spin_read_busy) | debug_syn_cycle_cnt_maxed),
         .step_en_i        (debug_spin_read_busy                               ),
@@ -182,7 +182,7 @@ module analog_macro_wrap #(
         .clk_i            (clk_i                                             ),
         .rst_ni           (rst_ni                                            ),
         .en_i             (en_i                                              ),
-        .load_i           (cfg_configure_enable_i                            ),
+        .load_i           (analog_wrap_configure_enable_i                    ),
         .d_i              (debug_synchronization_num_i                       ),
         .recount_en_i     ((~debug_spin_read_busy) | debug_syn_num_cnt_maxed ),
         .step_en_i        (debug_syn_cycle_cnt_maxed                         ),
@@ -307,7 +307,7 @@ module analog_macro_wrap #(
         .analog_macro_cmpt_finish_i (debug_j_read_en_posedge                 ),
         // spin interface: tx <-> digital
         .spin_valid_o             (debug_j_read_data_valid_o                 ),
-        .spin_ready_i             (1'b0                                      ),
+        .spin_ready_i             (1'b1                                      ),
         .spin_o                   (debug_j_read_data_o                       ),
         // status
         .analog_tx_idle_o         (                                          )

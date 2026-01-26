@@ -70,6 +70,7 @@ module digital_macro #(
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
+    input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_wbl_pipe_num_i,
     input  logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_i,
     input  logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_i,
     input  logic [NUM_SPIN*BITJ-1:0] wbl_floating_i,
@@ -110,16 +111,21 @@ module digital_macro #(
     output logic [NUM_SPIN-1:0] spin_wwl_o,
     output logic [NUM_SPIN-1:0] spin_feedback_o,
     input  logic [NUM_SPIN-1:0] spin_analog_i,
+    input  logic [NUM_SPIN*BITJ-1:0] wbl_read_i,
+    input  logic [NUM_SPIN*BITJ-1:0] wblb_read_i, // not used
     // runtime interface: energy fifo
     input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i,
     // interface when ENABLE_FLIP_DETECTION = True
     input  logic enable_flip_detection_i,
-    // debugging interface
+    // debugging interface: model write/read
     input  logic debug_j_write_en_i,
     input  logic debug_j_read_en_i,
     input  logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i,
     input  logic debug_h_wwl_i,
     input  logic [NUM_SPIN*BITJ-1:0] debug_wbl_i,
+    output logic debug_j_read_data_valid_o,
+    output logic [NUM_SPIN*BITJ-1:0] debug_j_read_data_o,
+    // debugging interface: spin write/read
     input  logic debug_spin_write_en_i,
     input  logic [NUM_SPIN-1:0] debug_spin_wwl_i,
     input  logic [NUM_SPIN-1:0] debug_spin_feedback_i,
@@ -496,6 +502,7 @@ module digital_macro #(
         .spin_wwl_strobe_i              (spin_wwl_strobe_i          ),
         .spin_feedback_i                (spin_feedback_i            ),
         .synchronizer_pipe_num_i        (synchronizer_pipe_num_i    ),
+        .synchronizer_wbl_pipe_num_i    (synchronizer_wbl_pipe_num_i),
         .debug_cycle_per_synchronization_i (debug_cycle_per_synchronization_i),
         .debug_synchronization_num_i       (debug_synchronization_num_i      ),
         .dt_cfg_enable_i                (dt_cfg_enable_i            ),
@@ -508,6 +515,7 @@ module digital_macro #(
         .h_wwl_o                        (h_wwl_o                    ),
         .wbl_o                          (wbl_o                      ),
         .wblb_o                         (wblb_o                     ),
+        .wbl_read_i                     (wbl_read_i                 ),
         .wbl_floating_o                 (wbl_floating_o             ),
         .spin_pop_valid_i               (fm_mst_valid               ),
         .spin_pop_ready_o               (aw_slv_ready               ),
@@ -524,6 +532,8 @@ module digital_macro #(
         .debug_j_one_hot_wwl_i          (debug_j_one_hot_wwl_i      ),
         .debug_h_wwl_i                  (debug_h_wwl_i              ),
         .debug_wbl_i                    (debug_wbl_i                ),
+        .debug_j_read_data_valid_o      (debug_j_read_data_valid_o  ),
+        .debug_j_read_data_o            (debug_j_read_data_o        ),
         .debug_spin_write_en_i          (debug_spin_write_en_i      ),
         .debug_spin_wwl_i               (debug_spin_wwl_i           ),
         .debug_spin_feedback_i          (debug_spin_feedback_i      ),

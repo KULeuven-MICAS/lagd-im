@@ -68,6 +68,7 @@ module tb_digital_macro;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_strobe_i;
     logic [ NUM_SPIN-1 : 0 ] spin_feedback_i;
     logic [ $clog2(SYNCHRONIZER_PIPEDEPTH)-1 : 0 ] synchronizer_pipe_num_i;
+    logic [ $clog2(SYNCHRONIZER_PIPEDEPTH)-1 : 0 ] synchronizer_wbl_pipe_num_i;
     logic dt_cfg_enable_i, dt_cfg_idle_o;
     logic j_mem_ren_o;
     logic [ $clog2(NUM_SPIN / PARALLELISM)-1 : 0 ] j_raddr_o, dgt_weight_raddr_o;
@@ -119,6 +120,9 @@ module tb_digital_macro;
     logic debug_spin_valid_o;
     logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o;
     logic [NUM_SPIN-1:0] debug_spin_o;
+    logic debug_j_read_data_valid_o;
+    logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_read_i, wblb_read_i;
 
     // testbench signals
     logic [NUM_SPIN*BITJ-1:0] wbl_copy;
@@ -145,7 +149,6 @@ module tb_digital_macro;
     assign en_fm_i = en_i;
     assign en_ff_i = en_i;
     assign dgt_addr_upper_bound_i = NUM_SPIN / PARALLELISM - 1;
-    assign wbl_floating_i = {NUM_SPIN*BITJ{1'b0}}; // not used in this testbench
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -196,6 +199,7 @@ module tb_digital_macro;
         .spin_wwl_strobe_i          (spin_wwl_strobe_i          ),
         .spin_feedback_i            (spin_feedback_i            ),
         .synchronizer_pipe_num_i    (synchronizer_pipe_num_i    ),
+        .synchronizer_wbl_pipe_num_i(synchronizer_wbl_pipe_num_i),
         .debug_cycle_per_synchronization_i (debug_cycle_per_synchronization_i),
         .debug_synchronization_num_i       (debug_synchronization_num_i      ),
         .dt_cfg_enable_i            (dt_cfg_enable_i            ),
@@ -225,6 +229,8 @@ module tb_digital_macro;
         .h_wwl_o                    (h_wwl_o                    ),
         .wbl_o                      (wbl_o                      ),
         .wblb_o                     (wblb_o                     ),
+        .wbl_read_i                 (wbl_read_i                 ),
+        .wblb_read_i                (wblb_read_i                ),
         .wbl_floating_o             (wbl_floating_o             ),
         .spin_wwl_o                 (spin_wwl_o                 ),
         .spin_feedback_o            (spin_feedback_o            ),
@@ -240,6 +246,8 @@ module tb_digital_macro;
         .debug_j_one_hot_wwl_i      (debug_j_one_hot_wwl_i      ),
         .debug_h_wwl_i              (debug_h_wwl_i              ),
         .debug_wbl_i                (debug_wbl_i                ),
+        .debug_j_read_data_o        (debug_j_read_data_o        ),
+        .debug_j_read_data_valid_o  (debug_j_read_data_valid_o  ),
         .debug_spin_write_en_i      (debug_spin_write_en_i      ),
         .debug_spin_wwl_i           (debug_spin_wwl_i           ),
         .debug_spin_feedback_i      (debug_spin_feedback_i      ),
@@ -484,7 +492,8 @@ module tb_digital_macro;
         cycle_per_wwl_low_i = CyclePerWwlLow - 1;
         cycle_per_spin_write_i = CyclePerSpinWrite - 1;
         cycle_per_spin_compute_i = CyclePerSpinCompute - 1;
-        synchronizer_pipe_num_i = SynchronizerPipeNum;;
+        synchronizer_pipe_num_i = SynchronizerPipeNum;
+        synchronizer_wbl_pipe_num_i = SynchronizerPipeNum;
         spin_wwl_strobe_i = SpinWwlStrobe;
         spin_feedback_i = SpinFeedback;
         @(posedge clk_i);
@@ -721,6 +730,29 @@ module tb_digital_macro;
         end
         @(posedge clk_i);
         cmpt_test_end = 1;
+    endtask
+
+    // ========================================================================
+    // Debug
+    // ========================================================================
+    task automatic debug_model_wr();
+    begin
+        debug_j_write_en_i = 1'b0;
+        debug_j_read_en_i = 1'b0;
+        debug_j_one_hot_wwl_i = 'd0;
+        debug_h_wwl_i = 1'b0;
+        debug_wbl_i = 'd0;
+        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+    end
+    endtask
+
+    task automatic debug_model_spin_wr();
+    begin
+        debug_spin_write_en_i = 1'b0;
+        debug_spin_read_en_i = 1'b0;
+        debug_spin_wwl_i = 'd0;
+        debug_spin_feedback_i = 'd0;
+    end
     endtask
 
     // ========================================================================
@@ -1027,6 +1059,9 @@ module tb_digital_macro;
             // timer
             cmpt_enable_and_timer();
             timing_record();
+            // debug
+            debug_model_wr();
+            debug_model_spin_wr();
         join_none
     end
 
