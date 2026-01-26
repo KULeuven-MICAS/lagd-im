@@ -53,6 +53,8 @@ package data_read_pkg;
         model_t model;
         real const_real;
         int const_round;
+        real scaling_real;
+        int scaling_int;
 
         model_file = $fopen(`MODEL_FILE, "r");
         if (model_file == 0) begin
@@ -83,7 +85,7 @@ package data_read_pkg;
                     hbias_idx = hbias_idx + 1;
                 end
                 // Read constant as a signed integer
-                else if (line_num > (2 + 2*NUM_SPIN)) begin
+                else if (line_num > (2 + 2*NUM_SPIN) && line_num <= (4 + 2*NUM_SPIN)) begin
                     if ($sscanf(line, "%f", const_real) != 1) begin
                         $display("Error: Failed to parse constant from line: %s (@ line %0d)", line, line_num);
                         $finish;
@@ -93,11 +95,27 @@ package data_read_pkg;
                     else
                         const_round = $rtoi(const_real - 0.5);
                     model.constant = const_round;
+                end else begin
+                    if (line_num > (4 + 2*NUM_SPIN)) begin
+                        if ($sscanf(line, "%f", scaling_real) != 1) begin
+                        $display("Error: Failed to parse the scaling factor from line: %s (@ line %0d)", line, line_num);
+                        $finish;
+                        end
+                    scaling_int = $rtoi(scaling_real + 0.5);
+                    // check if scaling_int is in the legal range [1, 16]
+                    if (scaling_int <= 0 || scaling_int > 16) begin
+                        $fatal(1, "The scaling_int 'd%d is beyond the range of [1, 16]", scaling_int);
+                        end
+                    // check if scaling_int is in the power of 2
+                    if ((scaling_int & (scaling_int-1)) != 0) begin
+                        $fatal(1, "The scaling_int 'd%d is not in the power of 2", scaling_int);
+                        end
+                    model.scaling_factor = scaling_int[SCALING_BIT-1:0];
+                    end
                 end
             end
         end
         $fclose(model_file);
-        model.scaling_factor = 'd4; // fixed scaling factor according to the algorithm setup
         $display("[Time: %t] Model file %s is loaded successfully.", $time, `MODEL_FILE);
         return model;
     endfunction
