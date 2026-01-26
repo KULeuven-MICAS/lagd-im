@@ -13,7 +13,7 @@ set HDL_FILES [ list \
     "${HDL_PATH}/analog_macro_wrap/analog_tx.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
     "${HDL_PATH}/analog_macro_wrap/synchronizer.sv" \
-    "${HDL_PATH}/analog_macro_wrap/debug_analog_dt_write.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_dt_debug.sv" \
 ]
 
 set INCLUDE_DIRS [list \

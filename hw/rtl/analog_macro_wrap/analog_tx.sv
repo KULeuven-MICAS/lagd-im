@@ -46,6 +46,7 @@ module analog_tx #(
     assign spin_handshake = spin_valid_o & spin_ready_i;
     assign spin_valid_o = spin_valid_reg;
     assign spin_o = spin_out_reg;
+    assign synchronizer_pipe_num_reg_o = synchronizer_pipe_num_reg;
 
     synchronizer #(
         .DATAW(NUM_SPIN),
