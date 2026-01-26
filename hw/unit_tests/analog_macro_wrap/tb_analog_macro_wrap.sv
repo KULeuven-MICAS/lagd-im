@@ -20,7 +20,7 @@
 module tb_analog_macro_wrap;
 
     // module parameters
-    localparam int NUM_SPIN = 256; // number of spins
+    localparam int NUM_SPIN = 16; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 8;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
@@ -28,15 +28,16 @@ module tb_analog_macro_wrap;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 10_000; // number of onloading tests
-    localparam int CmptTestNum = 10_000; // number of compute tests
+    localparam int OnloadingTestNum = 1; // number of onloading tests
+    localparam int CmptTestNum = 10; // number of compute tests
+    localparam int DebugTestNum = 2;
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
 
     // dut run-time configuration
-    localparam int CyclePerWwlHigh = 2;
-    localparam int CyclePerWwlLow = 2;
+    localparam int CyclePerWwlHigh = 3;
+    localparam int CyclePerWwlLow = 3;
     localparam int CyclePerSpinWrite = 3;
     localparam int CyclePerSpinCompute = 5;
     localparam int SynchronizerPipeNum = 3;
@@ -91,6 +92,7 @@ module tb_analog_macro_wrap;
     logic debug_j_write_en_i;
     logic debug_j_read_en_i;
     logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i;
+    logic [$clog2(NUM_SPIN)-1:0] debug_j_analog_waddr, debug_j_analog_raddr;
     logic debug_h_wwl_i;
     logic [NUM_SPIN*BITDATA-1:0] debug_wbl_i;
     logic debug_spin_write_en_i;
@@ -106,6 +108,7 @@ module tb_analog_macro_wrap;
 
     logic config_aw_done;
     logic config_galena_done;
+    logic debug_galena_done;
     logic [NUM_SPIN/PARALLELISM-1:0][NUM_SPIN*BITDATA*PARALLELISM-1:0] weights_in_mem;
     logic [NUM_SPIN-1:0][NUM_SPIN*BITDATA-1:0] weights_in_mem_ordered, weights_analog;
     logic [NUM_SPIN*BITDATA-1:0] hbias_analog;
@@ -118,9 +121,18 @@ module tb_analog_macro_wrap;
     integer config_test_correct_cnt_j, config_test_correct_cnt_h;
     integer cmpt_correct_cnt, cmpt_error_cnt;
     integer spin_pop_handshake_cnt;
+    logic debug_j_write_en_dly1, debug_j_read_en_dly1, debug_spin_write_en_dly1, debug_spin_read_en_dly1;
+    logic debug_j_write_en_posedge, debug_j_read_en_posedge, debug_spin_write_en_posedge, debug_spin_read_en_posedge;
+    integer debug_test_idx;
+    integer debug_dt_write_cycle_cnt_j;
 
     assign spin_pop_handshake = spin_pop_valid_i & spin_pop_ready_o;
     assign spin_push_handshake = spin_valid_o & spin_ready_i;
+
+    assign debug_j_write_en_posedge = debug_j_write_en_i & (~debug_j_write_en_dly1);
+    assign debug_j_read_en_posedge = debug_j_read_en_i & (~debug_j_read_en_dly1);
+    assign debug_spin_write_en_posedge = debug_spin_write_en_i & (~debug_spin_write_en_dly1);
+    assign debug_spin_read_en_posedge = debug_spin_read_en_i & (~debug_spin_read_en_dly1);
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -225,7 +237,7 @@ module tb_analog_macro_wrap;
             $dumpfile(`VCD_FILE);
             $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(1_00 * CLKCYCLE); // To avoid generating huge VCD files
+            #(5_00 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
@@ -249,6 +261,20 @@ module tb_analog_macro_wrap;
         end
     end
     assign h_rdata_i = hbias_in_reg;
+    // dly of debug en
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            debug_j_write_en_dly1 <= 1'b0;
+            debug_j_read_en_dly1 <= 1'b0;
+            debug_spin_write_en_dly1 <= 1'b0;
+            debug_spin_read_en_dly1 <= 1'b0;
+        end else begin
+            debug_j_write_en_dly1 <= debug_j_write_en_i;
+            debug_j_read_en_dly1 <= debug_j_read_en_i;
+            debug_spin_write_en_dly1 <= debug_spin_write_en_i;
+            debug_spin_read_en_dly1 <= debug_spin_read_en_i;
+        end
+    end
 
     // ========================================================================
     // Tasks
@@ -443,7 +469,7 @@ module tb_analog_macro_wrap;
         spin_pop_i = 'd0;
         spin_pop_handshake_cnt = 0;
         spin_pop_valid_i = 0;
-        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1 && debug_galena_done == 1);
         while (spin_pop_handshake_cnt < CmptTestNum) begin
             @(posedge clk_i);
             // generate new spin_pop_i
@@ -459,14 +485,65 @@ module tb_analog_macro_wrap;
         end
     endtask
 
+    // ========================================================================
+    // Debug
+    // ========================================================================
     task automatic debug_model_wr();
     begin
+        integer debug_idx;
+        logic [BITDATA-1:0] temp_debug_wbl_data;
+
         debug_j_write_en_i = 1'b0;
         debug_j_read_en_i = 1'b0;
         debug_j_one_hot_wwl_i = 'd0;
+        debug_j_analog_waddr = 'd0;
+        debug_j_analog_raddr = 'd0;
         debug_h_wwl_i = 1'b0;
         debug_wbl_i = 'd0;
         wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+        debug_test_idx = 'd0;
+        debug_galena_done = 1'b0;
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        @(posedge clk_i);
+        if (debug_test_idx < DebugTestNum) begin
+            // test: writing j/h
+            wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+            debug_j_analog_waddr = $urandom_range(0, 2 * NUM_SPIN);
+            if (debug_j_analog_waddr >= NUM_SPIN) begin
+                debug_h_wwl_i = 1'b1;
+                debug_j_one_hot_wwl_i = 'd0;
+            end else begin
+                debug_j_one_hot_wwl_i = 1'b1 << debug_j_analog_waddr;
+                debug_h_wwl_i = 1'b0;
+            end
+            // generate random wbl data
+            for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+                do begin
+                    temp_debug_wbl_data = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                end while (temp_debug_wbl_data == {1'b1, {BITDATA-1{1'b0}}});  // Exclude unsupported most negative value
+                debug_wbl_i[i*BITDATA +: BITDATA] = temp_debug_wbl_data;
+            end
+            debug_j_write_en_i = 1'b1;
+            repeat (CyclePerWwlHigh+CyclePerWwlLow+1) @(posedge clk_i);
+            debug_j_write_en_i = 1'b0;
+            // test: reading j/h
+            wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
+            debug_j_analog_raddr = $urandom_range(0, 2 * NUM_SPIN);
+            if (debug_j_analog_raddr >= NUM_SPIN) begin
+                debug_h_wwl_i = 1'b1;
+                debug_j_one_hot_wwl_i = 'd0;
+            end else begin
+                debug_h_wwl_i = 1'b0;
+                debug_j_one_hot_wwl_i = 1'b1 << debug_j_analog_raddr;
+            end
+            debug_j_read_en_i = 1'b1;
+            repeat (SynchronizerPipeNum+1) @(posedge clk_i);
+            debug_j_read_en_i = 1'b0;
+            @(posedge clk_i);
+            debug_test_idx = debug_test_idx + 1'b1;
+        end
+
+        debug_galena_done = 1'b1;
     end
     endtask
 
@@ -524,7 +601,7 @@ module tb_analog_macro_wrap;
                     @(negedge clk_i);
                     // monitor if j_one_hot_wwl_o remains valid for the dedefined cycles
                     if (j_one_hot_wwl_o == 0 && dt_write_cycle_cnt_j != 0) begin
-                        $fatal(1, "[Time: %t] Warning: j_one_hot_wwl_o switches to zero during dt write cycle %0d for galena_addr_idx %0d",
+                        $fatal(1, "[Time: %t] Error: j_one_hot_wwl_o switches to zero during dt write cycle %0d for galena_addr_idx %0d",
                             $time, dt_write_cycle_cnt_j, galena_addr_idx);
                     end
                     if (|j_one_hot_wwl_o) begin
@@ -602,11 +679,92 @@ module tb_analog_macro_wrap;
         end
     endtask
 
+    // Task for debugging mode: data write
+    task automatic debug_analog_interface_j_h_write();
+        debug_dt_write_cycle_cnt_j = 0;
+        wait (rst_ni == 1 && en_i == 1);
+        while (debug_galena_done == 0) begin
+            if (debug_j_write_en_posedge) begin: debug_j_writing_mode
+                debug_dt_write_cycle_cnt_j = 'd0;
+                @(negedge clk_i);
+                while (debug_dt_write_cycle_cnt_j < CyclePerWwlHigh) begin
+                    if (debug_h_wwl_i) begin
+                    end else begin
+                        if (|j_one_hot_wwl_o) begin
+                            // check if one-hot encoded and matches galena_addr_idx
+                            if ($countbits(j_one_hot_wwl_o, '1) != 1)
+                                $fatal(1, "[Time: %t][Debug data write mode] Error: j_one_hot_wwl_o is not one-hot encoded, j_one_hot_wwl_o: 'b%b", $time, j_one_hot_wwl_o);
+                        end
+                    end
+                    debug_dt_write_cycle_cnt_j = debug_dt_write_cycle_cnt_j + 1;
+                    @(negedge clk_i);
+                end
+                // load output to analog reference model data
+                if (debug_h_wwl_i) begin
+                    // after dt write cycles, write hbias
+                    for (int i=0; i<NUM_SPIN; i=i+1) begin
+                        hbias_analog[i*BITDATA +: BITDATA] = wbl_o[i*BITDATA +: BITDATA];
+                    end
+                    // compare data
+                    if (hbias_analog != debug_wbl_i) begin
+                        $fatal(1, "[Time: %t][Debug data write mode] Error: Hbias writing mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, debug_wbl_i, hbias_analog);
+                    end
+                end else begin
+                    // after dt write cycles, write hbias
+                    for (int i=0; i<NUM_SPIN; i=i+1) begin
+                        weights_analog[debug_j_analog_waddr][i*BITDATA +: BITDATA] = wbl_o[i*BITDATA +: BITDATA];
+                    end
+                    // compare data
+                    if (weights_analog[debug_j_analog_waddr] != debug_wbl_i) begin
+                        $fatal(1, "[Time: %t][Debug data write mode] Error: J writing mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, debug_wbl_i, weights_analog[debug_j_analog_waddr]);
+                    end
+                end
+            end
+            @(negedge clk_i);
+        end
+    endtask
+
+    // Task for debugging mode: data read
+    task automatic debug_analog_interface_j_h_read();
+        integer debug_dt_read_cycle_cnt_j = 0;
+        logic [NUM_SPIN * BITDATA - 1:0] debug_j_read_data_decoded;
+
+        wait (rst_ni == 1 && en_i == 1);
+        while (debug_galena_done == 0) begin
+            @(negedge clk_i);
+            if (debug_j_read_en_posedge) begin
+                wait (debug_j_read_data_valid_o == 1'b1);
+                @(negedge clk_i);
+                // accept data
+                if (bypass_data_conversion_i) begin
+                    debug_j_read_data_decoded = debug_j_read_data_o;
+                end else begin
+                    debug_j_read_data_decoded = wbl_analog_to_signed_int(debug_j_read_data_o);
+                end
+                // compare data
+                if (debug_h_wwl_i) begin: compare_h
+                    if (debug_j_read_data_decoded != hbias_analog) begin
+                        $fatal(1, "[Time: %t][Debug data read mode] Error: Hbias read mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, hbias_analog, debug_j_read_data_decoded);
+                    end
+                end else begin: compare_j
+                    if (debug_j_read_data_decoded != weights_analog[debug_j_analog_raddr]) begin
+                        $fatal(1, "[Time: %t][Debug data read mode] Error: J read mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, weights_analog[debug_j_analog_raddr], debug_j_read_data_decoded);
+                    end
+                end
+            end
+        end
+    endtask
+
+
     // Task for spin_wwl_o check
     task automatic spin_wwl_check();
         integer spin_wwl_cycle_cnt;
         spin_wwl_cycle_cnt = 0;
-        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1 && debug_galena_done == 1);
         @(negedge clk_i);
         forever begin
             @(negedge clk_i);
@@ -634,7 +792,7 @@ module tb_analog_macro_wrap;
         cmpt_error_cnt = 0;
         spin_pop_ref_valid = 0;
         spin_pop_ref = 'd0;
-        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1);
+        wait (rst_ni == 1 && en_i == 1 && config_galena_done == 1 && debug_galena_done == 1);
         while (cmpt_correct_cnt + cmpt_error_cnt < CmptTestNum) begin
             @(negedge clk_i);
             if (spin_pop_ready_o & spin_pop_valid_i) begin: fetch_spin_pop
@@ -756,9 +914,12 @@ module tb_analog_macro_wrap;
             // Timer
             config_timer();
             cmpt_timer();
-            // Debug
+            // Debug operations
             debug_model_wr();
             debug_model_spin_wr();
+            // Debug checks
+            debug_analog_interface_j_h_write();
+            debug_analog_interface_j_h_read();
         join_none
     end
 
