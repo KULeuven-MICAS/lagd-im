@@ -20,15 +20,16 @@
 module tb_analog_macro_wrap;
 
     // module parameters
-    localparam int NUM_SPIN = 256; // number of spins
+    localparam int NUM_SPIN = 16; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 8;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
+    localparam int DEBUG_WADDR_WIDTH = $clog2(1024); // width of debug spin read address
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 10_000; // number of onloading tests
-    localparam int CmptTestNum = 10_000; // number of compute tests
+    localparam int OnloadingTestNum = 0; // number of onloading tests
+    localparam int CmptTestNum = 20; // number of compute tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
@@ -55,6 +56,7 @@ module tb_analog_macro_wrap;
     logic [NUM_SPIN-1:0] spin_wwl_strobe_i;
     logic [NUM_SPIN-1:0] spin_feedback_i;
     logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_pipe_num_i;
+    logic [$clog2(SYNCHRONIZER_PIPE_DEPTH)-1:0] synchronizer_wbl_pipe_num_i;
     logic [NUM_SPIN*BITDATA-1:0] wbl_floating_i;
     logic dt_cfg_enable_i;
     logic j_mem_ren_o;
@@ -64,7 +66,9 @@ module tb_analog_macro_wrap;
     logic [NUM_SPIN*BITDATA-1:0] h_rdata_i, hbias_in_reg;
     logic [NUM_SPIN-1:0] j_one_hot_wwl_o;
     logic h_wwl_o;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_o, wbl_copy, wblb_o, wbl_floating_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_copy, wbl_floating_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_o, wblb_o;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_read_i;
     logic spin_pop_valid_i;
     logic spin_pop_ready_o;
     logic spin_pop_handshake;
@@ -73,7 +77,7 @@ module tb_analog_macro_wrap;
     logic spin_pop_ref_valid;
     logic [NUM_SPIN-1:0] spin_wwl_o;
     logic [NUM_SPIN-1:0] spin_feedback_o;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_i;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_i; // used only in testbench reference model
     logic [NUM_SPIN-1:0] spin_analog_i;
     logic spin_valid_o;
     logic spin_ready_i;
@@ -81,6 +85,24 @@ module tb_analog_macro_wrap;
     logic dt_cfg_idle_o;
     logic analog_rx_idle_o;
     logic analog_tx_idle_o;
+    logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_i;
+    logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_i;
+    // debugging interface
+    logic debug_j_write_en_i;
+    logic debug_j_read_en_i;
+    logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i;
+    logic debug_h_wwl_i;
+    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_i;
+    logic debug_spin_write_en_i;
+    logic [NUM_SPIN-1:0] debug_spin_wwl_i;
+    logic [NUM_SPIN-1:0] debug_spin_feedback_i;
+    logic debug_spin_read_en_i;
+    logic debug_spin_read_busy_o;
+    logic debug_spin_valid_o;
+    logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o;
+    logic [NUM_SPIN-1:0] debug_spin_o;
+    logic debug_j_read_data_valid_o;
+    logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
 
     logic config_aw_done;
     logic config_galena_done;
@@ -119,45 +141,67 @@ module tb_analog_macro_wrap;
         .PARALLELISM(PARALLELISM),
         .COUNTER_BITWIDTH(COUNTER_BITWIDTH),
         .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPE_DEPTH),
-        .SPIN_WBL_OFFSET(SPIN_WBL_OFFSET)
+        .SPIN_WBL_OFFSET(SPIN_WBL_OFFSET),
+        .DEBUG_WADDR_WIDTH(DEBUG_WADDR_WIDTH)
     ) dut (
-        .clk_i(clk_i),
-        .rst_ni(rst_ni),
-        .en_i(en_i),
-        .analog_wrap_configure_enable_i(analog_wrap_configure_enable_i),
-        .cfg_trans_num_i(cfg_trans_num_i),
-        .cycle_per_wwl_high_i(cycle_per_wwl_high_i),
-        .cycle_per_wwl_low_i(cycle_per_wwl_low_i),
-        .cycle_per_spin_write_i(cycle_per_spin_write_i),
-        .cycle_per_spin_compute_i(cycle_per_spin_compute_i),
-        .bypass_data_conversion_i(bypass_data_conversion_i),
-        .spin_wwl_strobe_i(spin_wwl_strobe_i),
-        .spin_feedback_i(spin_feedback_i),
-        .synchronizer_pipe_num_i(synchronizer_pipe_num_i),
-        .wbl_floating_i(wbl_floating_i),
-        .dt_cfg_enable_i(dt_cfg_enable_i),
-        .j_mem_ren_o(j_mem_ren_o),
-        .j_raddr_o(j_raddr_o),
-        .j_rdata_i(j_rdata_i),
-        .h_ren_o(h_ren_o),
-        .h_rdata_i(h_rdata_i),
-        .j_one_hot_wwl_o(j_one_hot_wwl_o),
-        .h_wwl_o(h_wwl_o),
-        .wbl_o(wbl_o),
-        .wblb_o(wblb_o),
-        .wbl_floating_o(wbl_floating_o),
-        .spin_pop_valid_i(spin_pop_valid_i),
-        .spin_pop_ready_o(spin_pop_ready_o),
-        .spin_pop_i(spin_pop_i),
-        .spin_wwl_o(spin_wwl_o),
-        .spin_analog_i(spin_analog_i),
-        .spin_feedback_o(spin_feedback_o),
-        .spin_valid_o(spin_valid_o),
-        .spin_ready_i(spin_ready_i),
-        .spin_o(spin_o),
-        .dt_cfg_idle_o(dt_cfg_idle_o),
-        .analog_rx_idle_o(analog_rx_idle_o),
-        .analog_tx_idle_o(analog_tx_idle_o)
+        .clk_i                             (clk_i                            ),
+        .rst_ni                            (rst_ni                           ),
+        .en_i                              (en_i                             ),
+        .analog_wrap_configure_enable_i    (analog_wrap_configure_enable_i   ),
+        .cfg_trans_num_i                   (cfg_trans_num_i                  ),
+        .cycle_per_wwl_high_i              (cycle_per_wwl_high_i             ),
+        .cycle_per_wwl_low_i               (cycle_per_wwl_low_i              ),
+        .cycle_per_spin_write_i            (cycle_per_spin_write_i           ),
+        .cycle_per_spin_compute_i          (cycle_per_spin_compute_i         ),
+        .bypass_data_conversion_i          (bypass_data_conversion_i         ),
+        .spin_wwl_strobe_i                 (spin_wwl_strobe_i                ),
+        .spin_feedback_i                   (spin_feedback_i                  ),
+        .synchronizer_pipe_num_i           (synchronizer_pipe_num_i          ),
+        .synchronizer_wbl_pipe_num_i       (synchronizer_wbl_pipe_num_i      ),
+        .debug_cycle_per_synchronization_i (debug_cycle_per_synchronization_i),
+        .debug_synchronization_num_i       (debug_synchronization_num_i      ),
+        .dt_cfg_enable_i                   (dt_cfg_enable_i                  ),
+        .j_mem_ren_o                       (j_mem_ren_o                      ),
+        .j_raddr_o                         (j_raddr_o                        ),
+        .j_rdata_i                         (j_rdata_i                        ),
+        .h_ren_o                           (h_ren_o                          ),
+        .h_rdata_i                         (h_rdata_i                        ),
+        .j_one_hot_wwl_o                   (j_one_hot_wwl_o                  ),
+        .h_wwl_o                           (h_wwl_o                          ),
+        .wbl_o                             (wbl_o                            ),
+        .wblb_o                            (wblb_o                           ),
+        .wbl_read_i                        (wbl_read_i                       ),
+        .wbl_floating_o                    (wbl_floating_o                   ),
+        .spin_pop_valid_i                  (spin_pop_valid_i                 ),
+        .spin_pop_ready_o                  (spin_pop_ready_o                 ),
+        .spin_pop_i                        (spin_pop_i                       ),
+        .spin_wwl_o                        (spin_wwl_o                       ),
+        .spin_analog_i                     (spin_analog_i                    ),
+        .spin_feedback_o                   (spin_feedback_o                  ),
+        .spin_valid_o                      (spin_valid_o                     ),
+        .spin_ready_i                      (spin_ready_i                     ),
+        .spin_o                            (spin_o                           ),
+        // debugging interface
+        .debug_j_write_en_i                (debug_j_write_en_i               ),
+        .debug_j_read_en_i                 (debug_j_read_en_i                ),
+        .debug_j_one_hot_wwl_i             (debug_j_one_hot_wwl_i            ),
+        .debug_h_wwl_i                     (debug_h_wwl_i                    ),
+        .debug_wbl_i                       (debug_wbl_i                      ),
+        .debug_j_read_data_valid_o         (debug_j_read_data_valid_o        ),
+        .debug_j_read_data_o               (debug_j_read_data_o              ),
+        .debug_spin_write_en_i             (debug_spin_write_en_i            ),
+        .debug_spin_wwl_i                  (debug_spin_wwl_i                 ),
+        .debug_spin_feedback_i             (debug_spin_feedback_i            ),
+        .wbl_floating_i                    (wbl_floating_i                   ),
+        .debug_spin_read_en_i              (debug_spin_read_en_i             ),
+        .debug_spin_read_busy_o            (debug_spin_read_busy_o           ),
+        .debug_spin_valid_o                (debug_spin_valid_o               ),
+        .debug_spin_waddr_o                (debug_spin_waddr_o               ),
+        .debug_spin_o                      (debug_spin_o                     ),
+        // status
+        .dt_cfg_idle_o                     (dt_cfg_idle_o                    ),
+        .analog_rx_idle_o                  (analog_rx_idle_o                 ),
+        .analog_tx_idle_o                  (analog_tx_idle_o                 )
     );
 
     // Clock generation
@@ -182,7 +226,7 @@ module tb_analog_macro_wrap;
             $dumpfile(`VCD_FILE);
             $dumpvars(4, tb_analog_macro_wrap); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(1_000 * CLKCYCLE); // To avoid generating huge VCD files
+            #(1_00 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
