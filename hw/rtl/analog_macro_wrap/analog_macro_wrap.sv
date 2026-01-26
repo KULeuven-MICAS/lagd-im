@@ -73,13 +73,13 @@ module analog_macro_wrap #(
     input  logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i,
     input  logic debug_h_wwl_i,
     input  logic [NUM_SPIN*BITDATA-1:0] debug_wbl_i,
+    input  logic [NUM_SPIN*BITDATA-1:0] wbl_floating_i,
     output logic debug_j_read_data_valid_o,
     output logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o,
     // debug interface: spin writing
     input  logic debug_spin_write_en_i,
     input  logic [NUM_SPIN-1:0] debug_spin_wwl_i, // write_spin_i
     input  logic [NUM_SPIN-1:0] debug_spin_feedback_i,
-    input  logic [NUM_SPIN*BITDATA-1:0] wbl_floating_i,
     // debug interface: spin reading
     input  logic debug_spin_read_en_i,
     output logic debug_spin_read_busy_o,
