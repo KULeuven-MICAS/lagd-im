@@ -29,8 +29,8 @@ module flip_filter #(
     input  logic [ADDR_WIDTH-1      :0] raddr_upper_bound_i,
 
     // baseline energy and spin inputs
-    input  logic [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_baseline_i,
-    input  logic [SPIN_DEPTH-1:0] [NUM_SPIN-1        :0] spin_baseline_i,
+    input  wire [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_baseline_i,
+    input  wire [SPIN_DEPTH-1:0] [NUM_SPIN-1        :0] spin_baseline_i,
     output logic                        curr_baseline_valid_o,
 
     // spin upstream inputs
