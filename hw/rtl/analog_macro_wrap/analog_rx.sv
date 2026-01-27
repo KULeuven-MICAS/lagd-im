@@ -71,8 +71,8 @@ module analog_rx #(
 
     // configure registers
     `FFLARNC(rx_busy, 1'b1, spin_pop_cond, spin_wwl_reset_cond, 1'b0, clk_i, rst_ni)
-    `FFL(spin_wwl_strobe_reg, spin_wwl_strobe_i, config_cond, 'b0, clk_i, rst_ni)
-    `FFL(spin_feedback_reg, spin_feedback_i, config_cond, 'b0, clk_i, rst_ni)
+    `FFL(spin_wwl_strobe_reg, spin_wwl_strobe_i, config_cond, 'd0, clk_i, rst_ni)
+    `FFL(spin_feedback_reg, spin_feedback_i, config_cond, 'd0, clk_i, rst_ni)
 
     step_counter #(
         .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
