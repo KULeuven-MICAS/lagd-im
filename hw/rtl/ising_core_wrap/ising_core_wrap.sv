@@ -181,8 +181,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .axi_narrow_rsp_o       (axi_s_rsp_o           ), // todo: connnect to axi_s_rsp_j
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       (                      ),
-        .mem_narrow_rsp_o       ('0                    ),
+        .mem_narrow_req_i       ('0                  ),
+        .mem_narrow_rsp_o       (                      ),
         .mem_wide_req_i         (drt_s_req_j           ),
         .mem_wide_rsp_o         (drt_s_rsp_j           )
     );
@@ -204,8 +204,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .axi_narrow_rsp_o       (axi_s_rsp_o           ), // todo: connnect to axi_s_rsp_flip
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       (                      ),
-        .mem_narrow_rsp_o       ('0                    ),
+        .mem_narrow_req_i       ('0                    ),
+        .mem_narrow_rsp_o       (                      ),
         .mem_wide_req_i         (drt_s_req_flip        ),
         .mem_wide_rsp_o         (drt_s_rsp_flip        )
     );

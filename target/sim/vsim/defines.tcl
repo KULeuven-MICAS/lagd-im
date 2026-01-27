@@ -67,6 +67,24 @@ if { [info exists ::env(PARAMS)] } {
     set PARAMS ""
 }
 
+if { ![file exists ::env(VLOG_FLAGS)] } {
+    set VLOG_FLAGS ""
+} else {
+    set VLOG_FLAGS $::env(VLOG_FLAGS)
+}
+
+if { ![file exists ::env(VOPT_ARGS)] } {
+    set VOPT_ARGS ""
+} else {
+    set VOPT_ARGS $::env(VOPT_ARGS)
+}
+
+if { ![file exists ::env(VSIM_FLAGS)] } {
+    set VSIM_FLAGS ""
+} else {
+    set VSIM_FLAGS $::env(VSIM_FLAGS)
+}
+
 set WLIB "${WORK_DIR}/work/work_${SIM_NAME}"
 
 puts "--------------------------------------------------------------------------------"
@@ -79,4 +97,7 @@ puts "DBG: ${DBG}"
 puts "VCD_FILE: ${VCD_FILE}"
 puts "DEFINES: ${DEFINES}"
 puts "WLIB: ${WLIB}"
+puts "VLOG_FLAGS: ${VLOG_FLAGS}"
+puts "VOPT_ARGS: ${VOPT_ARGS}"
+puts "VSIM_FLAGS: ${VSIM_FLAGS}"
 puts "--------------------------------------------------------------------------------"

@@ -95,7 +95,7 @@ for i in "$@"; do
             shift
             ;;
         --clean)
-            CLEAN=clean
+            CLEAN=${SIM_TOOL}-clean
             shift
             ;;
         --clean-only)
@@ -131,7 +131,7 @@ fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
     SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} HDL_FILES_LIST=${HDL_FILES_LIST} \
-        make -C "${TEST_PATH}" clean
+        make -C "${TEST_PATH}" ${SIM_TOOL}-clean
 else
     if [ -n "${HDL_FILES_LIST}" ]; then # HDL_FILES_LIST is not empty
         if [ -n "${LEAF}" ]; then
