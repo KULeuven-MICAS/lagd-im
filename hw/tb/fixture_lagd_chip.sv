@@ -14,6 +14,19 @@
 module fixture_lagd_chip ();
 
   localparam int unsigned ChipTest = `LAGD_CHIP;
+  logic [1:0] boot_mode;
+  logic clk;
+  logic rst_n;
+  logic jtag_tck;
+  logic jtag_trst_ni;
+  logic jtag_tms;
+  logic jtag_tdi;
+  logic jtag_tdo;
+  logic jtag_tdo_oe;
+  logic uart_tx;
+  logic uart_rx;
+
+  
   //==============================================
   // DUT
   //==============================================
@@ -73,6 +86,7 @@ module fixture_lagd_chip ();
     logic jtag_tms_i; assign jtag_tms_i = jtag_tms;
     logic jtag_tdi_i; assign jtag_tdi_i = jtag_tdi;
     logic jtag_tdo_o; assign jtag_tdo = jtag_tdo_o;
+    logic jtag_tdo_oe_o; assign jtag_tdo_oe = jtag_tdo_oe_o;
     logic uart_tx_o; assign uart_tx = uart_tx_o;
     logic uart_rx_i; assign uart_rx_i = uart_rx;
     logic uart_rts_no;
@@ -97,25 +111,15 @@ module fixture_lagd_chip ();
     wire [`NUM_ISING_CORES-1:0] galena_h_vup_i;
     wire [`NUM_ISING_CORES-1:0] galena_h_vdn_i;
 
-    lagd_soc dut (*.);
+    lagd_soc dut (.*);
   end
   endgenerate
+
   //==============================================
   // Verification IP
   //==============================================
 
   `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, lagd_pkg::CheshireCfg)
-
-  logic [1:0] boot_mode;
-  logic clk;
-  logic rst_n;
-  logic jtag_tck;
-  logic jtag_trst_ni;
-  logic jtag_tms;
-  logic jtag_tdi;
-  logic jtag_tdo;
-  logic uart_tx;
-  logic uart_rx;
 
   vip_cheshire_soc #(
     .DutCfg(lagd_pkg::CheshireCfg),
@@ -127,7 +131,7 @@ module fixture_lagd_chip ();
     .clk(clk),
     .rst_n(rst_n),
     .boot_mode(boot_mode),
-    .test_mode(1'b0),
+    .test_mode(),
     .axi_llc_mst_req('0),
     .axi_llc_mst_rsp(),
     .axi_slink_mst_req('0),
