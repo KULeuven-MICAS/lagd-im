@@ -41,8 +41,6 @@ jobs:
                         third_parties/*
                         target/syn/tech/tsmc7ff/*
                         hw/rtl/flip_manager/lagd_fifo_v3.sv
-                        hw/unit_tests/digital_macro/onehot_to_bin.sv
-                        hw/unit_tests/digital_macro/popcount.sv
 
     ################
     # Verible Lint #
