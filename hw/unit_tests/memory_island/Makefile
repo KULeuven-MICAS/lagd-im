@@ -23,6 +23,8 @@ else
 endif
 HDL_FILES_LIST ?= $(CURDIR)/tests/memory_island.tcl
 
+include ../common.mk
+
 # ============================================================
 # Memory Island flist generation
 # ============================================================
