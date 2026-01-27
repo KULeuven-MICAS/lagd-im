@@ -12,7 +12,7 @@
 `define PRELOAD_MODE 0
 `endif
 
-module tb_cheshire_chip ();
+module tb_lagd_chip ();
 
   fixture_lagd_chip fix ();
   
