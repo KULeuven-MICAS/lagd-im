@@ -31,7 +31,7 @@ flist: $(TEST_PATH)/bender_list.tcl
 $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
 
-clean:
+clean: vsim-clean
 	rm -f $(TEST_PATH)/bender_list.tcl
 
 # ============================================================
@@ -39,7 +39,9 @@ clean:
 # ============================================================
 
 TEST_PATH ?= $(CURDIR)
-HDL_FILE_LIST ?= $(TEST_PATH)/bender_list.tcl
+HDL_FILES_LIST ?= $(TEST_PATH)/bender_list.tcl
+SIM_NAME ?= lagd_chip
+WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 HDL_FILES ?=
 DBG ?= 1
 CXX_PATH ?= $(which g++)

@@ -43,15 +43,15 @@ vsim-run: $(RUN_TARGET)
 
 vsim-build: $(BUILD_TARGET)
 
-clean-sim: 
+vsim-clean-sim: 
 	rm -rf $(WORK_DIR)/work/*.wlf $(WORK_DIR)/transcript.run ${WORK_DIR}/*.vcd
 
-clean:
+vsim-clean:
 	rm -rf $(WORK_DIR)
 
 # Aliases
 build: vsim-build
 run: vsim-run
-clean-all: clean
+clean-all: vsim-clean
 
-.PHONY: clean clean-sim clean-all run 
+.PHONY: vsim-clean vsim-clean-sim clean-all run 
