@@ -16,6 +16,8 @@
 
 *CmptTestNum* (10000): number of tests for computation operations.
 
+*DebugTestNum* (100): number of debugging tests, with each test includes (in ordering) single J/h writing, single J/h reading, single spin writing, single spin computing, sequential spin reading.
+
 *CLKCYCLE* (2): clock cycle time (unit: ns)
 
 ## Testcases
@@ -24,7 +26,7 @@
 
 | Testcase Name | Description                                         | Input Parameters                                               |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
-Random | Random test | OnloadingTestNum=1_000_000, CmptTestNum=1_000_000 |
+Random | Random test | OnloadingTestNum=10_000, CmptTestNum=10_000, DebugTestNum=100 |
 
 ## Further Improvements TBD
 
