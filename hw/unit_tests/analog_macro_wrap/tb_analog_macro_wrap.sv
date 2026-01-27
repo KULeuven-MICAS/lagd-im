@@ -20,7 +20,7 @@
 module tb_analog_macro_wrap;
 
     // module parameters
-    localparam int NUM_SPIN = 16; // number of spins
+    localparam int NUM_SPIN = 256; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 16;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
@@ -29,9 +29,9 @@ module tb_analog_macro_wrap;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 2; // number of onloading tests
-    localparam int CmptTestNum = 2; // number of compute tests
-    localparam int DebugTestNum = 2; // number of debug tests
+    localparam int OnloadingTestNum = 10_000; // number of onloading tests
+    localparam int CmptTestNum = 10_000; // number of compute tests
+    localparam int DebugTestNum = 100; // number of debug tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
