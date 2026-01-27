@@ -149,7 +149,7 @@ module tcdm_interconnect_wrap #(
     `ifdef TARGET_LOG_INSTS
     $info("Instantiated tcdm_interconnect_wrap with parameters:");
     `ifndef TARGET_SYNOPSYS
-    $info("Module: %m");=-
+    $info("Module: %m");
     $info("  mem_req_t: %s", $typename(req_i));
     $info("  mem_rsp_t: %s", $typename(rsp_i));
     `endif

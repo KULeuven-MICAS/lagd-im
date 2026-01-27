@@ -22,8 +22,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter type axi_wide_rsp_t = logic,
     parameter type mem_narrow_req_t = logic,
     parameter type mem_narrow_rsp_t = logic,
-    parameter type mem_wide_req_t = logic,
-    parameter type mem_wide_rsp_t = logic,
+    parameter type mem_j_req_t = logic,
+    parameter type mem_j_rsp_t = logic,
+    parameter type mem_f_req_t = logic,
+    parameter type mem_f_rsp_t = logic,
     parameter type axi_slv_aw_chan_t = logic,
     parameter type axi_slv_w_chan_t = logic,
     parameter type axi_slv_b_chan_t = logic,
@@ -57,10 +59,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     axi_narrow_rsp_t axi_s_rsp_j, axi_s_rsp_flip;
     axi_narrow_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
     axi_narrow_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
-    mem_wide_req_t drt_s_req_j;
-    mem_wide_rsp_t drt_s_rsp_j;
-    mem_wide_req_t drt_s_req_flip;
-    mem_wide_rsp_t drt_s_rsp_flip;
+    mem_j_req_t drt_s_req_j;
+    mem_j_rsp_t drt_s_rsp_j;
+    mem_f_req_t drt_s_req_flip;
+    mem_f_rsp_t drt_s_rsp_flip;
     logic [logic_cfg.NumSpin-1:0] spin_regfile;
     
     // Digital macro interface signals
@@ -170,8 +172,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
-        .mem_wide_req_t        (mem_wide_req_t         ),
-        .mem_wide_rsp_t        (mem_wide_rsp_t         )
+        .mem_wide_req_t        (mem_j_req_t         ),
+        .mem_wide_rsp_t        (mem_j_rsp_t         )
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
@@ -193,8 +195,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
-        .mem_wide_req_t        (mem_wide_req_t         ),
-        .mem_wide_rsp_t        (mem_wide_rsp_t         )
+        .mem_wide_req_t        (mem_f_req_t         ),
+        .mem_wide_rsp_t        (mem_f_rsp_t         )
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
