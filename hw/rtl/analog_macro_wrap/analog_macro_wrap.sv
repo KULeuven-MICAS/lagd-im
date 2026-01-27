@@ -19,8 +19,9 @@ module analog_macro_wrap #(
     parameter integer COUNTER_BITWIDTH = 16,
     parameter integer SYNCHRONIZER_PIPEDEPTH = 3,
     parameter integer SPIN_WBL_OFFSET = 0, // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
-    parameter integer DEBUG_WADDR_WIDTH = $clog2(1024),
+    parameter integer DEBUG_WADDR_UP_LIMIT = 1024,
     // derived parameters
+    parameter integer DEBUG_WADDR_WIDTH = $clog2(DEBUG_WADDR_UP_LIMIT),
     parameter integer J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM)
 )(
     input logic clk_i,
@@ -28,6 +29,8 @@ module analog_macro_wrap #(
     input logic en_i,
     // config interface
     input  logic analog_wrap_configure_enable_i,
+    input  logic debug_dt_configure_enable_i,
+    input  logic debug_spin_configure_enable_i,
     input  logic [COUNTER_BITWIDTH-1:0] cfg_trans_num_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_high_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
@@ -38,8 +41,8 @@ module analog_macro_wrap #(
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_wbl_pipe_num_i,
-    input  logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_i,
-    input  logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_i,
+    input  logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_spin_read_i,
+    input  logic [COUNTER_BITWIDTH-1:0] debug_spin_read_num_i,
     // data config interface <-> digital
     input  logic dt_cfg_enable_i,
     output logic j_mem_ren_o,
@@ -78,18 +81,22 @@ module analog_macro_wrap #(
     output logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o,
     // debug interface: spin writing
     input  logic debug_spin_write_en_i,
-    input  logic [NUM_SPIN-1:0] debug_spin_wwl_i, // write_spin_i
-    input  logic [NUM_SPIN-1:0] debug_spin_feedback_i,
+    // debug interface: spin computing
+    input  logic debug_spin_compute_en_i,
     // debug interface: spin reading
     input  logic debug_spin_read_en_i,
-    output logic debug_spin_read_busy_o,
     output logic debug_spin_valid_o,
     output logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o,
     output logic [NUM_SPIN-1:0] debug_spin_o,
     // status
     output logic dt_cfg_idle_o,
     output logic analog_rx_idle_o,
-    output logic analog_tx_idle_o
+    output logic analog_tx_idle_o,
+    output logic debug_dt_w_idle_o,
+    output logic debug_dt_r_idle_o,
+    output logic debug_spin_w_idle_o,
+    output logic debug_spin_cmpt_idle_o,
+    output logic debug_spin_r_idle_o
 );
 
     // Internal signals
@@ -109,52 +116,81 @@ module analog_macro_wrap #(
     logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_reg;
     logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_reg;
     logic debug_spin_reading_en_dly1;
-    logic debug_spin_read_busy;
+    logic debug_spin_read_addr_busy;
     logic debug_syn_cycle_cnt_maxed;
     logic debug_syn_num_cnt_maxed;
+    logic debug_syn_num_cnt_overflow;
     logic analog_macro_cmpt_finish_rx_out;
     logic spin_valid_tx;
     logic spin_ready_tx;
     logic [COUNTER_BITWIDTH-1:0] debug_syn_num_cnt_q;
     logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_tx_reg;
-    logic [COUNTER_BITWIDTH-1:0] debug_spin_waddr_comb;
     logic debug_spin_read_en_posedge;
     logic debug_j_write_en_dly1, debug_j_read_en_dly1, debug_spin_write_en_dly1;
-    logic debug_j_write_en_posedge, debug_j_read_en_posedge, debug_spin_write_en_posedge;
+    logic debug_spin_compute_en_dly1;
+    logic debug_j_write_en_posedge, debug_j_read_en_posedge, debug_spin_write_en_posedge, debug_spin_compute_en_posedge;
+    logic debug_spin_compute_posedge;
     logic [NUM_SPIN-1:0] debug_j_write_wwl;
     logic debug_h_write_wwl;
-    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_dt_write;
+    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_dt_write, debug_wbl_spin, debug_wblb_spin;
     logic debug_analog_dt_idle;
-    logic debug_dt_wwl_high_counter_maxed;
+    logic debug_dt_sync_en;
     logic debug_analog_dt_w_idle, debug_analog_dt_r_idle;
     logic [NUM_SPIN*BITDATA-1:0] wbl_floating_reg;
+    logic debug_spin_sync_en;
+    logic debug_spin_idle, debug_spin_w_idle, debug_spin_feedback_idle, debug_spin_r_idle;
+    logic [NUM_SPIN-1:0] debug_spin_wwl;
+    logic [NUM_SPIN-1:0] debug_spin_feedback;
     genvar i;
 
-    // debugging logic: wwl/wbl
+    // debugging control logic
     assign j_one_hot_wwl_o = (~debug_analog_dt_idle) ? debug_j_write_wwl : j_one_hot_wwl_cfg_output;
     assign h_wwl_o = (~debug_analog_dt_idle) ? debug_h_write_wwl : h_wwl_cfg_out;
 
     assign debug_j_write_en_posedge = debug_j_write_en_i & (~debug_j_write_en_dly1);
     assign debug_j_read_en_posedge = debug_j_read_en_i & (~debug_j_read_en_dly1);
     assign debug_spin_write_en_posedge = debug_spin_write_en_i & (~debug_spin_write_en_dly1);
+    assign debug_spin_compute_en_posedge = debug_spin_compute_en_i & (~debug_spin_compute_en_dly1);
     assign debug_spin_read_en_posedge = debug_spin_read_en_i & (~debug_spin_reading_en_dly1);
 
     `FFL(debug_j_write_en_dly1, debug_j_write_en_i, en_i, 1'b0, clk_i, rst_ni)
     `FFL(debug_j_read_en_dly1, debug_j_read_en_i, en_i, 1'b0, clk_i, rst_ni)
     `FFL(debug_spin_write_en_dly1, debug_spin_write_en_i, en_i, 1'b0, clk_i, rst_ni)
     `FFL(debug_spin_reading_en_dly1, debug_spin_read_en_i, en_i, 1'b0, clk_i, rst_ni)
+    `FFL(debug_spin_compute_en_dly1, debug_spin_compute_en_i, en_i, 1'b0, clk_i, rst_ni)
+
+    assign spin_valid_o       = debug_spin_read_addr_busy ? 1'b0 : spin_valid_tx;
+    assign debug_spin_valid_o = debug_spin_read_addr_busy ? spin_valid_tx : 1'b0;
+    assign spin_ready_tx      = debug_spin_read_addr_busy ? 1'b1 : spin_ready_i;
+
+    assign debug_dt_w_idle_o = debug_analog_dt_w_idle;
+    assign debug_dt_r_idle_o = debug_analog_dt_r_idle;
+    assign debug_spin_w_idle_o    = debug_spin_w_idle;
+    assign debug_spin_cmpt_idle_o = debug_spin_feedback_idle;
+    assign debug_spin_r_idle_o    = ~debug_spin_read_addr_busy;
+
+    // data path
+    assign debug_spin_waddr_o = debug_spin_read_addr_busy ? debug_syn_num_cnt_q[DEBUG_WADDR_WIDTH-1:0] : {DEBUG_WADDR_WIDTH{1'b0}};
+    assign debug_spin_o       = debug_spin_read_addr_busy ? spin_o : {NUM_SPIN{1'b0}};
 
     assign wbl_floating_o = wbl_floating_reg;
-    assign spin_wwl_o = debug_spin_write_en_posedge ? debug_spin_wwl_i : spin_wwl_rx_output;
-    assign spin_feedback_o = (debug_spin_write_en_posedge | debug_spin_read_en_posedge | debug_spin_read_busy_o) ? debug_spin_feedback_i : spin_feedback_rx_output;
 
-    `FFL(wbl_floating_reg, wbl_floating_i, (en_i & analog_wrap_configure_enable_i), 'b0, clk_i, rst_ni)
-    // regular interface
+    assign spin_wwl_o = (~debug_spin_w_idle) ? debug_spin_wwl : spin_wwl_rx_output;
+    assign spin_feedback_o = ((~debug_spin_feedback_idle) | (~debug_spin_r_idle)) ? debug_spin_feedback : spin_feedback_rx_output;
+    assign wbl_o = (~debug_analog_dt_w_idle) ? debug_wbl_dt_write :
+                   (~debug_spin_w_idle     ) ? debug_wbl_spin : wbl_write_output;
+    assign wblb_o = (~debug_analog_dt_w_idle) ? ~wbl_o :
+                    (~debug_spin_w_idle     ) ? debug_wblb_spin : wblb_write_output;
+
+    assign analog_macro_cmpt_finish = debug_spin_read_addr_busy ? debug_spin_sync_en : analog_macro_cmpt_finish_rx_out;
+
+    `FFL(wbl_floating_reg, wbl_floating_i, (en_i & debug_dt_configure_enable_i), 'b0, clk_i, rst_ni)
+    `FFLARNC(debug_spin_read_addr_busy, 1'b1, debug_spin_read_en_posedge, debug_syn_num_cnt_overflow, 1'b0, clk_i, rst_ni)
+
+    // regular control logic
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
     assign wbl_write_output = dt_cfg_idle_o ? wbl_spin_expanded : wbl_dt;
     assign wblb_write_output = dt_cfg_idle_o ? '0 : ~wbl_write_output;
-    assign wbl_o = (~debug_analog_dt_idle | debug_spin_write_en_posedge) ? debug_wbl_dt_write : wbl_write_output;
-    assign wblb_o = (~debug_analog_dt_idle | debug_spin_write_en_posedge) ? ~wbl_o : wblb_write_output;
 
     generate
         for (i = 0; i < NUM_SPIN; i = i + 1) begin : expand_wbl_spin
@@ -162,64 +198,26 @@ module analog_macro_wrap #(
         end
     endgenerate
 
-    // debugging logic: spin sequential reading
-    assign spin_valid_o = debug_spin_read_busy ? 1'b0 : spin_valid_tx;
-    assign spin_ready_tx = debug_spin_read_busy ? 1'b1 : spin_ready_i;
-    assign debug_spin_valid_o = debug_spin_read_busy ? spin_valid_tx : 1'b0;
-    assign debug_spin_waddr_o = debug_spin_read_busy ? debug_spin_waddr_comb[DEBUG_WADDR_WIDTH-1:0] : {DEBUG_WADDR_WIDTH{1'b0}};
-    assign debug_spin_o = debug_spin_read_busy ? spin_o : {NUM_SPIN{1'b0}};
-
-    assign debug_spin_read_busy_o = debug_spin_read_busy;
-    assign analog_macro_cmpt_finish = debug_spin_read_busy ? debug_syn_cycle_cnt_maxed : analog_macro_cmpt_finish_rx_out;
-
-    `FFL(debug_spin_read_busy, ~debug_spin_read_busy, debug_spin_read_en_posedge | debug_syn_num_cnt_maxed, 1'b0, clk_i, rst_ni)
+    // debugg spin read addr generator
     step_counter #(
-        .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
-        .PARALLELISM (1)
-    ) i_debug_syn_cycle_cnt (
-        .clk_i            (clk_i                                              ),
-        .rst_ni           (rst_ni                                             ),
-        .en_i             (en_i                                               ),
-        .load_i           (analog_wrap_configure_enable_i                     ),
-        .d_i              (debug_cycle_per_synchronization_i                  ),
-        .recount_en_i     ((~debug_spin_read_busy) | debug_syn_cycle_cnt_maxed),
-        .step_en_i        (debug_spin_read_busy                               ),
-        .q_o              (                                                   ),
-        .maxed_o          (debug_syn_cycle_cnt_maxed                          ),
-        .overflow_o       (                                                   )
-    );
-
-    step_counter #(
-        .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
+        .COUNTER_BITWIDTH (COUNTER_BITWIDTH >= DEBUG_WADDR_WIDTH ? COUNTER_BITWIDTH : DEBUG_WADDR_WIDTH),
         .PARALLELISM (1)
     ) i_debug_syn_num_cnt (
         .clk_i            (clk_i                                             ),
         .rst_ni           (rst_ni                                            ),
         .en_i             (en_i                                              ),
-        .load_i           (analog_wrap_configure_enable_i                    ),
-        .d_i              (debug_synchronization_num_i                       ),
-        .recount_en_i     ((~debug_spin_read_busy) | debug_syn_num_cnt_maxed ),
-        .step_en_i        (debug_syn_cycle_cnt_maxed                         ),
+        .load_i           (debug_spin_configure_enable_i                     ),
+        .d_i              (debug_spin_read_num_i                             ),
+        .recount_en_i     (debug_spin_read_en_posedge | debug_syn_num_cnt_overflow ),
+        .step_en_i        (debug_spin_read_addr_busy && spin_valid_tx        ),
         .q_o              (debug_syn_num_cnt_q                               ),
         .maxed_o          (debug_syn_num_cnt_maxed                           ),
-        .overflow_o       (                                                  )
+        .overflow_o       (debug_syn_num_cnt_overflow                        )
     );
 
-    synchronizer #(
-        .DATAW(COUNTER_BITWIDTH),
-        .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPEDEPTH),
-        .WITH_ISOLATION_CELLS(0)
-    ) u_synchronizer_waddr (
-        .clk_i                  (clk_i                                       ),
-        .rst_ni                 (rst_ni                                      ),
-        .en_i                   (en_i & debug_spin_read_busy                 ),
-        .data_in_i              (debug_syn_num_cnt_q                         ),
-        .synchronizer_pipe_num_i(synchronizer_pipe_num_tx_reg                ),
-        .synchronization_en_i   (debug_syn_cycle_cnt_maxed                   ),
-        .data_out_valid_o       (                                            ),
-        .data_out_o             (debug_spin_waddr_comb                       )
-    );
-
+    // ========================================================================
+    // Regular modules
+    // ========================================================================
     // analog config module
     analog_cfg #(
         .NUM_SPIN (NUM_SPIN),
@@ -306,7 +304,7 @@ module analog_macro_wrap #(
     // ========================================================================
     // Debugging modules
     // ========================================================================
-    // analog tx module: wbl read debugging
+    // debug wbl synchronization module: j/h read
     analog_tx #(
         .NUM_SPIN (NUM_SPIN*BITDATA),
         .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH)
@@ -315,13 +313,13 @@ module analog_macro_wrap #(
         .rst_ni                   (rst_ni                                    ),
         .en_i                     (en_i                                      ),
         // config interface
-        .tx_configure_enable_i    (analog_wrap_configure_enable_i            ),
+        .tx_configure_enable_i    (debug_dt_configure_enable_i               ),
         .synchronizer_pipe_num_i  (synchronizer_wbl_pipe_num_i               ),
         .synchronizer_pipe_num_reg_o (                                       ),
         // input interface: tx <- analog macro
-        .spin_i                   (wbl_read_i                                ),
+        .spin_i                      (wbl_read_i                             ),
         // spin interface: rx -> tx
-        .analog_macro_cmpt_finish_i ((~debug_analog_dt_r_idle) & debug_dt_wwl_high_counter_maxed ),
+        .analog_macro_cmpt_finish_i  (debug_dt_sync_en                       ),
         // spin interface: tx <-> digital
         .spin_valid_o             (debug_j_read_data_valid_o                 ),
         .spin_ready_i             (1'b1                                      ),
@@ -330,7 +328,7 @@ module analog_macro_wrap #(
         .analog_tx_idle_o         (                                          )
     );
 
-    // debug data write module
+    // debug data write/read module
     analog_dt_debug #(
         .NUM_SPIN                 (NUM_SPIN                                  ),
         .BITDATA                  (BITDATA                                   ),
@@ -340,7 +338,7 @@ module analog_macro_wrap #(
         .rst_ni                   (rst_ni                                    ),
         .en_i                     (en_i                                      ),
         // config interface
-        .configure_enable_i       (analog_wrap_configure_enable_i            ),
+        .configure_enable_i       (debug_dt_configure_enable_i               ),
         .cycle_per_wwl_high_i     (cycle_per_wwl_high_i                      ),
         .cycle_per_wwl_low_i      (cycle_per_wwl_low_i                       ),
         // debug interface <-> digital
@@ -348,8 +346,8 @@ module analog_macro_wrap #(
         .debug_ren_i              (debug_j_read_en_posedge                   ),
         .debug_j_one_hot_wwl_i    (debug_j_one_hot_wwl_i                     ),
         .debug_h_wwl_i            (debug_h_wwl_i                             ),
-        .debug_rdata_i            (debug_wbl_i                               ),
-        .wwl_high_counter_maxed_o (debug_dt_wwl_high_counter_maxed           ),
+        .wbl_dt_i                 (debug_wbl_i                               ),
+        .debug_dt_sync_en_o       (debug_dt_sync_en                          ),
         // debug interface <-> analog
         .j_one_hot_wwl_o          (debug_j_write_wwl                         ),
         .h_wwl_o                  (debug_h_write_wwl                         ),
@@ -357,7 +355,41 @@ module analog_macro_wrap #(
         .debug_dt_idle_o          (debug_analog_dt_idle                      ),
         .debug_dt_w_idle_o        (debug_analog_dt_w_idle                    ),
         .debug_dt_r_idle_o        (debug_analog_dt_r_idle                    )
+    );
 
+    // debug spin write/compute/read module
+    analog_spin_debug #(
+        .NUM_SPIN (NUM_SPIN),
+        .BITDATA (BITDATA),
+        .COUNTER_BITWIDTH (COUNTER_BITWIDTH)
+    ) u_analog_spin_debug (
+        .clk_i                    (clk_i                                     ),
+        .rst_ni                   (rst_ni                                    ),
+        .en_i                     (en_i                                      ),
+        // config interface
+        .configure_enable_i       (debug_spin_configure_enable_i             ),
+        .cycle_per_spin_write_i   (cycle_per_spin_write_i                    ),
+        .cycle_per_spin_compute_i (cycle_per_spin_compute_i                  ),
+        .cycle_per_spin_read_i    (debug_cycle_per_spin_read_i               ),
+        .spin_read_num_i          (debug_spin_read_num_i                     ),
+        .spin_wwl_strobe_i        (spin_wwl_strobe_i                         ),
+        .spin_feedback_i          (spin_feedback_i                           ),
+        // debug interface <-> digital
+        .debug_wen_i              (debug_spin_write_en_posedge               ),
+        .debug_feedback_en_i      (debug_spin_compute_en_posedge             ),
+        .debug_ren_i              (debug_spin_read_en_posedge                ),
+        .wbl_spin_i               (debug_wbl_i                               ),
+        .debug_ren_sync_en_o      (debug_spin_sync_en                        ),
+        // debug interface <-> analog
+        .spin_wwl_o               (debug_spin_wwl                            ),
+        .spin_feedback_o          (debug_spin_feedback                       ),
+        .wbl_spin_o               (debug_wbl_spin                            ),
+        .wblb_spin_o              (debug_wblb_spin                           ),
+        // status
+        .debug_spin_idle_o        (debug_spin_idle                           ),
+        .debug_spin_w_idle_o      (debug_spin_w_idle                         ),
+        .debug_spin_feedback_idle_o(debug_spin_feedback_idle                 ),
+        .debug_spin_r_idle_o      (debug_spin_r_idle                         )
     );
 
 endmodule
