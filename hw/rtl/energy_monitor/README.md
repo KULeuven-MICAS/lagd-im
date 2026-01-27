@@ -7,19 +7,19 @@ This module calculates the Hamiltonian energy results for a given spin and weigh
 The executed formula is as below:
 
 $$
-H = \sum_{i} \sum_{j} w_{ij} \sigma_i \sigma_j + \sum_i h_{sfc} \cdot h_i \sigma_i
+H = 0.5\sum_{i} \sum_{j} w_{ij} \sigma_i \sigma_j + \sum_i h_{sfc} \cdot h_i \sigma_i
 $$
 
 In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's complement format. $\sigma_i$ is a 1-bit variable. The scaling factor $h_{sfc}$ is an unsigned integer in the power of 2.
 
 The module overview is provided in the picture below.
 <p align="center">
-<img src="https://github.com/KULeuven-MICAS/lagd-im/tree/main/doc/energy_monitor_overview.png" width="100%" alt="energy monitor overview">
+<img src="../../../doc/energy_monitor_overview.png" width="100%" alt="Energy Monitor Overview">
 </p>
 
 ## Performance
 
-For each transaction starting with spin handshake, this module takes DATASPIN/PARALLELISM+PIPESMID+1 cycles in average to output energy value.
+For each transaction starting with spin handshake, this module takes NUM_SPIN/PARALLELISM+PIPESMID+1 cycles in average to output energy value.
 
 ## Module Parameters
 
@@ -27,7 +27,9 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *BITH:* [int] bit precision of each signed bias (default: 4).
 
-*DATASPIN:* [int] the number of spins, must be multiple of PARALLELISM  (default: 256).
+*SPIN_DEPTH:* [int] depth of the spin fifo (default: 2) (used only when ENABLE_EXTERNAL_FINISH_SIGNAL is True)
+
+*NUM_SPIN:* [int] the number of spins, must be multiple of PARALLELISM  (default: 256).
 
 *SCALING_BIT:* [int] bit precision of the $h_{sfc}$ (default: 5).
 
@@ -37,9 +39,15 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *ENERGY_TOTAL_BIT:* [int] bit precision of total energy output (i.e. $H$) (default: 32).
 
+*LITTLE_ENDIAN:* [int] whether the spin vector and bias vector follows little-endian format or not. Whatever endianness J vector follows does not matter as long as it matches with the spin vector.
+
 *PIPESINTF:* [int] the pipeline depth at the module input interface (default: 0).
 
 *PIPESMID:* [int] the pipeline depth at the input interface of the middle adder trees (default: 0).
+
+*ENABLE_EXTERNAL_FINISH_SIGNAL:* [int] whether to enable an external counter to control the state machine. This parameter is useful when the flipping-based energy calculation is required. (default: 0).
+
+*H_IS_NEGATIVE:* [int] whether H=-0.5*J*spin-h*spin, or H = 0.5*J*spin+h*spin (default: 1).
 
 ## Module Interface
 
@@ -49,25 +57,39 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *en_i:* active-high module enable signal
 
+*flush_i*: whether or not to flush all saved values in the energy monitor.
+
+*en_external_counter_i:* enable external counter
+
 *config_valid_i:* configuration valid input
 
-*config_counter_i:* [$clog2(DATASPIN)-1 : 0] configuration counter value
+*config_counter_i:* [$clog2(NUM_SPIN)-1 : 0] configuration counter value
 
 *config_ready_o:* configuration ready
 
 *spin_valid_i:* spin valid input
 
-*spin_i:* [DATASPIN-1:0] spin input data
+*spin_i:* [NUM_SPIN-1:0] spin input data
 
 *spin_ready_o:* spin ready output
 
 *weight_valid_i:* weight valid input
 
-*weight_i:* [DATASPIN*BITJ-1:0] weight input data
+*weight_valid_parallel_i:* flags for which adder trees are doing useful calculation.
+
+*external_counter_q_i:* [$clog2(NUM_SPIN)-1 : 0] external counter value
+
+*external_finish_i:* flag meaning current weight is the last one. This signal is used to rise energy_valid_o.
+
+*double_weight_contri_i:* flag for whether double the J contribution in the computation. The result corresponds to delta energy when the signal is enabled. Otherwise, the regular energy is calculated.
+
+*weight_i:* [NUM_SPIN*BITJ-1:0] weight input data
 
 *hbias_i:* [BITH-1:0] signed bias input
 
 *hscaling_i:* [SCALING_BIT-1:0] unsigned scaling factor input
+
+*energy_baseline_in_i:* [ENERGY_TOTAL_BIT-1:0] input baseline energy value
 
 *weight_ready_o:* weight ready output
 
@@ -75,7 +97,15 @@ For each transaction starting with spin handshake, this module takes DATASPIN/PA
 
 *energy_ready_i:* energy ready input
 
+*energy_baseline_out_o:* [ENERGY_TOTAL_BIT-1:0] output baseline energy value
+
 *energy_o:* [ENERGY_TOTAL_BIT-1:0] signed energy output
+
+*spin_o:* [NUM_SPIN-1:0] spin output
+
+*busy_o:* the status signal
+
+*baseline_done_o:* whether the energy and spin fifo have been filled with at least one value. This is useful to judge whether there is an energy and spin baseline when the delta energy is calculated.
 
 ## Register: the following registers are configurable
 

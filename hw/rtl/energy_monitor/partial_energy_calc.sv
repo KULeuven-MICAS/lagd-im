@@ -10,7 +10,7 @@
 // Parameters:
 // - BITJ: bit precision of J
 // - BITH: bit precision of h
-// - DATASPIN: number of spins
+// - NUM_SPIN: number of spins
 // - SCALING_BIT: number of bits of scaling factor for h
 // - LOCAL_ENERGY_BIT: bit precision of local energy value
 // - PIPES: number of pipeline stages at the adder tree interface
@@ -32,33 +32,36 @@
 module partial_energy_calc #(
     parameter int BITJ = 4,
     parameter int BITH = 4,
-    parameter int DATASPIN = 256,
+    parameter int NUM_SPIN = 256,
     parameter int SCALING_BIT = 4,
     parameter int PIPES = 0,
     parameter int MULTBIT = BITH + SCALING_BIT - 1, // bit width of the multiplier output
-    parameter int LOCAL_ENERGY_BIT = $clog2(DATASPIN) + MULTBIT,
-    parameter int DATAJ = DATASPIN * BITJ
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT, // bit width of local energy output
+    parameter int DATAJ = NUM_SPIN * BITJ
     )(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
     input logic data_valid_i,
-    input logic [DATASPIN-1:0] spin_vector_i,
+    input logic [NUM_SPIN-1:0] spin_vector_i,
     input logic current_spin_i,
     input logic [DATAJ-1:0] weight_i,
     input logic signed [BITH-1:0] hbias_i,
     input logic unsigned [SCALING_BIT-1:0] hscaling_i,
-    output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o
+    input logic double_weight_contri_i,
+    output logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_o
 );
     // Internal signals
-    logic signed [DATASPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
+    logic signed [NUM_SPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
     logic signed [MULTBIT-1:0] hbias_extended; // sign extention of hbias
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
-    logic signed [DATASPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
+    logic signed [NUM_SPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias; // local energy value without hbias
-    logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
+    logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local_wo_hbias_doubled; // local energy value without hbias
+    logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local; // local energy value
     logic signed [MULTBIT-1:0] hbias_scaled_pipe;
     logic current_spin_pipe;
+    logic double_weight_contri_pipe;
 
     // Generate variables
     genvar i;
@@ -67,7 +70,7 @@ module partial_energy_calc #(
     // Sign extension of weight
     // ========================================================================
     generate
-        for (i = 0; i < DATASPIN; i++) begin : weight_signext
+        for (i = 0; i < NUM_SPIN; i++) begin : weight_signext
             assign weight_extended[i] = {{(MULTBIT-BITJ){weight_i[(i+1)*BITJ-1]}}, weight_i[(i+1)*BITJ-1 -: BITJ]};
         end
     endgenerate
@@ -89,7 +92,7 @@ module partial_energy_calc #(
     end
 
     always_comb begin: weight_mult
-        for (int i = 0; i < DATASPIN; i++) begin
+        for (int i = 0; i < NUM_SPIN; i++) begin
             mult_out[i] = spin_vector_i[i] ? weight_extended[i] : -weight_extended[i];
         end
     end
@@ -98,7 +101,7 @@ module partial_energy_calc #(
     // Accumulate the multiplication results
     // ========================================================================
     adder_tree #(
-        .N(DATASPIN),
+        .N(NUM_SPIN),
         .DATAW(MULTBIT),
         .PIPES(PIPES)
     ) u_adder_tree (
@@ -127,7 +130,24 @@ module partial_energy_calc #(
         .ready_o()
     );
 
-    assign energy_local = energy_local_wo_hbias + hbias_scaled_pipe;
+    bp_pipe #(
+        .DATAW(1),
+        .PIPES(PIPES)
+    ) u_pipe_double_weight_contri (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .data_i(double_weight_contri_i),
+        .data_o(double_weight_contri_pipe),
+        .valid_i(data_valid_i),
+        .valid_o(),
+        .ready_i(1'b1),
+        .ready_o()
+    );
+
+    // delta energy = 2 * local_energy_wo_hbias + 2 * hbias_scaled
+    assign energy_local_wo_hbias_doubled = double_weight_contri_pipe ? energy_local_wo_hbias << 1 : energy_local_wo_hbias;
+    // energy = energy_local_wo_hbias + 2 * hbias_scaled
+    assign energy_local = energy_local_wo_hbias_doubled + (hbias_scaled_pipe << 1);
 
     // ========================================================================
     // Multiply with current spin
