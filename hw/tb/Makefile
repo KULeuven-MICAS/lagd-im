@@ -8,8 +8,10 @@ SIM_TOOL := vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# Paths
 PROJECT_ROOT ?= $(abspath $(CURDIR)/../..)
 include $(PROJECT_ROOT)/common.mk
+SIM_DIR := $(PROJECT_ROOT)/target/sim
 
 # ============================================================
 # Flist generation for system verification
@@ -31,3 +33,17 @@ $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 
 clean:
 	rm -f $(TEST_PATH)/bender_list.tcl
+
+# ============================================================
+# Simulation Makefile
+# ============================================================
+
+TEST_PATH ?= $(CURDIR)
+HDL_FILE_LIST ?= $(TEST_PATH)/bender_list.tcl
+HDL_FILES ?=
+DBG ?= 1
+CXX_PATH ?= $(which g++)
+VOPT_ARGS ?= -O5 +acc=p+tb_cheshire_soc. +noacc=p+cheshire_soc. +acc=r+stream_xbar -permissive
+VSIM_FLAGS ?= -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH}
+
+include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk

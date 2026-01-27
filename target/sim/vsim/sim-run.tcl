@@ -47,7 +47,7 @@ if { ${DBG} == 1 } {
     ]
     #   -voptargs=+acc # this was the old way but still questa rises a warning?
 } else {
-    set VSIM_OPTS [list -novopt]
+    set VSIM_OPTS ""
 }
 
 vsim -quiet \
@@ -56,6 +56,7 @@ vsim -quiet \
     -L work_lib \
     -work ${WLIB} \
     -ini ${WORK_DIR}/modelsim.ini \
+    ${VSIM_FLAGS} \
     ${OBJ}
 
 if { ${DBG} == 1 } {

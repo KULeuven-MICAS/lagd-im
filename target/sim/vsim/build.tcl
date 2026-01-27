@@ -32,7 +32,7 @@ puts "Building ${SIM_NAME} ..."
 foreach file $HDL_FILES {
     puts "Compiling ${file} ..."
     if { [catch {
-        vlog -incr -sv -work ${WLIB} {*}${DEFINES} {*}${INCLUDES} ${file}
+        vlog -incr -sv -work ${WLIB} {*}${DEFINES} {*}${INCLUDES} ${VLOG_FLAGS} ${file}
         } err] } {
         puts "Error compiling file ${file}:"
         puts $err
@@ -50,7 +50,7 @@ if { ${DBG} == 1 } {
     set VOPT_FLAGS ""
 }
 if { [catch {
-    vopt -quiet -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} -o ${PREFIX}${SIM_NAME}
+    vopt -quiet -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} ${VOPT_ARGS} -o ${PREFIX}${SIM_NAME}
     } err] } {
     puts "Error during optimization:"
     puts $err
