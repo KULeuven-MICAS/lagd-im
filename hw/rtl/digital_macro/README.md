@@ -63,7 +63,7 @@ The module supports generally two different modes (only the regular mode is supp
 
 *H_IS_NEGATIVE*: [int] whether H=-0.5*J*spin-h*spin, or H = 0.5*J*spin+h*spin (default: 1).
 
-*ENABLE_FLIP_DETECTION*: [int] whether to imeplement the version supporting flip detection. If false, the flip filter module will not be generated.
+*ENABLE_FLIP_DETECTION*: [int] whether to implement the version supporting flip detection. If false, the flip filter module will not be generated.
 
 ## Module Interface
 

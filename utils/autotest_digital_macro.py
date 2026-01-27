@@ -172,7 +172,7 @@ if __name__ == "__main__":
     pbar.close()
     end_time = time.time()
     total_time = end_time - start_time
-    elapese_time = total_time / total_cases
+    elapsed_time = total_time / total_cases
 
     # Summary of results
     print("-" * 50)
@@ -184,6 +184,6 @@ if __name__ == "__main__":
         print(message)
     print(
         f"Total time: {total_time/60:.2f} minutes, "
-        f"Average time per case: {elapese_time/60:.2f} minutes"
+        f"Average time per case: {elapsed_time/60:.2f} minutes"
     )
     print("-" * 50)

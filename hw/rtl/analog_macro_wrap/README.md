@@ -4,7 +4,7 @@
 
 This module serves as a dedicated wrapper for the analog macro. It has the following submodules:
 
-- u_nalog_cfg: fetches data from memory (J) and registers (h) and convert them into WWL/WBL format.
+- u_analog_cfg: fetches data from memory (J) and registers (h) and convert them into WWL/WBL format.
 
 - u_analog_rx: receives spin input from upstream and convert it into WWL/WBL format.
 
