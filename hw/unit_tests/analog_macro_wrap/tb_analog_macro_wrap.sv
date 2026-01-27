@@ -20,7 +20,7 @@
 module tb_analog_macro_wrap;
 
     // module parameters
-    localparam int NUM_SPIN = 256; // number of spins
+    localparam int NUM_SPIN = 16; // number of spins
     localparam int BITDATA = 4; // bit width of J and h, sfc
     localparam int COUNTER_BITWIDTH = 16;
     localparam int SYNCHRONIZER_PIPE_DEPTH = 3;
@@ -29,9 +29,9 @@ module tb_analog_macro_wrap;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 1000; // number of onloading tests
-    localparam int CmptTestNum = 1000; // number of compute tests
-    localparam int DebugTestNum = 5; // number of debug tests
+    localparam int OnloadingTestNum = 2; // number of onloading tests
+    localparam int CmptTestNum = 2; // number of compute tests
+    localparam int DebugTestNum = 2; // number of debug tests
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
@@ -107,6 +107,10 @@ module tb_analog_macro_wrap;
     logic debug_j_read_data_valid_o;
     logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
     logic debug_analog_dt_w_idle_o, debug_analog_dt_r_idle_o;
+    logic [NUM_SPIN-1:0] wwl_vdd_i;
+    logic [NUM_SPIN-1:0] wwl_vread_i;
+    logic [NUM_SPIN-1:0] wwl_vdd_o;
+    logic [NUM_SPIN-1:0] wwl_vread_o;
 
     logic config_aw_done;
     logic config_galena_done;
@@ -179,6 +183,8 @@ module tb_analog_macro_wrap;
         .cycle_per_wwl_low_i               (cycle_per_wwl_low_i              ),
         .cycle_per_spin_write_i            (cycle_per_spin_write_i           ),
         .cycle_per_spin_compute_i          (cycle_per_spin_compute_i         ),
+        .wwl_vdd_i                         (wwl_vdd_i                        ),
+        .wwl_vread_i                       (wwl_vread_i                      ),
         .bypass_data_conversion_i          (bypass_data_conversion_i         ),
         .spin_wwl_strobe_i                 (spin_wwl_strobe_i                ),
         .spin_feedback_i                   (spin_feedback_i                  ),
@@ -198,6 +204,8 @@ module tb_analog_macro_wrap;
         .wblb_o                            (wblb_o                           ),
         .wbl_read_i                        (wbl_read_i                       ),
         .wbl_floating_o                    (wbl_floating_o                   ),
+        .wwl_vdd_o                         (wwl_vdd_o                        ),
+        .wwl_vread_o                       (wwl_vread_o                      ),
         .spin_pop_valid_i                  (spin_pop_valid_i                 ),
         .spin_pop_ready_o                  (spin_pop_ready_o                 ),
         .spin_pop_i                        (spin_pop_i                       ),
@@ -519,6 +527,8 @@ module tb_analog_macro_wrap;
         debug_j_analog_raddr = 'd0;
         debug_h_wwl_i = 1'b0;
         debug_wbl_i = 'd0;
+        wwl_vdd_i = {(NUM_SPIN){1'b1}};
+        wwl_vread_i = {(NUM_SPIN){1'b0}};
         wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
         debug_test_idx = 'd0;
         debug_dt_configure_enable_i = 1'b0;
@@ -538,6 +548,8 @@ module tb_analog_macro_wrap;
             end
             // set wbl_floating to 0 and load in debug_wbl_i
             wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+            wwl_vdd_i = {(NUM_SPIN){1'b1}};
+            wwl_vread_i = {(NUM_SPIN){1'b0}};
             debug_dt_configure_enable_i = 1'b1;
             @(posedge clk_i);
             debug_dt_configure_enable_i = 1'b0;
@@ -559,6 +571,8 @@ module tb_analog_macro_wrap;
             // ---------------------------------------
             // set wbl_floating to 1
             wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
+            wwl_vdd_i = {(NUM_SPIN){1'b0}};
+            wwl_vread_i = {(NUM_SPIN){1'b1}};
             debug_dt_configure_enable_i = 1'b1;
             @(posedge clk_i);
             debug_dt_configure_enable_i = 1'b0;

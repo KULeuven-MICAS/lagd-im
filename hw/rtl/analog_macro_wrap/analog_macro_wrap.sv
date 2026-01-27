@@ -36,6 +36,8 @@ module analog_macro_wrap #(
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
+    input  logic [NUM_SPIN-1:0] wwl_vdd_i,
+    input  logic [NUM_SPIN-1:0] wwl_vread_i,
     input  logic bypass_data_conversion_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
@@ -57,6 +59,8 @@ module analog_macro_wrap #(
     output logic [NUM_SPIN*BITDATA-1:0] wbl_o,
     output logic [NUM_SPIN*BITDATA-1:0] wblb_o,
     output logic [NUM_SPIN*BITDATA-1:0] wbl_floating_o,
+    output logic [NUM_SPIN-1:0] wwl_vdd_o,
+    output logic [NUM_SPIN-1:0] wwl_vread_o,
     // spin interface: rx <-> digital
     input  logic spin_pop_valid_i,
     output logic spin_pop_ready_o,
@@ -141,6 +145,7 @@ module analog_macro_wrap #(
     logic debug_spin_idle, debug_spin_w_idle, debug_spin_feedback_idle, debug_spin_r_idle;
     logic [NUM_SPIN-1:0] debug_spin_wwl;
     logic [NUM_SPIN-1:0] debug_spin_feedback;
+    logic [NUM_SPIN-1:0] wwl_vdd_reg, wwl_vread_reg;
     genvar i;
 
     // debugging control logic
@@ -191,6 +196,11 @@ module analog_macro_wrap #(
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
     assign wbl_write_output = dt_cfg_idle_o ? wbl_spin_expanded : wbl_dt;
     assign wblb_write_output = dt_cfg_idle_o ? '0 : ~wbl_write_output;
+    assign wwl_vdd_o = wwl_vdd_reg;
+    assign wwl_vread_o = wwl_vread_reg;
+
+    `FFL(wwl_vdd_reg, wwl_vdd_i, (en_i & (analog_wrap_configure_enable_i | debug_dt_configure_enable_i)), 'b0, clk_i, rst_ni)
+    `FFL(wwl_vread_reg, wwl_vread_i, (en_i & (analog_wrap_configure_enable_i | debug_dt_configure_enable_i)), 'b0, clk_i, rst_ni)
 
     generate
         for (i = 0; i < NUM_SPIN; i = i + 1) begin : expand_wbl_spin
