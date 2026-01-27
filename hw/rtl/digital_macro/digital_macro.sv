@@ -40,6 +40,7 @@ module digital_macro #(
     parameter integer DATA_J_BIT = NUM_SPIN * BITJ * PARALLELISM,
     parameter integer DATA_H_BIT = BITH * NUM_SPIN,
     parameter integer J_MEM_ADDR_WIDTH = $clog2(NUM_SPIN / PARALLELISM),
+    parameter integer DEBUG_WADDR_UP_LIMIT = FLIP_ICON_DEPTH,
     parameter integer DEBUG_WADDR_WIDTH = FLIP_ICON_ADDR_DEPTH
 )(
     input  logic clk_i,
@@ -55,6 +56,8 @@ module digital_macro #(
     input  logic config_valid_em_i,
     input  logic config_valid_fm_i,
     input  logic config_valid_aw_i,
+    input  logic debug_dt_configure_enable_i,
+    input  logic debug_spin_configure_enable_i,
     // config interface: energy monitor
     input  logic [SPIN_IDX_BIT-1:0] config_counter_i,
     // config interface: flip manager
@@ -66,13 +69,15 @@ module digital_macro #(
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_low_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_write_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_spin_compute_i,
+    input  logic [NUM_SPIN-1:0] wwl_vdd_i,
+    input  logic [NUM_SPIN-1:0] wwl_vread_i,
     input  logic bypass_data_conversion_i,
     input  logic [NUM_SPIN-1:0] spin_wwl_strobe_i,
     input  logic [NUM_SPIN-1:0] spin_feedback_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_i,
     input  logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_wbl_pipe_num_i,
-    input  logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_synchronization_i,
-    input  logic [COUNTER_BITWIDTH-1:0] debug_synchronization_num_i,
+    input  logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_spin_read_i,
+    input  logic [COUNTER_BITWIDTH-1:0] debug_spin_read_num_i,
     input  logic [NUM_SPIN*BITJ-1:0] wbl_floating_i,
     // data loading interface
     input  logic dt_cfg_enable_i, // load enable for the analog macro
@@ -108,6 +113,8 @@ module digital_macro #(
     output logic [NUM_SPIN*BITJ-1:0] wbl_o,
     output logic [NUM_SPIN*BITJ-1:0] wblb_o,
     output logic [NUM_SPIN*BITJ-1:0] wbl_floating_o,
+    output logic [NUM_SPIN-1:0] wwl_vdd_o,
+    output logic [NUM_SPIN-1:0] wwl_vread_o,
     output logic [NUM_SPIN-1:0] spin_wwl_o,
     output logic [NUM_SPIN-1:0] spin_feedback_o,
     input  logic [NUM_SPIN-1:0] spin_analog_i,
@@ -125,15 +132,19 @@ module digital_macro #(
     input  logic [NUM_SPIN*BITJ-1:0] debug_wbl_i,
     output logic debug_j_read_data_valid_o,
     output logic [NUM_SPIN*BITJ-1:0] debug_j_read_data_o,
-    // debugging interface: spin write/read
+    // debugging interface: spin write/compute/read
     input  logic debug_spin_write_en_i,
-    input  logic [NUM_SPIN-1:0] debug_spin_wwl_i,
-    input  logic [NUM_SPIN-1:0] debug_spin_feedback_i,
+    input  logic debug_spin_compute_en_i,
     input  logic debug_spin_read_en_i,
-    output logic debug_spin_read_busy_o,
     output logic debug_spin_valid_o,
     output logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o,
-    output logic [NUM_SPIN-1:0] debug_spin_o
+    output logic [NUM_SPIN-1:0] debug_spin_o,
+    // debugging interface: status
+    output logic debug_analog_dt_w_idle_o,
+    output logic debug_analog_dt_r_idle_o,
+    output logic debug_spin_w_idle_o,
+    output logic debug_spin_cmpt_idle_o,
+    output logic debug_spin_r_idle_o
 );
     // Internal signals
     logic aw_mst_valid;
@@ -487,24 +498,28 @@ module digital_macro #(
         .COUNTER_BITWIDTH (COUNTER_BITWIDTH),
         .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH),
         .SPIN_WBL_OFFSET (SPIN_WBL_OFFSET),
-        .DEBUG_WADDR_WIDTH(DEBUG_WADDR_WIDTH)
+        .DEBUG_WADDR_UP_LIMIT (DEBUG_WADDR_UP_LIMIT)
     ) u_analog_wrap (
         .clk_i                          (clk_i                      ),
         .rst_ni                         (rst_ni                     ),
         .en_i                           (en_aw_i                    ),
         .analog_wrap_configure_enable_i (config_valid_aw_i          ),
+        .debug_dt_configure_enable_i    (debug_dt_configure_enable_i         ),
+        .debug_spin_configure_enable_i  (debug_spin_configure_enable_i       ),
         .cfg_trans_num_i                (cfg_trans_num_i            ),
         .cycle_per_wwl_high_i           (cycle_per_wwl_high_i       ),
         .cycle_per_wwl_low_i            (cycle_per_wwl_low_i        ),
         .cycle_per_spin_write_i         (cycle_per_spin_write_i     ),
         .cycle_per_spin_compute_i       (cycle_per_spin_compute_i   ),
+        .wwl_vdd_i                      (wwl_vdd_i                  ),
+        .wwl_vread_i                    (wwl_vread_i                ),
         .bypass_data_conversion_i       (bypass_data_conversion_i   ),
         .spin_wwl_strobe_i              (spin_wwl_strobe_i          ),
         .spin_feedback_i                (spin_feedback_i            ),
         .synchronizer_pipe_num_i        (synchronizer_pipe_num_i    ),
         .synchronizer_wbl_pipe_num_i    (synchronizer_wbl_pipe_num_i),
-        .debug_cycle_per_synchronization_i (debug_cycle_per_synchronization_i),
-        .debug_synchronization_num_i       (debug_synchronization_num_i      ),
+        .debug_cycle_per_spin_read_i    (debug_cycle_per_spin_read_i),
+        .debug_spin_read_num_i          (debug_spin_read_num_i      ),
         .dt_cfg_enable_i                (dt_cfg_enable_i            ),
         .j_mem_ren_o                    (j_mem_ren_o                ),
         .j_raddr_o                      (j_raddr_o                  ),
@@ -517,6 +532,8 @@ module digital_macro #(
         .wblb_o                         (wblb_o                     ),
         .wbl_read_i                     (wbl_read_i                 ),
         .wbl_floating_o                 (wbl_floating_o             ),
+        .wwl_vdd_o                      (wwl_vdd_o                  ),
+        .wwl_vread_o                    (wwl_vread_o                ),
         .spin_pop_valid_i               (fm_mst_valid               ),
         .spin_pop_ready_o               (aw_slv_ready               ),
         .spin_pop_i                     (fm_spin_out                ),
@@ -535,15 +552,18 @@ module digital_macro #(
         .debug_j_read_data_valid_o      (debug_j_read_data_valid_o  ),
         .debug_j_read_data_o            (debug_j_read_data_o        ),
         .debug_spin_write_en_i          (debug_spin_write_en_i      ),
-        .debug_spin_wwl_i               (debug_spin_wwl_i           ),
-        .debug_spin_feedback_i          (debug_spin_feedback_i      ),
         .wbl_floating_i                 (wbl_floating_i             ),
+        .debug_spin_compute_en_i        (debug_spin_compute_en_i    ),
         .debug_spin_read_en_i           (debug_spin_read_en_i       ),
-        .debug_spin_read_busy_o         (debug_spin_read_busy_o     ),
         .debug_spin_valid_o             (debug_spin_valid_o         ),
         .debug_spin_waddr_o             (debug_spin_waddr_o         ),
         .debug_spin_o                   (debug_spin_o               ),
         // status
+        .debug_dt_w_idle_o              (debug_analog_dt_w_idle_o   ),
+        .debug_dt_r_idle_o              (debug_analog_dt_r_idle_o   ),
+        .debug_spin_w_idle_o            (debug_spin_w_idle_o        ),
+        .debug_spin_cmpt_idle_o         (debug_spin_cmpt_idle_o     ),
+        .debug_spin_r_idle_o            (debug_spin_r_idle_o        ),
         .dt_cfg_idle_o                  (dt_cfg_idle_o              ),
         .analog_rx_idle_o               (                           ),
         .analog_tx_idle_o               (                           )
