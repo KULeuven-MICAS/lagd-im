@@ -15,11 +15,15 @@ ifdef LEAF
 else
 	SIM_NAME ?= $(shell basename $(CURDIR))
 endif
+
+$(info SIM_NAME: $(SIM_NAME))
+
 TEST_PATH ?= $(CURDIR)
-WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs
+WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 DBG ?= 0
 NO_GUI ?= 1
 DEFINES ?=
+PARAMS ?=
 
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils

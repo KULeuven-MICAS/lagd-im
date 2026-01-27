@@ -68,6 +68,8 @@ module mem_multicut #(
         .ready_o(rsp_o.q_ready)
     );
 
+    mem_rsp_t rsp_o_tmp;
+    assign rsp_o.p = rsp_o_tmp.p;
     mem_rsp_multicut #(
         .DataWidth(DataWidth),
         .NumCuts(NumCutsRsp),
@@ -76,8 +78,21 @@ module mem_multicut #(
         .clk_i(clk_i),
         .rst_ni(rst_ni),
         .rsp_i(rsp_i),
-        .rsp_o(rsp_o),
+        .rsp_o(rsp_o_tmp),
         .ready_i(read_ready_i),
         .ready_o(read_ready_o)
     );
+
+    `ifdef TARGET_LOG_INSTS
+    $info("Instantiated mem_multicut with parameters:");
+    `ifndef TARGET_SYNOPSYS
+    $info("Module: %m");
+    $info("  mem_req_t: %s", $typename(req_i));
+    $info("  mem_rsp_t: %s", $typename(rsp_i));
+    `endif
+    $info("  AddrWidth: %d", AddrWidth);
+    $info("  DataWidth: %d", DataWidth);
+    $info("  NumCutsReq: %d", NumCutsReq);
+    $info("  NumCutsRsp: %d", NumCutsRsp);
+    `endif // TARGET_LOG_INSTS
 endmodule

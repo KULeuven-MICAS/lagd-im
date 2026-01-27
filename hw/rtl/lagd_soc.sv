@@ -55,7 +55,7 @@ module lagd_soc import lagd_pkg::*; (
 );
 
     // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, CheshireCfg)
 
     //////////////////////////////////////////////////////////
     // Wire declarations /////////////////////////////////////
@@ -140,6 +140,7 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
+    // Note: only narrow AXI type is valid (no other interfaces used)
     memory_island_wrap #(
         .Cfg(lagd_mem_cfg_pkg::CVA6StackMemCfg),
         .axi_narrow_req_t (lagd_axi_slv_req_t),
@@ -148,8 +149,8 @@ module lagd_soc import lagd_pkg::*; (
         .axi_wide_rsp_t (lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t (lagd_mem_narr_req_t),
         .mem_narrow_rsp_t (lagd_mem_narr_rsp_t),
-        .mem_wide_req_t (lagd_mem_wide_req_t),
-        .mem_wide_rsp_t (lagd_mem_wide_rsp_t)
+        .mem_wide_req_t (lagd_mem_f_req_t),
+        .mem_wide_rsp_t (lagd_mem_f_rsp_t)
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
@@ -175,8 +176,8 @@ module lagd_soc import lagd_pkg::*; (
         .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t(lagd_mem_narr_req_t),
         .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
-        .mem_wide_req_t(lagd_mem_wide_req_t),
-        .mem_wide_rsp_t(lagd_mem_wide_rsp_t)
+        .mem_wide_req_t(lagd_mem_f_req_t),
+        .mem_wide_rsp_t(lagd_mem_f_rsp_t)
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
@@ -208,8 +209,10 @@ module lagd_soc import lagd_pkg::*; (
                 .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
                 .mem_narrow_req_t(lagd_mem_narr_req_t),
                 .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
-                .mem_wide_req_t(lagd_mem_wide_req_t),
-                .mem_wide_rsp_t(lagd_mem_wide_rsp_t),
+                .mem_j_req_t(lagd_mem_j_req_t),
+                .mem_j_rsp_t(lagd_mem_j_rsp_t),
+                .mem_f_req_t(lagd_mem_f_req_t),
+                .mem_f_rsp_t(lagd_mem_f_rsp_t),
                 .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t),
                 .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t),
                 .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t),
