@@ -18,7 +18,7 @@ module fixture_lagd_chip ();
   logic clk;
   logic rst_n;
   logic jtag_tck;
-  logic jtag_trst_ni;
+  logic jtag_trst_n;
   logic jtag_tms;
   logic jtag_tdi;
   logic jtag_tdo;
@@ -37,7 +37,7 @@ module fixture_lagd_chip ();
     logic pad_boot_mode_0_i; assign pad_boot_mode_0_i = boot_mode[0];
     logic pad_boot_mode_1_i; assign pad_boot_mode_1_i = boot_mode[1];
     logic pad_jtag_tck_i; assign pad_jtag_tck_i = jtag_tck;
-    logic pad_jtag_trst_ni; assign pad_jtag_trst_ni = jtag_trst_ni;
+    logic pad_jtag_trst_ni; assign pad_jtag_trst_ni = jtag_trst_n;
     logic pad_jtag_tms_i; assign pad_jtag_tms_i = jtag_tms;
     logic pad_jtag_tdi_i; assign pad_jtag_tdi_i = jtag_tdi;
     logic pad_jtag_tdo_o; assign jtag_tdo = pad_jtag_tdo_o;
@@ -76,13 +76,13 @@ module fixture_lagd_chip ();
 
     lagd_chip dut (.*);
   end else begin : gen_dut_empty
-    logic clk_i;
-    logic rst_ni;
+    logic clk_i; assign clk_i = clk;
+    logic rst_ni; assign rst_ni = rst_n;
     logic rtc_i; assign rtc_i = 1'b0;
     logic test_mode_i; assign test_mode_i = 1'b0;
     logic [1:0] boot_mode_i; assign boot_mode_i = boot_mode;
     logic jtag_tck_i; assign jtag_tck_i = jtag_tck;
-    logic jtag_trst_ni; assign jtag_trst_ni = jtag_trst_ni;
+    logic jtag_trst_ni; assign jtag_trst_ni = jtag_trst_n;
     logic jtag_tms_i; assign jtag_tms_i = jtag_tms;
     logic jtag_tdi_i; assign jtag_tdi_i = jtag_tdi;
     logic jtag_tdo_o; assign jtag_tdo = jtag_tdo_o;
@@ -102,8 +102,8 @@ module fixture_lagd_chip ();
     logic [3:0] spi_sdo_o;
     logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_i; assign slink_rcv_clk_i = 1'b0;
     logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_o;
-    logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumChan-1:0] slink_i; assign slink_i = 1'b0;
-    logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumChan-1:0] slink_o;
+    logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_i; assign slink_i = 1'b0;
+    logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_o;
     wire [`NUM_ISING_CORES-1:0] galena_cu_iref_i;
     wire [`NUM_ISING_CORES-1:0] galena_cu_vup_i;
     wire [`NUM_ISING_CORES-1:0] galena_cu_vdn_i;
@@ -120,7 +120,11 @@ module fixture_lagd_chip ();
   //==============================================
 
   `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, lagd_pkg::CheshireCfg)
-
+  tri i2c_sda;
+  tri i2c_scl;
+  tri spih_sck;
+  tri [lagd_pkg::SpihNumCs-1:0] spih_csb;
+  tri [3:0] spih_sd;
   vip_cheshire_soc #(
     .DutCfg(lagd_pkg::CheshireCfg),
     .axi_ext_mst_req_t(lagd_axi_mst_req_t),
@@ -130,24 +134,25 @@ module fixture_lagd_chip ();
   ) vip (
     .clk(clk),
     .rst_n(rst_n),
+    .rtc(),
     .boot_mode(boot_mode),
     .test_mode(),
     .axi_llc_mst_req('0),
     .axi_llc_mst_rsp(),
     .axi_slink_mst_req('0),
     .axi_slink_mst_rsp(),
-    .jtag_tck(pad_jtag_tck_i),
-    .jtag_trst_n(pad_jtag_trst_ni),
-    .jtag_tms(pad_jtag_tms_i),
-    .jtag_tdi(pad_jtag_tdi_i),
-    .jtag_tdo(pad_jtag_tdo_o),
-    .uart_tx(pad_uart_tx_o),
-    .uart_rx(pad_uart_rx_i),
-    .i2c_sda(1'bz),
-    .i2c_scl(1'bz),
-    .spih_sck(1'bz),
-    .spih_csb({lagd_pkg::SpihNumCs{1'bz}}),
-    .spih_sd(4'bzzzz),
+    .jtag_tck(jtag_tck),
+    .jtag_trst_n(jtag_trst_n),
+    .jtag_tms(jtag_tms),
+    .jtag_tdi(jtag_tdi),
+    .jtag_tdo(jtag_tdo),
+    .uart_tx(uart_tx),
+    .uart_rx(uart_rx),
+    .i2c_sda(i2c_sda),
+    .i2c_scl(i2c_scl),
+    .spih_sck(spih_sck),
+    .spih_csb(spih_csb),
+    .spih_sd(spih_sd),
     .slink_rcv_clk_i(),
     .slink_rcv_clk_o('0),
     .slink_i(),
