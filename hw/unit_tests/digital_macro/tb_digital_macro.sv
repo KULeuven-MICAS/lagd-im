@@ -64,10 +64,10 @@ module tb_digital_macro;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_wwl_low_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_spin_write_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_spin_compute_i;
-    logic [ NUM_SPIN-1 : 0 ] wwl_vdd_i;
-    logic [ NUM_SPIN-1 : 0 ] wwl_vread_i;
-    logic [ NUM_SPIN-1 : 0 ] wwl_vdd_o;
-    logic [ NUM_SPIN-1 : 0 ] wwl_vread_o;
+    logic [ NUM_SPIN : 0 ] wwl_vdd_i;
+    logic [ NUM_SPIN : 0 ] wwl_vread_i;
+    logic [ NUM_SPIN : 0 ] wwl_vdd_o;
+    logic [ NUM_SPIN : 0 ] wwl_vread_o;
     logic bypass_data_conversion_i;
     logic [ NUM_SPIN-1 : 0 ] spin_wwl_strobe_i;
     logic [ NUM_SPIN-1 : 0 ] spin_feedback_i;
@@ -158,8 +158,8 @@ module tb_digital_macro;
     assign dgt_addr_upper_bound_i = NUM_SPIN / PARALLELISM - 1;
     assign debug_dt_configure_enable_i = 1'b0;
     assign debug_spin_configure_enable_i = 1'b0;
-    assign wwl_vdd_i = {NUM_SPIN{1'b1}}; // all VDDs are enabled
-    assign wwl_vread_i = {NUM_SPIN{1'b0}}; // all VREADs are disabled
+    assign wwl_vdd_i = {NUM_SPIN+1{1'b1}}; // all VDDs are enabled
+    assign wwl_vread_i = {NUM_SPIN+1{1'b0}}; // all VREADs are disabled
     assign debug_cycle_per_spin_read_i = 'd0;
     assign debug_spin_read_num_i = 'd0;
 
