@@ -90,7 +90,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [$clog2(logic_cfg.SynchronizerPipeDepth)-1:0] synchronizer_pipe_num;
     logic [$clog2(logic_cfg.SynchronizerPipeDepth)-1:0] synchronizer_wbl_pipe_num;
     logic dt_cfg_enable;
-    logic dt_cfg_idle;
     logic j_mem_ren_load;
     logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
     logic [logic_cfg.HRegDataBitwidth-1:0] h_rdata, dgt_hbias;
@@ -115,6 +114,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.HRegDataBitwidth-1:0] wblb_read_in;
 
     // Digital macro output signals
+    logic dt_cfg_idle;
     logic cmpt_idle;
     logic [JmemAddrBitwidth-1:0] j_raddr_load, dgt_weight_raddr;
     logic h_ren;
