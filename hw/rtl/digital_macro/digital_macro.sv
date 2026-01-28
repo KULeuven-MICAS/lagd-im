@@ -93,7 +93,7 @@ module digital_macro #(
     output logic cmpt_idle_o,
     input  logic host_readout_i,
     output logic flip_ren_o,
-    output logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_o,
+    output logic [FLIP_ICON_ADDR_DEPTH-1:0] flip_raddr_o,
     input  logic [FLIP_ICON_ADDR_DEPTH+1-1:0] icon_last_raddr_plus_one_i,
     input  logic [NUM_SPIN-1:0] flip_rdata_i,
     input  logic flip_disable_i,
@@ -178,6 +178,7 @@ module digital_macro #(
     logic em_fifo_flush_comb;
     logic ff_slv_ready;
     logic ff_mst_valid;
+    logic [FLIP_ICON_ADDR_DEPTH+1-1:0] flip_raddr_fm;
     logic [J_MEM_ADDR_WIDTH-1:0] ff_raddr, ff_raddr_em, ff_raddr_em_fifo;
     logic ff_raddr_last_one, em_raddr_last_one_fifo, em_raddr_last_one;
     logic [NUM_SPIN-1:0] ff_bits_unflipped, ff_bits_unflipped_dly1;
@@ -205,6 +206,7 @@ module digital_macro #(
     assign em_fifo_flush_comb = flush_i | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
     assign muxed_analog_spin = en_analog_loop_i ? analog_spin : fm_spin_out;
+    assign flip_raddr_o = flip_raddr_fm[FLIP_ICON_ADDR_DEPTH-1:0];
 
     `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
     `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni);
@@ -480,7 +482,7 @@ module digital_macro #(
         .energy_i                       (fm_energy_input            ),
         .spin_i                         (fm_spin_input              ),
         .flip_ren_o                     (flip_ren_o                 ),
-        .flip_raddr_o                   (flip_raddr_o               ),
+        .flip_raddr_o                   (flip_raddr_fm              ),
         .icon_last_raddr_plus_one_i     (icon_last_raddr_plus_one_i ),
         .flip_rdata_i                   (flip_rdata_i               ),
         .flip_disable_i                 (flip_disable_i             ),
