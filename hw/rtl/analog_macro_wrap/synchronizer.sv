@@ -38,7 +38,7 @@ module synchronizer #(
         if (WITH_ISOLATION_CELLS == 1) begin
             for (i = 0; i < DATAW; i = i + 1) begin: gen_isolation_and2_cells
                 if (`SYN == 1) begin: synthesis
-                    // (* keep = "true", dont_touch = "true" *) \
+                    (* keep = "true", dont_touch = "true" *)
                     AN2OPTDHD16BWP240H8P57PDLVT u_and_inst (
                         .A1(synchronization_en_i),
                         .A2(data_in_i[i]),
