@@ -284,7 +284,7 @@ module digital_macro #(
                 .ready_o()
             );
 
-            // FIFO to cache data from memory
+            // FIFO to cache parameters for energy monitor when flip detection is enabled
             lagd_fifo_v3 #(
                 .FALL_THROUGH(1'b0),
                 .DATA_WIDTH(ENERGY_TOTAL_BIT + PARALLELISM+1+J_MEM_ADDR_WIDTH+1),
