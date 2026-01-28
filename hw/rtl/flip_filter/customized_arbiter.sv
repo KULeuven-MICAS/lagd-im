@@ -9,7 +9,7 @@
 
 `include "common_cells/registers.svh"
 
-module customized_arbitor #(
+module customized_arbiter #(
     parameter int unsigned NUM_REQ = 256,
     parameter int LSB_PRIORITY = 1,
     parameter int unsigned PIPES = 0 // only pipeline the upstream requests

@@ -17,7 +17,7 @@ set HDL_FILES [ list \
     "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
     "${HDL_PATH}/flip_filter/flip_filter.sv" \
     "${HDL_PATH}/flip_filter/dgt_raddr_manager.sv" \
-    "${HDL_PATH}/flip_filter/customized_arbitor.sv" \
+    "${HDL_PATH}/flip_filter/customized_arbiter.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \

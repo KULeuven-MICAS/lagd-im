@@ -89,7 +89,7 @@ module dgt_raddr_manager #(
         .overflow_o      (                        )
     );
 
-    customized_arbitor #(
+    customized_arbiter #(
         .NUM_REQ         ( NUM_REQ/PARALLELISM    ),
         .LSB_PRIORITY    ( LSB_PRIORITY           ),
         .PIPES           ( PIPES_IN_ARBITER       )
