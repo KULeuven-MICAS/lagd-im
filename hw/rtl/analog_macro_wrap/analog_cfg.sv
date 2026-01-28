@@ -109,7 +109,7 @@ module analog_cfg #(
     // Convert wbl_comb to analog macro format
     always_comb begin
         for (int i = 0; i < NUM_SPIN; i++) begin
-            wbl_comb_in_analog_format[i*BITDATA] = wbl_comb[i*BITDATA+BITDATA-1] == 1'b0 ? 1'b0 : ~wbl_comb[i*BITDATA+BITDATA-1]; // sign bit
+            wbl_comb_in_analog_format[i*BITDATA] = ~wbl_comb[i*BITDATA+BITDATA-1]; // sign bit
             wbl_comb_in_analog_format[i*BITDATA+BITDATA -: BITDATA-1] = (~wbl_comb[i*BITDATA+BITDATA-1 -: BITDATA-1] + 1'b1); // magnitude bits
         end
     end
