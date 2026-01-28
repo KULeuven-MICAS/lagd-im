@@ -52,6 +52,12 @@ sources:
       - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
       - hw/rtl/ising_core_wrap/ising_core_wrap.sv
+      - hw/rtl/lagd_axi_spi_slave.sv
+      - hw/rtl/digital_macro/digital_macro.sv
+      - hw/rtl/digital_macro/mem_to_handshake_fifo.sv
+      - hw/rtl/flip_filter/flip_filter.sv
+      - hw/rtl/flip_filter/dgt_raddr_manager.sv
+      - hw/rtl/flip_filter/customized_arbiter.sv
       - hw/rtl/energy_monitor/energy_monitor.sv
       - hw/rtl/energy_monitor/vector_caching.sv
       - hw/rtl/energy_monitor/step_counter.sv
@@ -59,17 +65,18 @@ sources:
       - hw/rtl/energy_monitor/partial_energy_calc.sv
       - hw/rtl/energy_monitor/adder_tree.sv
       - hw/rtl/energy_monitor/accumulator.sv
-      - hw/rtl/lagd_axi_spi_slave.sv
       - hw/rtl/flip_manager/flip_manager.sv
       - hw/rtl/flip_manager/lagd_fifo_v3.sv
       - hw/rtl/flip_manager/energy_fifo_maintainer.sv
       - hw/rtl/flip_manager/spin_fifo_maintainer.sv
       - hw/rtl/flip_manager/flip_engine.sv
-      - hw/rtl/digital_macro/digital_macro.sv
       - hw/rtl/analog_macro_wrap/analog_macro_wrap.sv
       - hw/rtl/analog_macro_wrap/analog_cfg.sv
       - hw/rtl/analog_macro_wrap/analog_rx.sv
       - hw/rtl/analog_macro_wrap/analog_tx.sv
+      - hw/rtl/analog_macro_wrap/synchronizer.sv
+      - hw/rtl/analog_macro_wrap/analog_dt_debug.sv
+      - hw/rtl/analog_macro_wrap/analog_spin_debug.sv
       - hw/rtl/lib/bp_pipe.sv
   # yamllint disable rule:line-length
   - files:
