@@ -13,10 +13,6 @@
 `define VCD_FILE "tb_analog_macro_wrap.vcd"
 `endif
 
-`ifndef SYN
-`define SYN 0
-`endif
-
 module tb_analog_macro_wrap;
 
     // module parameters

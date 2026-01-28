@@ -6,10 +6,6 @@
 //
 // Analog macro wrapper
 
-`ifndef SYN
-`define SYN 0
-`endif
-
 `include "common_cells/registers.svh"
 
 module analog_macro_wrap #(
