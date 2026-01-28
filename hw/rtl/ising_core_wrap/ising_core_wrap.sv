@@ -46,15 +46,15 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     output reg_rsp_t reg_s_rsp_o,
 
     // Galena wires
-    inout wire galena_cu_iref_i,
-    inout wire galena_cu_vup_i,
-    inout wire galena_cu_vdn_i,
+    inout wire galena_j_iref_i,
+    inout wire galena_j_vup_i,
+    inout wire galena_j_vdn_i,
     inout wire galena_h_iref_i,
     inout wire galena_h_vup_i,
-    inout wire galena_h_vdn_i
+    inout wire galena_h_vdn_i,
+    inout wire galena_vread_i
 );
     // Internal signals
-    logic mode_select; // 0: weight loading. 1: computing. (to be connected to reg interface)
     axi_narrow_req_t axi_s_req_j, axi_s_req_flip;
     axi_narrow_rsp_t axi_s_rsp_j, axi_s_rsp_flip;
     axi_narrow_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
@@ -63,37 +63,94 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     mem_j_rsp_t drt_s_rsp_j;
     mem_f_req_t drt_s_req_flip;
     mem_f_rsp_t drt_s_rsp_flip;
-    logic [logic_cfg.NumSpin-1:0] spin_regfile;
     
-    // Digital macro interface signals
-    logic en_i;
+    // Digital macro input signals
+    logic flush_en;
+    logic en_aw, en_fm, en_em, en_ff, en_ef, en_analog_loop;
+    logic en_comparison;
+    logic cmpt_en;
+    logic config_valid_em;
+    logic config_valid_fm;
+    logic config_valid_aw;
+    logic debug_dt_configure_enable;
+    logic debug_spin_configure_enable;
+    logic [$clog2(logic_cfg.NumSpin)-1:0] config_counter;
+    logic [logic_cfg.NumSpin-1:0] config_spin_initial;
+    logic config_spin_initial_skip;
+    logic [logic_cfg.CounterBitwidth-1:0] cfg_trans_num;
+    logic [logic_cfg.CounterBitwidth-1:0] cycle_per_wwl_high;
+    logic [logic_cfg.CounterBitwidth-1:0] cycle_per_wwl_low;
+    logic [logic_cfg.CounterBitwidth-1:0] cycle_per_spin_write;
+    logic [logic_cfg.CounterBitwidth-1:0] cycle_per_spin_compute;
+    logic [logic_cfg.NumSpin:0] wwl_vdd_cfg;
+    logic [logic_cfg.NumSpin:0] wwl_vread_cfg;
+    logic bypass_data_conversion;
+    logic [logic_cfg.NumSpin-1:0] spin_wwl_strobe;
+    logic [logic_cfg.NumSpin-1:0] spin_feedback;
+    logic [$clog2(logic_cfg.SynchronizerPipeDepth)-1:0] synchronizer_pipe_num;
+    logic [$clog2(logic_cfg.SynchronizerPipeDepth)-1:0] synchronizer_wbl_pipe_num;
+    logic dt_cfg_enable;
+    logic dt_cfg_idle;
     logic j_mem_ren_load;
-    logic weight_ren;
-    logic h_ren;
-    logic sfc_ren;
-    logic [$clog2(logic_cfg.NumSpin/logic_cfg.Parallelism)-1:0] j_raddr_load, weight_raddr;
-    logic [logic_cfg.NumSpin*logic_cfg.BitJ*logic_cfg.Parallelism-1:0] j_rdata, weight;
-    logic [logic_cfg.BitH*logic_cfg.NumSpin-1:0] h_rdata, hbias;
-    logic [logic_cfg.ScalingBit-1:0] sfc_rdata, hscaling;
-    logic en_comparison, cmpt_en, cmpt_idle, host_readout;
-    logic flip_ren, flip_disable;
-    logic [$clog2(logic_cfg.FlipIconDepth)+1-1:0] flip_raddr, icon_last_raddr_plus_one;
+    logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
+    logic [logic_cfg.HRegDataBitwidth-1:0] h_rdata, dgt_hbias;
+    logic host_readout;
+    logic [logic_cfg.FmemAddrBitwidth-1+1:0] icon_last_raddr_plus_one;
     logic [logic_cfg.NumSpin-1:0] flip_rdata;
+    logic flip_disable;
+    logic [logic_cfg.ScalingBit-1:0] dgt_hscaling;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_floating;
+    logic [logic_cfg.JmemAddrBitwidth-1:0] dgt_addr_upper_bound;
+    logic enable_flip_detection;
+    logic [logic_cfg.CounterBitwidth-1:0] debug_cycle_per_spin_read;
+    logic [logic_cfg.CounterBitwidth-1:0] debug_spin_read_num;
+    logic debug_j_write_en;
+    logic debug_j_read_en;
+    logic [logic_cfg.NumSpin-1:0] debug_j_one_hot_wwl;
+    logic debug_h_wwl;
+    logic debug_spin_write_en;
+    logic debug_spin_compute_en;
+    logic debug_spin_read_en;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_read_in;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wblb_read_in;
 
-    logic [logic_cfg.NumSpin * logic_cfg.BitJ-1:0] analog_wbl;
-    logic [logic_cfg.NumSpin-1:0] analog_dt_j_wwl;
-    logic analog_dt_h_wwl;
+    // Digital macro output signals
+    logic cmpt_idle;
+    logic [JmemAddrBitwidth-1:0] j_raddr_load, dgt_weight_raddr;
+    logic h_ren;
+    logic flip_ren;
+    logic [logic_cfg.FmemAddrBitwidth-1:0] flip_raddr;
+    logic signed [logic_cfg.SpinDepth-1:0] [logic_cfg.EnergyTotalBit-1:0] energy_fifo_data;
+    logic [logic_cfg.SpinDepth-1:0] [logic_cfg.NumSpin-1:0] spin_fifo_data;
+    logic energy_fifo_update;
+    logic spin_fifo_update;
+    logic dgt_weight_ren;
+    logic debug_spin_valid;
+    logic [logic_cfg.FmemAddrBitwidth-1:0] debug_spin_waddr;
+    logic [logic_cfg.NumSpin-1:0] debug_spin_out;
+    logic debug_j_read_data_valid;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_j_read_data;
+    logic debug_analog_dt_w_idle;
+    logic debug_analog_dt_r_idle;
+    logic debug_spin_w_idle;
+    logic debug_spin_r_idle;
+    logic debug_spin_cmpt_idle;
+
+    // analog macro signals
+    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_in_analog;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wblb_in_analog;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_floating_in_analog;
+    logic [logic_cfg.NumSpin-1:0] j_one_hot_wwl;
+    logic h_wwl;
+    logic [logic_cfg.NumSpin:0] wwl_vdd_analog;
+    logic [logic_cfg.NumSpin:0] wwl_vread_analog;
     logic [logic_cfg.NumSpin-1:0] spin_wwl;
-    logic [logic_cfg.NumSpin-1:0] spin_compute_mode;
-    logic [logic_cfg.NumSpin-1:0] analog_spin_output;
+    logic [logic_cfg.NumSpin-1:0] spin_feedback;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_in;
+    logic [logic_cfg.NumSpin-1:0] spin_out_analog;
 
     $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
         logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
-
-    ////////
-    // This is a temporary implementation
-    ////////
-    assign mode_select = 1'b1;
 
     //////////////////////////////////////////////////////////
     // L1 memory, with narrow and direct access //////////////
@@ -214,88 +271,140 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Analog Macro //////////////////////////////////////////
     //////////////////////////////////////////////////////////
     galena_256 u_galena (
-        .wdata_i                (analog_wbl            ), // wbl
-        .cu_write_i             (analog_dt_j_wwl       ), // dt_j_wwl
-        .h_write_i              (analog_dt_h_wwl       ), // dt_h_wwl
-        .au_write_i             (spin_wwl              ), // spin_wwl
-        .cont_en_i              (spin_compute_mode     ), // spin mode
-        .spins_o                (analog_spin_output    ),
+        .wbl_i                   (wbl_in_analog         ),
+        .wblb_i                  (wblb_in_analog        ),
+        .wbl_floating_i          (wbl_floating_in_analog),
+        .wwl_i                   ({h_wwl, j_one_hot_wwl}),
+        .wwl_vdd_i               (wwl_vdd_analog        ),
+        .wwl_vread_i             (wwl_vread_analog      ),
+        .write_spin_i            (spin_wwl              ),
+        .feedback_i              (spin_feedback         ),
+        .wbl_read_o              (debug_wbl_in          ),
+        .wblb_read_o             (                      ),
+        .bct_read_o              (spin_out_analog       ),
         // Galena wires
-        .cu_iref_ai             (galena_cu_iref_i      ),
-        .cu_vup_ai              (galena_cu_vup_i       ),
-        .cu_vdn_ai              (galena_cu_vdn_i       ),
-        .h_iref_ai              (galena_h_iref_i       ),
-        .h_vup_ai               (galena_h_vup_i        ),
-        .h_vdn_ai               (galena_h_vdn_i        )
+        .j_iref_aio              (galena_j_iref_i       ),
+        .j_vup_aio               (galena_j_vup_i        ),
+        .j_vdn_aio               (galena_j_vdn_i        ),
+        .h_iref_aio              (galena_h_iref_i       ),
+        .h_vup_aio               (galena_h_vup_i        ),
+        .h_vdn_aio               (galena_h_vdn_i        ),
+        .vread_aio               (galena_vread_i        )
     );
 
     //////////////////////////////////////////////////////////
     // Digital Macro /////////////////////////////////////////
     //////////////////////////////////////////////////////////
     digital_macro #(
-        .bit_j                  (logic_cfg.BitJ                   ),
-        .bit_h                  (logic_cfg.BitH                   ),
-        .num_spin               (logic_cfg.NumSpin                ),
-        .scaling_bit            (logic_cfg.ScalingBit             ),
-        .parallelism            (logic_cfg.Parallelism            ),
-        .energy_total_bit       (logic_cfg.EnergyTotalBit         ),
-        .little_endian          (logic_cfg.LittleEndian           ),
-        .pipesintf              (logic_cfg.PipesIntf              ),
-        .pipesmid               (logic_cfg.PipesMid               ),
-        .spin_depth             (logic_cfg.SpinDepth              ),
-        .flip_icon_depth        (logic_cfg.FlipIconDepth          ),
-        .counter_bitwidth       (logic_cfg.CfgCounterBitwidth     ),
-        .synchronizer_pipe_depth(logic_cfg.SynchronizerPipeDepth  )
+        .BITJ                       (logic_cfg.BitJ                   ),
+        .BITH                       (logic_cfg.BitH                   ),
+        .NUM_SPIN                   (logic_cfg.NumSpin                ),
+        .SCALING_BIT                (logic_cfg.ScalingBit             ),
+        .PARALLELISM                (logic_cfg.Parallelism            ),
+        .ENERGY_TOTAL_BIT           (logic_cfg.EnergyTotalBit         ),
+        .LITTLE_ENDIAN              (logic_cfg.LittleEndian           ),
+        .PIPESINTF                  (logic_cfg.PipesIntf              ),
+        .PIPESMID                   (logic_cfg.PipesMid               ),
+        .PIPESFLIPFILTER            (logic_cfg.PipesFlipFilter        ),
+        .SPIN_DEPTH                 (logic_cfg.SpinDepth              ),
+        .FLIP_ICON_DEPTH            (logic_cfg.FlipIconDepth          ),
+        .COUNTER_BITWIDTH           (logic_cfg.CounterBitwidth        ),
+        .SYNCHRONIZER_PIPEDEPTH     (logic_cfg.SynchronizerPipeDepth  ),
+        .SPIN_WBL_OFFSET            (logic_cfg.SpinWblOffset          ),
+        .H_IS_NEGATIVE              (logic_cfg.HIsNegative            ),
+        .ENABLE_FLIP_DETECTION      (logic_cfg.EnableFlipDetection    )
     ) u_digital_macro (
-        .clk_i                     (clk_i                         ),
-        .rst_ni                    (rst_ni                        ),
-        .en_i                      (en_i                          ),
-        .config_valid_em_i         (1'b0                          ), // to be connected to reg interface
-        .config_valid_fm_i         (1'b0                          ), // to be connected to reg interface
-        .config_valid_aw_i         (1'b0                          ), // to be connected to reg interface
-        .config_counter_i          (                              ), // to be connected to reg interface
-        .config_spin_initial_i     (                              ), // to be connected to reg interface
-        .config_spin_initial_skip_i(                              ), // to be connected to reg interface
-        .cfg_trans_num_i           (                              ), // to be connected to reg interface
-        .cycle_per_dt_write_i      (                              ), // to be connected to reg interface
-        .cycle_per_spin_write_i    (                              ), // to be connected to reg interface
-        .cycle_per_spin_compute_i  (                              ), // to be connected to reg interface
-        .spin_wwl_strobe_i         (                              ), // to be connected to reg interface
-        .spin_mode_i               (                              ), // to be connected to reg interface
-        .synchronizer_pipe_num_i   (2'b11                         ), // to be connected to reg interface
-        .synchronizer_mode_i       (1'b0                          ), // to be connected to reg interface
-        .dt_cfg_enable_i           (1'b0                          ), // to be connected to reg interface
-        .j_mem_ren_o               (j_mem_ren_load                ),
-        .j_raddr_o                 (j_raddr_load                  ),
-        .j_rdata_i                 (j_rdata                       ),
-        .h_ren_o                   (h_ren                         ),
-        .h_rdata_i                 (h_rdata                       ),
-        .sfc_ren_o                 (sfc_ren                       ),
-        .sfc_rdata_i               (sfc_rdata                     ),
-        .flush_i                   (                              ), // to be connected to reg interface
-        .en_comparison_i           (en_comparison                 ),
-        .cmpt_en_i                 (cmpt_en                       ),
-        .cmpt_idle_o               (cmpt_idle                     ),
-        .host_readout_i            (host_readout                  ),
-        .flip_ren_o                (flip_ren                      ),
-        .flip_raddr_o              (flip_raddr                    ),
-        .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one      ),
-        .flip_rdata_i              (flip_rdata                    ),
-        .flip_disable_i            (flip_disable                  ),
-        .weight_ren_o              (weight_ren                    ),
-        .weight_raddr_o            (weight_raddr                  ),
-        .weight_i                  (weight                        ),
-        .hbias_i                   (hbias                         ),
-        .hscaling_i                (hscaling                      ),
-        .j_one_hot_wwl_o           (analog_dt_j_wwl               ),
-        .h_wwl_o                   (analog_dt_h_wwl               ),
-        .sfc_wwl_o                 (                              ), // not used in current version
-        .wbl_o                     (analog_wbl                    ),
-        .spin_wwl_o                (spin_wwl                      ),
-        .spin_compute_en_o         (spin_compute_mode             ),
-        .analog_spin_i             (analog_spin_output            )
+        .clk_i                      (clk_i                            ),
+        .rst_ni                     (rst_ni                           ),
+        .en_aw_i                    (en_aw                            ),
+        .en_em_i                    (en_em                            ),
+        .en_ff_i                    (en_ff                            ),
+        .en_fm_i                    (en_fm                            ),
+        .en_ef_i                    (en_ef                            ),
+        .en_analog_loop_i           (en_analog_loop                   ),
+        .config_valid_em_i          (config_valid_em                  ),
+        .config_valid_fm_i          (config_valid_fm                  ),
+        .config_valid_aw_i          (config_valid_aw                  ),
+        .debug_dt_configure_enable_i(debug_dt_configure_enable        ),
+        .debug_spin_configure_enable_i(debug_spin_configure_enable    ),
+        .config_counter_i           (config_counter                   ),
+        .config_spin_initial_i      (config_spin_initial              ),
+        .config_spin_initial_skip_i (config_spin_initial_skip         ),
+        .cfg_trans_num_i            (cfg_trans_num                    ),
+        .cycle_per_wwl_high_i       (cycle_per_wwl_high               ),
+        .cycle_per_wwl_low_i        (cycle_per_wwl_low                ),
+        .cycle_per_spin_write_i     (cycle_per_spin_write             ),
+        .cycle_per_spin_compute_i   (cycle_per_spin_compute           ),
+        .wwl_vdd_i                  (wwl_vdd                          ),
+        .wwl_vread_i                (wwl_vread                        ),
+        .bypass_data_conversion_i   (bypass_data_conversion           ),
+        .spin_wwl_strobe_i          (spin_wwl_strobe                  ),
+        .spin_feedback_i            (spin_feedback                    ),
+        .synchronizer_pipe_num_i    (synchronizer_pipe_num            ),
+        .synchronizer_wbl_pipe_num_i(synchronizer_wbl_pipe_num        ),
+        .debug_cycle_per_spin_read_i(debug_cycle_per_spin_read        ),
+        .debug_spin_read_num_i      (debug_spin_read_num              ),
+        .dt_cfg_enable_i            (dt_cfg_enable                    ),
+        .j_mem_ren_o                (j_mem_ren_load                   ),
+        .j_raddr_o                  (j_raddr_load                     ),
+        .j_rdata_i                  (j_rdata                          ),
+        .h_ren_o                    (h_ren                            ),
+        .h_rdata_i                  (h_rdata                          ),
+        .dt_cfg_idle_o              (dt_cfg_idle                      ),
+        .flush_i                    (flush_en                         ),
+        .en_comparison_i            (en_comparison                    ),
+        .cmpt_en_i                  (cmpt_en                          ),
+        .cmpt_idle_o                (cmpt_idle                        ),
+        .host_readout_i             (host_readout                     ),
+        .flip_ren_o                 (flip_ren                         ),
+        .flip_raddr_o               (flip_raddr                       ),
+        .icon_last_raddr_plus_one_i (icon_last_raddr_plus_one         ),
+        .flip_rdata_i               (flip_rdata                       ),
+        .flip_disable_i             (flip_disable                     ),
+        .dgt_weight_ren_o           (dgt_weight_ren                   ),
+        .dgt_weight_raddr_o         (dgt_weight_raddr                 ),
+        .dgt_addr_upper_bound_i     (dgt_addr_upper_bound             ),
+        .dgt_weight_i               (dgt_weight                       ),
+        .dgt_hbias_i                (dgt_hbias                        ),
+        .dgt_hscaling_i             (dgt_hscaling                     ),
+        .j_one_hot_wwl_o            (j_one_hot_wwl                    ),
+        .h_wwl_o                    (h_wwl                            ),
+        .wbl_o                      (wbl_in_analog                    ),
+        .wblb_o                     (wblb_in_analog                   ),
+        .wbl_read_i                 (debug_wbl_in                     ),
+        .wblb_read_i                (                                 ),
+        .wbl_floating_o             (wbl_floating_in_analog           ),
+        .wwl_vdd_o                  (wwl_vdd_analog                   ),
+        .wwl_vread_o                (wwl_vread_analog                 ),
+        .spin_wwl_o                 (spin_wwl                         ),
+        .spin_feedback_o            (spin_feedback                    ),
+        .spin_analog_i              (spin_out_analog                  ),
+        .energy_fifo_update_o       (energy_fifo_update               ),
+        .spin_fifo_update_o         (spin_fifo_update                 ),
+        .energy_fifo_o              (energy_fifo_data                 ),
+        .spin_fifo_o                (spin_fifo_data                   ),
+        .enable_flip_detection_i    (enable_flip_detection            ),
+        // debugging interface
+        .debug_j_write_en_i         (debug_j_write_en                 ),
+        .debug_j_read_en_i          (debug_j_read_en                  ),
+        .debug_j_one_hot_wwl_i      (debug_j_one_hot_wwl              ),
+        .debug_h_wwl_i              (debug_h_wwl                      ),
+        .debug_wbl_i                (debug_wbl_in                     ),
+        .debug_j_read_data_o        (debug_j_read_data                ),
+        .debug_j_read_data_valid_o  (debug_j_read_data_valid          ),
+        .debug_spin_write_en_i      (debug_spin_write_en              ),
+        .wbl_floating_i             (wbl_floating                     ),
+        .debug_spin_compute_en_i    (debug_spin_compute_en            ),
+        .debug_spin_read_en_i       (debug_spin_read_en               ),
+        .debug_spin_valid_o         (debug_spin_valid                 ),
+        .debug_spin_waddr_o         (debug_spin_waddr                 ),
+        .debug_spin_o               (debug_spin_out                   ),
+        .debug_analog_dt_w_idle_o   (debug_analog_dt_w_idle           ),
+        .debug_analog_dt_r_idle_o   (debug_analog_dt_r_idle           ),
+        .debug_spin_w_idle_o        (debug_spin_w_idle                ),
+        .debug_spin_cmpt_idle_o     (debug_spin_cmpt_idle             ),
+        .debug_spin_r_idle_o        (debug_spin_r_idle                )
     );
-
 
     always_comb begin
         drt_s_req_flip.q.addr          = flip_raddr;
@@ -310,7 +419,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     end
 
     always_comb begin
-        case(mode_select)
+        case(dt_cfg_enable)
             1'b0: begin: load_mode
                 drt_s_req_j.q.addr         = j_raddr_load;
                 drt_s_req_j.q.write        = 1'b0;
@@ -323,13 +432,13 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
             end
             1'b1: begin: compute_mode
-                drt_s_req_j.q.addr         = weight_raddr;
+                drt_s_req_j.q.addr         = dgt_weight_raddr;
                 drt_s_req_j.q.write        = 1'b0;
                 drt_s_req_j.q.data         = '0;
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q.user         = '0;
                 drt_s_req_j.q_valid        = weight_ren;
-                weight                     = drt_s_rsp_j.p.data;
+                dgt_weight                 = drt_s_rsp_j.p.data;
                 // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
                 // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
             end
