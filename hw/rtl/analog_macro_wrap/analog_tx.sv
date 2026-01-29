@@ -48,20 +48,39 @@ module analog_tx #(
     assign spin_o = spin_out_reg;
     assign synchronizer_pipe_num_reg_o = synchronizer_pipe_num_reg;
 
-    synchronizer #(
-        .DATAW(NUM_SPIN),
-        .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPEDEPTH),
-        .WITH_ISOLATION_CELLS(1)
-    ) u_synchronizer_spin (
-        .clk_i                  (clk_i                                     ),
-        .rst_ni                 (rst_ni                                    ),
-        .en_i                   (en_i                                      ),
-        .data_in_i              (spin_i                                    ),
-        .synchronizer_pipe_num_i(synchronizer_pipe_num_reg                 ),
-        .synchronization_en_i   (analog_macro_cmpt_finish_i                ),
-        .data_out_valid_o       (spin_valid_cond                           ),
-        .data_out_o             (spin_out_comb                             )
-    );
+    generate
+        if (`SYN == 0) begin: function_simulation            
+            synchronizer #(
+                .DATAW(NUM_SPIN),
+                .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPEDEPTH),
+                .WITH_ISOLATION_CELLS(1)
+            ) u_synchronizer_spin (
+                .clk_i                  (clk_i                                     ),
+                .rst_ni                 (rst_ni                                    ),
+                .en_i                   (en_i                                      ),
+                .data_in_i              (spin_i                                    ),
+                .synchronizer_pipe_num_i(synchronizer_pipe_num_reg                 ),
+                .synchronization_en_i   (analog_macro_cmpt_finish_i                ),
+                .data_out_valid_o       (spin_valid_cond                           ),
+                .data_out_o             (spin_out_comb                             )
+            );
+        end else begin: synthesis
+            lagd_synchronizer #(
+                .DATAW(NUM_SPIN),
+                .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPEDEPTH),
+                .WITH_ISOLATION_CELLS(1)
+            ) u_synchronizer_spin (
+                .clk_i                  (clk_i                                     ),
+                .rst_ni                 (rst_ni                                    ),
+                .en_i                   (en_i                                      ),
+                .data_in_i              (spin_i                                    ),
+                .synchronizer_pipe_num_i(synchronizer_pipe_num_reg                 ),
+                .synchronization_en_i   (analog_macro_cmpt_finish_i                ),
+                .data_out_valid_o       (spin_valid_cond                           ),
+                .data_out_o             (spin_out_comb                             )
+            );
+        end
+    endgenerate
 
     assign synchronizer_pipe_num_set_cond = en_i & tx_configure_enable_i;
     assign spin_valid_reset_cond = (!en_i | spin_handshake) & (~spin_valid_cond);

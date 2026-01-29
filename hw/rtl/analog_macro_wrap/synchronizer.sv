@@ -6,10 +6,6 @@
 //
 // Analog synchronizer module, which samples spin data from analog macro to digital macro.
 
-`ifndef SYN
-`define SYN 0
-`endif
-
 `include "common_cells/registers.svh"
 
 module synchronizer #(
@@ -37,17 +33,7 @@ module synchronizer #(
     generate
         if (WITH_ISOLATION_CELLS == 1) begin
             for (i = 0; i < DATAW; i = i + 1) begin: gen_isolation_and2_cells
-                if (`SYN == 1) begin: synthesis
-                    (* keep = "true", dont_touch = "true" *)
-                    AN2OPTDHD16BWP240H8P57PDLVT u_and_inst (
-                        .A1(synchronization_en_i),
-                        .A2(data_in_i[i]),
-                        .Z(data_to_be_synchronized[i])
-                    );
-                end
-                else begin: function_simulation
-                    assign data_to_be_synchronized[i] = data_in_i[i] & synchronization_en_i;
-                end
+                assign data_to_be_synchronized[i] = data_in_i[i] & synchronization_en_i;
             end
         end else begin
             assign data_to_be_synchronized = data_in_i;
@@ -62,19 +48,7 @@ module synchronizer #(
         for (i = 0; i < SYNCHRONIZER_PIPEDEPTH; i = i + 1) begin : gen_data_shift_reg
             `FFL(synchronization_en_reg[i+1], synchronization_en_reg[i], en_i, '0, clk_i, rst_ni)
             assign synchronizer_shift_cond[i] = en_i & (synchronization_en_reg[i]);
-            if (`SYN == 1) begin: synthesis
-                for (j = 0; j < DATAW; j = j + 1) begin
-                    SDFSYNC1QD1BWP240H8P57PDLVT u_sdfsync_inst (
-                        .CP(clk_i),
-                        .D(data_shift_reg[i][j]),
-                        .SE(~synchronizer_shift_cond[i]), // scan enable (D->Q if it is 0)
-                        .SI(),
-                        .Q(data_shift_reg[i+1][j])
-                    );
-                end
-            end else begin: function_simulation
-                `FFL(data_shift_reg[i+1], data_shift_reg[i], synchronizer_shift_cond[i], '0, clk_i, rst_ni)
-            end
+            `FFL(data_shift_reg[i+1], data_shift_reg[i], synchronizer_shift_cond[i], '0, clk_i, rst_ni)
         end
     endgenerate
 
