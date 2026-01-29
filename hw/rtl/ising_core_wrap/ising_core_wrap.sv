@@ -190,6 +190,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign axi_xbar_out_rsp[0] = axi_s_rsp_j;
     assign axi_xbar_out_rsp[1] = axi_s_rsp_flip;
 
+    assign j_rdata = drt_s_rsp_j.p.data;
+    assign dgt_weight = drt_s_rsp_j.p.data;
+
     // axi_xbar #(
     // .Cfg                   (xbar_cfg               ),
     // .Connectivity          ('1                     ),
@@ -428,7 +431,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q.user         = '0;
                 drt_s_req_j.q_valid        = j_mem_ren_load;
-                j_rdata                    = drt_s_rsp_j.p.data;
                 // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
                 // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
             end
@@ -439,7 +441,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q.user         = '0;
                 drt_s_req_j.q_valid        = dgt_weight_ren;
-                dgt_weight                 = drt_s_rsp_j.p.data;
                 // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
                 // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
             end
