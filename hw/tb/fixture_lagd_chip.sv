@@ -75,7 +75,7 @@ module fixture_lagd_chip ();
     logic galena_h_vdn_1_i;
 
     lagd_chip dut (.*);
-  end else begin : gen_dut_empty
+  end else begin : gen_dut_soc
     logic clk_i; assign clk_i = clk;
     logic rst_ni; assign rst_ni = rst_n;
     logic rtc_i; assign rtc_i = 1'b0;

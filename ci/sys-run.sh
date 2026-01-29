@@ -41,9 +41,9 @@ SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 CHIP_LEVEL=0
-BOOTMODE=0
-PRELOAD=0
-BINARY=$( pixi run bender path cheshire)/sw/tests/helloworld.rom.elf
+BOOT_MODE=0
+PRELOAD_MODE=0
+PRELOAD_ELF=$( pixi run bender path cheshire)/sw/tests/helloworld.rom.elf
 DBG=0
 NO_GUI=1
 
@@ -54,15 +54,15 @@ for i in "$@"; do
             shift
             ;;
         --bootmode=*)
-            BOOTMODE="${i#*=}"
+            BOOT_MODE="${i#*=}"
             shift
             ;;
         --preload=*)
-            PRELOAD="${i#*=}"
+            PRELOAD_MODE="${i#*=}"
             shift
             ;;
         --binary=*)
-            BINARY="${i#*=}"
+            PRELOAD_ELF="${i#*=}"
             shift
             ;;
         --help)
@@ -89,17 +89,17 @@ for i in "$@"; do
     esac
 done
 
-if [ ! -f "$BINARY" ]; then
-    echo "Error: Binary file '$BINARY' does not exist."
+if [ ! -f "$PRELOAD_ELF" ]; then
+    echo "Error: Binary file '$PRELOAD_ELF' does not exist."
     exit 1
 fi
 
 echo "Running system test with the following parameters:"
 echo "  CHIP_LEVEL: $CHIP_LEVEL"
-echo "  BOOTMODE: $BOOTMODE"
-echo "  PRELOAD: $PRELOAD"
-echo "  BINARY: $BINARY"
+echo "  BOOT_MODE: $BOOT_MODE"
+echo "  PRELOAD_MODE: $PRELOAD_MODE"
+echo "  PRELOAD_ELF: $PRELOAD_ELF"
 echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
-CHIP_LEVEL=${CHIP_LEVEL} BOOTMODE=${BOOTMODE} PRELOAD=${PRELOAD} BINARY=${BINARY} \
-    DBG=${DBG} NO_GUI=${NO_GUI} make -C "${ROOT_DIR}/hw/tb" run
+CHIP_LEVEL=${CHIP_LEVEL} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
+    PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} make -C "${ROOT_DIR}/hw/tb" run
