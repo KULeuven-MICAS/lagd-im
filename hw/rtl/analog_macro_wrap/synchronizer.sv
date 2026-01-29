@@ -64,7 +64,7 @@ module synchronizer #(
             assign synchronizer_shift_cond[i] = en_i & (synchronization_en_reg[i]);
             if (`SYN == 1) begin: synthesis
                 for (j = 0; j < DATAW; j = j + 1) begin
-                    SDFSYNC1QD1BWP240H8P57PDLVT(
+                    SDFSYNC1QD1BWP240H8P57PDLVT u_sdfsync_inst (
                         .CP(clk_i),
                         .D(data_shift_reg[i][j]),
                         .SE(~synchronizer_shift_cond[i]), // scan enable (D->Q if it is 0)
