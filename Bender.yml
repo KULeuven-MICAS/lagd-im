@@ -34,11 +34,11 @@ sources:
       - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
     target: all(tech_cells_generic_exclude_tc_sram, synthesis)
   - files:
-      - target/syn/tech/tsmc7ff/rtl/synchronizer.sv
       - target/syn/tech/tsmc7ff/rtl/chronos_pll_wrap.sv
       - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
     target: all(synthesis)
   - files:
+      - target/syn/tech/tsmc7ff/rtl/synchronizer.sv
       - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
     target: any(synthesis, test)
   - files:

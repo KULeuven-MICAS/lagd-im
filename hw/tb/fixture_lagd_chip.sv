@@ -104,12 +104,13 @@ module fixture_lagd_chip ();
     logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_o;
     logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_i; assign slink_i = 1'b0;
     logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_o;
-    wire [`NUM_ISING_CORES-1:0] galena_cu_iref_i;
-    wire [`NUM_ISING_CORES-1:0] galena_cu_vup_i;
-    wire [`NUM_ISING_CORES-1:0] galena_cu_vdn_i;
+    wire [`NUM_ISING_CORES-1:0] galena_j_iref_i;
+    wire [`NUM_ISING_CORES-1:0] galena_j_vup_i;
+    wire [`NUM_ISING_CORES-1:0] galena_j_vdn_i;
     wire [`NUM_ISING_CORES-1:0] galena_h_iref_i;
     wire [`NUM_ISING_CORES-1:0] galena_h_vup_i;
     wire [`NUM_ISING_CORES-1:0] galena_h_vdn_i;
+    wire [`NUM_ISING_CORES-1:0] galena_vread_i;
 
     lagd_soc dut (.*);
   end
