@@ -103,10 +103,10 @@ module tb_analog_macro_wrap;
     logic debug_j_read_data_valid_o;
     logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
     logic debug_analog_dt_w_idle_o, debug_analog_dt_r_idle_o;
-    logic [NUM_SPIN-1:0] wwl_vdd_i;
-    logic [NUM_SPIN-1:0] wwl_vread_i;
-    logic [NUM_SPIN-1:0] wwl_vdd_o;
-    logic [NUM_SPIN-1:0] wwl_vread_o;
+    logic [NUM_SPIN:0] wwl_vdd_i;
+    logic [NUM_SPIN:0] wwl_vread_i;
+    logic [NUM_SPIN:0] wwl_vdd_o;
+    logic [NUM_SPIN:0] wwl_vread_o;
 
     logic config_aw_done;
     logic config_galena_done;
@@ -523,8 +523,8 @@ module tb_analog_macro_wrap;
         debug_j_analog_raddr = 'd0;
         debug_h_wwl_i = 1'b0;
         debug_wbl_i = 'd0;
-        wwl_vdd_i = {(NUM_SPIN){1'b1}};
-        wwl_vread_i = {(NUM_SPIN){1'b0}};
+        wwl_vdd_i = {(NUM_SPIN+1){1'b1}};
+        wwl_vread_i = {(NUM_SPIN+1){1'b0}};
         wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
         debug_test_idx = 'd0;
         debug_dt_configure_enable_i = 1'b0;
@@ -544,8 +544,8 @@ module tb_analog_macro_wrap;
             end
             // set wbl_floating to 0 and load in debug_wbl_i
             wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
-            wwl_vdd_i = {(NUM_SPIN){1'b1}};
-            wwl_vread_i = {(NUM_SPIN){1'b0}};
+            wwl_vdd_i = {(NUM_SPIN+1){1'b1}};
+            wwl_vread_i = {(NUM_SPIN+1){1'b0}};
             debug_dt_configure_enable_i = 1'b1;
             @(posedge clk_i);
             debug_dt_configure_enable_i = 1'b0;
@@ -567,8 +567,8 @@ module tb_analog_macro_wrap;
             // ---------------------------------------
             // set wbl_floating to 1
             wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
-            wwl_vdd_i = {(NUM_SPIN){1'b0}};
-            wwl_vread_i = {(NUM_SPIN){1'b1}};
+            wwl_vdd_i = {(NUM_SPIN+1){1'b0}};
+            wwl_vread_i = {(NUM_SPIN+1){1'b1}};
             debug_dt_configure_enable_i = 1'b1;
             @(posedge clk_i);
             debug_dt_configure_enable_i = 1'b0;
@@ -730,8 +730,8 @@ module tb_analog_macro_wrap;
                 end
                 // compare data to reference
                 if (weights_analog[galena_addr_idx] != weights_in_mem_ordered[galena_addr_idx]) begin
-                    $fatal(1, "[Time: %t] Error: Weights mismatch at galena_addr_idx %0d. Expected: 'h%h, Got: 'h%h",
-                        $time, galena_addr_idx, weights_in_mem_ordered[galena_addr_idx], weights_analog[galena_addr_idx]);
+                    $fatal(1, "[Time: %t] Error: Weights mismatch at galena_addr_idx %0d. Expected: 'b%b, Got: 'b%b, wbl_o: 'b%b",
+                        $time, galena_addr_idx, weights_in_mem_ordered[galena_addr_idx], weights_analog[galena_addr_idx], wbl_o);
                 end
                 dt_write_cycle_cnt_j = 0;
                 galena_addr_idx = galena_addr_idx + 1;

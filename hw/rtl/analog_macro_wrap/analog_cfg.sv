@@ -109,8 +109,26 @@ module analog_cfg #(
     // Convert wbl_comb to analog macro format
     always_comb begin
         for (int i = 0; i < NUM_SPIN; i++) begin
-            wbl_comb_in_analog_format[i*BITDATA] = ~wbl_comb[i*BITDATA+BITDATA-1]; // sign bit
-            wbl_comb_in_analog_format[i*BITDATA+BITDATA -: BITDATA-1] = (~wbl_comb[i*BITDATA+BITDATA-1 -: BITDATA-1] + 1'b1); // magnitude bits
+            wbl_comb_in_analog_format[i*BITDATA] = wbl_comb[i*BITDATA +: BITDATA] == {(BITDATA){1'b0}} ? 1'b0 : ~wbl_comb[i*BITDATA+BITDATA-1]; // sign bit
+            wbl_comb_in_analog_format[i*BITDATA+BITDATA-1 -: BITDATA-1] = wbl_comb[i*BITDATA+BITDATA-1] ? (~wbl_comb[i*BITDATA+BITDATA-2 -: BITDATA-1] + 1'b1) : wbl_comb[i*BITDATA+BITDATA-2 -: BITDATA-1]; // magnitude bits
+            // case(wbl_comb[i*BITDATA +: BITDATA])
+            //     4'b1001: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1110; // -7
+            //     4'b1010: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1100; // -6
+            //     4'b1011: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1010; // -5
+            //     4'b1100: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1000; // -4
+            //     4'b1101: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0110; // -3
+            //     4'b1110: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0100; // -2
+            //     4'b1111: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0010; // -1
+            //     4'b0000: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0000; // 0
+            //     4'b0001: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0011; // 1
+            //     4'b0010: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0101; // 2
+            //     4'b0011: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0111; // 3
+            //     4'b0100: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1001; // 4
+            //     4'b0101: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1011; // 5
+            //     4'b0110: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1101; // 6
+            //     4'b0111: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b1111; // 7
+            //     default: wbl_comb_in_analog_format[i*BITDATA +: BITDATA] = 4'b0000; // 0
+            // endcase
         end
     end
 
