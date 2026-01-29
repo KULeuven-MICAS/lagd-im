@@ -49,6 +49,8 @@ module analog_dt_debug #(
     logic debug_ren_comb;
     logic debug_wen_comb;
     logic [NUM_SPIN*BITDATA-1:0] wbl_dt_reg;
+    logic wwl_high_counter_en_cond;
+    logic wwl_low_counter_en_cond;
 
     assign debug_en_comb = debug_wen_comb | debug_ren_comb;
     assign busy_status_comb = w_busy_status | r_busy_status;

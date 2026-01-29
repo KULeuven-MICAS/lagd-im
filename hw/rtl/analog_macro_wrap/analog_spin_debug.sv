@@ -66,6 +66,7 @@ module analog_spin_debug #(
     logic read_num_counter_overflow;
     logic debug_spin_read_idle_cond;
     logic [NUM_SPIN*BITDATA-1:0] wbl_spin_reg;
+    logic debug_spin_feedback_idle_cond;
 
     // config
     assign config_cond = en_i & configure_enable_i;
