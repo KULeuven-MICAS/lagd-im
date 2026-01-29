@@ -61,7 +61,7 @@ libelfloader: $(DPI_LIB)
 # ============================================================
 
 TEST_PATH ?= $(CURDIR)
-HDL_FILES_LIST ?= $(TEST_PATH)/bender_list.tcl
+HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 SIM_NAME ?= lagd_chip
 WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 HDL_FILES ?=
@@ -69,5 +69,11 @@ DBG ?= 1
 CXX_PATH ?= $(which g++)
 VOPT_ARGS += -O5 +acc=p+tb_cheshire_soc. +noacc=p+cheshire_soc. +acc=r+stream_xbar -permissive
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} # -sv_lib libelfloader
+
+# Simulation defines
+BOOT_MODE ?= 0
+PRELOAD_MODE ?= 0
+PRELOAD_ELF ?= ""
+DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE) PRELOAD_ELF=\"$(PRELOAD_ELF)\"
 
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk

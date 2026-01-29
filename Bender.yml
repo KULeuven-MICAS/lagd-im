@@ -87,7 +87,6 @@ sources:
     target: all(test, tech_cells_generic_exclude_tc_sram)
   # yamllint enable rule:line-length
   - files:
-      - hw/tb/tb_lagd_chip.sv
       - hw/tb/fixture_lagd_chip.sv
     target: any(simulation, test)
 

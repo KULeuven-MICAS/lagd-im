@@ -12,6 +12,10 @@
 `define PRELOAD_MODE 0
 `endif
 
+`ifndef PRELOAD_ELF
+`define PRELOAD_ELF ""
+`endif
+
 module tb_lagd_chip ();
 
   fixture_lagd_chip fix ();
@@ -23,7 +27,10 @@ module tb_lagd_chip ();
 
   assign boot_mode = `BOOT_MODE;
   assign preload_mode = `PRELOAD_MODE;
-  initial begin 
+  assign preload_elf = `PRELOAD_ELF;
+
+  initial begin
+    $display("Boot mode: %0d, Preload mode: %0d, Preload ELF: %s", boot_mode, preload_mode, preload_elf);
     // Wait for reset
     fix.vip.wait_for_reset();
     
@@ -36,7 +43,7 @@ module tb_lagd_chip ();
         end 1: begin  // UART
           fix.vip.uart_debug_elf_run_and_wait(preload_elf, exit_code);
         end default: begin
-          $fatal(1, "Unsupported preload mode %d (reserved)!", boot_mode);
+          $fatal(1, "Unsupported preload mode %d (reserved)!", preload_mode);
         end
       endcase
     end else if (boot_mode == 1) begin
