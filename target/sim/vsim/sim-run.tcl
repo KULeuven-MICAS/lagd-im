@@ -43,8 +43,9 @@ vmap
 if { ${DBG} == 1 } {
     set VSIM_OPTS [list \
         -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
-        -voptargs=-debugdb \
+        -novopt -suppress 12110 \
     ]
+    #   -voptargs=-debugdb \
     #   -voptargs=+acc # this was the old way but still questa rises a warning?
 } else {
     set VSIM_OPTS ""
@@ -53,11 +54,11 @@ if { ${DBG} == 1 } {
 vsim -quiet \
     {*}${VSIM_OPTS} \
     -msgmode both -displaymsgmode both \
-    -L work_lib \
     -work ${WLIB} \
     -ini ${WORK_DIR}/modelsim.ini \
-    ${VSIM_FLAGS} \
+    {*}${VSIM_FLAGS} \
     ${OBJ}
+#    -L work_lib \
 
 if { ${DBG} == 1 } {
     # Save all signals in vcd

@@ -42,20 +42,25 @@ if { [ info exists HDL_FILES ] } {
     }
 }
 
-# Optimization and object preparation
-if { ${DBG} == 1 } {
-    set PREFIX "dbg_"
-    set VOPT_FLAGS [list -debugdb]
+# Check if skip vopt is set
+if { ${SKIP_VOPT} == 0 } {
+    # Optimization and object preparation
+    if { ${DBG} == 1 } {
+        set PREFIX "dbg_"
+        set VOPT_FLAGS [list -debugdb]
+    } else {
+        set PREFIX "nodbg_"
+        set VOPT_FLAGS ""
+    }
+    if { [catch {
+        vopt -quiet -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} {*}${VOPT_ARGS} -o ${PREFIX}${SIM_NAME}
+        } err] } {
+        puts "Error during optimization:"
+        puts $err
+        quit -code 1
+    }
 } else {
-    set PREFIX "nodbg_"
-    set VOPT_FLAGS ""
-}
-if { [catch {
-    vopt -quiet -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} ${VOPT_ARGS} -o ${PREFIX}${SIM_NAME}
-    } err] } {
-    puts "Error during optimization:"
-    puts $err
-    quit -code 1
+    puts "Skipping vopt."
 }
 
 file rename -force ./modelsim.ini ${WORK_DIR}/modelsim.ini

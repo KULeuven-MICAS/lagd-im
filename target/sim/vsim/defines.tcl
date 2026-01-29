@@ -85,6 +85,12 @@ if { [info exists ::env(VSIM_FLAGS)] } {
     set VSIM_FLAGS ""
 }
 
+if { [info exists ::env(SKIP_VOPT)] && $::env(SKIP_VOPT) == 1 } {
+    set SKIP_VOPT $::env(SKIP_VOPT)
+} else {
+    set SKIP_VOPT 0
+}
+
 set WLIB "${WORK_DIR}/work/work_${SIM_NAME}"
 
 puts "--------------------------------------------------------------------------------"
@@ -100,4 +106,5 @@ puts "WLIB: ${WLIB}"
 puts "VLOG_FLAGS: ${VLOG_FLAGS}"
 puts "VOPT_ARGS: ${VOPT_ARGS}"
 puts "VSIM_FLAGS: ${VSIM_FLAGS}"
+puts "SKIP_VOPT: ${SKIP_VOPT}"
 puts "--------------------------------------------------------------------------------"
