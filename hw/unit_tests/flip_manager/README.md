@@ -1,20 +1,28 @@
 # Flip Manager Testbench
 
-## Description
+## Testbench parameters (applied value)
 
-This module maintains the flipping operation for each trail.
+*NUM_SPIN* (256): number of spins.
 
-## Testbench parameters
+*ENERGY_TOTAL_BIT* (32): bit precision of energy value.
 
-*CLKCYCLE:* clock cycle time (unit: ns)
+*SPIN_DEPTH* (2): spin FIFO depth.
 
-*MEM_LATENCY:* expected weight memory latency (unit: cycle) per read access
+*FLIP_ICON_DEPTH* (1024): flip icon memory depth.
 
-*SPIN_LATENCY:* expected spin latency interval (unit: cycle) for each two *spin_valid_i*
+*CLKCYCLE* (2): clock cycle time (unit: ns)
 
-*RANDOM_TEST:* if use random generated data as inputs
+*ENABLE_ENERGY_COMPARISON* (1): whether or not to enable energy comparison.
 
-*NUM_TEST:* tested number of cases
+*FLIP_MEM_LATENCY* (1): memory latency of external flip icon memory (must be 1).
+
+*ENERGY_MONITOR_LATENCY*: expected energy monitor latency.
+
+*ANALOG_DELAY*: expected analog macro latency.
+
+*RANDOM_TEST*: whether the data is random or not.
+
+*FLUSH_NUM_TESTS*: number of flush tests.
 
 ## Testcases
 
@@ -22,16 +30,10 @@ This module maintains the flipping operation for each trail.
 
 | Testcase Name | Description                                         | Input Parameters                                               |
 |:-------------:|:---------------------------------------------------:|:--------------------------------------------------------------:|
+Fixed | Fix patten test | RANDOM_TEST=0, FLUSH_NUM_TESTS=3 |
+Random | Random test | RANDOM_TEST=1, FLUSH_NUM_TESTS=3 |
 
-
-## Register address
-
-| Register Name           | Bit Width   | Interface Signal       | Need Valid Signal | Address |
-|:-----------------------:|:-----------:|:----------------------:|:--:|:--:|
-
-
-## Further Improvement TBD
+## Further Improvements TBD
 
 - The energy fifo can not be read out from the configure channel yet.
-- flush_i should be added to energy monitor as well.
 - interface should be exposed to the host so that host can take over the flipping process.

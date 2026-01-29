@@ -47,18 +47,22 @@
     // L1 memory port width
     `define IC_L1_J_MEM_DATA_WIDTH 4096
     `define IC_L1_FLIP_MEM_DATA_WIDTH 256
-    `define IC_L1_FLIP_MEM_ADDR_WIDTH 16
+    `define IC_L1_FLIP_MEM_ADDR_WIDTH 10
     // Registers per core
     `define IC_NUM_REGS 'h1000    // 4 kB per core
     // Ising macro
     `define NUM_SPIN 256
     `define BIT_J 4
     `define BIT_H 4
-    `define SCALING_BIT 4
+    `define SCALING_BIT 5
     `define PARALLELISM 4
     `define ENERGY_TOTAL_BIT 32
-    `define SYNCH_PIPE_DEPTH 3
     `define FLIP_ICON_DEPTH `L1_FLIP_MEM_SIZE_B*8/(`NUM_SPIN)
+    `define COUNTER_BITWIDTH 16
+    `define SYNCH_PIPE_DEPTH 3
+    `define SPIN_WBL_OFFSET 0
+    `define ENABLE_FLIP_DETECTION 1
+
     `define IC_L1_J_MEM_ADDR_WIDTH $clog2(`NUM_SPIN/`PARALLELISM)
 
 `endif // LAGD_DEFINE_SVH

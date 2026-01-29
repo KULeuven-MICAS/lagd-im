@@ -6,8 +6,18 @@ set PROJECT_ROOT ../../..
 set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
+    "./config_pkg.sv" \
+    "./data_read_pkg.sv" \
+    "./analog_format_pkg.sv" \
+    "./energy_calc_pkg.sv" \
     "./tb_digital_macro.sv" \
+    "[exec bender path common_cells]/src/onehot_to_bin.sv" \
+    "[exec bender path common_cells]/src/popcount.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
+    "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
+    "${HDL_PATH}/flip_filter/flip_filter.sv" \
+    "${HDL_PATH}/flip_filter/dgt_raddr_manager.sv" \
+    "${HDL_PATH}/flip_filter/customized_arbiter.sv" \
     "${HDL_PATH}/energy_monitor/energy_monitor.sv" \
     "${HDL_PATH}/lib/bp_pipe.sv" \
     "${HDL_PATH}/energy_monitor/vector_caching.sv" \
@@ -25,6 +35,9 @@ set HDL_FILES [ list \
     "${HDL_PATH}/analog_macro_wrap/analog_cfg.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_tx.sv" \
     "${HDL_PATH}/analog_macro_wrap/analog_rx.sv" \
+    "${HDL_PATH}/analog_macro_wrap/synchronizer.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_dt_debug.sv" \
+    "${HDL_PATH}/analog_macro_wrap/analog_spin_debug.sv" \
 ]
 
 set INCLUDE_DIRS [list \

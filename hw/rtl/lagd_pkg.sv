@@ -235,39 +235,66 @@ package ising_logic_pkg;
         int unsigned BitH;
         /// Bit width for scaling
         int unsigned ScalingBit;
+        /// Little endian flag
+        int LittleEndian;
+        /// Pipeline at energy monitor interface
+        int PipesIntf;
+        /// Pipeline in adder tree of energy monitor
+        int PipesMid;
+        /// Pipeline in flip filter interface
+        int PipesFlipFilter;
         /// Parallelism factor
         int unsigned Parallelism;
         /// Total energy bit width
         int unsigned EnergyTotalBit;
+        /// Spin fifo depth
+        int unsigned SpinDepth;
         /// Depth of the flip icon memory
         int unsigned FlipIconDepth;
         /// Config counter bitwidth
-        int unsigned CfgCounterBitwidth;
-        /// Spin depth
-        int unsigned SpinDepth;
-        /// Little endian flag
-        bit LittleEndian;
-        /// Pipeline at energy monitor interface
-        bit PipesIntf;
-        /// Pipeline in adder tree of energy monitor
-        bit PipesMid;
+        int unsigned CounterBitwidth;
         /// Synchronizer pipe depth
         int unsigned SynchronizerPipeDepth;
+        /// Offset for spin WBL in analog macro
+        int unsigned SpinWblOffset;
+        /// minus sign in H formula
+        int HIsNegative;
+        /// Enable flip detection
+        int EnableFlipDetection;
+        /// J memory address bitwidth
+        int unsigned JmemAddrBitwidth;
+        /// Flip memory address bitwidth
+        int unsigned FmemAddrBitwidth;
+        /// J memory data bitwidth
+        int unsigned JmemDataBitwidth;
+        /// Flip memory data bitwidth
+        int unsigned FmemDataBitwidth;
+        /// H register data bitwidth
+        int unsigned HRegDataBitwidth;
     } ising_logic_cfg_t;
     localparam ising_logic_cfg_t IsingLogicCfg = '{
         NumSpin : `NUM_SPIN,
         BitJ    : `BIT_J,
         BitH    : `BIT_H,
         ScalingBit: `SCALING_BIT,
-        Parallelism: `PARALLELISM,
-        EnergyTotalBit: `ENERGY_TOTAL_BIT,
-        FlipIconDepth : `FLIP_ICON_DEPTH,
-        CfgCounterBitwidth : 16,
-        SpinDepth: 2,
         LittleEndian: 0,
         PipesIntf: 1, // pipeline at energy monitor interface
         PipesMid: 1, // pipeline in adder tree of energy monitor
-        SynchronizerPipeDepth: `SYNCH_PIPE_DEPTH
+        PipesFlipFilter: 1, // pipeline at flip filter interface
+        Parallelism: `PARALLELISM,
+        EnergyTotalBit: `ENERGY_TOTAL_BIT,
+        SpinDepth: 2,
+        FlipIconDepth : `FLIP_ICON_DEPTH,
+        CounterBitwidth : `COUNTER_BITWIDTH,
+        SynchronizerPipeDepth: `SYNCH_PIPE_DEPTH,
+        SpinWblOffset: `SPIN_WBL_OFFSET,
+        HIsNegative: 1,
+        EnableFlipDetection: `ENABLE_FLIP_DETECTION,
+        JmemAddrBitwidth: `IC_L1_J_MEM_ADDR_WIDTH,
+        FmemAddrBitwidth: `IC_L1_FLIP_MEM_ADDR_WIDTH,
+        JmemDataBitwidth: `IC_L1_J_MEM_DATA_WIDTH,
+        FmemDataBitwidth: `IC_L1_FLIP_MEM_DATA_WIDTH,
+        HRegDataBitwidth: `NUM_SPIN*`BIT_H
     };
 
 endpackage: ising_logic_pkg
