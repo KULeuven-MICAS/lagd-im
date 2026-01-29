@@ -67,22 +67,22 @@ if { [info exists ::env(PARAMS)] } {
     set PARAMS ""
 }
 
-if { ![file exists ::env(VLOG_FLAGS)] } {
-    set VLOG_FLAGS ""
-} else {
+if { [info exists ::env(VLOG_FLAGS)] } {
     set VLOG_FLAGS $::env(VLOG_FLAGS)
+} else {
+    set VLOG_FLAGS ""
 }
 
-if { ![file exists ::env(VOPT_ARGS)] } {
-    set VOPT_ARGS ""
-} else {
+if { [info exists ::env(VOPT_ARGS)] } {
     set VOPT_ARGS $::env(VOPT_ARGS)
+} else {
+    set VOPT_ARGS ""
 }
 
-if { ![file exists ::env(VSIM_FLAGS)] } {
-    set VSIM_FLAGS ""
-} else {
+if { [info exists ::env(VSIM_FLAGS)] } {
     set VSIM_FLAGS $::env(VSIM_FLAGS)
+} else {
+    set VSIM_FLAGS ""
 }
 
 set WLIB "${WORK_DIR}/work/work_${SIM_NAME}"
