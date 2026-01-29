@@ -282,8 +282,7 @@ module energy_monitor #(
                     2'b11: work_in_progress_comb = work_in_progress_reg; // one in, one out
                     2'b10: work_in_progress_comb = work_in_progress_reg + 2'd1; // one in
                     2'b01: work_in_progress_comb = work_in_progress_reg - 2'd1; // one out
-                    2'b00: work_in_progress_comb = work_in_progress_reg; // no change
-                    default: work_in_progress_comb = work_in_progress_reg; // no change
+                    default: work_in_progress_comb = work_in_progress_reg; // (00) no change
                 endcase
             end
 
