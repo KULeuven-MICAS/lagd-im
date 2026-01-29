@@ -65,6 +65,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     mem_f_rsp_t drt_s_rsp_flip;
     
     // Digital macro input signals
+    // registers
     logic flush_en;
     logic en_aw, en_fm, en_em, en_ff, en_ef, en_analog_loop;
     logic en_comparison;
@@ -86,16 +87,13 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin:0] wwl_vread_cfg;
     logic bypass_data_conversion;
     logic [logic_cfg.NumSpin-1:0] spin_wwl_strobe;
-    logic [logic_cfg.NumSpin-1:0] spin_feedback;
+    logic [logic_cfg.NumSpin-1:0] spin_feedback_cfg;
     logic [$clog2(logic_cfg.SynchronizerPipeDepth)-1:0] synchronizer_pipe_num;
     logic [$clog2(logic_cfg.SynchronizerPipeDepth)-1:0] synchronizer_wbl_pipe_num;
     logic dt_cfg_enable;
-    logic j_mem_ren_load;
-    logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
-    logic [logic_cfg.HRegDataBitwidth-1:0] h_rdata, dgt_hbias;
     logic host_readout;
+    logic [logic_cfg.HRegDataBitwidth-1:0] h_rdata, dgt_hbias;
     logic [logic_cfg.FmemAddrBitwidth-1+1:0] icon_last_raddr_plus_one;
-    logic [logic_cfg.NumSpin-1:0] flip_rdata;
     logic flip_disable;
     logic [logic_cfg.ScalingBit-1:0] dgt_hscaling;
     logic [logic_cfg.HRegDataBitwidth-1:0] wbl_floating;
@@ -110,24 +108,18 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_spin_write_en;
     logic debug_spin_compute_en;
     logic debug_spin_read_en;
-    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_read_in;
-    logic [logic_cfg.HRegDataBitwidth-1:0] wblb_read_in;
+    // memories
+    logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
+    logic [logic_cfg.NumSpin-1:0] flip_rdata;
 
     // Digital macro output signals
+    // registers
     logic dt_cfg_idle;
     logic cmpt_idle;
-    logic [JmemAddrBitwidth-1:0] j_raddr_load, dgt_weight_raddr;
-    logic h_ren;
-    logic flip_ren;
-    logic [logic_cfg.FmemAddrBitwidth-1:0] flip_raddr;
     logic signed [logic_cfg.SpinDepth-1:0] [logic_cfg.EnergyTotalBit-1:0] energy_fifo_data;
     logic [logic_cfg.SpinDepth-1:0] [logic_cfg.NumSpin-1:0] spin_fifo_data;
     logic energy_fifo_update;
     logic spin_fifo_update;
-    logic dgt_weight_ren;
-    logic debug_spin_valid;
-    logic [logic_cfg.FmemAddrBitwidth-1:0] debug_spin_waddr;
-    logic [logic_cfg.NumSpin-1:0] debug_spin_out;
     logic debug_j_read_data_valid;
     logic [logic_cfg.HRegDataBitwidth-1:0] debug_j_read_data;
     logic debug_analog_dt_w_idle;
@@ -135,6 +127,15 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_spin_w_idle;
     logic debug_spin_r_idle;
     logic debug_spin_cmpt_idle;
+    // memories
+    logic j_mem_ren_load;
+    logic dgt_weight_ren;
+    logic [logic_cfg.JmemAddrBitwidth-1:0] j_raddr_load, dgt_weight_raddr;
+    logic flip_ren;
+    logic [logic_cfg.FmemAddrBitwidth-1:0] flip_raddr;
+    logic debug_spin_valid;
+    logic [logic_cfg.FmemAddrBitwidth-1:0] debug_spin_waddr;
+    logic [logic_cfg.NumSpin-1:0] debug_spin_out;
 
     // analog macro signals
     logic [logic_cfg.HRegDataBitwidth-1:0] wbl_in_analog;
@@ -145,7 +146,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin:0] wwl_vdd_analog;
     logic [logic_cfg.NumSpin:0] wwl_vread_analog;
     logic [logic_cfg.NumSpin-1:0] spin_wwl;
-    logic [logic_cfg.NumSpin-1:0] spin_feedback;
+    logic [logic_cfg.NumSpin-1:0] spin_feedback_in_analog;
     logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_in;
     logic [logic_cfg.NumSpin-1:0] spin_out_analog;
 
@@ -278,7 +279,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wwl_vdd_i               (wwl_vdd_analog        ),
         .wwl_vread_i             (wwl_vread_analog      ),
         .write_spin_i            (spin_wwl              ),
-        .feedback_i              (spin_feedback         ),
+        .feedback_i              (spin_feedback_in_analog),
         .wbl_read_o              (debug_wbl_in          ),
         .wblb_read_o             (                      ),
         .bct_read_o              (spin_out_analog       ),
@@ -335,11 +336,11 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .cycle_per_wwl_low_i        (cycle_per_wwl_low                ),
         .cycle_per_spin_write_i     (cycle_per_spin_write             ),
         .cycle_per_spin_compute_i   (cycle_per_spin_compute           ),
-        .wwl_vdd_i                  (wwl_vdd                          ),
-        .wwl_vread_i                (wwl_vread                        ),
+        .wwl_vdd_i                  (wwl_vdd_cfg                      ),
+        .wwl_vread_i                (wwl_vread_cfg                    ),
         .bypass_data_conversion_i   (bypass_data_conversion           ),
         .spin_wwl_strobe_i          (spin_wwl_strobe                  ),
-        .spin_feedback_i            (spin_feedback                    ),
+        .spin_feedback_i            (spin_feedback_cfg                ),
         .synchronizer_pipe_num_i    (synchronizer_pipe_num            ),
         .synchronizer_wbl_pipe_num_i(synchronizer_wbl_pipe_num        ),
         .debug_cycle_per_spin_read_i(debug_cycle_per_spin_read        ),
@@ -348,7 +349,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .j_mem_ren_o                (j_mem_ren_load                   ),
         .j_raddr_o                  (j_raddr_load                     ),
         .j_rdata_i                  (j_rdata                          ),
-        .h_ren_o                    (h_ren                            ),
+        .h_ren_o                    (                                 ),
         .h_rdata_i                  (h_rdata                          ),
         .dt_cfg_idle_o              (dt_cfg_idle                      ),
         .flush_i                    (flush_en                         ),
@@ -377,7 +378,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wwl_vdd_o                  (wwl_vdd_analog                   ),
         .wwl_vread_o                (wwl_vread_analog                 ),
         .spin_wwl_o                 (spin_wwl                         ),
-        .spin_feedback_o            (spin_feedback                    ),
+        .spin_feedback_o            (spin_feedback_in_analog          ),
         .spin_analog_i              (spin_out_analog                  ),
         .energy_fifo_update_o       (energy_fifo_update               ),
         .spin_fifo_update_o         (spin_fifo_update                 ),
@@ -437,7 +438,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.data         = '0;
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q.user         = '0;
-                drt_s_req_j.q_valid        = weight_ren;
+                drt_s_req_j.q_valid        = dgt_weight_ren;
                 dgt_weight                 = drt_s_rsp_j.p.data;
                 // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
                 // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
