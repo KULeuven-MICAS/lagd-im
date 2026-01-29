@@ -53,7 +53,9 @@ if { ${SKIP_VOPT} == 0 } {
         set VOPT_FLAGS ""
     }
     if { [catch {
-        vopt -quiet -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} {*}${VOPT_ARGS} -o ${PREFIX}${SIM_NAME}
+        vopt -quiet \
+            -work ${WLIB} {*}${VOPT_FLAGS} tb_${SIM_NAME} \
+            {*}${VOPT_ARGS} -o ${PREFIX}${SIM_NAME}
         } err] } {
         puts "Error during optimization:"
         puts $err
