@@ -108,6 +108,7 @@ module flip_engine #(
     logic icon_finish_reg;
     logic flip_disable_reg;
     logic prev_hdsk_cnt_maxed;
+    logic flip_disable_reg_flush_cond;
 
     // Data logic
     assign flipped_spin_o = flip_disable_i ? prev_spin_pipe : (prev_spin_pipe ^ flip_icon);
@@ -119,6 +120,7 @@ module flip_engine #(
     // Control logic
     assign prev_spin_handshake = prev_spin_valid_i && prev_spin_ready_o;
     assign flipped_spin_handshake = flipped_spin_valid_o && flipped_spin_ready_i;
+    assign flip_disable_reg_flush_cond = flush_i | (~flip_disable_i);
 
     assign flip_ren_p = en_i & prev_spin_handshake & (~flush_i) & (~flip_disable_i);
     assign icon_fifo_empty_comb = (flip_raddr_reg == icon_last_raddr_plus_one_i);
@@ -130,7 +132,7 @@ module flip_engine #(
     `FFLARNC(icon_finish_reg, icon_fifo_empty_comb, en_i, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_raddr_reg, flip_raddr_n, en_i & flip_ren_p, flush_i, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_ren_n, flip_ren_p, en_i & (~flip_disable_i), flush_i, 'd0, clk_i, rst_ni);
-    `FFLARNC(flip_disable_reg, 1'b1, en_i & prev_hdsk_cnt_maxed & (prev_spin_handshake), flush_i | (~flip_disable_i), 'd0, clk_i, rst_ni);
+    `FFLARNC(flip_disable_reg, 1'b1, en_i & prev_hdsk_cnt_maxed & (prev_spin_handshake), flip_disable_reg_flush_cond, 'd0, clk_i, rst_ni);
     `FFLARNC(flip_rdata_reg, flip_rdata_i, flip_ren_n, flush_i, 'd0, clk_i, rst_ni); // assume read data is valid one cycle after read enable
 
     // counter for completing at least one loop when flip_disable_i is high
