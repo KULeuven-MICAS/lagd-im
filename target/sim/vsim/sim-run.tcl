@@ -48,7 +48,7 @@ if { ${DBG} == 1 } {
     #   -voptargs=-debugdb \
     #   -voptargs=+acc # this was the old way but still questa rises a warning?
 } else {
-    set VSIM_OPTS ""
+    set VSIM_OPTS [list]
 }
 
 vsim -quiet \

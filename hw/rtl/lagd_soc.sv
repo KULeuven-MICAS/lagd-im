@@ -45,12 +45,13 @@ module lagd_soc import lagd_pkg::*; (
     input logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_i,
     output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_o,
     // Galena wires
-    inout wire [`NUM_ISING_CORES-1:0] galena_cu_iref_i,
-    inout wire [`NUM_ISING_CORES-1:0] galena_cu_vup_i,
-    inout wire [`NUM_ISING_CORES-1:0] galena_cu_vdn_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_j_iref_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_j_vup_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_j_vdn_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_h_iref_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_h_vup_i,
-    inout wire [`NUM_ISING_CORES-1:0] galena_h_vdn_i
+    inout wire [`NUM_ISING_CORES-1:0] galena_h_vdn_i,
+    inout wire [`NUM_ISING_CORES-1:0] galena_vread_i
 );
 
     // defines axi and register interface types
@@ -197,44 +198,45 @@ module lagd_soc import lagd_pkg::*; (
     generate
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
             ising_core_wrap #(
-                .l1_mem_cfg_j     (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ),
-                .l1_mem_cfg_flip  (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip),
-                .logic_cfg      (ising_logic_pkg::IsingLogicCfg),
-                .axi_slv_req_t  (lagd_axi_slv_req_t),
-                .axi_slv_rsp_t  (lagd_axi_slv_rsp_t),
-                .axi_narrow_req_t(lagd_axi_slv_req_t),
-                .axi_narrow_rsp_t(lagd_axi_slv_rsp_t),
-                .axi_wide_req_t(lagd_axi_wide_slv_req_t),
-                .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
-                .mem_narrow_req_t(lagd_mem_narr_req_t),
-                .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
-                .mem_j_req_t(lagd_mem_j_req_t),
-                .mem_j_rsp_t(lagd_mem_j_rsp_t),
-                .mem_f_req_t(lagd_mem_f_req_t),
-                .mem_f_rsp_t(lagd_mem_f_rsp_t),
-                .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t),
-                .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t),
-                .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t),
-                .axi_slv_ar_chan_t (lagd_axi_slv_ar_chan_t),
-                .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t),
-                .reg_req_t      (lagd_reg_req_t),
-                .reg_rsp_t      (lagd_reg_rsp_t)
+                .l1_mem_cfg_j      (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ    ),
+                .l1_mem_cfg_flip   (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip ),
+                .logic_cfg         (ising_logic_pkg::IsingLogicCfg          ),
+                .axi_slv_req_t     (lagd_axi_slv_req_t                      ),
+                .axi_slv_rsp_t     (lagd_axi_slv_rsp_t                      ),
+                .axi_narrow_req_t  (lagd_axi_slv_req_t                      ),
+                .axi_narrow_rsp_t  (lagd_axi_slv_rsp_t                      ),
+                .axi_wide_req_t    (lagd_axi_wide_slv_req_t                 ),
+                .axi_wide_rsp_t    (lagd_axi_wide_slv_rsp_t                 ),
+                .mem_narrow_req_t  (lagd_mem_narr_req_t                     ),
+                .mem_narrow_rsp_t  (lagd_mem_narr_rsp_t                     ),
+                .mem_j_req_t       (lagd_mem_j_req_t                        ),
+                .mem_j_rsp_t       (lagd_mem_j_rsp_t                        ),
+                .mem_f_req_t       (lagd_mem_f_req_t                        ),
+                .mem_f_rsp_t       (lagd_mem_f_rsp_t                        ),
+                .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t                  ),
+                .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t                   ),
+                .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t                   ),
+                .axi_slv_ar_chan_t (lagd_axi_slv_ar_chan_t                  ),
+                .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t                   ),
+                .reg_req_t         (lagd_reg_req_t                          ),
+                .reg_rsp_t         (lagd_reg_rsp_t                          )
             ) i_core (
-                .clk_i      (clk_i),
-                .rst_ni     (rst_ni),
+                .clk_i             (clk_i                                   ),
+                .rst_ni            (rst_ni                                  ),
                 // AXI slave interface
-                .axi_s_req_i(axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
-                .axi_s_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
+                .axi_s_req_i       (axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
+                .axi_s_rsp_o       (axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
                 // Register interface
-                .reg_s_req_i(reg_ext_req[i]),
-                .reg_s_rsp_o(reg_ext_rsp[i]),
+                .reg_s_req_i       (reg_ext_req[i]                          ),
+                .reg_s_rsp_o       (reg_ext_rsp[i]                          ),
                 // Galena wires
-                .galena_cu_iref_i   (galena_cu_iref_i[i]),
-                .galena_cu_vup_i    (galena_cu_vup_i[i]),
-                .galena_cu_vdn_i    (galena_cu_vdn_i[i]),
-                .galena_h_iref_i    (galena_h_iref_i[i]),
-                .galena_h_vup_i     (galena_h_vup_i[i]),
-                .galena_h_vdn_i     (galena_h_vdn_i[i])
+                .galena_j_iref_i   (galena_j_iref_i[i]                      ),
+                .galena_j_vup_i    (galena_j_vup_i[i]                       ),
+                .galena_j_vdn_i    (galena_j_vdn_i[i]                       ),
+                .galena_h_iref_i   (galena_h_iref_i[i]                      ),
+                .galena_h_vup_i    (galena_h_vup_i[i]                       ),
+                .galena_h_vdn_i    (galena_h_vdn_i[i]                       ),
+                .galena_vread_i    (galena_vread_i[i]                       )
             );
         end
     endgenerate

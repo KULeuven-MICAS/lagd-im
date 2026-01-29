@@ -2,10 +2,6 @@
 
 ## Description
 
-<p align="center">
-<img src="https://github.com/KULeuven-MICAS/lagd-im/tree/main/doc/energy_monitor_overview.png" width="100%" alt="energy monitor overview">
-</p>
-
 This testbench is for testing the function and performance of energy monitor module. The module calculates the Hamiltonian energy results for a given spin and weight/bias matrix.
 
 The executed formula is as below:
@@ -51,3 +47,11 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 | MaxPosValue_TEST        | 100 successive tests, all spin are 1, weight, bias are in positive maximum | $\sigma = [1]$, $w = [7]$, $h = [7]$, $h_{sfc} = 16$, NUM_TEST=100, LITTLE_ENDIAN=0/1, PARALLELISM=4, PIPESINTF=0/1/2, PIPESMID=0/1/2 |
 | MaxNegValue_TEST        | 100 successive tests, all spin are 0, weight, bias are in negative maximum | $\sigma = [0]$, $w = [-7]$, $h = [-7]$, $h_{sfc} = 16$, NUM_TEST=100, LITTLE_ENDIAN=0/1, PARALLELISM=4, PIPESINTF=0/1/2, PIPESMID=0/1/2 |
 | RANDOM_TEST        | 1,000,000 successive tests, all spin, weight, bias are in random | $\sigma = [0,1]$, $w = [-8,7]$, $h = [-8,7]$, $h_{sfc} = 1/2/4/8/16$, NUM_TEST=1_000_000, LITTLE_ENDIAN=0/1, PARALLELISM=4, PIPESINTF=0/1/2, PIPESMID=0/1/2 |
+
+## Functional verification script
+
+A python functional verification script is made at [autotest_energy_monitor.py](../../../utils/autotest_energy_monitor.py). It does automatical function verification under all cases. The script can be run by entering in terminal:
+
+`
+python utils/autotest_energy_monitor.py
+`

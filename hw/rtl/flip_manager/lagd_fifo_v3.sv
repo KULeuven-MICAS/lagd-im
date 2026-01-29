@@ -16,6 +16,8 @@
 // - Remove testmode_i signal which is a floating signal
 // - Add push_none_i signal to disable push operation when needed (pointer and status counter still update in this case)
 // - Add RESET_VALUE parameter to set the reset value of the fifo
+// - Expose memory content for debugging purpose
+// - Add almost_full_o signal to indicate if one push is allowed (not full)
 
 module lagd_fifo_v3 #(
     parameter bit          FALL_THROUGH = 1'b0, // fifo is in fall-through mode
@@ -24,7 +26,8 @@ module lagd_fifo_v3 #(
     parameter int RESET_VALUE = 0,    // reset value of the fifo
     parameter type dtype                = logic [DATA_WIDTH-1:0],
     // DO NOT OVERWRITE THIS PARAMETER
-    parameter int unsigned ADDR_DEPTH   = (DEPTH > 1) ? $clog2(DEPTH) : 1
+    parameter int unsigned ADDR_DEPTH   = (DEPTH > 1) ? $clog2(DEPTH) : 1,
+    parameter int unsigned FifoDepth    = (DEPTH > 0) ? DEPTH : 1
 )(
     input  logic  clk_i,            // Clock
     input  logic  rst_ni,           // Asynchronous reset active low
@@ -39,11 +42,11 @@ module lagd_fifo_v3 #(
     input  logic  push_i,           // data is valid and can be pushed to the queue
     // as long as the queue is not empty we can pop new elements
     output dtype  data_o,           // output data
-    input  logic  pop_i             // pop head from queue
+    input  logic  pop_i,            // pop head from queue
+    // for debugging purposes
+    output dtype [FifoDepth-1:0] mem_o,    // expose memory content
+    output logic almost_full_o      // queue almost full (one push allowed)
 );
-    // local parameter
-    // FIFO depth - handle the case of pass-through, synthesizer will do constant propagation
-    localparam int unsigned FifoDepth = (DEPTH > 0) ? DEPTH : 1;
     // clock gating control
     logic gate_clock;
     // pointer to the read and write section of the queue
@@ -54,7 +57,12 @@ module lagd_fifo_v3 #(
     // actual memory
     dtype [FifoDepth - 1:0] mem_n, mem_q;
 
+    // expose memory for debugging
+    assign mem_o = mem_q;
+
     assign usage_o = status_cnt_q[ADDR_DEPTH-1:0];
+
+    assign almost_full_o = ~FALL_THROUGH && (status_cnt_n == FifoDepth[ADDR_DEPTH:0]);
 
     if (DEPTH == 0) begin : gen_pass_through
         assign empty_o     = ~push_i;
