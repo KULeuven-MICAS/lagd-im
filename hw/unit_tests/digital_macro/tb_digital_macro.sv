@@ -561,6 +561,8 @@ module tb_digital_macro;
             config_spin_initial_i = spin_initial_states[i];
             config_spin_initial_skip_i = `False;
             @(posedge clk_i);
+            config_valid_fm_i = 0;
+            @(posedge clk_i);
         end
         config_valid_fm_i = 0;
         config_fm_done = 1;

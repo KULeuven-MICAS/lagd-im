@@ -196,7 +196,14 @@ module digital_macro #(
     logic em_double_weight_contri;
     logic em_baseline_done;
     logic em_busy;
+    logic config_valid_em_dly1;
+    logic config_valid_fm_dly1;
+    logic config_valid_aw_dly1;
+    logic config_valid_em_posedge;
+    logic config_valid_fm_posedge;
+    logic config_valid_aw_posedge;
 
+    // control logic
     assign em_upstream_handshake = em_slv_ready & em_upstream_mst_valid;
     assign fm_downstream_handshake = fm_mst_valid & fm_downstream_slv_ready;
     assign em_ef_handshake = em_weight_valid & em_weight_ready;
@@ -205,9 +212,17 @@ module digital_macro #(
     assign cmpt_en_pos_trigger = cmpt_en_i & ~cmpt_en_dly1;
     assign em_fifo_flush_comb = flush_i | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
+    assign config_valid_em_posedge = config_valid_em_i & ~config_valid_em_dly1;
+    assign config_valid_fm_posedge = config_valid_fm_i & ~config_valid_fm_dly1;
+    assign config_valid_aw_posedge = config_valid_aw_i & ~config_valid_aw_dly1;
+
+    // data path
     assign muxed_analog_spin = en_analog_loop_i ? analog_spin : fm_spin_out;
     assign flip_raddr_o = flip_raddr_fm[FLIP_ICON_ADDR_DEPTH-1:0];
 
+    `FFL(config_valid_em_dly1, config_valid_em_i, en_em_i, 1'b0, clk_i, rst_ni);
+    `FFL(config_valid_fm_dly1, config_valid_fm_i, en_fm_i, 1'b0, clk_i, rst_ni);
+    `FFL(config_valid_aw_dly1, config_valid_aw_i, en_aw_i, 1'b0, clk_i, rst_ni);
     `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
     `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni);
 
@@ -376,7 +391,7 @@ module digital_macro #(
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
                 .en_i(en_em_i),
-                .load_i(config_valid_em_i),
+                .load_i(config_valid_em_posedge),
                 .d_i(config_counter_i),
                 .recount_en_i(counter_weight_maxed && em_ef_handshake),
                 .step_en_i(em_ef_handshake),
@@ -429,7 +444,7 @@ module digital_macro #(
         .en_i                           (en_em_i                    ),
         .flush_i                        (em_fifo_flush_comb         ),
         .en_external_counter_i          (enable_flip_detection_i    ),
-        .config_valid_i                 (config_valid_em_i          ),
+        .config_valid_i                 (config_valid_em_posedge    ),
         .config_counter_i               (config_counter_i           ),
         .config_ready_o                 (                           ),
         .spin_valid_i                   (em_upstream_mst_valid      ),
@@ -470,7 +485,7 @@ module digital_macro #(
         .cmpt_en_i                      (cmpt_en_pos_trigger        ),
         .cmpt_idle_o                    (cmpt_idle_o                ),
         .host_readout_i                 (host_readout_i             ),
-        .spin_configure_valid_i         (config_valid_fm_i          ),
+        .spin_configure_valid_i         (config_valid_fm_posedge    ),
         .spin_configure_i               (config_spin_initial_i      ),
         .spin_configure_push_none_i     (config_spin_initial_skip_i ),
         .spin_configure_ready_o         (                           ),
@@ -505,7 +520,7 @@ module digital_macro #(
         .clk_i                          (clk_i                      ),
         .rst_ni                         (rst_ni                     ),
         .en_i                           (en_aw_i                    ),
-        .analog_wrap_configure_enable_i (config_valid_aw_i          ),
+        .analog_wrap_configure_enable_i (config_valid_aw_posedge    ),
         .debug_dt_configure_enable_i    (debug_dt_configure_enable_i         ),
         .debug_spin_configure_enable_i  (debug_spin_configure_enable_i       ),
         .cfg_trans_num_i                (cfg_trans_num_i            ),
