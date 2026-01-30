@@ -52,6 +52,7 @@ sources:
       - hw/rtl/lagd_pkg.sv
       - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
+      - hw/rtl/lagd_core_reg_pkg.sv
       - hw/rtl/ising_core_wrap/ising_core_wrap.sv
       - hw/rtl/lagd_axi_spi_slave.sv
       - hw/rtl/digital_macro/digital_macro.sv
@@ -78,7 +79,6 @@ sources:
       - hw/rtl/analog_macro_wrap/analog_dt_debug.sv
       - hw/rtl/analog_macro_wrap/analog_spin_debug.sv
       - hw/rtl/lib/bp_pipe.sv
-      - hw/rtl/lagd_core_reg/lagd_core_reg_pkg.sv
       - hw/rtl/lagd_core_reg/lagd_core_reg_top.sv
   # yamllint disable rule:line-length
   - files:

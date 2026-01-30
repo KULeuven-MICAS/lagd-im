@@ -181,10 +181,6 @@ package lagd_core_reg_pkg;
   } lagd_core_reg2hw_debug_j_one_hot_wwl_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
-  } lagd_core_reg2hw_debug_j_read_data_mreg_t;
-
-  typedef struct packed {
     struct packed {
       logic        d;
       logic        de;
@@ -248,28 +244,33 @@ package lagd_core_reg_pkg;
     logic        de;
   } lagd_core_hw2reg_spin_fifo_data_1_mreg_t;
 
+  typedef struct packed {
+    logic [63:0] d;
+    logic        de;
+  } lagd_core_hw2reg_debug_j_read_data_mreg_t;
+
   // Register -> HW type
   typedef struct packed {
-    lagd_core_reg2hw_global_cfg_reg_t global_cfg; // [4782:4736]
-    lagd_core_reg2hw_config_spin_initial_mreg_t [3:0] config_spin_initial; // [4735:4480]
-    lagd_core_reg2hw_counter_cfg_1_reg_t counter_cfg_1; // [4479:4416]
-    lagd_core_reg2hw_counter_cfg_2_reg_t counter_cfg_2; // [4415:4352]
-    lagd_core_reg2hw_wwl_vdd_cfg_mreg_t [3:0] wwl_vdd_cfg; // [4351:4096]
-    lagd_core_reg2hw_wwl_vread_cfg_mreg_t [3:0] wwl_vread_cfg; // [4095:3840]
-    lagd_core_reg2hw_spin_wwl_strobe_mreg_t [3:0] spin_wwl_strobe; // [3839:3584]
-    lagd_core_reg2hw_spin_feedback_cfg_mreg_t [3:0] spin_feedback_cfg; // [3583:3328]
-    lagd_core_reg2hw_h_rdata_mreg_t [15:0] h_rdata; // [3327:2304]
-    lagd_core_reg2hw_wbl_floating_mreg_t [15:0] wbl_floating; // [2303:1280]
-    lagd_core_reg2hw_debug_j_one_hot_wwl_mreg_t [3:0] debug_j_one_hot_wwl; // [1279:1024]
-    lagd_core_reg2hw_debug_j_read_data_mreg_t [15:0] debug_j_read_data; // [1023:0]
+    lagd_core_reg2hw_global_cfg_reg_t global_cfg; // [3758:3712]
+    lagd_core_reg2hw_config_spin_initial_mreg_t [3:0] config_spin_initial; // [3711:3456]
+    lagd_core_reg2hw_counter_cfg_1_reg_t counter_cfg_1; // [3455:3392]
+    lagd_core_reg2hw_counter_cfg_2_reg_t counter_cfg_2; // [3391:3328]
+    lagd_core_reg2hw_wwl_vdd_cfg_mreg_t [3:0] wwl_vdd_cfg; // [3327:3072]
+    lagd_core_reg2hw_wwl_vread_cfg_mreg_t [3:0] wwl_vread_cfg; // [3071:2816]
+    lagd_core_reg2hw_spin_wwl_strobe_mreg_t [3:0] spin_wwl_strobe; // [2815:2560]
+    lagd_core_reg2hw_spin_feedback_cfg_mreg_t [3:0] spin_feedback_cfg; // [2559:2304]
+    lagd_core_reg2hw_h_rdata_mreg_t [15:0] h_rdata; // [2303:1280]
+    lagd_core_reg2hw_wbl_floating_mreg_t [15:0] wbl_floating; // [1279:256]
+    lagd_core_reg2hw_debug_j_one_hot_wwl_mreg_t [3:0] debug_j_one_hot_wwl; // [255:0]
   } lagd_core_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    lagd_core_hw2reg_output_status_reg_t output_status; // [605:586]
-    lagd_core_hw2reg_energy_fifo_data_reg_t energy_fifo_data; // [585:520]
-    lagd_core_hw2reg_spin_fifo_data_0_mreg_t [3:0] spin_fifo_data_0; // [519:260]
-    lagd_core_hw2reg_spin_fifo_data_1_mreg_t [3:0] spin_fifo_data_1; // [259:0]
+    lagd_core_hw2reg_output_status_reg_t output_status; // [1645:1626]
+    lagd_core_hw2reg_energy_fifo_data_reg_t energy_fifo_data; // [1625:1560]
+    lagd_core_hw2reg_spin_fifo_data_0_mreg_t [3:0] spin_fifo_data_0; // [1559:1300]
+    lagd_core_hw2reg_spin_fifo_data_1_mreg_t [3:0] spin_fifo_data_1; // [1299:1040]
+    lagd_core_hw2reg_debug_j_read_data_mreg_t [15:0] debug_j_read_data; // [1039:0]
   } lagd_core_hw2reg_t;
 
   // Register offsets

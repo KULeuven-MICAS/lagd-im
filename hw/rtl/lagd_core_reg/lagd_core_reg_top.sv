@@ -3651,12 +3651,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_0_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[0].de),
+    .d      (hw2reg.debug_j_read_data[0].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[0].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_0_qs)
@@ -3678,12 +3678,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_1_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[1].de),
+    .d      (hw2reg.debug_j_read_data[1].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[1].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_1_qs)
@@ -3705,12 +3705,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_2_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[2].de),
+    .d      (hw2reg.debug_j_read_data[2].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[2].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_2_qs)
@@ -3732,12 +3732,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_3_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[3].de),
+    .d      (hw2reg.debug_j_read_data[3].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[3].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_3_qs)
@@ -3759,12 +3759,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_4_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[4].de),
+    .d      (hw2reg.debug_j_read_data[4].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[4].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_4_qs)
@@ -3786,12 +3786,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_5_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[5].de),
+    .d      (hw2reg.debug_j_read_data[5].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[5].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_5_qs)
@@ -3813,12 +3813,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_6_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[6].de),
+    .d      (hw2reg.debug_j_read_data[6].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[6].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_6_qs)
@@ -3840,12 +3840,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_7_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[7].de),
+    .d      (hw2reg.debug_j_read_data[7].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[7].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_7_qs)
@@ -3867,12 +3867,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_8_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[8].de),
+    .d      (hw2reg.debug_j_read_data[8].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[8].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_8_qs)
@@ -3894,12 +3894,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_9_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[9].de),
+    .d      (hw2reg.debug_j_read_data[9].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[9].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_9_qs)
@@ -3921,12 +3921,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_10_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[10].de),
+    .d      (hw2reg.debug_j_read_data[10].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[10].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_10_qs)
@@ -3948,12 +3948,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_11_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[11].de),
+    .d      (hw2reg.debug_j_read_data[11].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[11].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_11_qs)
@@ -3975,12 +3975,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_12_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[12].de),
+    .d      (hw2reg.debug_j_read_data[12].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[12].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_12_qs)
@@ -4002,12 +4002,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_13_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[13].de),
+    .d      (hw2reg.debug_j_read_data[13].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[13].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_13_qs)
@@ -4029,12 +4029,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_14_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[14].de),
+    .d      (hw2reg.debug_j_read_data[14].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[14].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_14_qs)
@@ -4056,12 +4056,12 @@ module lagd_core_reg_top #(
     .wd     (debug_j_read_data_15_wd),
 
     // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+    .de     (hw2reg.debug_j_read_data[15].de),
+    .d      (hw2reg.debug_j_read_data[15].d ),
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.debug_j_read_data[15].q ),
+    .q      (),
 
     // to register interface (read)
     .qs     (debug_j_read_data_15_qs)

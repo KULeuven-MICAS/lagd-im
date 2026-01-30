@@ -241,7 +241,7 @@
       { name:     "debug_j_read_data"
         desc:     "debug_j_read_data values"
         swaccess: "rw"
-        hwaccess: "hro"
+        hwaccess: "hwo"
         count:    "16"
         cname:    "debug_j_read_data"
         fields: [

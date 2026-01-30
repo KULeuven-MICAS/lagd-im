@@ -10,7 +10,7 @@
 `include "lagd_config.svh"
 `include "lagd_typedef.svh"
 
-module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import ising_logic_pkg::*; import lagd_pkg::*; #(
+module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import ising_logic_pkg::*; import lagd_pkg::*; import lagd_core_reg_pkg::*; #(
     parameter mem_cfg_t l1_mem_cfg_j = '0,
     parameter mem_cfg_t l1_mem_cfg_flip = '0,
     parameter ising_logic_cfg_t logic_cfg = '0,
@@ -63,6 +63,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     mem_j_rsp_t drt_s_rsp_j;
     mem_f_req_t drt_s_req_flip;
     mem_f_rsp_t drt_s_rsp_flip;
+
+    // Register interface signals
+    lagd_core_reg_pkg::lagd_core_reg2hw_t reg2hw;
+    lagd_core_reg_pkg::lagd_core_hw2reg_t hw2reg;
     
     // Digital macro input signals
     // registers
@@ -108,6 +112,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_spin_write_en;
     logic debug_spin_compute_en;
     logic debug_spin_read_en;
+    logic ctnus_fifo_read;
     // memories
     logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
     logic [logic_cfg.NumSpin-1:0] flip_rdata;
@@ -270,6 +275,133 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .mem_wide_req_i         (drt_s_req_flip        ),
         .mem_wide_rsp_o         (drt_s_rsp_flip        )
     );
+
+    //////////////////////////////////////////////////////////
+    // Register Intf /////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    lagd_core_reg_top #(
+        .reg_req_t             (reg_req_t              ),
+        .reg_rsp_t             (reg_rsp_t              )
+    ) u_lagd_core_reg_top (
+        .clk_i                 (clk_i                  ),
+        .rst_ni                (rst_ni                 ),
+        .reg_req_i             (reg_s_req_i            ),
+        .reg_rsp_o             (reg_s_rsp_o            ),
+        // To HW
+        .reg2hw                (reg2hw                 ), // Write
+        .hw2reg                (hw2reg                 ), // Read
+        .devmode_i             (1'b1                   )  // If 1, explicit error return for unmapped register access
+    );
+
+    // Connect register signals
+    // reg2hw
+    assign flush_en                         = reg2hw.global_cfg.flush_en.q;
+    assign en_aw                            = reg2hw.global_cfg.en_aw.q;
+    assign en_fm                            = reg2hw.global_cfg.en_fm.q;
+    assign en_em                            = reg2hw.global_cfg.en_em.q;
+    assign en_ff                            = reg2hw.global_cfg.en_ff.q;
+    assign en_ef                            = reg2hw.global_cfg.en_ef.q;
+    assign en_analog_loop                   = reg2hw.global_cfg.en_analog_loop.q;
+    assign en_comparison                    = reg2hw.global_cfg.en_comparison.q;
+    assign cmpt_en                          = reg2hw.global_cfg.cmpt_en.q;
+    assign config_valid_aw                  = reg2hw.global_cfg.config_valid_aw.q;
+    assign config_valid_em                  = reg2hw.global_cfg.config_valid_em.q;
+    assign config_valid_fm                  = reg2hw.global_cfg.config_valid_fm.q;
+    assign debug_dt_configure_enable        = reg2hw.global_cfg.debug_dt_configure_enable.q;
+    assign debug_spin_configure_enable      = reg2hw.global_cfg.debug_spin_configure_enable.q;
+    assign config_spin_initial_skip         = reg2hw.global_cfg.config_spin_initial_skip.q;
+    assign bypass_data_conversion           = reg2hw.global_cfg.bypass_data_conversion.q;
+    assign dt_cfg_enable                    = reg2hw.global_cfg.dt_cfg_enable.q;
+    assign host_readout                     = reg2hw.global_cfg.host_readout.q;
+    assign flip_disable                     = reg2hw.global_cfg.flip_disable.q;
+    assign enable_flip_detection            = reg2hw.global_cfg.enable_flip_detection.q;
+    assign debug_j_write_en                 = reg2hw.global_cfg.debug_j_write_en.q;
+    assign debug_j_read_en                  = reg2hw.global_cfg.debug_j_read_en.q;
+    assign debug_spin_write_en              = reg2hw.global_cfg.debug_spin_write_en.q;
+    assign debug_spin_compute_en            = reg2hw.global_cfg.debug_spin_compute_en.q;
+    assign debug_spin_read_en               = reg2hw.global_cfg.debug_spin_read_en.q;
+    assign config_counter                   = reg2hw.global_cfg.config_counter.q;
+    assign wwl_vdd_cfg[logic_cfg.NumSpin]   = reg2hw.global_cfg.wwl_vdd_cfg_256.q;
+    assign wwl_vread_cfg[logic_cfg.NumSpin] = reg2hw.global_cfg.wwl_vread_cfg_256.q;
+    assign synchronizer_pipe_num            = reg2hw.global_cfg.synchronizer_pipe_num.q;
+    assign synchronizer_wbl_pipe_num        = reg2hw.global_cfg.synchronizer_wbl_pipe_num.q;
+    assign debug_h_wwl                      = reg2hw.global_cfg.debug_h_wwl.q;
+    assign dgt_addr_upper_bound             = reg2hw.global_cfg.dgt_addr_upper_bound.q;
+    assign ctnus_fifo_read                  = reg2hw.global_cfg.ctnus_fifo_read.q;
+
+    assign cfg_trans_num                    = reg2hw.counter_cfg_1.cfg_trans_num.q;
+    assign cycle_per_wwl_high               = reg2hw.counter_cfg_1.cycle_per_wwl_high.q;
+    assign cycle_per_wwl_low                = reg2hw.counter_cfg_1.cycle_per_wwl_low.q;
+    assign cycle_per_spin_write             = reg2hw.counter_cfg_1.cycle_per_spin_write.q;
+    assign cycle_per_spin_compute           = reg2hw.counter_cfg_2.cycle_per_spin_compute.q;
+    assign debug_cycle_per_spin_read        = reg2hw.counter_cfg_2.debug_cycle_per_spin_read.q;
+    assign debug_spin_read_num              = reg2hw.counter_cfg_2.debug_spin_read_num.q;
+    assign icon_last_raddr_plus_one         = reg2hw.counter_cfg_2.icon_last_raddr_plus_one.q;
+    assign dgt_hscaling                     = reg2hw.counter_cfg_2.dgt_hscaling.q;
+
+    assign dgt_hbias = h_rdata;
+
+    always_comb begin
+        for (int i = 0; i < logic_cfg.NumSpin/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
+            config_spin_initial[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH] = reg2hw.config_spin_initial[i].q;
+            wwl_vdd_cfg[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]         = reg2hw.wwl_vdd_cfg[i].q;
+            wwl_vread_cfg[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]       = reg2hw.wwl_vread_cfg[i].q;
+            spin_wwl_strobe[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]     = reg2hw.spin_wwl_strobe[i].q;
+            spin_feedback_cfg[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]   = reg2hw.spin_feedback_cfg[i].q;
+            debug_j_one_hot_wwl[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH] = reg2hw.debug_j_one_hot_wwl[i].q;
+        end
+    end
+
+    always_comb begin
+        for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
+            h_rdata[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]           = reg2hw.h_rdata[i].q;
+            wbl_floating[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]      = reg2hw.wbl_floating[i].q;
+        end
+    end
+
+    // hw2reg
+    assign hw2reg.output_status.dt_cfg_idle            .de = en_aw;
+    assign hw2reg.output_status.cmpt_idle              .de = en_fm;
+    assign hw2reg.output_status.energy_fifo_update     .de = en_fm | ctnus_fifo_read;
+    assign hw2reg.output_status.spin_fifo_update       .de = en_fm | ctnus_fifo_read;
+    assign hw2reg.output_status.debug_j_read_data_valid.de = en_aw;
+    assign hw2reg.output_status.debug_analog_dt_w_idle .de = en_aw;
+    assign hw2reg.output_status.debug_analog_dt_r_idle .de = en_aw;
+    assign hw2reg.output_status.debug_spin_w_idle      .de = en_aw;
+    assign hw2reg.output_status.debug_spin_cmpt_idle   .de = en_aw;
+    assign hw2reg.output_status.debug_spin_r_idle      .de = en_aw;
+    assign hw2reg.energy_fifo_data.energy_fifo_0       .de = energy_fifo_update | ctnus_fifo_read;
+    assign hw2reg.energy_fifo_data.energy_fifo_1       .de = energy_fifo_update | ctnus_fifo_read;
+
+    assign hw2reg.output_status.dt_cfg_idle             .d = dt_cfg_idle;
+    assign hw2reg.output_status.cmpt_idle               .d = cmpt_idle;
+    assign hw2reg.output_status.energy_fifo_update      .d = energy_fifo_update;
+    assign hw2reg.output_status.spin_fifo_update        .d = spin_fifo_update;
+    assign hw2reg.output_status.debug_j_read_data_valid .d = debug_j_read_data_valid;
+    assign hw2reg.output_status.debug_analog_dt_w_idle  .d = debug_analog_dt_w_idle;
+    assign hw2reg.output_status.debug_analog_dt_r_idle  .d = debug_analog_dt_r_idle;
+    assign hw2reg.output_status.debug_spin_w_idle       .d = debug_spin_w_idle;
+    assign hw2reg.output_status.debug_spin_cmpt_idle    .d = debug_spin_cmpt_idle;
+    assign hw2reg.output_status.debug_spin_r_idle       .d = debug_spin_r_idle;
+    assign hw2reg.energy_fifo_data.energy_fifo_0        .d = energy_fifo_data[0];
+    assign hw2reg.energy_fifo_data.energy_fifo_1        .d = energy_fifo_data[1];
+
+    always_comb begin
+        for (int i = 0; i < logic_cfg.NumSpin/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
+            hw2reg.spin_fifo_data_0[i].de = spin_fifo_update | ctnus_fifo_read;
+            hw2reg.spin_fifo_data_1[i].de = spin_fifo_update | ctnus_fifo_read;
+
+            hw2reg.spin_fifo_data_0[i].d  = spin_fifo_data[0][i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+            hw2reg.spin_fifo_data_1[i].d  = spin_fifo_data[1][i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+        end
+    end
+
+    always_comb begin
+        for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
+            hw2reg.debug_j_read_data[i].de = debug_j_read_data_valid;
+            hw2reg.debug_j_read_data[i].d  = debug_j_read_data[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+        end
+    end
 
     //////////////////////////////////////////////////////////
     // Analog Macro //////////////////////////////////////////
