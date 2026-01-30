@@ -41,6 +41,8 @@ jobs:
                         third_parties/*
                         target/syn/tech/tsmc7ff/*
                         hw/rtl/flip_manager/lagd_fifo_v3.sv
+                        hw/rtl/lagd_core_reg_pkg.sv
+                        hw/rtl/lagd_core/reg/*
 
     ################
     # Verible Lint #
