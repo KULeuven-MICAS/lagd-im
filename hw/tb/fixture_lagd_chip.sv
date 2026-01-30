@@ -17,6 +17,7 @@ module fixture_lagd_chip ();
   logic [1:0] boot_mode;
   logic clk;
   logic rst_n;
+  logic rtc;
   logic jtag_tck;
   logic jtag_trst_n;
   logic jtag_tms;
@@ -78,7 +79,7 @@ module fixture_lagd_chip ();
   end else begin : gen_dut_soc
     logic clk_i; assign clk_i = clk;
     logic rst_ni; assign rst_ni = rst_n;
-    logic rtc_i; assign rtc_i = 1'b0;
+    logic rtc_i; assign rtc_i = rtc;
     logic test_mode_i; assign test_mode_i = 1'b0;
     logic [1:0] boot_mode_i; assign boot_mode_i = boot_mode;
     logic jtag_tck_i; assign jtag_tck_i = jtag_tck;
@@ -135,7 +136,7 @@ module fixture_lagd_chip ();
   ) vip (
     .clk(clk),
     .rst_n(rst_n),
-    .rtc(),
+    .rtc(rtc),
     .boot_mode(boot_mode),
     .test_mode(),
     .axi_llc_mst_req('0),
