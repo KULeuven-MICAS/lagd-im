@@ -84,7 +84,11 @@ module flip_manager #(
 
     logic spin_pop_handshake;
     logic energy_handshake;
+    logic spin_fifo_push_handshake;
+    logic energy_handshake_dly1;
+    logic spin_fifo_push_handshake_dly1;
 
+    // control logic
     assign spin_configure_ready_o = spin_maintainer_push_ready & cmpt_idle_o;
     assign spin_maintainer_push_valid = cmpt_busy ? spin_maintainer_push_from_en : spin_configure_valid_i;
     assign spin_maintainer_income = cmpt_busy ? spin_maintainer_income_from_en : spin_configure_i;
@@ -92,11 +96,15 @@ module flip_manager #(
 
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
     assign energy_handshake = energy_valid_i & energy_ready_o & (~cmpt_idle_o);
+    assign spin_fifo_push_handshake = spin_maintainer_push_valid & spin_maintainer_push_ready;
 
     assign cmpt_idle_o = ~cmpt_busy;
 
-    assign energy_fifo_update_o = energy_handshake;
-    assign spin_fifo_update_o = spin_maintainer_push_valid & spin_maintainer_push_ready;
+    assign energy_fifo_update_o = energy_handshake_dly1;
+    assign spin_fifo_update_o = spin_fifo_push_handshake_dly1;
+
+    `FFL(energy_handshake_dly1, energy_handshake, en_i, 1'b0, clk_i, rst_ni);
+    `FFL(spin_fifo_push_handshake_dly1, spin_fifo_push_handshake, en_i, 1'b0, clk_i, rst_ni);
 
     // Instantiate energy maintainer
     energy_fifo_maintainer #(
