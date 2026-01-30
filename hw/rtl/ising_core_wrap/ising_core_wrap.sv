@@ -293,7 +293,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .devmode_i             (1'b1                   )  // If 1, explicit error return for unmapped register access
     );
 
-    // Connect register signals
+    // Unpack register signals
     // reg2hw
     assign flush_en                         = reg2hw.global_cfg.flush_en.q;
     assign en_aw                            = reg2hw.global_cfg.en_aw.q;
