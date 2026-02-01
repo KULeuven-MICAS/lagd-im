@@ -12,6 +12,18 @@ $$
 
 In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's complement format. $\sigma_i$ is a 1-bit variable. The scaling factor $h_{sfc}$ is an unsigned integer in the power of 2.
 
+Enter the command below to run the testbench:
+
+`
+./ci/ut-run.sh --test=energy_monitor
+`
+
+Another option is to run the autotest script in python, by entering the command:
+
+`
+python utils/autotest_energy_monitor.py
+`
+
 ## Testbench parameters
 
 *test_mode:* test mode, like S1W1H1_TEST, S0W1H1_TEST, S0W0H0_TEST, S1W0H0_TEST, MaxPosValue_TEST, MaxNegValue_TEST, RANDOM_TEST
