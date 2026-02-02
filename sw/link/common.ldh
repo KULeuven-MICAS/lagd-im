@@ -13,7 +13,7 @@ MEMORY {
   bootrom (rx) : ORIGIN = 0x02000000, LENGTH = 16K
   extrom (rx) : ORIGIN = 0x00000000, LENGTH = 48K
   l2_spm (rwx) : ORIGIN = 0x80000000, LENGTH = 64K
-  stack_spm (rwx) : ORIGIN = 0x8FFF8000, LENGTH = 32K
+  stack_spm (rwx) : ORIGIN = 0x8FFF8000, LENGTH = 16K
   l1_j_spm (rwx) : ORIGIN = 0x90000000, LENGTH = 32K
   l1_f_spm (rwx) : ORIGIN = 0x90100000, LENGTH = 16K
 }
