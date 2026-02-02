@@ -12,7 +12,7 @@
 `define LAGD_DEFINE_SVH
 
     // Platform define
-    `define LAGD_NUM_AXI_SLV `NUM_ISING_CORES + 2 // +2 for L2 memory and stack memory
+    `define LAGD_NUM_AXI_SLV 2*`NUM_ISING_CORES + 2 // +2 for L2 memory and stack memory
     `define LAGD_NUM_REG_SLV `NUM_ISING_CORES
     `define LAGD_NUM_AXI_MST 1 // Number of AXI masters (only SPI)
     `define CVA6_ADDR_WIDTH 48
