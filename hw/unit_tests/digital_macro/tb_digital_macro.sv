@@ -278,7 +278,15 @@ module tb_digital_macro;
         .debug_analog_dt_r_idle_o   (                           ),
         .debug_spin_w_idle_o        (                           ),
         .debug_spin_cmpt_idle_o     (                           ),
-        .debug_spin_r_idle_o        (                           )
+        .debug_spin_r_idle_o        (                           ),
+        .debug_fm_upstream_handshake_o   (                           ),
+        .debug_fm_energy_input_o         (                           ),
+        .debug_fm_downstream_handshake_o (                           ),
+        .debug_fm_spin_out_o             (                           ),
+        .debug_aw_downstream_handshake_o (                           ),
+        .debug_aw_spin_out_o             (                           ),
+        .debug_em_upstream_handshake_o   (                           ),
+        .debug_em_spin_in_o              (                           )
     );
 
     // Clock generation

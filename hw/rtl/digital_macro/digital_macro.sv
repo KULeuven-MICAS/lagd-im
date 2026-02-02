@@ -124,7 +124,7 @@ module digital_macro #(
     input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i,
     // interface when ENABLE_FLIP_DETECTION = True
     input  logic enable_flip_detection_i,
-    // debugging interface: model write/read
+    // debugging interface: analog model write/read
     input  logic debug_j_write_en_i,
     input  logic debug_j_read_en_i,
     input  logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i,
@@ -132,19 +132,30 @@ module digital_macro #(
     input  logic [NUM_SPIN*BITJ-1:0] debug_wbl_i,
     output logic debug_j_read_data_valid_o,
     output logic [NUM_SPIN*BITJ-1:0] debug_j_read_data_o,
-    // debugging interface: spin write/compute/read
+    // debugging interface: analog spin write/compute/read
     input  logic debug_spin_write_en_i,
     input  logic debug_spin_compute_en_i,
     input  logic debug_spin_read_en_i,
     output logic debug_spin_valid_o,
     output logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o,
     output logic [NUM_SPIN-1:0] debug_spin_o,
-    // debugging interface: status
+    // debugging interface: analog debugging module status
     output logic debug_analog_dt_w_idle_o,
     output logic debug_analog_dt_r_idle_o,
     output logic debug_spin_w_idle_o,
     output logic debug_spin_cmpt_idle_o,
-    output logic debug_spin_r_idle_o
+    output logic debug_spin_r_idle_o,
+    // debugging interface: flip manager
+    output logic debug_fm_upstream_handshake_o,
+    output logic [ENERGY_TOTAL_BIT-1:0] debug_fm_energy_input_o,
+    output logic debug_fm_downstream_handshake_o,
+    output logic [NUM_SPIN-1:0] debug_fm_spin_out_o,
+    // debugging interface: analog macro wrap
+    output logic debug_aw_downstream_handshake_o,
+    output logic [NUM_SPIN-1:0] debug_aw_spin_out_o,
+    // debugging interface: energy monitor
+    output logic debug_em_upstream_handshake_o,
+    output logic [NUM_SPIN-1:0] debug_em_spin_in_o
 );
     // Internal signals
     logic aw_mst_valid;
@@ -216,9 +227,18 @@ module digital_macro #(
     assign config_valid_fm_posedge = config_valid_fm_i & ~config_valid_fm_dly1;
     assign config_valid_aw_posedge = config_valid_aw_i & ~config_valid_aw_dly1;
 
+    assign debug_fm_downstream_handshake_o = fm_downstream_handshake;
+    assign debug_aw_downstream_handshake_o = aw_downstream_ready & aw_mst_valid;
+    assign debug_em_upstream_handshake_o = em_upstream_handshake;
+    assign debug_fm_upstream_handshake_o = fm_upstream_handshake;
+
+
     // data path
     assign muxed_analog_spin = en_analog_loop_i ? analog_spin : fm_spin_out;
     assign flip_raddr_o = flip_raddr_fm[FLIP_ICON_ADDR_DEPTH-1:0];
+    assign debug_fm_spin_out_o = fm_spin_out;
+    assign debug_aw_spin_out_o = analog_spin;
+    assign debug_fm_energy_input_o = fm_energy_input;
 
     `FFL(config_valid_em_dly1, config_valid_em_i, en_em_i, 1'b0, clk_i, rst_ni);
     `FFL(config_valid_fm_dly1, config_valid_fm_i, en_fm_i, 1'b0, clk_i, rst_ni);
