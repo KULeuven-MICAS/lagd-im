@@ -11,6 +11,10 @@ CHS_SW_GCC_BINROOT ?= $(PROJECT_ROOT)/.opt/riscv-gnu-toolchain/bin
 CHS_SW_LD_DIR ?= ./link
 
 CHS_ROOT := $(shell $(BENDER) path cheshire)
+CHS_SW_PATH := $(CHS_ROOT)/sw
 include $(CHS_ROOT)/cheshire.mk
 
 all: chs-sw-all
+
+clean-chs:
+	cd $(CHS_SW_PATH)/tests && rm -rf *.dump *.elf *.memh

@@ -43,7 +43,7 @@ ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 CHIP_LEVEL=0
 BOOT_MODE=0
 PRELOAD_MODE=0
-PRELOAD_ELF=$( pixi run bender path cheshire)/sw/tests/helloworld.rom.elf
+PRELOAD_ELF=$( pixi run bender path cheshire)/sw/tests/helloworld.spm.elf
 DBG=0
 NO_GUI=1
 
