@@ -231,4 +231,7 @@ runs/
 # Autotest results
 results/
 
+# Digital macro testbench generated files
+hw/unit_tests/digital_macro/output/
+
 .nfs*
