@@ -167,6 +167,9 @@ module lagd_core_reg_top #(
   logic global_cfg_ctnus_fifo_read_qs;
   logic global_cfg_ctnus_fifo_read_wd;
   logic global_cfg_ctnus_fifo_read_we;
+  logic global_cfg_ctnus_dgt_debug_qs;
+  logic global_cfg_ctnus_dgt_debug_wd;
+  logic global_cfg_ctnus_dgt_debug_we;
   logic [63:0] config_spin_initial_0_qs;
   logic [63:0] config_spin_initial_0_wd;
   logic config_spin_initial_0_we;
@@ -392,6 +395,21 @@ module lagd_core_reg_top #(
   logic output_status_debug_spin_cmpt_idle_qs;
   logic output_status_debug_spin_cmpt_idle_wd;
   logic output_status_debug_spin_cmpt_idle_we;
+  logic output_status_debug_fm_upstream_handshake_qs;
+  logic output_status_debug_fm_upstream_handshake_wd;
+  logic output_status_debug_fm_upstream_handshake_we;
+  logic output_status_debug_fm_downstream_handshake_qs;
+  logic output_status_debug_fm_downstream_handshake_wd;
+  logic output_status_debug_fm_downstream_handshake_we;
+  logic output_status_debug_aw_downstream_handshake_qs;
+  logic output_status_debug_aw_downstream_handshake_wd;
+  logic output_status_debug_aw_downstream_handshake_we;
+  logic output_status_debug_em_upstream_handshake_qs;
+  logic output_status_debug_em_upstream_handshake_wd;
+  logic output_status_debug_em_upstream_handshake_we;
+  logic [31:0] output_status_debug_fm_energy_input_qs;
+  logic [31:0] output_status_debug_fm_energy_input_wd;
+  logic output_status_debug_fm_energy_input_we;
   logic [31:0] energy_fifo_data_energy_fifo_0_qs;
   logic [31:0] energy_fifo_data_energy_fifo_0_wd;
   logic energy_fifo_data_energy_fifo_0_we;
@@ -470,6 +488,42 @@ module lagd_core_reg_top #(
   logic [63:0] debug_j_read_data_15_qs;
   logic [63:0] debug_j_read_data_15_wd;
   logic debug_j_read_data_15_we;
+  logic [63:0] debug_fm_spin_out_0_qs;
+  logic [63:0] debug_fm_spin_out_0_wd;
+  logic debug_fm_spin_out_0_we;
+  logic [63:0] debug_fm_spin_out_1_qs;
+  logic [63:0] debug_fm_spin_out_1_wd;
+  logic debug_fm_spin_out_1_we;
+  logic [63:0] debug_fm_spin_out_2_qs;
+  logic [63:0] debug_fm_spin_out_2_wd;
+  logic debug_fm_spin_out_2_we;
+  logic [63:0] debug_fm_spin_out_3_qs;
+  logic [63:0] debug_fm_spin_out_3_wd;
+  logic debug_fm_spin_out_3_we;
+  logic [63:0] debug_aw_spin_out_0_qs;
+  logic [63:0] debug_aw_spin_out_0_wd;
+  logic debug_aw_spin_out_0_we;
+  logic [63:0] debug_aw_spin_out_1_qs;
+  logic [63:0] debug_aw_spin_out_1_wd;
+  logic debug_aw_spin_out_1_we;
+  logic [63:0] debug_aw_spin_out_2_qs;
+  logic [63:0] debug_aw_spin_out_2_wd;
+  logic debug_aw_spin_out_2_we;
+  logic [63:0] debug_aw_spin_out_3_qs;
+  logic [63:0] debug_aw_spin_out_3_wd;
+  logic debug_aw_spin_out_3_we;
+  logic [63:0] debug_em_spin_in_0_qs;
+  logic [63:0] debug_em_spin_in_0_wd;
+  logic debug_em_spin_in_0_we;
+  logic [63:0] debug_em_spin_in_1_qs;
+  logic [63:0] debug_em_spin_in_1_wd;
+  logic debug_em_spin_in_1_we;
+  logic [63:0] debug_em_spin_in_2_qs;
+  logic [63:0] debug_em_spin_in_2_wd;
+  logic debug_em_spin_in_2_we;
+  logic [63:0] debug_em_spin_in_3_qs;
+  logic [63:0] debug_em_spin_in_3_wd;
+  logic debug_em_spin_in_3_we;
 
   // Register instances
   // R[global_cfg]: V(False)
@@ -1329,6 +1383,32 @@ module lagd_core_reg_top #(
 
     // to register interface (read)
     .qs     (global_cfg_ctnus_fifo_read_qs)
+  );
+
+
+  //   F[ctnus_dgt_debug]: 47:47
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_global_cfg_ctnus_dgt_debug (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_ctnus_dgt_debug_we),
+    .wd     (global_cfg_ctnus_dgt_debug_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg.ctnus_dgt_debug.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_ctnus_dgt_debug_qs)
   );
 
 
@@ -3360,6 +3440,136 @@ module lagd_core_reg_top #(
   );
 
 
+  //   F[debug_fm_upstream_handshake]: 10:10
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_output_status_debug_fm_upstream_handshake (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (output_status_debug_fm_upstream_handshake_we),
+    .wd     (output_status_debug_fm_upstream_handshake_wd),
+
+    // from internal hardware
+    .de     (hw2reg.output_status.debug_fm_upstream_handshake.de),
+    .d      (hw2reg.output_status.debug_fm_upstream_handshake.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (output_status_debug_fm_upstream_handshake_qs)
+  );
+
+
+  //   F[debug_fm_downstream_handshake]: 11:11
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_output_status_debug_fm_downstream_handshake (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (output_status_debug_fm_downstream_handshake_we),
+    .wd     (output_status_debug_fm_downstream_handshake_wd),
+
+    // from internal hardware
+    .de     (hw2reg.output_status.debug_fm_downstream_handshake.de),
+    .d      (hw2reg.output_status.debug_fm_downstream_handshake.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (output_status_debug_fm_downstream_handshake_qs)
+  );
+
+
+  //   F[debug_aw_downstream_handshake]: 12:12
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_output_status_debug_aw_downstream_handshake (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (output_status_debug_aw_downstream_handshake_we),
+    .wd     (output_status_debug_aw_downstream_handshake_wd),
+
+    // from internal hardware
+    .de     (hw2reg.output_status.debug_aw_downstream_handshake.de),
+    .d      (hw2reg.output_status.debug_aw_downstream_handshake.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (output_status_debug_aw_downstream_handshake_qs)
+  );
+
+
+  //   F[debug_em_upstream_handshake]: 13:13
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_output_status_debug_em_upstream_handshake (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (output_status_debug_em_upstream_handshake_we),
+    .wd     (output_status_debug_em_upstream_handshake_wd),
+
+    // from internal hardware
+    .de     (hw2reg.output_status.debug_em_upstream_handshake.de),
+    .d      (hw2reg.output_status.debug_em_upstream_handshake.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (output_status_debug_em_upstream_handshake_qs)
+  );
+
+
+  //   F[debug_fm_energy_input]: 45:14
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_output_status_debug_fm_energy_input (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (output_status_debug_fm_energy_input_we),
+    .wd     (output_status_debug_fm_energy_input_wd),
+
+    // from internal hardware
+    .de     (hw2reg.output_status.debug_fm_energy_input.de),
+    .d      (hw2reg.output_status.debug_fm_energy_input.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (output_status_debug_fm_energy_input_qs)
+  );
+
+
   // R[energy_fifo_data]: V(False)
 
   //   F[energy_fifo_0]: 31:0
@@ -4069,8 +4279,338 @@ module lagd_core_reg_top #(
 
 
 
+  // Subregister 0 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_0]: V(False)
 
-  logic [84:0] addr_hit;
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_fm_spin_out_0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_0_we),
+    .wd     (debug_fm_spin_out_0_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[0].de),
+    .d      (hw2reg.debug_fm_spin_out[0].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_0_qs)
+  );
+
+  // Subregister 1 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_1]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_fm_spin_out_1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_1_we),
+    .wd     (debug_fm_spin_out_1_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[1].de),
+    .d      (hw2reg.debug_fm_spin_out[1].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_1_qs)
+  );
+
+  // Subregister 2 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_2]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_fm_spin_out_2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_2_we),
+    .wd     (debug_fm_spin_out_2_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[2].de),
+    .d      (hw2reg.debug_fm_spin_out[2].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_2_qs)
+  );
+
+  // Subregister 3 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_3]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_fm_spin_out_3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_3_we),
+    .wd     (debug_fm_spin_out_3_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[3].de),
+    .d      (hw2reg.debug_fm_spin_out[3].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_3_qs)
+  );
+
+
+
+  // Subregister 0 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_0]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_aw_spin_out_0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_0_we),
+    .wd     (debug_aw_spin_out_0_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[0].de),
+    .d      (hw2reg.debug_aw_spin_out[0].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_0_qs)
+  );
+
+  // Subregister 1 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_1]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_aw_spin_out_1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_1_we),
+    .wd     (debug_aw_spin_out_1_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[1].de),
+    .d      (hw2reg.debug_aw_spin_out[1].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_1_qs)
+  );
+
+  // Subregister 2 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_2]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_aw_spin_out_2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_2_we),
+    .wd     (debug_aw_spin_out_2_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[2].de),
+    .d      (hw2reg.debug_aw_spin_out[2].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_2_qs)
+  );
+
+  // Subregister 3 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_3]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_aw_spin_out_3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_3_we),
+    .wd     (debug_aw_spin_out_3_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[3].de),
+    .d      (hw2reg.debug_aw_spin_out[3].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_3_qs)
+  );
+
+
+
+  // Subregister 0 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_0]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_em_spin_in_0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_0_we),
+    .wd     (debug_em_spin_in_0_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[0].de),
+    .d      (hw2reg.debug_em_spin_in[0].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_0_qs)
+  );
+
+  // Subregister 1 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_1]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_em_spin_in_1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_1_we),
+    .wd     (debug_em_spin_in_1_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[1].de),
+    .d      (hw2reg.debug_em_spin_in[1].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_1_qs)
+  );
+
+  // Subregister 2 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_2]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_em_spin_in_2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_2_we),
+    .wd     (debug_em_spin_in_2_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[2].de),
+    .d      (hw2reg.debug_em_spin_in[2].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_2_qs)
+  );
+
+  // Subregister 3 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_3]: V(False)
+
+  prim_subreg #(
+    .DW      (64),
+    .SWACCESS("RW"),
+    .RESVAL  (64'h0)
+  ) u_debug_em_spin_in_3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_3_we),
+    .wd     (debug_em_spin_in_3_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[3].de),
+    .d      (hw2reg.debug_em_spin_in[3].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_3_qs)
+  );
+
+
+
+
+  logic [96:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == LAGD_CORE_GLOBAL_CFG_OFFSET);
@@ -4158,6 +4698,18 @@ module lagd_core_reg_top #(
     addr_hit[82] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_13_OFFSET);
     addr_hit[83] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_14_OFFSET);
     addr_hit[84] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_15_OFFSET);
+    addr_hit[85] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_0_OFFSET);
+    addr_hit[86] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_1_OFFSET);
+    addr_hit[87] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_2_OFFSET);
+    addr_hit[88] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_3_OFFSET);
+    addr_hit[89] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_0_OFFSET);
+    addr_hit[90] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_1_OFFSET);
+    addr_hit[91] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_2_OFFSET);
+    addr_hit[92] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_3_OFFSET);
+    addr_hit[93] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_0_OFFSET);
+    addr_hit[94] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_1_OFFSET);
+    addr_hit[95] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_2_OFFSET);
+    addr_hit[96] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_3_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -4249,7 +4801,19 @@ module lagd_core_reg_top #(
                (addr_hit[81] & (|(LAGD_CORE_PERMIT[81] & ~reg_be))) |
                (addr_hit[82] & (|(LAGD_CORE_PERMIT[82] & ~reg_be))) |
                (addr_hit[83] & (|(LAGD_CORE_PERMIT[83] & ~reg_be))) |
-               (addr_hit[84] & (|(LAGD_CORE_PERMIT[84] & ~reg_be)))));
+               (addr_hit[84] & (|(LAGD_CORE_PERMIT[84] & ~reg_be))) |
+               (addr_hit[85] & (|(LAGD_CORE_PERMIT[85] & ~reg_be))) |
+               (addr_hit[86] & (|(LAGD_CORE_PERMIT[86] & ~reg_be))) |
+               (addr_hit[87] & (|(LAGD_CORE_PERMIT[87] & ~reg_be))) |
+               (addr_hit[88] & (|(LAGD_CORE_PERMIT[88] & ~reg_be))) |
+               (addr_hit[89] & (|(LAGD_CORE_PERMIT[89] & ~reg_be))) |
+               (addr_hit[90] & (|(LAGD_CORE_PERMIT[90] & ~reg_be))) |
+               (addr_hit[91] & (|(LAGD_CORE_PERMIT[91] & ~reg_be))) |
+               (addr_hit[92] & (|(LAGD_CORE_PERMIT[92] & ~reg_be))) |
+               (addr_hit[93] & (|(LAGD_CORE_PERMIT[93] & ~reg_be))) |
+               (addr_hit[94] & (|(LAGD_CORE_PERMIT[94] & ~reg_be))) |
+               (addr_hit[95] & (|(LAGD_CORE_PERMIT[95] & ~reg_be))) |
+               (addr_hit[96] & (|(LAGD_CORE_PERMIT[96] & ~reg_be)))));
   end
 
   assign global_cfg_flush_en_we = addr_hit[0] & reg_we & !reg_error;
@@ -4350,6 +4914,9 @@ module lagd_core_reg_top #(
 
   assign global_cfg_ctnus_fifo_read_we = addr_hit[0] & reg_we & !reg_error;
   assign global_cfg_ctnus_fifo_read_wd = reg_wdata[46];
+
+  assign global_cfg_ctnus_dgt_debug_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_ctnus_dgt_debug_wd = reg_wdata[47];
 
   assign config_spin_initial_0_we = addr_hit[1] & reg_we & !reg_error;
   assign config_spin_initial_0_wd = reg_wdata[63:0];
@@ -4576,6 +5143,21 @@ module lagd_core_reg_top #(
   assign output_status_debug_spin_cmpt_idle_we = addr_hit[59] & reg_we & !reg_error;
   assign output_status_debug_spin_cmpt_idle_wd = reg_wdata[9];
 
+  assign output_status_debug_fm_upstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_fm_upstream_handshake_wd = reg_wdata[10];
+
+  assign output_status_debug_fm_downstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_fm_downstream_handshake_wd = reg_wdata[11];
+
+  assign output_status_debug_aw_downstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_aw_downstream_handshake_wd = reg_wdata[12];
+
+  assign output_status_debug_em_upstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_em_upstream_handshake_wd = reg_wdata[13];
+
+  assign output_status_debug_fm_energy_input_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_fm_energy_input_wd = reg_wdata[45:14];
+
   assign energy_fifo_data_energy_fifo_0_we = addr_hit[60] & reg_we & !reg_error;
   assign energy_fifo_data_energy_fifo_0_wd = reg_wdata[31:0];
 
@@ -4654,6 +5236,42 @@ module lagd_core_reg_top #(
   assign debug_j_read_data_15_we = addr_hit[84] & reg_we & !reg_error;
   assign debug_j_read_data_15_wd = reg_wdata[63:0];
 
+  assign debug_fm_spin_out_0_we = addr_hit[85] & reg_we & !reg_error;
+  assign debug_fm_spin_out_0_wd = reg_wdata[63:0];
+
+  assign debug_fm_spin_out_1_we = addr_hit[86] & reg_we & !reg_error;
+  assign debug_fm_spin_out_1_wd = reg_wdata[63:0];
+
+  assign debug_fm_spin_out_2_we = addr_hit[87] & reg_we & !reg_error;
+  assign debug_fm_spin_out_2_wd = reg_wdata[63:0];
+
+  assign debug_fm_spin_out_3_we = addr_hit[88] & reg_we & !reg_error;
+  assign debug_fm_spin_out_3_wd = reg_wdata[63:0];
+
+  assign debug_aw_spin_out_0_we = addr_hit[89] & reg_we & !reg_error;
+  assign debug_aw_spin_out_0_wd = reg_wdata[63:0];
+
+  assign debug_aw_spin_out_1_we = addr_hit[90] & reg_we & !reg_error;
+  assign debug_aw_spin_out_1_wd = reg_wdata[63:0];
+
+  assign debug_aw_spin_out_2_we = addr_hit[91] & reg_we & !reg_error;
+  assign debug_aw_spin_out_2_wd = reg_wdata[63:0];
+
+  assign debug_aw_spin_out_3_we = addr_hit[92] & reg_we & !reg_error;
+  assign debug_aw_spin_out_3_wd = reg_wdata[63:0];
+
+  assign debug_em_spin_in_0_we = addr_hit[93] & reg_we & !reg_error;
+  assign debug_em_spin_in_0_wd = reg_wdata[63:0];
+
+  assign debug_em_spin_in_1_we = addr_hit[94] & reg_we & !reg_error;
+  assign debug_em_spin_in_1_wd = reg_wdata[63:0];
+
+  assign debug_em_spin_in_2_we = addr_hit[95] & reg_we & !reg_error;
+  assign debug_em_spin_in_2_wd = reg_wdata[63:0];
+
+  assign debug_em_spin_in_3_we = addr_hit[96] & reg_we & !reg_error;
+  assign debug_em_spin_in_3_wd = reg_wdata[63:0];
+
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
@@ -4692,6 +5310,7 @@ module lagd_core_reg_top #(
         reg_rdata_next[39] = global_cfg_debug_h_wwl_qs;
         reg_rdata_next[45:40] = global_cfg_dgt_addr_upper_bound_qs;
         reg_rdata_next[46] = global_cfg_ctnus_fifo_read_qs;
+        reg_rdata_next[47] = global_cfg_ctnus_dgt_debug_qs;
       end
 
       addr_hit[1]: begin
@@ -4944,6 +5563,11 @@ module lagd_core_reg_top #(
         reg_rdata_next[7] = output_status_debug_spin_w_idle_qs;
         reg_rdata_next[8] = output_status_debug_spin_r_idle_qs;
         reg_rdata_next[9] = output_status_debug_spin_cmpt_idle_qs;
+        reg_rdata_next[10] = output_status_debug_fm_upstream_handshake_qs;
+        reg_rdata_next[11] = output_status_debug_fm_downstream_handshake_qs;
+        reg_rdata_next[12] = output_status_debug_aw_downstream_handshake_qs;
+        reg_rdata_next[13] = output_status_debug_em_upstream_handshake_qs;
+        reg_rdata_next[45:14] = output_status_debug_fm_energy_input_qs;
       end
 
       addr_hit[60]: begin
@@ -5045,6 +5669,54 @@ module lagd_core_reg_top #(
 
       addr_hit[84]: begin
         reg_rdata_next[63:0] = debug_j_read_data_15_qs;
+      end
+
+      addr_hit[85]: begin
+        reg_rdata_next[63:0] = debug_fm_spin_out_0_qs;
+      end
+
+      addr_hit[86]: begin
+        reg_rdata_next[63:0] = debug_fm_spin_out_1_qs;
+      end
+
+      addr_hit[87]: begin
+        reg_rdata_next[63:0] = debug_fm_spin_out_2_qs;
+      end
+
+      addr_hit[88]: begin
+        reg_rdata_next[63:0] = debug_fm_spin_out_3_qs;
+      end
+
+      addr_hit[89]: begin
+        reg_rdata_next[63:0] = debug_aw_spin_out_0_qs;
+      end
+
+      addr_hit[90]: begin
+        reg_rdata_next[63:0] = debug_aw_spin_out_1_qs;
+      end
+
+      addr_hit[91]: begin
+        reg_rdata_next[63:0] = debug_aw_spin_out_2_qs;
+      end
+
+      addr_hit[92]: begin
+        reg_rdata_next[63:0] = debug_aw_spin_out_3_qs;
+      end
+
+      addr_hit[93]: begin
+        reg_rdata_next[63:0] = debug_em_spin_in_0_qs;
+      end
+
+      addr_hit[94]: begin
+        reg_rdata_next[63:0] = debug_em_spin_in_1_qs;
+      end
+
+      addr_hit[95]: begin
+        reg_rdata_next[63:0] = debug_em_spin_in_2_qs;
+      end
+
+      addr_hit[96]: begin
+        reg_rdata_next[63:0] = debug_em_spin_in_3_qs;
       end
 
       default: begin

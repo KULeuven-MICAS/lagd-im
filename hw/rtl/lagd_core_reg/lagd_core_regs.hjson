@@ -51,6 +51,7 @@
         { bits: "39", name: "debug_h_wwl",                               desc: "h_wwl in debug dt write/read mode"                     }
         { bits: "45:40", resval: "0", name: "dgt_addr_upper_bound",      desc: "J address upper bound (inclusive)"                     }
         { bits: "46", name: "ctnus_fifo_read",                           desc: "Whether to read energy/spin fifo continuously"         }
+        { bits: "47", name: "ctnus_dgt_debug",                           desc: "Whether to enable digital debugging logic continuously"}
       ]
     }
 
@@ -188,16 +189,21 @@
       swaccess: "rw"
       hwaccess: "hwo"
       fields: [
-        { bits: "0",  name: "dt_cfg_idle",                 desc: "Whether the analog config is in idle"                  }
-        { bits: "1",  name: "cmpt_idle",                   desc: "Whether the computation is in idle"                    }
-        { bits: "2",  name: "energy_fifo_update",          desc: "Whether the energy fifo is being updated"              }
-        { bits: "3",  name: "spin_fifo_update",            desc: "Whether the spin fifo is being updated"                }
-        { bits: "4",  name: "debug_j_read_data_valid",     desc: "Whether the debug J read data is valid"                }
-        { bits: "5",  name: "debug_analog_dt_w_idle",      desc: "Whether the debug analog dt w is idle"                 }
-        { bits: "6",  name: "debug_analog_dt_r_idle",      desc: "Whether the debug analog dt r is idle"                 }
-        { bits: "7",  name: "debug_spin_w_idle",           desc: "Whether the debug spin w is idle"                      }
-        { bits: "8",  name: "debug_spin_r_idle",           desc: "Whether the debug spin r is idle"                      }
-        { bits: "9",  name: "debug_spin_cmpt_idle",        desc: "Whether the debug spin computation is idle"            }
+        { bits: "0",  name: "dt_cfg_idle",                   desc: "Whether the analog config is in idle"                  }
+        { bits: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                    }
+        { bits: "2",  name: "energy_fifo_update",            desc: "Whether the energy fifo is being updated"              }
+        { bits: "3",  name: "spin_fifo_update",              desc: "Whether the spin fifo is being updated"                }
+        { bits: "4",  name: "debug_j_read_data_valid",       desc: "Whether the debug J read data is valid"                }
+        { bits: "5",  name: "debug_analog_dt_w_idle",        desc: "Whether the debug analog dt w is idle"                 }
+        { bits: "6",  name: "debug_analog_dt_r_idle",        desc: "Whether the debug analog dt r is idle"                 }
+        { bits: "7",  name: "debug_spin_w_idle",             desc: "Whether the debug spin w is idle"                      }
+        { bits: "8",  name: "debug_spin_r_idle",             desc: "Whether the debug spin r is idle"                      }
+        { bits: "9",  name: "debug_spin_cmpt_idle",          desc: "Whether the debug spin computation is idle"            }
+        { bits: "10", name: "debug_fm_upstream_handshake",   desc: "Whether the fm upstream handshake is on"               }
+        { bits: "11", name: "debug_fm_downstream_handshake", desc: "Whether the fm downstream handshake is on"             }
+        { bits: "12", name: "debug_aw_downstream_handshake", desc: "Whether the aw downstream handshake is on"             }
+        { bits: "13", name: "debug_em_upstream_handshake",   desc: "Whether the em upstream handshake is on"               }
+        { bits: "45:14", resval: "0", name: "debug_fm_energy_input", desc: "Energy input to the fm"                        }
       ]
     }
 
@@ -246,6 +252,45 @@
         cname:    "debug_j_read_data"
         fields: [
           { bits: "63:0", resval: "0", name: "debug_j_read_data", desc: "debug_j_read_data values" }
+        ]
+      }
+    }
+
+    { multireg:
+      { name:     "debug_fm_spin_out"
+        desc:     "debug_fm_spin_out values"
+        swaccess: "rw"
+        hwaccess: "hwo"
+        count:    "4"
+        cname:    "debug_fm_spin_out"
+        fields: [
+          { bits: "63:0", resval: "0", name: "debug_fm_spin_out", desc: "debug_fm_spin_out values" }
+        ]
+      }
+    }
+
+    { multireg:
+      { name:     "debug_aw_spin_out"
+        desc:     "debug_aw_spin_out values"
+        swaccess: "rw"
+        hwaccess: "hwo"
+        count:    "4"
+        cname:    "debug_aw_spin_out"
+        fields: [
+          { bits: "63:0", resval: "0", name: "debug_aw_spin_out", desc: "debug_aw_spin_out values" }
+        ]
+      }
+    }
+
+    { multireg:
+      { name:     "debug_em_spin_in"
+        desc:     "debug_em_spin_in values"
+        swaccess: "rw"
+        hwaccess: "hwo"
+        count:    "4"
+        cname:    "debug_em_spin_in"
+        fields: [
+          { bits: "63:0", resval: "0", name: "debug_em_spin_in", desc: "debug_em_spin_in values" }
         ]
       }
     }

@@ -113,6 +113,9 @@ package lagd_core_reg_pkg;
     struct packed {
       logic        q;
     } ctnus_fifo_read;
+    struct packed {
+      logic        q;
+    } ctnus_dgt_debug;
   } lagd_core_reg2hw_global_cfg_reg_t;
 
   typedef struct packed {
@@ -221,6 +224,26 @@ package lagd_core_reg_pkg;
       logic        d;
       logic        de;
     } debug_spin_cmpt_idle;
+    struct packed {
+      logic        d;
+      logic        de;
+    } debug_fm_upstream_handshake;
+    struct packed {
+      logic        d;
+      logic        de;
+    } debug_fm_downstream_handshake;
+    struct packed {
+      logic        d;
+      logic        de;
+    } debug_aw_downstream_handshake;
+    struct packed {
+      logic        d;
+      logic        de;
+    } debug_em_upstream_handshake;
+    struct packed {
+      logic [31:0] d;
+      logic        de;
+    } debug_fm_energy_input;
   } lagd_core_hw2reg_output_status_reg_t;
 
   typedef struct packed {
@@ -249,9 +272,24 @@ package lagd_core_reg_pkg;
     logic        de;
   } lagd_core_hw2reg_debug_j_read_data_mreg_t;
 
+  typedef struct packed {
+    logic [63:0] d;
+    logic        de;
+  } lagd_core_hw2reg_debug_fm_spin_out_mreg_t;
+
+  typedef struct packed {
+    logic [63:0] d;
+    logic        de;
+  } lagd_core_hw2reg_debug_aw_spin_out_mreg_t;
+
+  typedef struct packed {
+    logic [63:0] d;
+    logic        de;
+  } lagd_core_hw2reg_debug_em_spin_in_mreg_t;
+
   // Register -> HW type
   typedef struct packed {
-    lagd_core_reg2hw_global_cfg_reg_t global_cfg; // [3758:3712]
+    lagd_core_reg2hw_global_cfg_reg_t global_cfg; // [3759:3712]
     lagd_core_reg2hw_config_spin_initial_mreg_t [3:0] config_spin_initial; // [3711:3456]
     lagd_core_reg2hw_counter_cfg_1_reg_t counter_cfg_1; // [3455:3392]
     lagd_core_reg2hw_counter_cfg_2_reg_t counter_cfg_2; // [3391:3328]
@@ -266,11 +304,14 @@ package lagd_core_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    lagd_core_hw2reg_output_status_reg_t output_status; // [1645:1626]
-    lagd_core_hw2reg_energy_fifo_data_reg_t energy_fifo_data; // [1625:1560]
-    lagd_core_hw2reg_spin_fifo_data_0_mreg_t [3:0] spin_fifo_data_0; // [1559:1300]
-    lagd_core_hw2reg_spin_fifo_data_1_mreg_t [3:0] spin_fifo_data_1; // [1299:1040]
-    lagd_core_hw2reg_debug_j_read_data_mreg_t [15:0] debug_j_read_data; // [1039:0]
+    lagd_core_hw2reg_output_status_reg_t output_status; // [2466:2406]
+    lagd_core_hw2reg_energy_fifo_data_reg_t energy_fifo_data; // [2405:2340]
+    lagd_core_hw2reg_spin_fifo_data_0_mreg_t [3:0] spin_fifo_data_0; // [2339:2080]
+    lagd_core_hw2reg_spin_fifo_data_1_mreg_t [3:0] spin_fifo_data_1; // [2079:1820]
+    lagd_core_hw2reg_debug_j_read_data_mreg_t [15:0] debug_j_read_data; // [1819:780]
+    lagd_core_hw2reg_debug_fm_spin_out_mreg_t [3:0] debug_fm_spin_out; // [779:520]
+    lagd_core_hw2reg_debug_aw_spin_out_mreg_t [3:0] debug_aw_spin_out; // [519:260]
+    lagd_core_hw2reg_debug_em_spin_in_mreg_t [3:0] debug_em_spin_in; // [259:0]
   } lagd_core_hw2reg_t;
 
   // Register offsets
@@ -359,6 +400,18 @@ package lagd_core_reg_pkg;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_13_OFFSET = 10'h 290;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_14_OFFSET = 10'h 298;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_15_OFFSET = 10'h 2a0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_0_OFFSET = 10'h 2a8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_1_OFFSET = 10'h 2b0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_2_OFFSET = 10'h 2b8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_3_OFFSET = 10'h 2c0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_0_OFFSET = 10'h 2c8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_1_OFFSET = 10'h 2d0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_2_OFFSET = 10'h 2d8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_3_OFFSET = 10'h 2e0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_0_OFFSET = 10'h 2e8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_1_OFFSET = 10'h 2f0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_2_OFFSET = 10'h 2f8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_3_OFFSET = 10'h 300;
 
   // Register index
   typedef enum int {
@@ -446,11 +499,23 @@ package lagd_core_reg_pkg;
     LAGD_CORE_DEBUG_J_READ_DATA_12,
     LAGD_CORE_DEBUG_J_READ_DATA_13,
     LAGD_CORE_DEBUG_J_READ_DATA_14,
-    LAGD_CORE_DEBUG_J_READ_DATA_15
+    LAGD_CORE_DEBUG_J_READ_DATA_15,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_0,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_1,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_2,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_3,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_0,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_1,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_2,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_3,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_0,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_1,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_2,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_3
   } lagd_core_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] LAGD_CORE_PERMIT [85] = '{
+  parameter logic [3:0] LAGD_CORE_PERMIT [97] = '{
     4'b 1111, // index[ 0] LAGD_CORE_GLOBAL_CFG
     4'b 1111, // index[ 1] LAGD_CORE_CONFIG_SPIN_INITIAL_0
     4'b 1111, // index[ 2] LAGD_CORE_CONFIG_SPIN_INITIAL_1
@@ -510,7 +575,7 @@ package lagd_core_reg_pkg;
     4'b 1111, // index[56] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1
     4'b 1111, // index[57] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2
     4'b 1111, // index[58] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3
-    4'b 0011, // index[59] LAGD_CORE_OUTPUT_STATUS
+    4'b 1111, // index[59] LAGD_CORE_OUTPUT_STATUS
     4'b 1111, // index[60] LAGD_CORE_ENERGY_FIFO_DATA
     4'b 1111, // index[61] LAGD_CORE_SPIN_FIFO_DATA_0_0
     4'b 1111, // index[62] LAGD_CORE_SPIN_FIFO_DATA_0_1
@@ -535,7 +600,19 @@ package lagd_core_reg_pkg;
     4'b 1111, // index[81] LAGD_CORE_DEBUG_J_READ_DATA_12
     4'b 1111, // index[82] LAGD_CORE_DEBUG_J_READ_DATA_13
     4'b 1111, // index[83] LAGD_CORE_DEBUG_J_READ_DATA_14
-    4'b 1111  // index[84] LAGD_CORE_DEBUG_J_READ_DATA_15
+    4'b 1111, // index[84] LAGD_CORE_DEBUG_J_READ_DATA_15
+    4'b 1111, // index[85] LAGD_CORE_DEBUG_FM_SPIN_OUT_0
+    4'b 1111, // index[86] LAGD_CORE_DEBUG_FM_SPIN_OUT_1
+    4'b 1111, // index[87] LAGD_CORE_DEBUG_FM_SPIN_OUT_2
+    4'b 1111, // index[88] LAGD_CORE_DEBUG_FM_SPIN_OUT_3
+    4'b 1111, // index[89] LAGD_CORE_DEBUG_AW_SPIN_OUT_0
+    4'b 1111, // index[90] LAGD_CORE_DEBUG_AW_SPIN_OUT_1
+    4'b 1111, // index[91] LAGD_CORE_DEBUG_AW_SPIN_OUT_2
+    4'b 1111, // index[92] LAGD_CORE_DEBUG_AW_SPIN_OUT_3
+    4'b 1111, // index[93] LAGD_CORE_DEBUG_EM_SPIN_IN_0
+    4'b 1111, // index[94] LAGD_CORE_DEBUG_EM_SPIN_IN_1
+    4'b 1111, // index[95] LAGD_CORE_DEBUG_EM_SPIN_IN_2
+    4'b 1111  // index[96] LAGD_CORE_DEBUG_EM_SPIN_IN_3
   };
 
 endpackage
