@@ -396,6 +396,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     assign j_rdata = drt_s_rsp_j.p.data;
     assign dgt_weight = drt_s_rsp_j.p.data;
+    assign flip_rdata = drt_s_rsp_flip.p.data;
 
     digital_macro #(
         .BITJ                            (logic_cfg.BitJ                   ),
@@ -516,39 +517,53 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .debug_em_spin_in_o              (debug_em_spin_in                 )
     );
 
+    //////////////////////////////////////////////////////////
+    // Memory MUX ////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // flip memory request mux
     always_comb begin
-        drt_s_req_flip.q.addr          = flip_raddr;
-        drt_s_req_flip.q.write         = '0;
-        drt_s_req_flip.q.data          = '0;
-        drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
-        drt_s_req_flip.q.user          = '0;
-        drt_s_req_flip.q_valid         = flip_ren;
-        flip_rdata                     = drt_s_rsp_flip.p.data;
-        // drt_s_rsp_flip.q_ready; // not sure how to use this signal
-        // drt_s_rsp_flip.p.valid; // not used yet
+        case(debug_spin_valid)
+            1'b0: begin: no_debug_spin_read
+                drt_s_req_flip.q.addr          = flip_raddr;
+                drt_s_req_flip.q.write         = '0; // read
+                drt_s_req_flip.q.data          = '0; // not used for read
+                drt_s_req_flip.q.strb          = '0; // not used for read
+                drt_s_req_flip.q.user          = '0; // not used
+                drt_s_req_flip.q_valid         = flip_ren;
+                // drt_s_rsp_flip.q_ready         = 1'b1; // always ready to accept read data
+            end
+            1'b1: begin: debug_spin_read
+                drt_s_req_flip.q.addr          = debug_spin_waddr;
+                drt_s_req_flip.q.write         = 1'b1; // write
+                drt_s_req_flip.q.data          = debug_spin_out;
+                drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
+                drt_s_req_flip.q.user          = '0; // not used
+                drt_s_req_flip.q_valid         = 1'b1;
+                // drt_s_rsp_flip.q_ready         = 1'b1;
+            end
+        endcase
     end
 
+    // j memory request mux
     always_comb begin
         case(dt_cfg_enable)
             1'b0: begin: load_mode
                 drt_s_req_j.q.addr         = j_raddr_load;
-                drt_s_req_j.q.write        = 1'b0;
-                drt_s_req_j.q.data         = '0;
-                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
-                drt_s_req_j.q.user         = '0;
+                drt_s_req_j.q.write        = 1'b0; // read
+                drt_s_req_j.q.data         = '0; // not used for read
+                drt_s_req_j.q.strb         = '0; // not used for read
+                drt_s_req_j.q.user         = '0; // not used
                 drt_s_req_j.q_valid        = j_mem_ren_load;
-                // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
-                // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
+                // drt_s_rsp_j.q_ready        = 1'b1; // always ready to accept read data
             end
             1'b1: begin: compute_mode
                 drt_s_req_j.q.addr         = dgt_weight_raddr;
-                drt_s_req_j.q.write        = 1'b0;
-                drt_s_req_j.q.data         = '0;
-                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
-                drt_s_req_j.q.user         = '0;
+                drt_s_req_j.q.write        = 1'b0; // read
+                drt_s_req_j.q.data         = '0; // not used for read
+                drt_s_req_j.q.strb         = '0; // not used for read
+                drt_s_req_j.q.user         = '0; // not used
                 drt_s_req_j.q_valid        = dgt_weight_ren;
-                // drt_s_rsp_j.q_ready        = 1'b1; // not sure how to use this signal
-                // drt_s_rsp_j.p.valid        = 1'b1; // not used yet
+                // drt_s_rsp_j.q_ready        = 1'b1; // always ready to accept read data
             end
         endcase
     end
