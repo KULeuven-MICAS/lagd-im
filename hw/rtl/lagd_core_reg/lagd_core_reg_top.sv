@@ -558,7 +558,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_aw (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -584,7 +584,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_em (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -610,7 +610,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_fm (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -636,7 +636,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_ff (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -662,7 +662,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_ef (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -688,7 +688,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_analog_loop (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -714,7 +714,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_en_comparison (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1026,7 +1026,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_enable_flip_detection (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1208,7 +1208,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_global_cfg_wwl_vdd_cfg_256 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1260,7 +1260,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (2),
     .SWACCESS("RW"),
-    .RESVAL  (2'h0)
+    .RESVAL  (2'h3)
   ) u_global_cfg_synchronizer_pipe_num (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1286,7 +1286,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (2),
     .SWACCESS("RW"),
-    .RESVAL  (2'h0)
+    .RESVAL  (2'h3)
   ) u_global_cfg_synchronizer_wbl_pipe_num (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1338,7 +1338,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (6),
     .SWACCESS("RW"),
-    .RESVAL  (6'h0)
+    .RESVAL  (6'h3f)
   ) u_global_cfg_dgt_addr_upper_bound (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1528,7 +1528,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h40)
   ) u_counter_cfg_1_cfg_trans_num (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1554,7 +1554,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h5)
   ) u_counter_cfg_1_cycle_per_wwl_high (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1580,7 +1580,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h5)
   ) u_counter_cfg_1_cycle_per_wwl_low (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1606,7 +1606,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h5)
   ) u_counter_cfg_1_cycle_per_spin_write (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1634,7 +1634,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'ha)
   ) u_counter_cfg_2_cycle_per_spin_compute (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1660,7 +1660,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h64)
   ) u_counter_cfg_2_debug_cycle_per_spin_read (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1686,7 +1686,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (16'h3ff)
   ) u_counter_cfg_2_debug_spin_read_num (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1712,7 +1712,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (11),
     .SWACCESS("RW"),
-    .RESVAL  (11'h0)
+    .RESVAL  (11'h400)
   ) u_counter_cfg_2_icon_last_raddr_plus_one (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1738,7 +1738,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (5),
     .SWACCESS("RW"),
-    .RESVAL  (5'h0)
+    .RESVAL  (5'h4)
   ) u_counter_cfg_2_dgt_hscaling (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1767,7 +1767,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_wwl_vdd_cfg_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1794,7 +1794,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_wwl_vdd_cfg_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1821,7 +1821,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_wwl_vdd_cfg_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1848,7 +1848,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_wwl_vdd_cfg_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1987,7 +1987,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_wwl_strobe_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2014,7 +2014,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_wwl_strobe_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2041,7 +2041,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_wwl_strobe_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2068,7 +2068,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_wwl_strobe_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2097,7 +2097,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_feedback_cfg_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2124,7 +2124,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_feedback_cfg_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2151,7 +2151,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_feedback_cfg_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2178,7 +2178,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (64),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (64'hffffffffffffffff)
   ) u_spin_feedback_cfg_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3184,7 +3184,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_dt_cfg_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3210,7 +3210,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_cmpt_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3314,7 +3314,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_debug_analog_dt_w_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3340,7 +3340,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_debug_analog_dt_r_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3366,7 +3366,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_debug_spin_w_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3392,7 +3392,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_debug_spin_r_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3418,7 +3418,7 @@ module lagd_core_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_output_status_debug_spin_cmpt_idle (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
