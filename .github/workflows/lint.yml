@@ -136,8 +136,8 @@ jobs:
                         AllowShortIfStatementsOnASingleLine: true,
                         AllowShortLoopsOnASingleLine: true
                         }
-                    # exclude: |
-                    #    ./sw/include/regs/*.h # example
+                    exclude: |
+                       ./hw/rtl/lagd_core_reg/*
 
     ######################
     # Lint Editor Config #
