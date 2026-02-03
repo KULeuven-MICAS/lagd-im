@@ -223,6 +223,13 @@ module digital_macro #(
     assign cmpt_en_pos_trigger = cmpt_en_i & ~cmpt_en_dly1;
     assign em_fifo_flush_comb = flush_i | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
+    // The config_valid_*_i inputs originate from a register / CSR interface, which cannot
+    // reliably control signal levels on a cycle-accurate basis. If these inputs were used
+    // as level-sensitive enables, software could inadvertently keep them asserted for
+    // multiple cycles and trigger repeated reconfiguration. To avoid this, the design
+    // converts the level-style config_valid_*_i signals into single-cycle pulses by
+    // detecting rising edges (posedge) using a delayed version of each signal. Internal
+    // control logic should therefore use config_valid_*_posedge instead of the raw level.
     assign config_valid_em_posedge = config_valid_em_i & ~config_valid_em_dly1;
     assign config_valid_fm_posedge = config_valid_fm_i & ~config_valid_fm_dly1;
     assign config_valid_aw_posedge = config_valid_aw_i & ~config_valid_aw_dly1;

@@ -100,6 +100,7 @@ module flip_manager #(
 
     assign cmpt_idle_o = ~cmpt_busy;
 
+    // Note: when energy_fifo_update_o is high, it means a new energy value has ALREADY been pushed into the energy FIFO
     assign energy_fifo_update_o = energy_handshake_dly1;
     assign spin_fifo_update_o = spin_fifo_push_handshake_dly1;
 
