@@ -522,10 +522,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         case(debug_spin_valid)
             1'b0: begin: no_debug_spin_read
                 drt_s_req_flip.q.addr          = flip_raddr;
-                drt_s_req_flip.q.write         = '0; // read
-                drt_s_req_flip.q.data          = '0; // not used for read
-                drt_s_req_flip.q.strb          = '0; // not used for read
-                drt_s_req_flip.q.user          = '0; // not used
+                drt_s_req_flip.q.write         = 1'b0; // read
+                drt_s_req_flip.q.data          = {(`IC_L1_FLIP_MEM_DATA_WIDTH)1'b0}; // not used for read
+                drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_flip.q.user          = 'd0; // not used
                 drt_s_req_flip.q_valid         = flip_ren;
             end
             1'b1: begin: debug_spin_read
@@ -533,7 +533,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_flip.q.write         = 1'b1; // write
                 drt_s_req_flip.q.data          = debug_spin_out;
                 drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
-                drt_s_req_flip.q.user          = '0; // not used
+                drt_s_req_flip.q.user          = 'd0; // not used
                 drt_s_req_flip.q_valid         = 1'b1;
             end
         endcase
@@ -545,17 +545,17 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
             1'b0: begin: load_mode
                 drt_s_req_j.q.addr         = j_raddr_load;
                 drt_s_req_j.q.write        = 1'b0; // read
-                drt_s_req_j.q.data         = '0; // not used for read
-                drt_s_req_j.q.strb         = '0; // not used for read
-                drt_s_req_j.q.user         = '0; // not used
+                drt_s_req_j.q.data         = {(`IC_L1_J_MEM_DATA_WIDTH)1'b0}; // not used for read
+                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_j.q.user         = 'd0; // not used
                 drt_s_req_j.q_valid        = j_mem_ren_load;
             end
             1'b1: begin: compute_mode
                 drt_s_req_j.q.addr         = dgt_weight_raddr;
                 drt_s_req_j.q.write        = 1'b0; // read
-                drt_s_req_j.q.data         = '0; // not used for read
-                drt_s_req_j.q.strb         = '0; // not used for read
-                drt_s_req_j.q.user         = '0; // not used
+                drt_s_req_j.q.data         = {(`IC_L1_J_MEM_DATA_WIDTH)1'b0}; // not used for read
+                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_j.q.user         = 'd0; // not used
                 drt_s_req_j.q_valid        = dgt_weight_ren;
             end
         endcase
