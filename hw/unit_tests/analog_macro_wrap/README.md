@@ -4,9 +4,9 @@
 
 This testbench is for testing the function (normal and under debugging) and performance of the analog macro wrap module. Enter the command below to run the testbench:
 
-`
+```
 ./ci/ut-run.sh --test=analog_macro_wrap
-`
+```
 
 ## Testbench parameters (applied value)
 

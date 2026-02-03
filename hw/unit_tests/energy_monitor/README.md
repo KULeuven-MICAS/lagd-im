@@ -14,15 +14,15 @@ In the formula, each weight $w_{ij}$ and bias $h_i$ is a signed integer in 2's c
 
 Enter the command below to run the testbench:
 
-`
+```
 ./ci/ut-run.sh --test=energy_monitor
-`
+```
 
 Another option is to run the autotest script in python, by entering the command:
 
-`
+```
 python utils/autotest_energy_monitor.py
-`
+```
 
 ## Testbench parameters
 
