@@ -42,6 +42,9 @@ sources:
       - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
     target: any(synthesis, test)
   - files:
+      - hw/rtl/analog_macro_wrap/synchronizer.sv
+    target: all(not(mixed_signal_exclude_generic_synchronizer))
+  - files:
       - hw/rtl/memory_island/axi_to_mem_adapter.sv
       - hw/rtl/memory_island/mem_req_multicut.sv
       - hw/rtl/memory_island/mem_rsp_multicut.sv
