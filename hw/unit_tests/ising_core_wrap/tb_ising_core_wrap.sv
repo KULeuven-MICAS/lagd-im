@@ -258,106 +258,104 @@ task automatic reg_config();
     // Write configuration registers
     // Spin initial configuration, set 0
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = config_spin_initial_0[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
-    @ (posedge clk_i);
     config_valid_fm = 1'b1;
-    reg_ext_req = gen_reg_req('h4, 1'b1, global_cfg_reg_2, 1'b1);
     @ (posedge clk_i);
-    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
     config_valid_fm = 1'b0;
-    reg_ext_req = gen_reg_req('h4, 1'b1, global_cfg_reg_2, 1'b1);
-    repeat (5) @ (posedge clk_i);
-    $finish;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
     // Spin initial configuration, set 1
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = config_spin_initial_1[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
-    @ (posedge clk_i);
     config_valid_fm = 1'b1;
-    reg_ext_req = gen_reg_req('h4, 1'b1, global_cfg_reg_2, 1'b1);
     @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
     config_valid_fm = 1'b0;
-    reg_ext_req = gen_reg_req('h4, 1'b1, global_cfg_reg_2, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
 
     // Counters, set 1
-    @ (posedge clk_i);
     reg_data = {cycle_per_wwl_high, cfg_trans_num};
-    reg_ext_req = gen_reg_req('h28, 1'b1, reg_data, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h28, 1'b1, reg_data, 1'b1);
     // Counters, set 2
-    @ (posedge clk_i);
     reg_data = {cycle_per_spin_write, cycle_per_wwl_low};
-    reg_ext_req = gen_reg_req('h2c, 1'b1, reg_data, 1'b1);
-    // Counters, set 3
     @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h2c, 1'b1, reg_data, 1'b1);
+    // Counters, set 3
     reg_data = {debug_cycle_per_spin_read, cycle_per_spin_compute};
-    reg_ext_req = gen_reg_req('h30, 1'b1, reg_data, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h30, 1'b1, reg_data, 1'b1);
     // Counters, set 4
     reg_data = {dgt_hscaling, icon_last_raddr_plus_one, debug_spin_read_num};
-    reg_ext_req = gen_reg_req('h34, 1'b1, reg_data, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h34, 1'b1, reg_data, 1'b1);
     // WWL VDD
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = wwl_vdd_cfg[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h38 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h38 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // WWL VREAD
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = wwl_vread_cfg[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h58 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h58 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // Spin WWL strobe
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = spin_wwl_strobe[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h78 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h78 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // Spin feedback
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = spin_feedback[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h98 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h98 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // h_rdata
     for (i = 0; i < `NUM_SPIN*`BIT_J/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = h_rdata[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('hb8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'hb8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // wbl_floating
     for (i = 0; i < `NUM_SPIN*`BIT_J/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = wbl_floating[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h138 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h138 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // debug_j_one_hot_wwl
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
-        @ (posedge clk_i);
         reg_data = debug_j_one_hot_wwl[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
-        reg_ext_req = gen_reg_req('h1b8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        @ (posedge clk_i);
+        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h1b8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // load all configurations into the core
-    @ (posedge clk_i);
     config_valid_aw = 1'b1;
     config_valid_em = 1'b1;
     debug_dt_configure_enable = 1'b1;
     debug_spin_configure_enable = 1'b1;
-    reg_ext_req = gen_reg_req('h0, 1'b1, global_cfg_reg_1, 1'b1);
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req('h4, 1'b1, global_cfg_reg_2, 1'b1);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h0, 1'b1, global_cfg_reg_1, 1'b1);
     @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
     config_valid_aw = 1'b0;
     config_valid_em = 1'b0;
     debug_dt_configure_enable = 1'b0;
     debug_spin_configure_enable = 1'b0;
-    reg_ext_req = gen_reg_req('h0, 1'b1, global_cfg_reg_1, 1'b1);
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req('h4, 1'b1, global_cfg_reg_2, 1'b1);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h0, 1'b1, global_cfg_reg_1, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
     @ (posedge clk_i);
 endtask
 
