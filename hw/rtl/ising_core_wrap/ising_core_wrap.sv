@@ -318,8 +318,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_aw_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_em_upstream_handshake  .de = ctnus_dgt_debug;
     assign hw2reg.debug_fm_energy_input                      .de = ctnus_dgt_debug;
-    assign hw2reg.energy_fifo_data_0                         .de = ctnus_dgt_debug & (energy_fifo_update | ctnus_fifo_read);
-    assign hw2reg.energy_fifo_data_1                         .de = ctnus_dgt_debug & (energy_fifo_update | ctnus_fifo_read);
+    assign hw2reg.energy_fifo_data_0                         .de = (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
+    assign hw2reg.energy_fifo_data_1                         .de = (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
 
     assign hw2reg.output_status.dt_cfg_idle                   .d = dt_cfg_idle;
     assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
@@ -341,8 +341,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     always_comb begin
         for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
-            hw2reg.spin_fifo_data_0 [i].de = ctnus_dgt_debug & (spin_fifo_update | ctnus_fifo_read);
-            hw2reg.spin_fifo_data_1 [i].de = ctnus_dgt_debug & (spin_fifo_update | ctnus_fifo_read);
+            hw2reg.spin_fifo_data_0 [i].de = (ctnus_dgt_debug & spin_fifo_update) | ctnus_fifo_read;
+            hw2reg.spin_fifo_data_1 [i].de = (ctnus_dgt_debug & spin_fifo_update) | ctnus_fifo_read;
             hw2reg.debug_fm_spin_out[i].de = ctnus_dgt_debug;
             hw2reg.debug_aw_spin_out[i].de = ctnus_dgt_debug;
             hw2reg.debug_em_spin_in [i].de = ctnus_dgt_debug;
