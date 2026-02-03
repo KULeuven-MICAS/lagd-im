@@ -18,9 +18,10 @@ SIM_DIR := $(PROJECT_ROOT)/target/sim
 # ============================================================
 
 ifdef TECH_MODELS
-	TECH_ARGS := -t tech_cells_generic_include_tc_sram
+$(info "TECH_MODELS is set to $(TECH_MODELS), including tech cells in the flist")
+TECH_ARGS := -t tech_cells_generic_exclude_tc_sram
 else
-	TECH_ARGS :=
+TECH_ARGS :=
 endif
 
 # Memory island hdl_file_list.tcl generation
@@ -32,7 +33,8 @@ flist: $(TEST_PATH)/bender_list.tcl
 
 $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
-	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" -cpppath "$(CXX_PATH)"' >> $@
+	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
+		-cpppath "$(CXX_PATH)"' >> $@
 
 clean: vsim-clean
 	rm -f $(TEST_PATH)/bender_list.tcl
@@ -40,7 +42,8 @@ clean: vsim-clean
 # ===========================================================
 # Make DPI-C shared library
 # ===========================================================
-# Note: this is not needed adding the vlog elfloader.cpp command to the bender list
+# Note: this is not needed adding the vlog elfloader.cpp command to the bender list 
+#	and using vsim -64
 
 ELFLOADER_SRC := $(CHS_ROOT)/target/sim/src/elfloader.cpp
 DPI_LIB := $(TEST_PATH)/libelfloader.so
@@ -77,5 +80,6 @@ PRELOAD_ELF ?= ""
 CHIP_LEVEL_TEST ?= 0
 DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
 DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST)
+DEFINES += TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1 TSMC_CM_HOLD=10000ns
 
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
