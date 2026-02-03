@@ -40,7 +40,7 @@ show_help()
 SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
-CHIP_LEVEL=0
+CHIP_LEVEL_TEST=0
 BOOT_MODE=0
 PRELOAD_MODE=0
 PRELOAD_ELF=$( pixi run bender path cheshire)/sw/tests/helloworld.spm.elf
@@ -50,7 +50,7 @@ NO_GUI=1
 for i in "$@"; do
     case $i in
         --chip_level)
-            CHIP_LEVEL=1
+            CHIP_LEVEL_TEST=1
             shift
             ;;
         --bootmode=*)
@@ -95,11 +95,11 @@ if [ ! -f "$PRELOAD_ELF" ]; then
 fi
 
 echo "Running system test with the following parameters:"
-echo "  CHIP_LEVEL: $CHIP_LEVEL"
+echo "  CHIP_LEVEL_TEST: $CHIP_LEVEL_TEST"
 echo "  BOOT_MODE: $BOOT_MODE"
 echo "  PRELOAD_MODE: $PRELOAD_MODE"
 echo "  PRELOAD_ELF: $PRELOAD_ELF"
 echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
-CHIP_LEVEL=${CHIP_LEVEL} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
+CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} make -C "${ROOT_DIR}/hw/tb" run

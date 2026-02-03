@@ -7,13 +7,13 @@
 `include "lagd_typedef.svh"
 `include "lagd_define.svh"
 
-`ifndef LAGD_CHIP
-`define LAGD_CHIP 0
+`ifndef CHIP_LEVEL_TEST
+`define CHIP_LEVEL_TEST 0
 `endif
 
 module fixture_lagd_chip ();
 
-  localparam int unsigned ChipTest = `LAGD_CHIP;
+  localparam int unsigned ChipTest = `CHIP_LEVEL_TEST;
   logic [1:0] boot_mode;
   logic clk;
   logic rst_n;
@@ -33,6 +33,7 @@ module fixture_lagd_chip ();
   //==============================================
   generate 
   if (ChipTest == 1) begin : gen_dut_lagd_chip
+    $info("Instantiating lagd_chip as DUT");
     logic pad_clk_i;
     logic pad_rst_ni;
     logic pad_boot_mode_0_i; assign pad_boot_mode_0_i = boot_mode[0];
@@ -77,6 +78,7 @@ module fixture_lagd_chip ();
 
     lagd_chip dut (.*);
   end else begin : gen_dut_soc
+    $info("Instantiating lagd_soc as DUT");
     logic clk_i; assign clk_i = clk;
     logic rst_ni; assign rst_ni = rst_n;
     logic rtc_i; assign rtc_i = rtc;
