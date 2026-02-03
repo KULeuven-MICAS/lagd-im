@@ -28,7 +28,7 @@
     `define L2_BANKING_FACTOR `L2_MEM_SIZE_B / (`LAGD_AXI_DATA_WIDTH/8) / `L2_WORDS_PER_BANK
 
     // CVA6 stack memory
-    `define STACK_BASE_ADDR 'h8FFF_8000 // Top of L2 memory minus 32 kB
+    `define STACK_BASE_ADDR 'h1000_0000 // Top of L2 memory minus 32 kB
     `define STACK_SIZE_B 16*1024   // Max 32 kB stack size (according to STACK_BASE_ADDR)
     `define STACK_ADDR_WIDTH $clog2(`STACK_SIZE_B)
     `define STACK_WORDS_PER_BANK 2048
