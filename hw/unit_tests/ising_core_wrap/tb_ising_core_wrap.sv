@@ -164,7 +164,7 @@ module tb_ising_core_wrap;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            #(10 * CLKCYCLE);
+            #(200 * CLKCYCLE);
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -356,6 +356,9 @@ task automatic reg_config();
     reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h0, 1'b1, global_cfg_reg_1, 1'b1);
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
+    @ (posedge clk_i);
+    // Deassert valid signals
+    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b0);
     @ (posedge clk_i);
 endtask
 
