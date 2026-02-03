@@ -40,18 +40,6 @@ package lagd_core_reg_pkg;
     } en_comparison;
     struct packed {
       logic        q;
-    } cmpt_en;
-    struct packed {
-      logic        q;
-    } config_valid_aw;
-    struct packed {
-      logic        q;
-    } config_valid_em;
-    struct packed {
-      logic        q;
-    } config_valid_fm;
-    struct packed {
-      logic        q;
     } debug_dt_configure_enable;
     struct packed {
       logic        q;
@@ -62,9 +50,6 @@ package lagd_core_reg_pkg;
     struct packed {
       logic        q;
     } bypass_data_conversion;
-    struct packed {
-      logic        q;
-    } dt_cfg_enable;
     struct packed {
       logic        q;
     } host_readout;
@@ -100,10 +85,28 @@ package lagd_core_reg_pkg;
     } wwl_vread_cfg_256;
     struct packed {
       logic [1:0]  q;
-    } synchronizer_pipe_num;
+    } synchronizer_wbl_pipe_num;
+  } lagd_core_reg2hw_global_cfg_1_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } cmpt_en;
+    struct packed {
+      logic        q;
+    } config_valid_aw;
+    struct packed {
+      logic        q;
+    } config_valid_em;
+    struct packed {
+      logic        q;
+    } config_valid_fm;
+    struct packed {
+      logic        q;
+    } dt_cfg_enable;
     struct packed {
       logic [1:0]  q;
-    } synchronizer_wbl_pipe_num;
+    } synchronizer_pipe_num;
     struct packed {
       logic        q;
     } debug_h_wwl;
@@ -116,10 +119,10 @@ package lagd_core_reg_pkg;
     struct packed {
       logic        q;
     } ctnus_dgt_debug;
-  } lagd_core_reg2hw_global_cfg_reg_t;
+  } lagd_core_reg2hw_global_cfg_2_reg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_config_spin_initial_mreg_t;
 
   typedef struct packed {
@@ -129,13 +132,16 @@ package lagd_core_reg_pkg;
     struct packed {
       logic [15:0] q;
     } cycle_per_wwl_high;
+  } lagd_core_reg2hw_counter_cfg_1_reg_t;
+
+  typedef struct packed {
     struct packed {
       logic [15:0] q;
     } cycle_per_wwl_low;
     struct packed {
       logic [15:0] q;
     } cycle_per_spin_write;
-  } lagd_core_reg2hw_counter_cfg_1_reg_t;
+  } lagd_core_reg2hw_counter_cfg_2_reg_t;
 
   typedef struct packed {
     struct packed {
@@ -144,6 +150,9 @@ package lagd_core_reg_pkg;
     struct packed {
       logic [15:0] q;
     } debug_cycle_per_spin_read;
+  } lagd_core_reg2hw_counter_cfg_3_reg_t;
+
+  typedef struct packed {
     struct packed {
       logic [15:0] q;
     } debug_spin_read_num;
@@ -153,34 +162,34 @@ package lagd_core_reg_pkg;
     struct packed {
       logic [4:0]  q;
     } dgt_hscaling;
-  } lagd_core_reg2hw_counter_cfg_2_reg_t;
+  } lagd_core_reg2hw_counter_cfg_4_reg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_wwl_vdd_cfg_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_wwl_vread_cfg_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_spin_wwl_strobe_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_spin_feedback_cfg_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_h_rdata_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_wbl_floating_mreg_t;
 
   typedef struct packed {
-    logic [63:0] q;
+    logic [31:0] q;
   } lagd_core_reg2hw_debug_j_one_hot_wwl_mreg_t;
 
   typedef struct packed {
@@ -240,204 +249,329 @@ package lagd_core_reg_pkg;
       logic        d;
       logic        de;
     } debug_em_upstream_handshake;
-    struct packed {
-      logic [31:0] d;
-      logic        de;
-    } debug_fm_energy_input;
   } lagd_core_hw2reg_output_status_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic [31:0] d;
-      logic        de;
-    } energy_fifo_0;
-    struct packed {
-      logic [31:0] d;
-      logic        de;
-    } energy_fifo_1;
-  } lagd_core_hw2reg_energy_fifo_data_reg_t;
+    logic [31:0] d;
+    logic        de;
+  } lagd_core_hw2reg_debug_fm_energy_input_reg_t;
 
   typedef struct packed {
-    logic [63:0] d;
+    logic [31:0] d;
+    logic        de;
+  } lagd_core_hw2reg_energy_fifo_data_0_reg_t;
+
+  typedef struct packed {
+    logic [31:0] d;
+    logic        de;
+  } lagd_core_hw2reg_energy_fifo_data_1_reg_t;
+
+  typedef struct packed {
+    logic [31:0] d;
     logic        de;
   } lagd_core_hw2reg_spin_fifo_data_0_mreg_t;
 
   typedef struct packed {
-    logic [63:0] d;
+    logic [31:0] d;
     logic        de;
   } lagd_core_hw2reg_spin_fifo_data_1_mreg_t;
 
   typedef struct packed {
-    logic [63:0] d;
+    logic [31:0] d;
     logic        de;
   } lagd_core_hw2reg_debug_j_read_data_mreg_t;
 
   typedef struct packed {
-    logic [63:0] d;
+    logic [31:0] d;
     logic        de;
   } lagd_core_hw2reg_debug_fm_spin_out_mreg_t;
 
   typedef struct packed {
-    logic [63:0] d;
+    logic [31:0] d;
     logic        de;
   } lagd_core_hw2reg_debug_aw_spin_out_mreg_t;
 
   typedef struct packed {
-    logic [63:0] d;
+    logic [31:0] d;
     logic        de;
   } lagd_core_hw2reg_debug_em_spin_in_mreg_t;
 
   // Register -> HW type
   typedef struct packed {
-    lagd_core_reg2hw_global_cfg_reg_t global_cfg; // [3759:3712]
-    lagd_core_reg2hw_config_spin_initial_mreg_t [3:0] config_spin_initial; // [3711:3456]
-    lagd_core_reg2hw_counter_cfg_1_reg_t counter_cfg_1; // [3455:3392]
-    lagd_core_reg2hw_counter_cfg_2_reg_t counter_cfg_2; // [3391:3328]
-    lagd_core_reg2hw_wwl_vdd_cfg_mreg_t [3:0] wwl_vdd_cfg; // [3327:3072]
-    lagd_core_reg2hw_wwl_vread_cfg_mreg_t [3:0] wwl_vread_cfg; // [3071:2816]
-    lagd_core_reg2hw_spin_wwl_strobe_mreg_t [3:0] spin_wwl_strobe; // [2815:2560]
-    lagd_core_reg2hw_spin_feedback_cfg_mreg_t [3:0] spin_feedback_cfg; // [2559:2304]
-    lagd_core_reg2hw_h_rdata_mreg_t [15:0] h_rdata; // [2303:1280]
-    lagd_core_reg2hw_wbl_floating_mreg_t [15:0] wbl_floating; // [1279:256]
-    lagd_core_reg2hw_debug_j_one_hot_wwl_mreg_t [3:0] debug_j_one_hot_wwl; // [255:0]
+    lagd_core_reg2hw_global_cfg_1_reg_t global_cfg_1; // [3759:3728]
+    lagd_core_reg2hw_global_cfg_2_reg_t global_cfg_2; // [3727:3712]
+    lagd_core_reg2hw_config_spin_initial_mreg_t [7:0] config_spin_initial; // [3711:3456]
+    lagd_core_reg2hw_counter_cfg_1_reg_t counter_cfg_1; // [3455:3424]
+    lagd_core_reg2hw_counter_cfg_2_reg_t counter_cfg_2; // [3423:3392]
+    lagd_core_reg2hw_counter_cfg_3_reg_t counter_cfg_3; // [3391:3360]
+    lagd_core_reg2hw_counter_cfg_4_reg_t counter_cfg_4; // [3359:3328]
+    lagd_core_reg2hw_wwl_vdd_cfg_mreg_t [7:0] wwl_vdd_cfg; // [3327:3072]
+    lagd_core_reg2hw_wwl_vread_cfg_mreg_t [7:0] wwl_vread_cfg; // [3071:2816]
+    lagd_core_reg2hw_spin_wwl_strobe_mreg_t [7:0] spin_wwl_strobe; // [2815:2560]
+    lagd_core_reg2hw_spin_feedback_cfg_mreg_t [7:0] spin_feedback_cfg; // [2559:2304]
+    lagd_core_reg2hw_h_rdata_mreg_t [31:0] h_rdata; // [2303:1280]
+    lagd_core_reg2hw_wbl_floating_mreg_t [31:0] wbl_floating; // [1279:256]
+    lagd_core_reg2hw_debug_j_one_hot_wwl_mreg_t [7:0] debug_j_one_hot_wwl; // [255:0]
   } lagd_core_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    lagd_core_hw2reg_output_status_reg_t output_status; // [2466:2406]
-    lagd_core_hw2reg_energy_fifo_data_reg_t energy_fifo_data; // [2405:2340]
-    lagd_core_hw2reg_spin_fifo_data_0_mreg_t [3:0] spin_fifo_data_0; // [2339:2080]
-    lagd_core_hw2reg_spin_fifo_data_1_mreg_t [3:0] spin_fifo_data_1; // [2079:1820]
-    lagd_core_hw2reg_debug_j_read_data_mreg_t [15:0] debug_j_read_data; // [1819:780]
-    lagd_core_hw2reg_debug_fm_spin_out_mreg_t [3:0] debug_fm_spin_out; // [779:520]
-    lagd_core_hw2reg_debug_aw_spin_out_mreg_t [3:0] debug_aw_spin_out; // [519:260]
-    lagd_core_hw2reg_debug_em_spin_in_mreg_t [3:0] debug_em_spin_in; // [259:0]
+    lagd_core_hw2reg_output_status_reg_t output_status; // [2502:2475]
+    lagd_core_hw2reg_debug_fm_energy_input_reg_t debug_fm_energy_input; // [2474:2442]
+    lagd_core_hw2reg_energy_fifo_data_0_reg_t energy_fifo_data_0; // [2441:2409]
+    lagd_core_hw2reg_energy_fifo_data_1_reg_t energy_fifo_data_1; // [2408:2376]
+    lagd_core_hw2reg_spin_fifo_data_0_mreg_t [7:0] spin_fifo_data_0; // [2375:2112]
+    lagd_core_hw2reg_spin_fifo_data_1_mreg_t [7:0] spin_fifo_data_1; // [2111:1848]
+    lagd_core_hw2reg_debug_j_read_data_mreg_t [31:0] debug_j_read_data; // [1847:792]
+    lagd_core_hw2reg_debug_fm_spin_out_mreg_t [7:0] debug_fm_spin_out; // [791:528]
+    lagd_core_hw2reg_debug_aw_spin_out_mreg_t [7:0] debug_aw_spin_out; // [527:264]
+    lagd_core_hw2reg_debug_em_spin_in_mreg_t [7:0] debug_em_spin_in; // [263:0]
   } lagd_core_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] LAGD_CORE_GLOBAL_CFG_OFFSET = 10'h 0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_GLOBAL_CFG_1_OFFSET = 10'h 0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_GLOBAL_CFG_2_OFFSET = 10'h 4;
   parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_0_OFFSET = 10'h 8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_1_OFFSET = 10'h 10;
-  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_2_OFFSET = 10'h 18;
-  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_3_OFFSET = 10'h 20;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_1_OFFSET = 10'h c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_2_OFFSET = 10'h 10;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_3_OFFSET = 10'h 14;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_4_OFFSET = 10'h 18;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_5_OFFSET = 10'h 1c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_6_OFFSET = 10'h 20;
+  parameter logic [BlockAw-1:0] LAGD_CORE_CONFIG_SPIN_INITIAL_7_OFFSET = 10'h 24;
   parameter logic [BlockAw-1:0] LAGD_CORE_COUNTER_CFG_1_OFFSET = 10'h 28;
-  parameter logic [BlockAw-1:0] LAGD_CORE_COUNTER_CFG_2_OFFSET = 10'h 30;
+  parameter logic [BlockAw-1:0] LAGD_CORE_COUNTER_CFG_2_OFFSET = 10'h 2c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_COUNTER_CFG_3_OFFSET = 10'h 30;
+  parameter logic [BlockAw-1:0] LAGD_CORE_COUNTER_CFG_4_OFFSET = 10'h 34;
   parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_0_OFFSET = 10'h 38;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_1_OFFSET = 10'h 40;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_2_OFFSET = 10'h 48;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_3_OFFSET = 10'h 50;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_1_OFFSET = 10'h 3c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_2_OFFSET = 10'h 40;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_3_OFFSET = 10'h 44;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_4_OFFSET = 10'h 48;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_5_OFFSET = 10'h 4c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_6_OFFSET = 10'h 50;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VDD_CFG_7_OFFSET = 10'h 54;
   parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_0_OFFSET = 10'h 58;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_1_OFFSET = 10'h 60;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_2_OFFSET = 10'h 68;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_3_OFFSET = 10'h 70;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_1_OFFSET = 10'h 5c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_2_OFFSET = 10'h 60;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_3_OFFSET = 10'h 64;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_4_OFFSET = 10'h 68;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_5_OFFSET = 10'h 6c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_6_OFFSET = 10'h 70;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WWL_VREAD_CFG_7_OFFSET = 10'h 74;
   parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_0_OFFSET = 10'h 78;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_1_OFFSET = 10'h 80;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_2_OFFSET = 10'h 88;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_3_OFFSET = 10'h 90;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_1_OFFSET = 10'h 7c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_2_OFFSET = 10'h 80;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_3_OFFSET = 10'h 84;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_4_OFFSET = 10'h 88;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_5_OFFSET = 10'h 8c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_6_OFFSET = 10'h 90;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_WWL_STROBE_7_OFFSET = 10'h 94;
   parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_0_OFFSET = 10'h 98;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_1_OFFSET = 10'h a0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_2_OFFSET = 10'h a8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_3_OFFSET = 10'h b0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_1_OFFSET = 10'h 9c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_2_OFFSET = 10'h a0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_3_OFFSET = 10'h a4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_4_OFFSET = 10'h a8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_5_OFFSET = 10'h ac;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_6_OFFSET = 10'h b0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FEEDBACK_CFG_7_OFFSET = 10'h b4;
   parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_0_OFFSET = 10'h b8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_1_OFFSET = 10'h c0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_2_OFFSET = 10'h c8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_3_OFFSET = 10'h d0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_4_OFFSET = 10'h d8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_5_OFFSET = 10'h e0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_6_OFFSET = 10'h e8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_7_OFFSET = 10'h f0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_8_OFFSET = 10'h f8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_9_OFFSET = 10'h 100;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_10_OFFSET = 10'h 108;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_11_OFFSET = 10'h 110;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_12_OFFSET = 10'h 118;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_13_OFFSET = 10'h 120;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_14_OFFSET = 10'h 128;
-  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_15_OFFSET = 10'h 130;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_1_OFFSET = 10'h bc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_2_OFFSET = 10'h c0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_3_OFFSET = 10'h c4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_4_OFFSET = 10'h c8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_5_OFFSET = 10'h cc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_6_OFFSET = 10'h d0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_7_OFFSET = 10'h d4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_8_OFFSET = 10'h d8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_9_OFFSET = 10'h dc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_10_OFFSET = 10'h e0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_11_OFFSET = 10'h e4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_12_OFFSET = 10'h e8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_13_OFFSET = 10'h ec;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_14_OFFSET = 10'h f0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_15_OFFSET = 10'h f4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_16_OFFSET = 10'h f8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_17_OFFSET = 10'h fc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_18_OFFSET = 10'h 100;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_19_OFFSET = 10'h 104;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_20_OFFSET = 10'h 108;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_21_OFFSET = 10'h 10c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_22_OFFSET = 10'h 110;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_23_OFFSET = 10'h 114;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_24_OFFSET = 10'h 118;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_25_OFFSET = 10'h 11c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_26_OFFSET = 10'h 120;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_27_OFFSET = 10'h 124;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_28_OFFSET = 10'h 128;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_29_OFFSET = 10'h 12c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_30_OFFSET = 10'h 130;
+  parameter logic [BlockAw-1:0] LAGD_CORE_H_RDATA_31_OFFSET = 10'h 134;
   parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_0_OFFSET = 10'h 138;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_1_OFFSET = 10'h 140;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_2_OFFSET = 10'h 148;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_3_OFFSET = 10'h 150;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_4_OFFSET = 10'h 158;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_5_OFFSET = 10'h 160;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_6_OFFSET = 10'h 168;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_7_OFFSET = 10'h 170;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_8_OFFSET = 10'h 178;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_9_OFFSET = 10'h 180;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_10_OFFSET = 10'h 188;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_11_OFFSET = 10'h 190;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_12_OFFSET = 10'h 198;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_13_OFFSET = 10'h 1a0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_14_OFFSET = 10'h 1a8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_15_OFFSET = 10'h 1b0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_1_OFFSET = 10'h 13c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_2_OFFSET = 10'h 140;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_3_OFFSET = 10'h 144;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_4_OFFSET = 10'h 148;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_5_OFFSET = 10'h 14c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_6_OFFSET = 10'h 150;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_7_OFFSET = 10'h 154;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_8_OFFSET = 10'h 158;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_9_OFFSET = 10'h 15c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_10_OFFSET = 10'h 160;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_11_OFFSET = 10'h 164;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_12_OFFSET = 10'h 168;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_13_OFFSET = 10'h 16c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_14_OFFSET = 10'h 170;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_15_OFFSET = 10'h 174;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_16_OFFSET = 10'h 178;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_17_OFFSET = 10'h 17c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_18_OFFSET = 10'h 180;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_19_OFFSET = 10'h 184;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_20_OFFSET = 10'h 188;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_21_OFFSET = 10'h 18c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_22_OFFSET = 10'h 190;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_23_OFFSET = 10'h 194;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_24_OFFSET = 10'h 198;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_25_OFFSET = 10'h 19c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_26_OFFSET = 10'h 1a0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_27_OFFSET = 10'h 1a4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_28_OFFSET = 10'h 1a8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_29_OFFSET = 10'h 1ac;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_30_OFFSET = 10'h 1b0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_WBL_FLOATING_31_OFFSET = 10'h 1b4;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0_OFFSET = 10'h 1b8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1_OFFSET = 10'h 1c0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2_OFFSET = 10'h 1c8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3_OFFSET = 10'h 1d0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1_OFFSET = 10'h 1bc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2_OFFSET = 10'h 1c0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3_OFFSET = 10'h 1c4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_4_OFFSET = 10'h 1c8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_5_OFFSET = 10'h 1cc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_6_OFFSET = 10'h 1d0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_7_OFFSET = 10'h 1d4;
   parameter logic [BlockAw-1:0] LAGD_CORE_OUTPUT_STATUS_OFFSET = 10'h 1d8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_ENERGY_FIFO_DATA_OFFSET = 10'h 1e0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_ENERGY_INPUT_OFFSET = 10'h 1dc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_ENERGY_FIFO_DATA_0_OFFSET = 10'h 1e0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_ENERGY_FIFO_DATA_1_OFFSET = 10'h 1e4;
   parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_0_OFFSET = 10'h 1e8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_1_OFFSET = 10'h 1f0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_2_OFFSET = 10'h 1f8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_3_OFFSET = 10'h 200;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_1_OFFSET = 10'h 1ec;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_2_OFFSET = 10'h 1f0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_3_OFFSET = 10'h 1f4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_4_OFFSET = 10'h 1f8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_5_OFFSET = 10'h 1fc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_6_OFFSET = 10'h 200;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_0_7_OFFSET = 10'h 204;
   parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_0_OFFSET = 10'h 208;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_1_OFFSET = 10'h 210;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_2_OFFSET = 10'h 218;
-  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_3_OFFSET = 10'h 220;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_1_OFFSET = 10'h 20c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_2_OFFSET = 10'h 210;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_3_OFFSET = 10'h 214;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_4_OFFSET = 10'h 218;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_5_OFFSET = 10'h 21c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_6_OFFSET = 10'h 220;
+  parameter logic [BlockAw-1:0] LAGD_CORE_SPIN_FIFO_DATA_1_7_OFFSET = 10'h 224;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_0_OFFSET = 10'h 228;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_1_OFFSET = 10'h 230;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_2_OFFSET = 10'h 238;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_3_OFFSET = 10'h 240;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_4_OFFSET = 10'h 248;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_5_OFFSET = 10'h 250;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_6_OFFSET = 10'h 258;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_7_OFFSET = 10'h 260;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_8_OFFSET = 10'h 268;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_9_OFFSET = 10'h 270;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_10_OFFSET = 10'h 278;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_11_OFFSET = 10'h 280;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_12_OFFSET = 10'h 288;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_13_OFFSET = 10'h 290;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_14_OFFSET = 10'h 298;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_15_OFFSET = 10'h 2a0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_1_OFFSET = 10'h 22c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_2_OFFSET = 10'h 230;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_3_OFFSET = 10'h 234;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_4_OFFSET = 10'h 238;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_5_OFFSET = 10'h 23c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_6_OFFSET = 10'h 240;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_7_OFFSET = 10'h 244;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_8_OFFSET = 10'h 248;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_9_OFFSET = 10'h 24c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_10_OFFSET = 10'h 250;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_11_OFFSET = 10'h 254;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_12_OFFSET = 10'h 258;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_13_OFFSET = 10'h 25c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_14_OFFSET = 10'h 260;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_15_OFFSET = 10'h 264;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_16_OFFSET = 10'h 268;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_17_OFFSET = 10'h 26c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_18_OFFSET = 10'h 270;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_19_OFFSET = 10'h 274;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_20_OFFSET = 10'h 278;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_21_OFFSET = 10'h 27c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_22_OFFSET = 10'h 280;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_23_OFFSET = 10'h 284;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_24_OFFSET = 10'h 288;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_25_OFFSET = 10'h 28c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_26_OFFSET = 10'h 290;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_27_OFFSET = 10'h 294;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_28_OFFSET = 10'h 298;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_29_OFFSET = 10'h 29c;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_30_OFFSET = 10'h 2a0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_J_READ_DATA_31_OFFSET = 10'h 2a4;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_0_OFFSET = 10'h 2a8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_1_OFFSET = 10'h 2b0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_2_OFFSET = 10'h 2b8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_3_OFFSET = 10'h 2c0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_1_OFFSET = 10'h 2ac;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_2_OFFSET = 10'h 2b0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_3_OFFSET = 10'h 2b4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_4_OFFSET = 10'h 2b8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_5_OFFSET = 10'h 2bc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_6_OFFSET = 10'h 2c0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_FM_SPIN_OUT_7_OFFSET = 10'h 2c4;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_0_OFFSET = 10'h 2c8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_1_OFFSET = 10'h 2d0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_2_OFFSET = 10'h 2d8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_3_OFFSET = 10'h 2e0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_1_OFFSET = 10'h 2cc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_2_OFFSET = 10'h 2d0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_3_OFFSET = 10'h 2d4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_4_OFFSET = 10'h 2d8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_5_OFFSET = 10'h 2dc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_6_OFFSET = 10'h 2e0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_AW_SPIN_OUT_7_OFFSET = 10'h 2e4;
   parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_0_OFFSET = 10'h 2e8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_1_OFFSET = 10'h 2f0;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_2_OFFSET = 10'h 2f8;
-  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_3_OFFSET = 10'h 300;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_1_OFFSET = 10'h 2ec;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_2_OFFSET = 10'h 2f0;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_3_OFFSET = 10'h 2f4;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_4_OFFSET = 10'h 2f8;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_5_OFFSET = 10'h 2fc;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_6_OFFSET = 10'h 300;
+  parameter logic [BlockAw-1:0] LAGD_CORE_DEBUG_EM_SPIN_IN_7_OFFSET = 10'h 304;
 
   // Register index
   typedef enum int {
-    LAGD_CORE_GLOBAL_CFG,
+    LAGD_CORE_GLOBAL_CFG_1,
+    LAGD_CORE_GLOBAL_CFG_2,
     LAGD_CORE_CONFIG_SPIN_INITIAL_0,
     LAGD_CORE_CONFIG_SPIN_INITIAL_1,
     LAGD_CORE_CONFIG_SPIN_INITIAL_2,
     LAGD_CORE_CONFIG_SPIN_INITIAL_3,
+    LAGD_CORE_CONFIG_SPIN_INITIAL_4,
+    LAGD_CORE_CONFIG_SPIN_INITIAL_5,
+    LAGD_CORE_CONFIG_SPIN_INITIAL_6,
+    LAGD_CORE_CONFIG_SPIN_INITIAL_7,
     LAGD_CORE_COUNTER_CFG_1,
     LAGD_CORE_COUNTER_CFG_2,
+    LAGD_CORE_COUNTER_CFG_3,
+    LAGD_CORE_COUNTER_CFG_4,
     LAGD_CORE_WWL_VDD_CFG_0,
     LAGD_CORE_WWL_VDD_CFG_1,
     LAGD_CORE_WWL_VDD_CFG_2,
     LAGD_CORE_WWL_VDD_CFG_3,
+    LAGD_CORE_WWL_VDD_CFG_4,
+    LAGD_CORE_WWL_VDD_CFG_5,
+    LAGD_CORE_WWL_VDD_CFG_6,
+    LAGD_CORE_WWL_VDD_CFG_7,
     LAGD_CORE_WWL_VREAD_CFG_0,
     LAGD_CORE_WWL_VREAD_CFG_1,
     LAGD_CORE_WWL_VREAD_CFG_2,
     LAGD_CORE_WWL_VREAD_CFG_3,
+    LAGD_CORE_WWL_VREAD_CFG_4,
+    LAGD_CORE_WWL_VREAD_CFG_5,
+    LAGD_CORE_WWL_VREAD_CFG_6,
+    LAGD_CORE_WWL_VREAD_CFG_7,
     LAGD_CORE_SPIN_WWL_STROBE_0,
     LAGD_CORE_SPIN_WWL_STROBE_1,
     LAGD_CORE_SPIN_WWL_STROBE_2,
     LAGD_CORE_SPIN_WWL_STROBE_3,
+    LAGD_CORE_SPIN_WWL_STROBE_4,
+    LAGD_CORE_SPIN_WWL_STROBE_5,
+    LAGD_CORE_SPIN_WWL_STROBE_6,
+    LAGD_CORE_SPIN_WWL_STROBE_7,
     LAGD_CORE_SPIN_FEEDBACK_CFG_0,
     LAGD_CORE_SPIN_FEEDBACK_CFG_1,
     LAGD_CORE_SPIN_FEEDBACK_CFG_2,
     LAGD_CORE_SPIN_FEEDBACK_CFG_3,
+    LAGD_CORE_SPIN_FEEDBACK_CFG_4,
+    LAGD_CORE_SPIN_FEEDBACK_CFG_5,
+    LAGD_CORE_SPIN_FEEDBACK_CFG_6,
+    LAGD_CORE_SPIN_FEEDBACK_CFG_7,
     LAGD_CORE_H_RDATA_0,
     LAGD_CORE_H_RDATA_1,
     LAGD_CORE_H_RDATA_2,
@@ -454,6 +588,22 @@ package lagd_core_reg_pkg;
     LAGD_CORE_H_RDATA_13,
     LAGD_CORE_H_RDATA_14,
     LAGD_CORE_H_RDATA_15,
+    LAGD_CORE_H_RDATA_16,
+    LAGD_CORE_H_RDATA_17,
+    LAGD_CORE_H_RDATA_18,
+    LAGD_CORE_H_RDATA_19,
+    LAGD_CORE_H_RDATA_20,
+    LAGD_CORE_H_RDATA_21,
+    LAGD_CORE_H_RDATA_22,
+    LAGD_CORE_H_RDATA_23,
+    LAGD_CORE_H_RDATA_24,
+    LAGD_CORE_H_RDATA_25,
+    LAGD_CORE_H_RDATA_26,
+    LAGD_CORE_H_RDATA_27,
+    LAGD_CORE_H_RDATA_28,
+    LAGD_CORE_H_RDATA_29,
+    LAGD_CORE_H_RDATA_30,
+    LAGD_CORE_H_RDATA_31,
     LAGD_CORE_WBL_FLOATING_0,
     LAGD_CORE_WBL_FLOATING_1,
     LAGD_CORE_WBL_FLOATING_2,
@@ -470,20 +620,50 @@ package lagd_core_reg_pkg;
     LAGD_CORE_WBL_FLOATING_13,
     LAGD_CORE_WBL_FLOATING_14,
     LAGD_CORE_WBL_FLOATING_15,
+    LAGD_CORE_WBL_FLOATING_16,
+    LAGD_CORE_WBL_FLOATING_17,
+    LAGD_CORE_WBL_FLOATING_18,
+    LAGD_CORE_WBL_FLOATING_19,
+    LAGD_CORE_WBL_FLOATING_20,
+    LAGD_CORE_WBL_FLOATING_21,
+    LAGD_CORE_WBL_FLOATING_22,
+    LAGD_CORE_WBL_FLOATING_23,
+    LAGD_CORE_WBL_FLOATING_24,
+    LAGD_CORE_WBL_FLOATING_25,
+    LAGD_CORE_WBL_FLOATING_26,
+    LAGD_CORE_WBL_FLOATING_27,
+    LAGD_CORE_WBL_FLOATING_28,
+    LAGD_CORE_WBL_FLOATING_29,
+    LAGD_CORE_WBL_FLOATING_30,
+    LAGD_CORE_WBL_FLOATING_31,
     LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0,
     LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1,
     LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2,
     LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3,
+    LAGD_CORE_DEBUG_J_ONE_HOT_WWL_4,
+    LAGD_CORE_DEBUG_J_ONE_HOT_WWL_5,
+    LAGD_CORE_DEBUG_J_ONE_HOT_WWL_6,
+    LAGD_CORE_DEBUG_J_ONE_HOT_WWL_7,
     LAGD_CORE_OUTPUT_STATUS,
-    LAGD_CORE_ENERGY_FIFO_DATA,
+    LAGD_CORE_DEBUG_FM_ENERGY_INPUT,
+    LAGD_CORE_ENERGY_FIFO_DATA_0,
+    LAGD_CORE_ENERGY_FIFO_DATA_1,
     LAGD_CORE_SPIN_FIFO_DATA_0_0,
     LAGD_CORE_SPIN_FIFO_DATA_0_1,
     LAGD_CORE_SPIN_FIFO_DATA_0_2,
     LAGD_CORE_SPIN_FIFO_DATA_0_3,
+    LAGD_CORE_SPIN_FIFO_DATA_0_4,
+    LAGD_CORE_SPIN_FIFO_DATA_0_5,
+    LAGD_CORE_SPIN_FIFO_DATA_0_6,
+    LAGD_CORE_SPIN_FIFO_DATA_0_7,
     LAGD_CORE_SPIN_FIFO_DATA_1_0,
     LAGD_CORE_SPIN_FIFO_DATA_1_1,
     LAGD_CORE_SPIN_FIFO_DATA_1_2,
     LAGD_CORE_SPIN_FIFO_DATA_1_3,
+    LAGD_CORE_SPIN_FIFO_DATA_1_4,
+    LAGD_CORE_SPIN_FIFO_DATA_1_5,
+    LAGD_CORE_SPIN_FIFO_DATA_1_6,
+    LAGD_CORE_SPIN_FIFO_DATA_1_7,
     LAGD_CORE_DEBUG_J_READ_DATA_0,
     LAGD_CORE_DEBUG_J_READ_DATA_1,
     LAGD_CORE_DEBUG_J_READ_DATA_2,
@@ -500,119 +680,244 @@ package lagd_core_reg_pkg;
     LAGD_CORE_DEBUG_J_READ_DATA_13,
     LAGD_CORE_DEBUG_J_READ_DATA_14,
     LAGD_CORE_DEBUG_J_READ_DATA_15,
+    LAGD_CORE_DEBUG_J_READ_DATA_16,
+    LAGD_CORE_DEBUG_J_READ_DATA_17,
+    LAGD_CORE_DEBUG_J_READ_DATA_18,
+    LAGD_CORE_DEBUG_J_READ_DATA_19,
+    LAGD_CORE_DEBUG_J_READ_DATA_20,
+    LAGD_CORE_DEBUG_J_READ_DATA_21,
+    LAGD_CORE_DEBUG_J_READ_DATA_22,
+    LAGD_CORE_DEBUG_J_READ_DATA_23,
+    LAGD_CORE_DEBUG_J_READ_DATA_24,
+    LAGD_CORE_DEBUG_J_READ_DATA_25,
+    LAGD_CORE_DEBUG_J_READ_DATA_26,
+    LAGD_CORE_DEBUG_J_READ_DATA_27,
+    LAGD_CORE_DEBUG_J_READ_DATA_28,
+    LAGD_CORE_DEBUG_J_READ_DATA_29,
+    LAGD_CORE_DEBUG_J_READ_DATA_30,
+    LAGD_CORE_DEBUG_J_READ_DATA_31,
     LAGD_CORE_DEBUG_FM_SPIN_OUT_0,
     LAGD_CORE_DEBUG_FM_SPIN_OUT_1,
     LAGD_CORE_DEBUG_FM_SPIN_OUT_2,
     LAGD_CORE_DEBUG_FM_SPIN_OUT_3,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_4,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_5,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_6,
+    LAGD_CORE_DEBUG_FM_SPIN_OUT_7,
     LAGD_CORE_DEBUG_AW_SPIN_OUT_0,
     LAGD_CORE_DEBUG_AW_SPIN_OUT_1,
     LAGD_CORE_DEBUG_AW_SPIN_OUT_2,
     LAGD_CORE_DEBUG_AW_SPIN_OUT_3,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_4,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_5,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_6,
+    LAGD_CORE_DEBUG_AW_SPIN_OUT_7,
     LAGD_CORE_DEBUG_EM_SPIN_IN_0,
     LAGD_CORE_DEBUG_EM_SPIN_IN_1,
     LAGD_CORE_DEBUG_EM_SPIN_IN_2,
-    LAGD_CORE_DEBUG_EM_SPIN_IN_3
+    LAGD_CORE_DEBUG_EM_SPIN_IN_3,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_4,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_5,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_6,
+    LAGD_CORE_DEBUG_EM_SPIN_IN_7
   } lagd_core_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] LAGD_CORE_PERMIT [97] = '{
-    4'b 1111, // index[ 0] LAGD_CORE_GLOBAL_CFG
-    4'b 1111, // index[ 1] LAGD_CORE_CONFIG_SPIN_INITIAL_0
-    4'b 1111, // index[ 2] LAGD_CORE_CONFIG_SPIN_INITIAL_1
-    4'b 1111, // index[ 3] LAGD_CORE_CONFIG_SPIN_INITIAL_2
-    4'b 1111, // index[ 4] LAGD_CORE_CONFIG_SPIN_INITIAL_3
-    4'b 1111, // index[ 5] LAGD_CORE_COUNTER_CFG_1
-    4'b 1111, // index[ 6] LAGD_CORE_COUNTER_CFG_2
-    4'b 1111, // index[ 7] LAGD_CORE_WWL_VDD_CFG_0
-    4'b 1111, // index[ 8] LAGD_CORE_WWL_VDD_CFG_1
-    4'b 1111, // index[ 9] LAGD_CORE_WWL_VDD_CFG_2
-    4'b 1111, // index[10] LAGD_CORE_WWL_VDD_CFG_3
-    4'b 1111, // index[11] LAGD_CORE_WWL_VREAD_CFG_0
-    4'b 1111, // index[12] LAGD_CORE_WWL_VREAD_CFG_1
-    4'b 1111, // index[13] LAGD_CORE_WWL_VREAD_CFG_2
-    4'b 1111, // index[14] LAGD_CORE_WWL_VREAD_CFG_3
-    4'b 1111, // index[15] LAGD_CORE_SPIN_WWL_STROBE_0
-    4'b 1111, // index[16] LAGD_CORE_SPIN_WWL_STROBE_1
-    4'b 1111, // index[17] LAGD_CORE_SPIN_WWL_STROBE_2
-    4'b 1111, // index[18] LAGD_CORE_SPIN_WWL_STROBE_3
-    4'b 1111, // index[19] LAGD_CORE_SPIN_FEEDBACK_CFG_0
-    4'b 1111, // index[20] LAGD_CORE_SPIN_FEEDBACK_CFG_1
-    4'b 1111, // index[21] LAGD_CORE_SPIN_FEEDBACK_CFG_2
-    4'b 1111, // index[22] LAGD_CORE_SPIN_FEEDBACK_CFG_3
-    4'b 1111, // index[23] LAGD_CORE_H_RDATA_0
-    4'b 1111, // index[24] LAGD_CORE_H_RDATA_1
-    4'b 1111, // index[25] LAGD_CORE_H_RDATA_2
-    4'b 1111, // index[26] LAGD_CORE_H_RDATA_3
-    4'b 1111, // index[27] LAGD_CORE_H_RDATA_4
-    4'b 1111, // index[28] LAGD_CORE_H_RDATA_5
-    4'b 1111, // index[29] LAGD_CORE_H_RDATA_6
-    4'b 1111, // index[30] LAGD_CORE_H_RDATA_7
-    4'b 1111, // index[31] LAGD_CORE_H_RDATA_8
-    4'b 1111, // index[32] LAGD_CORE_H_RDATA_9
-    4'b 1111, // index[33] LAGD_CORE_H_RDATA_10
-    4'b 1111, // index[34] LAGD_CORE_H_RDATA_11
-    4'b 1111, // index[35] LAGD_CORE_H_RDATA_12
-    4'b 1111, // index[36] LAGD_CORE_H_RDATA_13
-    4'b 1111, // index[37] LAGD_CORE_H_RDATA_14
-    4'b 1111, // index[38] LAGD_CORE_H_RDATA_15
-    4'b 1111, // index[39] LAGD_CORE_WBL_FLOATING_0
-    4'b 1111, // index[40] LAGD_CORE_WBL_FLOATING_1
-    4'b 1111, // index[41] LAGD_CORE_WBL_FLOATING_2
-    4'b 1111, // index[42] LAGD_CORE_WBL_FLOATING_3
-    4'b 1111, // index[43] LAGD_CORE_WBL_FLOATING_4
-    4'b 1111, // index[44] LAGD_CORE_WBL_FLOATING_5
-    4'b 1111, // index[45] LAGD_CORE_WBL_FLOATING_6
-    4'b 1111, // index[46] LAGD_CORE_WBL_FLOATING_7
-    4'b 1111, // index[47] LAGD_CORE_WBL_FLOATING_8
-    4'b 1111, // index[48] LAGD_CORE_WBL_FLOATING_9
-    4'b 1111, // index[49] LAGD_CORE_WBL_FLOATING_10
-    4'b 1111, // index[50] LAGD_CORE_WBL_FLOATING_11
-    4'b 1111, // index[51] LAGD_CORE_WBL_FLOATING_12
-    4'b 1111, // index[52] LAGD_CORE_WBL_FLOATING_13
-    4'b 1111, // index[53] LAGD_CORE_WBL_FLOATING_14
-    4'b 1111, // index[54] LAGD_CORE_WBL_FLOATING_15
-    4'b 1111, // index[55] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0
-    4'b 1111, // index[56] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1
-    4'b 1111, // index[57] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2
-    4'b 1111, // index[58] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3
-    4'b 1111, // index[59] LAGD_CORE_OUTPUT_STATUS
-    4'b 1111, // index[60] LAGD_CORE_ENERGY_FIFO_DATA
-    4'b 1111, // index[61] LAGD_CORE_SPIN_FIFO_DATA_0_0
-    4'b 1111, // index[62] LAGD_CORE_SPIN_FIFO_DATA_0_1
-    4'b 1111, // index[63] LAGD_CORE_SPIN_FIFO_DATA_0_2
-    4'b 1111, // index[64] LAGD_CORE_SPIN_FIFO_DATA_0_3
-    4'b 1111, // index[65] LAGD_CORE_SPIN_FIFO_DATA_1_0
-    4'b 1111, // index[66] LAGD_CORE_SPIN_FIFO_DATA_1_1
-    4'b 1111, // index[67] LAGD_CORE_SPIN_FIFO_DATA_1_2
-    4'b 1111, // index[68] LAGD_CORE_SPIN_FIFO_DATA_1_3
-    4'b 1111, // index[69] LAGD_CORE_DEBUG_J_READ_DATA_0
-    4'b 1111, // index[70] LAGD_CORE_DEBUG_J_READ_DATA_1
-    4'b 1111, // index[71] LAGD_CORE_DEBUG_J_READ_DATA_2
-    4'b 1111, // index[72] LAGD_CORE_DEBUG_J_READ_DATA_3
-    4'b 1111, // index[73] LAGD_CORE_DEBUG_J_READ_DATA_4
-    4'b 1111, // index[74] LAGD_CORE_DEBUG_J_READ_DATA_5
-    4'b 1111, // index[75] LAGD_CORE_DEBUG_J_READ_DATA_6
-    4'b 1111, // index[76] LAGD_CORE_DEBUG_J_READ_DATA_7
-    4'b 1111, // index[77] LAGD_CORE_DEBUG_J_READ_DATA_8
-    4'b 1111, // index[78] LAGD_CORE_DEBUG_J_READ_DATA_9
-    4'b 1111, // index[79] LAGD_CORE_DEBUG_J_READ_DATA_10
-    4'b 1111, // index[80] LAGD_CORE_DEBUG_J_READ_DATA_11
-    4'b 1111, // index[81] LAGD_CORE_DEBUG_J_READ_DATA_12
-    4'b 1111, // index[82] LAGD_CORE_DEBUG_J_READ_DATA_13
-    4'b 1111, // index[83] LAGD_CORE_DEBUG_J_READ_DATA_14
-    4'b 1111, // index[84] LAGD_CORE_DEBUG_J_READ_DATA_15
-    4'b 1111, // index[85] LAGD_CORE_DEBUG_FM_SPIN_OUT_0
-    4'b 1111, // index[86] LAGD_CORE_DEBUG_FM_SPIN_OUT_1
-    4'b 1111, // index[87] LAGD_CORE_DEBUG_FM_SPIN_OUT_2
-    4'b 1111, // index[88] LAGD_CORE_DEBUG_FM_SPIN_OUT_3
-    4'b 1111, // index[89] LAGD_CORE_DEBUG_AW_SPIN_OUT_0
-    4'b 1111, // index[90] LAGD_CORE_DEBUG_AW_SPIN_OUT_1
-    4'b 1111, // index[91] LAGD_CORE_DEBUG_AW_SPIN_OUT_2
-    4'b 1111, // index[92] LAGD_CORE_DEBUG_AW_SPIN_OUT_3
-    4'b 1111, // index[93] LAGD_CORE_DEBUG_EM_SPIN_IN_0
-    4'b 1111, // index[94] LAGD_CORE_DEBUG_EM_SPIN_IN_1
-    4'b 1111, // index[95] LAGD_CORE_DEBUG_EM_SPIN_IN_2
-    4'b 1111  // index[96] LAGD_CORE_DEBUG_EM_SPIN_IN_3
+  parameter logic [3:0] LAGD_CORE_PERMIT [194] = '{
+    4'b 1111, // index[  0] LAGD_CORE_GLOBAL_CFG_1
+    4'b 0011, // index[  1] LAGD_CORE_GLOBAL_CFG_2
+    4'b 1111, // index[  2] LAGD_CORE_CONFIG_SPIN_INITIAL_0
+    4'b 1111, // index[  3] LAGD_CORE_CONFIG_SPIN_INITIAL_1
+    4'b 1111, // index[  4] LAGD_CORE_CONFIG_SPIN_INITIAL_2
+    4'b 1111, // index[  5] LAGD_CORE_CONFIG_SPIN_INITIAL_3
+    4'b 1111, // index[  6] LAGD_CORE_CONFIG_SPIN_INITIAL_4
+    4'b 1111, // index[  7] LAGD_CORE_CONFIG_SPIN_INITIAL_5
+    4'b 1111, // index[  8] LAGD_CORE_CONFIG_SPIN_INITIAL_6
+    4'b 1111, // index[  9] LAGD_CORE_CONFIG_SPIN_INITIAL_7
+    4'b 1111, // index[ 10] LAGD_CORE_COUNTER_CFG_1
+    4'b 1111, // index[ 11] LAGD_CORE_COUNTER_CFG_2
+    4'b 1111, // index[ 12] LAGD_CORE_COUNTER_CFG_3
+    4'b 1111, // index[ 13] LAGD_CORE_COUNTER_CFG_4
+    4'b 1111, // index[ 14] LAGD_CORE_WWL_VDD_CFG_0
+    4'b 1111, // index[ 15] LAGD_CORE_WWL_VDD_CFG_1
+    4'b 1111, // index[ 16] LAGD_CORE_WWL_VDD_CFG_2
+    4'b 1111, // index[ 17] LAGD_CORE_WWL_VDD_CFG_3
+    4'b 1111, // index[ 18] LAGD_CORE_WWL_VDD_CFG_4
+    4'b 1111, // index[ 19] LAGD_CORE_WWL_VDD_CFG_5
+    4'b 1111, // index[ 20] LAGD_CORE_WWL_VDD_CFG_6
+    4'b 1111, // index[ 21] LAGD_CORE_WWL_VDD_CFG_7
+    4'b 1111, // index[ 22] LAGD_CORE_WWL_VREAD_CFG_0
+    4'b 1111, // index[ 23] LAGD_CORE_WWL_VREAD_CFG_1
+    4'b 1111, // index[ 24] LAGD_CORE_WWL_VREAD_CFG_2
+    4'b 1111, // index[ 25] LAGD_CORE_WWL_VREAD_CFG_3
+    4'b 1111, // index[ 26] LAGD_CORE_WWL_VREAD_CFG_4
+    4'b 1111, // index[ 27] LAGD_CORE_WWL_VREAD_CFG_5
+    4'b 1111, // index[ 28] LAGD_CORE_WWL_VREAD_CFG_6
+    4'b 1111, // index[ 29] LAGD_CORE_WWL_VREAD_CFG_7
+    4'b 1111, // index[ 30] LAGD_CORE_SPIN_WWL_STROBE_0
+    4'b 1111, // index[ 31] LAGD_CORE_SPIN_WWL_STROBE_1
+    4'b 1111, // index[ 32] LAGD_CORE_SPIN_WWL_STROBE_2
+    4'b 1111, // index[ 33] LAGD_CORE_SPIN_WWL_STROBE_3
+    4'b 1111, // index[ 34] LAGD_CORE_SPIN_WWL_STROBE_4
+    4'b 1111, // index[ 35] LAGD_CORE_SPIN_WWL_STROBE_5
+    4'b 1111, // index[ 36] LAGD_CORE_SPIN_WWL_STROBE_6
+    4'b 1111, // index[ 37] LAGD_CORE_SPIN_WWL_STROBE_7
+    4'b 1111, // index[ 38] LAGD_CORE_SPIN_FEEDBACK_CFG_0
+    4'b 1111, // index[ 39] LAGD_CORE_SPIN_FEEDBACK_CFG_1
+    4'b 1111, // index[ 40] LAGD_CORE_SPIN_FEEDBACK_CFG_2
+    4'b 1111, // index[ 41] LAGD_CORE_SPIN_FEEDBACK_CFG_3
+    4'b 1111, // index[ 42] LAGD_CORE_SPIN_FEEDBACK_CFG_4
+    4'b 1111, // index[ 43] LAGD_CORE_SPIN_FEEDBACK_CFG_5
+    4'b 1111, // index[ 44] LAGD_CORE_SPIN_FEEDBACK_CFG_6
+    4'b 1111, // index[ 45] LAGD_CORE_SPIN_FEEDBACK_CFG_7
+    4'b 1111, // index[ 46] LAGD_CORE_H_RDATA_0
+    4'b 1111, // index[ 47] LAGD_CORE_H_RDATA_1
+    4'b 1111, // index[ 48] LAGD_CORE_H_RDATA_2
+    4'b 1111, // index[ 49] LAGD_CORE_H_RDATA_3
+    4'b 1111, // index[ 50] LAGD_CORE_H_RDATA_4
+    4'b 1111, // index[ 51] LAGD_CORE_H_RDATA_5
+    4'b 1111, // index[ 52] LAGD_CORE_H_RDATA_6
+    4'b 1111, // index[ 53] LAGD_CORE_H_RDATA_7
+    4'b 1111, // index[ 54] LAGD_CORE_H_RDATA_8
+    4'b 1111, // index[ 55] LAGD_CORE_H_RDATA_9
+    4'b 1111, // index[ 56] LAGD_CORE_H_RDATA_10
+    4'b 1111, // index[ 57] LAGD_CORE_H_RDATA_11
+    4'b 1111, // index[ 58] LAGD_CORE_H_RDATA_12
+    4'b 1111, // index[ 59] LAGD_CORE_H_RDATA_13
+    4'b 1111, // index[ 60] LAGD_CORE_H_RDATA_14
+    4'b 1111, // index[ 61] LAGD_CORE_H_RDATA_15
+    4'b 1111, // index[ 62] LAGD_CORE_H_RDATA_16
+    4'b 1111, // index[ 63] LAGD_CORE_H_RDATA_17
+    4'b 1111, // index[ 64] LAGD_CORE_H_RDATA_18
+    4'b 1111, // index[ 65] LAGD_CORE_H_RDATA_19
+    4'b 1111, // index[ 66] LAGD_CORE_H_RDATA_20
+    4'b 1111, // index[ 67] LAGD_CORE_H_RDATA_21
+    4'b 1111, // index[ 68] LAGD_CORE_H_RDATA_22
+    4'b 1111, // index[ 69] LAGD_CORE_H_RDATA_23
+    4'b 1111, // index[ 70] LAGD_CORE_H_RDATA_24
+    4'b 1111, // index[ 71] LAGD_CORE_H_RDATA_25
+    4'b 1111, // index[ 72] LAGD_CORE_H_RDATA_26
+    4'b 1111, // index[ 73] LAGD_CORE_H_RDATA_27
+    4'b 1111, // index[ 74] LAGD_CORE_H_RDATA_28
+    4'b 1111, // index[ 75] LAGD_CORE_H_RDATA_29
+    4'b 1111, // index[ 76] LAGD_CORE_H_RDATA_30
+    4'b 1111, // index[ 77] LAGD_CORE_H_RDATA_31
+    4'b 1111, // index[ 78] LAGD_CORE_WBL_FLOATING_0
+    4'b 1111, // index[ 79] LAGD_CORE_WBL_FLOATING_1
+    4'b 1111, // index[ 80] LAGD_CORE_WBL_FLOATING_2
+    4'b 1111, // index[ 81] LAGD_CORE_WBL_FLOATING_3
+    4'b 1111, // index[ 82] LAGD_CORE_WBL_FLOATING_4
+    4'b 1111, // index[ 83] LAGD_CORE_WBL_FLOATING_5
+    4'b 1111, // index[ 84] LAGD_CORE_WBL_FLOATING_6
+    4'b 1111, // index[ 85] LAGD_CORE_WBL_FLOATING_7
+    4'b 1111, // index[ 86] LAGD_CORE_WBL_FLOATING_8
+    4'b 1111, // index[ 87] LAGD_CORE_WBL_FLOATING_9
+    4'b 1111, // index[ 88] LAGD_CORE_WBL_FLOATING_10
+    4'b 1111, // index[ 89] LAGD_CORE_WBL_FLOATING_11
+    4'b 1111, // index[ 90] LAGD_CORE_WBL_FLOATING_12
+    4'b 1111, // index[ 91] LAGD_CORE_WBL_FLOATING_13
+    4'b 1111, // index[ 92] LAGD_CORE_WBL_FLOATING_14
+    4'b 1111, // index[ 93] LAGD_CORE_WBL_FLOATING_15
+    4'b 1111, // index[ 94] LAGD_CORE_WBL_FLOATING_16
+    4'b 1111, // index[ 95] LAGD_CORE_WBL_FLOATING_17
+    4'b 1111, // index[ 96] LAGD_CORE_WBL_FLOATING_18
+    4'b 1111, // index[ 97] LAGD_CORE_WBL_FLOATING_19
+    4'b 1111, // index[ 98] LAGD_CORE_WBL_FLOATING_20
+    4'b 1111, // index[ 99] LAGD_CORE_WBL_FLOATING_21
+    4'b 1111, // index[100] LAGD_CORE_WBL_FLOATING_22
+    4'b 1111, // index[101] LAGD_CORE_WBL_FLOATING_23
+    4'b 1111, // index[102] LAGD_CORE_WBL_FLOATING_24
+    4'b 1111, // index[103] LAGD_CORE_WBL_FLOATING_25
+    4'b 1111, // index[104] LAGD_CORE_WBL_FLOATING_26
+    4'b 1111, // index[105] LAGD_CORE_WBL_FLOATING_27
+    4'b 1111, // index[106] LAGD_CORE_WBL_FLOATING_28
+    4'b 1111, // index[107] LAGD_CORE_WBL_FLOATING_29
+    4'b 1111, // index[108] LAGD_CORE_WBL_FLOATING_30
+    4'b 1111, // index[109] LAGD_CORE_WBL_FLOATING_31
+    4'b 1111, // index[110] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0
+    4'b 1111, // index[111] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1
+    4'b 1111, // index[112] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2
+    4'b 1111, // index[113] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3
+    4'b 1111, // index[114] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_4
+    4'b 1111, // index[115] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_5
+    4'b 1111, // index[116] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_6
+    4'b 1111, // index[117] LAGD_CORE_DEBUG_J_ONE_HOT_WWL_7
+    4'b 0011, // index[118] LAGD_CORE_OUTPUT_STATUS
+    4'b 1111, // index[119] LAGD_CORE_DEBUG_FM_ENERGY_INPUT
+    4'b 1111, // index[120] LAGD_CORE_ENERGY_FIFO_DATA_0
+    4'b 1111, // index[121] LAGD_CORE_ENERGY_FIFO_DATA_1
+    4'b 1111, // index[122] LAGD_CORE_SPIN_FIFO_DATA_0_0
+    4'b 1111, // index[123] LAGD_CORE_SPIN_FIFO_DATA_0_1
+    4'b 1111, // index[124] LAGD_CORE_SPIN_FIFO_DATA_0_2
+    4'b 1111, // index[125] LAGD_CORE_SPIN_FIFO_DATA_0_3
+    4'b 1111, // index[126] LAGD_CORE_SPIN_FIFO_DATA_0_4
+    4'b 1111, // index[127] LAGD_CORE_SPIN_FIFO_DATA_0_5
+    4'b 1111, // index[128] LAGD_CORE_SPIN_FIFO_DATA_0_6
+    4'b 1111, // index[129] LAGD_CORE_SPIN_FIFO_DATA_0_7
+    4'b 1111, // index[130] LAGD_CORE_SPIN_FIFO_DATA_1_0
+    4'b 1111, // index[131] LAGD_CORE_SPIN_FIFO_DATA_1_1
+    4'b 1111, // index[132] LAGD_CORE_SPIN_FIFO_DATA_1_2
+    4'b 1111, // index[133] LAGD_CORE_SPIN_FIFO_DATA_1_3
+    4'b 1111, // index[134] LAGD_CORE_SPIN_FIFO_DATA_1_4
+    4'b 1111, // index[135] LAGD_CORE_SPIN_FIFO_DATA_1_5
+    4'b 1111, // index[136] LAGD_CORE_SPIN_FIFO_DATA_1_6
+    4'b 1111, // index[137] LAGD_CORE_SPIN_FIFO_DATA_1_7
+    4'b 1111, // index[138] LAGD_CORE_DEBUG_J_READ_DATA_0
+    4'b 1111, // index[139] LAGD_CORE_DEBUG_J_READ_DATA_1
+    4'b 1111, // index[140] LAGD_CORE_DEBUG_J_READ_DATA_2
+    4'b 1111, // index[141] LAGD_CORE_DEBUG_J_READ_DATA_3
+    4'b 1111, // index[142] LAGD_CORE_DEBUG_J_READ_DATA_4
+    4'b 1111, // index[143] LAGD_CORE_DEBUG_J_READ_DATA_5
+    4'b 1111, // index[144] LAGD_CORE_DEBUG_J_READ_DATA_6
+    4'b 1111, // index[145] LAGD_CORE_DEBUG_J_READ_DATA_7
+    4'b 1111, // index[146] LAGD_CORE_DEBUG_J_READ_DATA_8
+    4'b 1111, // index[147] LAGD_CORE_DEBUG_J_READ_DATA_9
+    4'b 1111, // index[148] LAGD_CORE_DEBUG_J_READ_DATA_10
+    4'b 1111, // index[149] LAGD_CORE_DEBUG_J_READ_DATA_11
+    4'b 1111, // index[150] LAGD_CORE_DEBUG_J_READ_DATA_12
+    4'b 1111, // index[151] LAGD_CORE_DEBUG_J_READ_DATA_13
+    4'b 1111, // index[152] LAGD_CORE_DEBUG_J_READ_DATA_14
+    4'b 1111, // index[153] LAGD_CORE_DEBUG_J_READ_DATA_15
+    4'b 1111, // index[154] LAGD_CORE_DEBUG_J_READ_DATA_16
+    4'b 1111, // index[155] LAGD_CORE_DEBUG_J_READ_DATA_17
+    4'b 1111, // index[156] LAGD_CORE_DEBUG_J_READ_DATA_18
+    4'b 1111, // index[157] LAGD_CORE_DEBUG_J_READ_DATA_19
+    4'b 1111, // index[158] LAGD_CORE_DEBUG_J_READ_DATA_20
+    4'b 1111, // index[159] LAGD_CORE_DEBUG_J_READ_DATA_21
+    4'b 1111, // index[160] LAGD_CORE_DEBUG_J_READ_DATA_22
+    4'b 1111, // index[161] LAGD_CORE_DEBUG_J_READ_DATA_23
+    4'b 1111, // index[162] LAGD_CORE_DEBUG_J_READ_DATA_24
+    4'b 1111, // index[163] LAGD_CORE_DEBUG_J_READ_DATA_25
+    4'b 1111, // index[164] LAGD_CORE_DEBUG_J_READ_DATA_26
+    4'b 1111, // index[165] LAGD_CORE_DEBUG_J_READ_DATA_27
+    4'b 1111, // index[166] LAGD_CORE_DEBUG_J_READ_DATA_28
+    4'b 1111, // index[167] LAGD_CORE_DEBUG_J_READ_DATA_29
+    4'b 1111, // index[168] LAGD_CORE_DEBUG_J_READ_DATA_30
+    4'b 1111, // index[169] LAGD_CORE_DEBUG_J_READ_DATA_31
+    4'b 1111, // index[170] LAGD_CORE_DEBUG_FM_SPIN_OUT_0
+    4'b 1111, // index[171] LAGD_CORE_DEBUG_FM_SPIN_OUT_1
+    4'b 1111, // index[172] LAGD_CORE_DEBUG_FM_SPIN_OUT_2
+    4'b 1111, // index[173] LAGD_CORE_DEBUG_FM_SPIN_OUT_3
+    4'b 1111, // index[174] LAGD_CORE_DEBUG_FM_SPIN_OUT_4
+    4'b 1111, // index[175] LAGD_CORE_DEBUG_FM_SPIN_OUT_5
+    4'b 1111, // index[176] LAGD_CORE_DEBUG_FM_SPIN_OUT_6
+    4'b 1111, // index[177] LAGD_CORE_DEBUG_FM_SPIN_OUT_7
+    4'b 1111, // index[178] LAGD_CORE_DEBUG_AW_SPIN_OUT_0
+    4'b 1111, // index[179] LAGD_CORE_DEBUG_AW_SPIN_OUT_1
+    4'b 1111, // index[180] LAGD_CORE_DEBUG_AW_SPIN_OUT_2
+    4'b 1111, // index[181] LAGD_CORE_DEBUG_AW_SPIN_OUT_3
+    4'b 1111, // index[182] LAGD_CORE_DEBUG_AW_SPIN_OUT_4
+    4'b 1111, // index[183] LAGD_CORE_DEBUG_AW_SPIN_OUT_5
+    4'b 1111, // index[184] LAGD_CORE_DEBUG_AW_SPIN_OUT_6
+    4'b 1111, // index[185] LAGD_CORE_DEBUG_AW_SPIN_OUT_7
+    4'b 1111, // index[186] LAGD_CORE_DEBUG_EM_SPIN_IN_0
+    4'b 1111, // index[187] LAGD_CORE_DEBUG_EM_SPIN_IN_1
+    4'b 1111, // index[188] LAGD_CORE_DEBUG_EM_SPIN_IN_2
+    4'b 1111, // index[189] LAGD_CORE_DEBUG_EM_SPIN_IN_3
+    4'b 1111, // index[190] LAGD_CORE_DEBUG_EM_SPIN_IN_4
+    4'b 1111, // index[191] LAGD_CORE_DEBUG_EM_SPIN_IN_5
+    4'b 1111, // index[192] LAGD_CORE_DEBUG_EM_SPIN_IN_6
+    4'b 1111  // index[193] LAGD_CORE_DEBUG_EM_SPIN_IN_7
   };
 
 endpackage

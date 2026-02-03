@@ -27,7 +27,7 @@ module lagd_core_reg_top #(
 
   import lagd_core_reg_pkg::* ;
 
-  localparam int DW = 64;
+  localparam int DW = 32;
   localparam int DBW = DW/8;                    // Byte Width
 
   // register signals
@@ -68,303 +68,471 @@ module lagd_core_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic global_cfg_flush_en_qs;
-  logic global_cfg_flush_en_wd;
-  logic global_cfg_flush_en_we;
-  logic global_cfg_en_aw_qs;
-  logic global_cfg_en_aw_wd;
-  logic global_cfg_en_aw_we;
-  logic global_cfg_en_em_qs;
-  logic global_cfg_en_em_wd;
-  logic global_cfg_en_em_we;
-  logic global_cfg_en_fm_qs;
-  logic global_cfg_en_fm_wd;
-  logic global_cfg_en_fm_we;
-  logic global_cfg_en_ff_qs;
-  logic global_cfg_en_ff_wd;
-  logic global_cfg_en_ff_we;
-  logic global_cfg_en_ef_qs;
-  logic global_cfg_en_ef_wd;
-  logic global_cfg_en_ef_we;
-  logic global_cfg_en_analog_loop_qs;
-  logic global_cfg_en_analog_loop_wd;
-  logic global_cfg_en_analog_loop_we;
-  logic global_cfg_en_comparison_qs;
-  logic global_cfg_en_comparison_wd;
-  logic global_cfg_en_comparison_we;
-  logic global_cfg_cmpt_en_qs;
-  logic global_cfg_cmpt_en_wd;
-  logic global_cfg_cmpt_en_we;
-  logic global_cfg_config_valid_aw_qs;
-  logic global_cfg_config_valid_aw_wd;
-  logic global_cfg_config_valid_aw_we;
-  logic global_cfg_config_valid_em_qs;
-  logic global_cfg_config_valid_em_wd;
-  logic global_cfg_config_valid_em_we;
-  logic global_cfg_config_valid_fm_qs;
-  logic global_cfg_config_valid_fm_wd;
-  logic global_cfg_config_valid_fm_we;
-  logic global_cfg_debug_dt_configure_enable_qs;
-  logic global_cfg_debug_dt_configure_enable_wd;
-  logic global_cfg_debug_dt_configure_enable_we;
-  logic global_cfg_debug_spin_configure_enable_qs;
-  logic global_cfg_debug_spin_configure_enable_wd;
-  logic global_cfg_debug_spin_configure_enable_we;
-  logic global_cfg_config_spin_initial_skip_qs;
-  logic global_cfg_config_spin_initial_skip_wd;
-  logic global_cfg_config_spin_initial_skip_we;
-  logic global_cfg_bypass_data_conversion_qs;
-  logic global_cfg_bypass_data_conversion_wd;
-  logic global_cfg_bypass_data_conversion_we;
-  logic global_cfg_dt_cfg_enable_qs;
-  logic global_cfg_dt_cfg_enable_wd;
-  logic global_cfg_dt_cfg_enable_we;
-  logic global_cfg_host_readout_qs;
-  logic global_cfg_host_readout_wd;
-  logic global_cfg_host_readout_we;
-  logic global_cfg_flip_disable_qs;
-  logic global_cfg_flip_disable_wd;
-  logic global_cfg_flip_disable_we;
-  logic global_cfg_enable_flip_detection_qs;
-  logic global_cfg_enable_flip_detection_wd;
-  logic global_cfg_enable_flip_detection_we;
-  logic global_cfg_debug_j_write_en_qs;
-  logic global_cfg_debug_j_write_en_wd;
-  logic global_cfg_debug_j_write_en_we;
-  logic global_cfg_debug_j_read_en_qs;
-  logic global_cfg_debug_j_read_en_wd;
-  logic global_cfg_debug_j_read_en_we;
-  logic global_cfg_debug_spin_write_en_qs;
-  logic global_cfg_debug_spin_write_en_wd;
-  logic global_cfg_debug_spin_write_en_we;
-  logic global_cfg_debug_spin_compute_en_qs;
-  logic global_cfg_debug_spin_compute_en_wd;
-  logic global_cfg_debug_spin_compute_en_we;
-  logic global_cfg_debug_spin_read_en_qs;
-  logic global_cfg_debug_spin_read_en_wd;
-  logic global_cfg_debug_spin_read_en_we;
-  logic [7:0] global_cfg_config_counter_qs;
-  logic [7:0] global_cfg_config_counter_wd;
-  logic global_cfg_config_counter_we;
-  logic global_cfg_wwl_vdd_cfg_256_qs;
-  logic global_cfg_wwl_vdd_cfg_256_wd;
-  logic global_cfg_wwl_vdd_cfg_256_we;
-  logic global_cfg_wwl_vread_cfg_256_qs;
-  logic global_cfg_wwl_vread_cfg_256_wd;
-  logic global_cfg_wwl_vread_cfg_256_we;
-  logic [1:0] global_cfg_synchronizer_pipe_num_qs;
-  logic [1:0] global_cfg_synchronizer_pipe_num_wd;
-  logic global_cfg_synchronizer_pipe_num_we;
-  logic [1:0] global_cfg_synchronizer_wbl_pipe_num_qs;
-  logic [1:0] global_cfg_synchronizer_wbl_pipe_num_wd;
-  logic global_cfg_synchronizer_wbl_pipe_num_we;
-  logic global_cfg_debug_h_wwl_qs;
-  logic global_cfg_debug_h_wwl_wd;
-  logic global_cfg_debug_h_wwl_we;
-  logic [5:0] global_cfg_dgt_addr_upper_bound_qs;
-  logic [5:0] global_cfg_dgt_addr_upper_bound_wd;
-  logic global_cfg_dgt_addr_upper_bound_we;
-  logic global_cfg_ctnus_fifo_read_qs;
-  logic global_cfg_ctnus_fifo_read_wd;
-  logic global_cfg_ctnus_fifo_read_we;
-  logic global_cfg_ctnus_dgt_debug_qs;
-  logic global_cfg_ctnus_dgt_debug_wd;
-  logic global_cfg_ctnus_dgt_debug_we;
-  logic [63:0] config_spin_initial_0_qs;
-  logic [63:0] config_spin_initial_0_wd;
+  logic global_cfg_1_flush_en_qs;
+  logic global_cfg_1_flush_en_wd;
+  logic global_cfg_1_flush_en_we;
+  logic global_cfg_1_en_aw_qs;
+  logic global_cfg_1_en_aw_wd;
+  logic global_cfg_1_en_aw_we;
+  logic global_cfg_1_en_em_qs;
+  logic global_cfg_1_en_em_wd;
+  logic global_cfg_1_en_em_we;
+  logic global_cfg_1_en_fm_qs;
+  logic global_cfg_1_en_fm_wd;
+  logic global_cfg_1_en_fm_we;
+  logic global_cfg_1_en_ff_qs;
+  logic global_cfg_1_en_ff_wd;
+  logic global_cfg_1_en_ff_we;
+  logic global_cfg_1_en_ef_qs;
+  logic global_cfg_1_en_ef_wd;
+  logic global_cfg_1_en_ef_we;
+  logic global_cfg_1_en_analog_loop_qs;
+  logic global_cfg_1_en_analog_loop_wd;
+  logic global_cfg_1_en_analog_loop_we;
+  logic global_cfg_1_en_comparison_qs;
+  logic global_cfg_1_en_comparison_wd;
+  logic global_cfg_1_en_comparison_we;
+  logic global_cfg_1_debug_dt_configure_enable_qs;
+  logic global_cfg_1_debug_dt_configure_enable_wd;
+  logic global_cfg_1_debug_dt_configure_enable_we;
+  logic global_cfg_1_debug_spin_configure_enable_qs;
+  logic global_cfg_1_debug_spin_configure_enable_wd;
+  logic global_cfg_1_debug_spin_configure_enable_we;
+  logic global_cfg_1_config_spin_initial_skip_qs;
+  logic global_cfg_1_config_spin_initial_skip_wd;
+  logic global_cfg_1_config_spin_initial_skip_we;
+  logic global_cfg_1_bypass_data_conversion_qs;
+  logic global_cfg_1_bypass_data_conversion_wd;
+  logic global_cfg_1_bypass_data_conversion_we;
+  logic global_cfg_1_host_readout_qs;
+  logic global_cfg_1_host_readout_wd;
+  logic global_cfg_1_host_readout_we;
+  logic global_cfg_1_flip_disable_qs;
+  logic global_cfg_1_flip_disable_wd;
+  logic global_cfg_1_flip_disable_we;
+  logic global_cfg_1_enable_flip_detection_qs;
+  logic global_cfg_1_enable_flip_detection_wd;
+  logic global_cfg_1_enable_flip_detection_we;
+  logic global_cfg_1_debug_j_write_en_qs;
+  logic global_cfg_1_debug_j_write_en_wd;
+  logic global_cfg_1_debug_j_write_en_we;
+  logic global_cfg_1_debug_j_read_en_qs;
+  logic global_cfg_1_debug_j_read_en_wd;
+  logic global_cfg_1_debug_j_read_en_we;
+  logic global_cfg_1_debug_spin_write_en_qs;
+  logic global_cfg_1_debug_spin_write_en_wd;
+  logic global_cfg_1_debug_spin_write_en_we;
+  logic global_cfg_1_debug_spin_compute_en_qs;
+  logic global_cfg_1_debug_spin_compute_en_wd;
+  logic global_cfg_1_debug_spin_compute_en_we;
+  logic global_cfg_1_debug_spin_read_en_qs;
+  logic global_cfg_1_debug_spin_read_en_wd;
+  logic global_cfg_1_debug_spin_read_en_we;
+  logic [7:0] global_cfg_1_config_counter_qs;
+  logic [7:0] global_cfg_1_config_counter_wd;
+  logic global_cfg_1_config_counter_we;
+  logic global_cfg_1_wwl_vdd_cfg_256_qs;
+  logic global_cfg_1_wwl_vdd_cfg_256_wd;
+  logic global_cfg_1_wwl_vdd_cfg_256_we;
+  logic global_cfg_1_wwl_vread_cfg_256_qs;
+  logic global_cfg_1_wwl_vread_cfg_256_wd;
+  logic global_cfg_1_wwl_vread_cfg_256_we;
+  logic [1:0] global_cfg_1_synchronizer_wbl_pipe_num_qs;
+  logic [1:0] global_cfg_1_synchronizer_wbl_pipe_num_wd;
+  logic global_cfg_1_synchronizer_wbl_pipe_num_we;
+  logic global_cfg_2_cmpt_en_qs;
+  logic global_cfg_2_cmpt_en_wd;
+  logic global_cfg_2_cmpt_en_we;
+  logic global_cfg_2_config_valid_aw_qs;
+  logic global_cfg_2_config_valid_aw_wd;
+  logic global_cfg_2_config_valid_aw_we;
+  logic global_cfg_2_config_valid_em_qs;
+  logic global_cfg_2_config_valid_em_wd;
+  logic global_cfg_2_config_valid_em_we;
+  logic global_cfg_2_config_valid_fm_qs;
+  logic global_cfg_2_config_valid_fm_wd;
+  logic global_cfg_2_config_valid_fm_we;
+  logic global_cfg_2_dt_cfg_enable_qs;
+  logic global_cfg_2_dt_cfg_enable_wd;
+  logic global_cfg_2_dt_cfg_enable_we;
+  logic [1:0] global_cfg_2_synchronizer_pipe_num_qs;
+  logic [1:0] global_cfg_2_synchronizer_pipe_num_wd;
+  logic global_cfg_2_synchronizer_pipe_num_we;
+  logic global_cfg_2_debug_h_wwl_qs;
+  logic global_cfg_2_debug_h_wwl_wd;
+  logic global_cfg_2_debug_h_wwl_we;
+  logic [5:0] global_cfg_2_dgt_addr_upper_bound_qs;
+  logic [5:0] global_cfg_2_dgt_addr_upper_bound_wd;
+  logic global_cfg_2_dgt_addr_upper_bound_we;
+  logic global_cfg_2_ctnus_fifo_read_qs;
+  logic global_cfg_2_ctnus_fifo_read_wd;
+  logic global_cfg_2_ctnus_fifo_read_we;
+  logic global_cfg_2_ctnus_dgt_debug_qs;
+  logic global_cfg_2_ctnus_dgt_debug_wd;
+  logic global_cfg_2_ctnus_dgt_debug_we;
+  logic [31:0] config_spin_initial_0_qs;
+  logic [31:0] config_spin_initial_0_wd;
   logic config_spin_initial_0_we;
-  logic [63:0] config_spin_initial_1_qs;
-  logic [63:0] config_spin_initial_1_wd;
+  logic [31:0] config_spin_initial_1_qs;
+  logic [31:0] config_spin_initial_1_wd;
   logic config_spin_initial_1_we;
-  logic [63:0] config_spin_initial_2_qs;
-  logic [63:0] config_spin_initial_2_wd;
+  logic [31:0] config_spin_initial_2_qs;
+  logic [31:0] config_spin_initial_2_wd;
   logic config_spin_initial_2_we;
-  logic [63:0] config_spin_initial_3_qs;
-  logic [63:0] config_spin_initial_3_wd;
+  logic [31:0] config_spin_initial_3_qs;
+  logic [31:0] config_spin_initial_3_wd;
   logic config_spin_initial_3_we;
+  logic [31:0] config_spin_initial_4_qs;
+  logic [31:0] config_spin_initial_4_wd;
+  logic config_spin_initial_4_we;
+  logic [31:0] config_spin_initial_5_qs;
+  logic [31:0] config_spin_initial_5_wd;
+  logic config_spin_initial_5_we;
+  logic [31:0] config_spin_initial_6_qs;
+  logic [31:0] config_spin_initial_6_wd;
+  logic config_spin_initial_6_we;
+  logic [31:0] config_spin_initial_7_qs;
+  logic [31:0] config_spin_initial_7_wd;
+  logic config_spin_initial_7_we;
   logic [15:0] counter_cfg_1_cfg_trans_num_qs;
   logic [15:0] counter_cfg_1_cfg_trans_num_wd;
   logic counter_cfg_1_cfg_trans_num_we;
   logic [15:0] counter_cfg_1_cycle_per_wwl_high_qs;
   logic [15:0] counter_cfg_1_cycle_per_wwl_high_wd;
   logic counter_cfg_1_cycle_per_wwl_high_we;
-  logic [15:0] counter_cfg_1_cycle_per_wwl_low_qs;
-  logic [15:0] counter_cfg_1_cycle_per_wwl_low_wd;
-  logic counter_cfg_1_cycle_per_wwl_low_we;
-  logic [15:0] counter_cfg_1_cycle_per_spin_write_qs;
-  logic [15:0] counter_cfg_1_cycle_per_spin_write_wd;
-  logic counter_cfg_1_cycle_per_spin_write_we;
-  logic [15:0] counter_cfg_2_cycle_per_spin_compute_qs;
-  logic [15:0] counter_cfg_2_cycle_per_spin_compute_wd;
-  logic counter_cfg_2_cycle_per_spin_compute_we;
-  logic [15:0] counter_cfg_2_debug_cycle_per_spin_read_qs;
-  logic [15:0] counter_cfg_2_debug_cycle_per_spin_read_wd;
-  logic counter_cfg_2_debug_cycle_per_spin_read_we;
-  logic [15:0] counter_cfg_2_debug_spin_read_num_qs;
-  logic [15:0] counter_cfg_2_debug_spin_read_num_wd;
-  logic counter_cfg_2_debug_spin_read_num_we;
-  logic [10:0] counter_cfg_2_icon_last_raddr_plus_one_qs;
-  logic [10:0] counter_cfg_2_icon_last_raddr_plus_one_wd;
-  logic counter_cfg_2_icon_last_raddr_plus_one_we;
-  logic [4:0] counter_cfg_2_dgt_hscaling_qs;
-  logic [4:0] counter_cfg_2_dgt_hscaling_wd;
-  logic counter_cfg_2_dgt_hscaling_we;
-  logic [63:0] wwl_vdd_cfg_0_qs;
-  logic [63:0] wwl_vdd_cfg_0_wd;
+  logic [15:0] counter_cfg_2_cycle_per_wwl_low_qs;
+  logic [15:0] counter_cfg_2_cycle_per_wwl_low_wd;
+  logic counter_cfg_2_cycle_per_wwl_low_we;
+  logic [15:0] counter_cfg_2_cycle_per_spin_write_qs;
+  logic [15:0] counter_cfg_2_cycle_per_spin_write_wd;
+  logic counter_cfg_2_cycle_per_spin_write_we;
+  logic [15:0] counter_cfg_3_cycle_per_spin_compute_qs;
+  logic [15:0] counter_cfg_3_cycle_per_spin_compute_wd;
+  logic counter_cfg_3_cycle_per_spin_compute_we;
+  logic [15:0] counter_cfg_3_debug_cycle_per_spin_read_qs;
+  logic [15:0] counter_cfg_3_debug_cycle_per_spin_read_wd;
+  logic counter_cfg_3_debug_cycle_per_spin_read_we;
+  logic [15:0] counter_cfg_4_debug_spin_read_num_qs;
+  logic [15:0] counter_cfg_4_debug_spin_read_num_wd;
+  logic counter_cfg_4_debug_spin_read_num_we;
+  logic [10:0] counter_cfg_4_icon_last_raddr_plus_one_qs;
+  logic [10:0] counter_cfg_4_icon_last_raddr_plus_one_wd;
+  logic counter_cfg_4_icon_last_raddr_plus_one_we;
+  logic [4:0] counter_cfg_4_dgt_hscaling_qs;
+  logic [4:0] counter_cfg_4_dgt_hscaling_wd;
+  logic counter_cfg_4_dgt_hscaling_we;
+  logic [31:0] wwl_vdd_cfg_0_qs;
+  logic [31:0] wwl_vdd_cfg_0_wd;
   logic wwl_vdd_cfg_0_we;
-  logic [63:0] wwl_vdd_cfg_1_qs;
-  logic [63:0] wwl_vdd_cfg_1_wd;
+  logic [31:0] wwl_vdd_cfg_1_qs;
+  logic [31:0] wwl_vdd_cfg_1_wd;
   logic wwl_vdd_cfg_1_we;
-  logic [63:0] wwl_vdd_cfg_2_qs;
-  logic [63:0] wwl_vdd_cfg_2_wd;
+  logic [31:0] wwl_vdd_cfg_2_qs;
+  logic [31:0] wwl_vdd_cfg_2_wd;
   logic wwl_vdd_cfg_2_we;
-  logic [63:0] wwl_vdd_cfg_3_qs;
-  logic [63:0] wwl_vdd_cfg_3_wd;
+  logic [31:0] wwl_vdd_cfg_3_qs;
+  logic [31:0] wwl_vdd_cfg_3_wd;
   logic wwl_vdd_cfg_3_we;
-  logic [63:0] wwl_vread_cfg_0_qs;
-  logic [63:0] wwl_vread_cfg_0_wd;
+  logic [31:0] wwl_vdd_cfg_4_qs;
+  logic [31:0] wwl_vdd_cfg_4_wd;
+  logic wwl_vdd_cfg_4_we;
+  logic [31:0] wwl_vdd_cfg_5_qs;
+  logic [31:0] wwl_vdd_cfg_5_wd;
+  logic wwl_vdd_cfg_5_we;
+  logic [31:0] wwl_vdd_cfg_6_qs;
+  logic [31:0] wwl_vdd_cfg_6_wd;
+  logic wwl_vdd_cfg_6_we;
+  logic [31:0] wwl_vdd_cfg_7_qs;
+  logic [31:0] wwl_vdd_cfg_7_wd;
+  logic wwl_vdd_cfg_7_we;
+  logic [31:0] wwl_vread_cfg_0_qs;
+  logic [31:0] wwl_vread_cfg_0_wd;
   logic wwl_vread_cfg_0_we;
-  logic [63:0] wwl_vread_cfg_1_qs;
-  logic [63:0] wwl_vread_cfg_1_wd;
+  logic [31:0] wwl_vread_cfg_1_qs;
+  logic [31:0] wwl_vread_cfg_1_wd;
   logic wwl_vread_cfg_1_we;
-  logic [63:0] wwl_vread_cfg_2_qs;
-  logic [63:0] wwl_vread_cfg_2_wd;
+  logic [31:0] wwl_vread_cfg_2_qs;
+  logic [31:0] wwl_vread_cfg_2_wd;
   logic wwl_vread_cfg_2_we;
-  logic [63:0] wwl_vread_cfg_3_qs;
-  logic [63:0] wwl_vread_cfg_3_wd;
+  logic [31:0] wwl_vread_cfg_3_qs;
+  logic [31:0] wwl_vread_cfg_3_wd;
   logic wwl_vread_cfg_3_we;
-  logic [63:0] spin_wwl_strobe_0_qs;
-  logic [63:0] spin_wwl_strobe_0_wd;
+  logic [31:0] wwl_vread_cfg_4_qs;
+  logic [31:0] wwl_vread_cfg_4_wd;
+  logic wwl_vread_cfg_4_we;
+  logic [31:0] wwl_vread_cfg_5_qs;
+  logic [31:0] wwl_vread_cfg_5_wd;
+  logic wwl_vread_cfg_5_we;
+  logic [31:0] wwl_vread_cfg_6_qs;
+  logic [31:0] wwl_vread_cfg_6_wd;
+  logic wwl_vread_cfg_6_we;
+  logic [31:0] wwl_vread_cfg_7_qs;
+  logic [31:0] wwl_vread_cfg_7_wd;
+  logic wwl_vread_cfg_7_we;
+  logic [31:0] spin_wwl_strobe_0_qs;
+  logic [31:0] spin_wwl_strobe_0_wd;
   logic spin_wwl_strobe_0_we;
-  logic [63:0] spin_wwl_strobe_1_qs;
-  logic [63:0] spin_wwl_strobe_1_wd;
+  logic [31:0] spin_wwl_strobe_1_qs;
+  logic [31:0] spin_wwl_strobe_1_wd;
   logic spin_wwl_strobe_1_we;
-  logic [63:0] spin_wwl_strobe_2_qs;
-  logic [63:0] spin_wwl_strobe_2_wd;
+  logic [31:0] spin_wwl_strobe_2_qs;
+  logic [31:0] spin_wwl_strobe_2_wd;
   logic spin_wwl_strobe_2_we;
-  logic [63:0] spin_wwl_strobe_3_qs;
-  logic [63:0] spin_wwl_strobe_3_wd;
+  logic [31:0] spin_wwl_strobe_3_qs;
+  logic [31:0] spin_wwl_strobe_3_wd;
   logic spin_wwl_strobe_3_we;
-  logic [63:0] spin_feedback_cfg_0_qs;
-  logic [63:0] spin_feedback_cfg_0_wd;
+  logic [31:0] spin_wwl_strobe_4_qs;
+  logic [31:0] spin_wwl_strobe_4_wd;
+  logic spin_wwl_strobe_4_we;
+  logic [31:0] spin_wwl_strobe_5_qs;
+  logic [31:0] spin_wwl_strobe_5_wd;
+  logic spin_wwl_strobe_5_we;
+  logic [31:0] spin_wwl_strobe_6_qs;
+  logic [31:0] spin_wwl_strobe_6_wd;
+  logic spin_wwl_strobe_6_we;
+  logic [31:0] spin_wwl_strobe_7_qs;
+  logic [31:0] spin_wwl_strobe_7_wd;
+  logic spin_wwl_strobe_7_we;
+  logic [31:0] spin_feedback_cfg_0_qs;
+  logic [31:0] spin_feedback_cfg_0_wd;
   logic spin_feedback_cfg_0_we;
-  logic [63:0] spin_feedback_cfg_1_qs;
-  logic [63:0] spin_feedback_cfg_1_wd;
+  logic [31:0] spin_feedback_cfg_1_qs;
+  logic [31:0] spin_feedback_cfg_1_wd;
   logic spin_feedback_cfg_1_we;
-  logic [63:0] spin_feedback_cfg_2_qs;
-  logic [63:0] spin_feedback_cfg_2_wd;
+  logic [31:0] spin_feedback_cfg_2_qs;
+  logic [31:0] spin_feedback_cfg_2_wd;
   logic spin_feedback_cfg_2_we;
-  logic [63:0] spin_feedback_cfg_3_qs;
-  logic [63:0] spin_feedback_cfg_3_wd;
+  logic [31:0] spin_feedback_cfg_3_qs;
+  logic [31:0] spin_feedback_cfg_3_wd;
   logic spin_feedback_cfg_3_we;
-  logic [63:0] h_rdata_0_qs;
-  logic [63:0] h_rdata_0_wd;
+  logic [31:0] spin_feedback_cfg_4_qs;
+  logic [31:0] spin_feedback_cfg_4_wd;
+  logic spin_feedback_cfg_4_we;
+  logic [31:0] spin_feedback_cfg_5_qs;
+  logic [31:0] spin_feedback_cfg_5_wd;
+  logic spin_feedback_cfg_5_we;
+  logic [31:0] spin_feedback_cfg_6_qs;
+  logic [31:0] spin_feedback_cfg_6_wd;
+  logic spin_feedback_cfg_6_we;
+  logic [31:0] spin_feedback_cfg_7_qs;
+  logic [31:0] spin_feedback_cfg_7_wd;
+  logic spin_feedback_cfg_7_we;
+  logic [31:0] h_rdata_0_qs;
+  logic [31:0] h_rdata_0_wd;
   logic h_rdata_0_we;
-  logic [63:0] h_rdata_1_qs;
-  logic [63:0] h_rdata_1_wd;
+  logic [31:0] h_rdata_1_qs;
+  logic [31:0] h_rdata_1_wd;
   logic h_rdata_1_we;
-  logic [63:0] h_rdata_2_qs;
-  logic [63:0] h_rdata_2_wd;
+  logic [31:0] h_rdata_2_qs;
+  logic [31:0] h_rdata_2_wd;
   logic h_rdata_2_we;
-  logic [63:0] h_rdata_3_qs;
-  logic [63:0] h_rdata_3_wd;
+  logic [31:0] h_rdata_3_qs;
+  logic [31:0] h_rdata_3_wd;
   logic h_rdata_3_we;
-  logic [63:0] h_rdata_4_qs;
-  logic [63:0] h_rdata_4_wd;
+  logic [31:0] h_rdata_4_qs;
+  logic [31:0] h_rdata_4_wd;
   logic h_rdata_4_we;
-  logic [63:0] h_rdata_5_qs;
-  logic [63:0] h_rdata_5_wd;
+  logic [31:0] h_rdata_5_qs;
+  logic [31:0] h_rdata_5_wd;
   logic h_rdata_5_we;
-  logic [63:0] h_rdata_6_qs;
-  logic [63:0] h_rdata_6_wd;
+  logic [31:0] h_rdata_6_qs;
+  logic [31:0] h_rdata_6_wd;
   logic h_rdata_6_we;
-  logic [63:0] h_rdata_7_qs;
-  logic [63:0] h_rdata_7_wd;
+  logic [31:0] h_rdata_7_qs;
+  logic [31:0] h_rdata_7_wd;
   logic h_rdata_7_we;
-  logic [63:0] h_rdata_8_qs;
-  logic [63:0] h_rdata_8_wd;
+  logic [31:0] h_rdata_8_qs;
+  logic [31:0] h_rdata_8_wd;
   logic h_rdata_8_we;
-  logic [63:0] h_rdata_9_qs;
-  logic [63:0] h_rdata_9_wd;
+  logic [31:0] h_rdata_9_qs;
+  logic [31:0] h_rdata_9_wd;
   logic h_rdata_9_we;
-  logic [63:0] h_rdata_10_qs;
-  logic [63:0] h_rdata_10_wd;
+  logic [31:0] h_rdata_10_qs;
+  logic [31:0] h_rdata_10_wd;
   logic h_rdata_10_we;
-  logic [63:0] h_rdata_11_qs;
-  logic [63:0] h_rdata_11_wd;
+  logic [31:0] h_rdata_11_qs;
+  logic [31:0] h_rdata_11_wd;
   logic h_rdata_11_we;
-  logic [63:0] h_rdata_12_qs;
-  logic [63:0] h_rdata_12_wd;
+  logic [31:0] h_rdata_12_qs;
+  logic [31:0] h_rdata_12_wd;
   logic h_rdata_12_we;
-  logic [63:0] h_rdata_13_qs;
-  logic [63:0] h_rdata_13_wd;
+  logic [31:0] h_rdata_13_qs;
+  logic [31:0] h_rdata_13_wd;
   logic h_rdata_13_we;
-  logic [63:0] h_rdata_14_qs;
-  logic [63:0] h_rdata_14_wd;
+  logic [31:0] h_rdata_14_qs;
+  logic [31:0] h_rdata_14_wd;
   logic h_rdata_14_we;
-  logic [63:0] h_rdata_15_qs;
-  logic [63:0] h_rdata_15_wd;
+  logic [31:0] h_rdata_15_qs;
+  logic [31:0] h_rdata_15_wd;
   logic h_rdata_15_we;
-  logic [63:0] wbl_floating_0_qs;
-  logic [63:0] wbl_floating_0_wd;
+  logic [31:0] h_rdata_16_qs;
+  logic [31:0] h_rdata_16_wd;
+  logic h_rdata_16_we;
+  logic [31:0] h_rdata_17_qs;
+  logic [31:0] h_rdata_17_wd;
+  logic h_rdata_17_we;
+  logic [31:0] h_rdata_18_qs;
+  logic [31:0] h_rdata_18_wd;
+  logic h_rdata_18_we;
+  logic [31:0] h_rdata_19_qs;
+  logic [31:0] h_rdata_19_wd;
+  logic h_rdata_19_we;
+  logic [31:0] h_rdata_20_qs;
+  logic [31:0] h_rdata_20_wd;
+  logic h_rdata_20_we;
+  logic [31:0] h_rdata_21_qs;
+  logic [31:0] h_rdata_21_wd;
+  logic h_rdata_21_we;
+  logic [31:0] h_rdata_22_qs;
+  logic [31:0] h_rdata_22_wd;
+  logic h_rdata_22_we;
+  logic [31:0] h_rdata_23_qs;
+  logic [31:0] h_rdata_23_wd;
+  logic h_rdata_23_we;
+  logic [31:0] h_rdata_24_qs;
+  logic [31:0] h_rdata_24_wd;
+  logic h_rdata_24_we;
+  logic [31:0] h_rdata_25_qs;
+  logic [31:0] h_rdata_25_wd;
+  logic h_rdata_25_we;
+  logic [31:0] h_rdata_26_qs;
+  logic [31:0] h_rdata_26_wd;
+  logic h_rdata_26_we;
+  logic [31:0] h_rdata_27_qs;
+  logic [31:0] h_rdata_27_wd;
+  logic h_rdata_27_we;
+  logic [31:0] h_rdata_28_qs;
+  logic [31:0] h_rdata_28_wd;
+  logic h_rdata_28_we;
+  logic [31:0] h_rdata_29_qs;
+  logic [31:0] h_rdata_29_wd;
+  logic h_rdata_29_we;
+  logic [31:0] h_rdata_30_qs;
+  logic [31:0] h_rdata_30_wd;
+  logic h_rdata_30_we;
+  logic [31:0] h_rdata_31_qs;
+  logic [31:0] h_rdata_31_wd;
+  logic h_rdata_31_we;
+  logic [31:0] wbl_floating_0_qs;
+  logic [31:0] wbl_floating_0_wd;
   logic wbl_floating_0_we;
-  logic [63:0] wbl_floating_1_qs;
-  logic [63:0] wbl_floating_1_wd;
+  logic [31:0] wbl_floating_1_qs;
+  logic [31:0] wbl_floating_1_wd;
   logic wbl_floating_1_we;
-  logic [63:0] wbl_floating_2_qs;
-  logic [63:0] wbl_floating_2_wd;
+  logic [31:0] wbl_floating_2_qs;
+  logic [31:0] wbl_floating_2_wd;
   logic wbl_floating_2_we;
-  logic [63:0] wbl_floating_3_qs;
-  logic [63:0] wbl_floating_3_wd;
+  logic [31:0] wbl_floating_3_qs;
+  logic [31:0] wbl_floating_3_wd;
   logic wbl_floating_3_we;
-  logic [63:0] wbl_floating_4_qs;
-  logic [63:0] wbl_floating_4_wd;
+  logic [31:0] wbl_floating_4_qs;
+  logic [31:0] wbl_floating_4_wd;
   logic wbl_floating_4_we;
-  logic [63:0] wbl_floating_5_qs;
-  logic [63:0] wbl_floating_5_wd;
+  logic [31:0] wbl_floating_5_qs;
+  logic [31:0] wbl_floating_5_wd;
   logic wbl_floating_5_we;
-  logic [63:0] wbl_floating_6_qs;
-  logic [63:0] wbl_floating_6_wd;
+  logic [31:0] wbl_floating_6_qs;
+  logic [31:0] wbl_floating_6_wd;
   logic wbl_floating_6_we;
-  logic [63:0] wbl_floating_7_qs;
-  logic [63:0] wbl_floating_7_wd;
+  logic [31:0] wbl_floating_7_qs;
+  logic [31:0] wbl_floating_7_wd;
   logic wbl_floating_7_we;
-  logic [63:0] wbl_floating_8_qs;
-  logic [63:0] wbl_floating_8_wd;
+  logic [31:0] wbl_floating_8_qs;
+  logic [31:0] wbl_floating_8_wd;
   logic wbl_floating_8_we;
-  logic [63:0] wbl_floating_9_qs;
-  logic [63:0] wbl_floating_9_wd;
+  logic [31:0] wbl_floating_9_qs;
+  logic [31:0] wbl_floating_9_wd;
   logic wbl_floating_9_we;
-  logic [63:0] wbl_floating_10_qs;
-  logic [63:0] wbl_floating_10_wd;
+  logic [31:0] wbl_floating_10_qs;
+  logic [31:0] wbl_floating_10_wd;
   logic wbl_floating_10_we;
-  logic [63:0] wbl_floating_11_qs;
-  logic [63:0] wbl_floating_11_wd;
+  logic [31:0] wbl_floating_11_qs;
+  logic [31:0] wbl_floating_11_wd;
   logic wbl_floating_11_we;
-  logic [63:0] wbl_floating_12_qs;
-  logic [63:0] wbl_floating_12_wd;
+  logic [31:0] wbl_floating_12_qs;
+  logic [31:0] wbl_floating_12_wd;
   logic wbl_floating_12_we;
-  logic [63:0] wbl_floating_13_qs;
-  logic [63:0] wbl_floating_13_wd;
+  logic [31:0] wbl_floating_13_qs;
+  logic [31:0] wbl_floating_13_wd;
   logic wbl_floating_13_we;
-  logic [63:0] wbl_floating_14_qs;
-  logic [63:0] wbl_floating_14_wd;
+  logic [31:0] wbl_floating_14_qs;
+  logic [31:0] wbl_floating_14_wd;
   logic wbl_floating_14_we;
-  logic [63:0] wbl_floating_15_qs;
-  logic [63:0] wbl_floating_15_wd;
+  logic [31:0] wbl_floating_15_qs;
+  logic [31:0] wbl_floating_15_wd;
   logic wbl_floating_15_we;
-  logic [63:0] debug_j_one_hot_wwl_0_qs;
-  logic [63:0] debug_j_one_hot_wwl_0_wd;
+  logic [31:0] wbl_floating_16_qs;
+  logic [31:0] wbl_floating_16_wd;
+  logic wbl_floating_16_we;
+  logic [31:0] wbl_floating_17_qs;
+  logic [31:0] wbl_floating_17_wd;
+  logic wbl_floating_17_we;
+  logic [31:0] wbl_floating_18_qs;
+  logic [31:0] wbl_floating_18_wd;
+  logic wbl_floating_18_we;
+  logic [31:0] wbl_floating_19_qs;
+  logic [31:0] wbl_floating_19_wd;
+  logic wbl_floating_19_we;
+  logic [31:0] wbl_floating_20_qs;
+  logic [31:0] wbl_floating_20_wd;
+  logic wbl_floating_20_we;
+  logic [31:0] wbl_floating_21_qs;
+  logic [31:0] wbl_floating_21_wd;
+  logic wbl_floating_21_we;
+  logic [31:0] wbl_floating_22_qs;
+  logic [31:0] wbl_floating_22_wd;
+  logic wbl_floating_22_we;
+  logic [31:0] wbl_floating_23_qs;
+  logic [31:0] wbl_floating_23_wd;
+  logic wbl_floating_23_we;
+  logic [31:0] wbl_floating_24_qs;
+  logic [31:0] wbl_floating_24_wd;
+  logic wbl_floating_24_we;
+  logic [31:0] wbl_floating_25_qs;
+  logic [31:0] wbl_floating_25_wd;
+  logic wbl_floating_25_we;
+  logic [31:0] wbl_floating_26_qs;
+  logic [31:0] wbl_floating_26_wd;
+  logic wbl_floating_26_we;
+  logic [31:0] wbl_floating_27_qs;
+  logic [31:0] wbl_floating_27_wd;
+  logic wbl_floating_27_we;
+  logic [31:0] wbl_floating_28_qs;
+  logic [31:0] wbl_floating_28_wd;
+  logic wbl_floating_28_we;
+  logic [31:0] wbl_floating_29_qs;
+  logic [31:0] wbl_floating_29_wd;
+  logic wbl_floating_29_we;
+  logic [31:0] wbl_floating_30_qs;
+  logic [31:0] wbl_floating_30_wd;
+  logic wbl_floating_30_we;
+  logic [31:0] wbl_floating_31_qs;
+  logic [31:0] wbl_floating_31_wd;
+  logic wbl_floating_31_we;
+  logic [31:0] debug_j_one_hot_wwl_0_qs;
+  logic [31:0] debug_j_one_hot_wwl_0_wd;
   logic debug_j_one_hot_wwl_0_we;
-  logic [63:0] debug_j_one_hot_wwl_1_qs;
-  logic [63:0] debug_j_one_hot_wwl_1_wd;
+  logic [31:0] debug_j_one_hot_wwl_1_qs;
+  logic [31:0] debug_j_one_hot_wwl_1_wd;
   logic debug_j_one_hot_wwl_1_we;
-  logic [63:0] debug_j_one_hot_wwl_2_qs;
-  logic [63:0] debug_j_one_hot_wwl_2_wd;
+  logic [31:0] debug_j_one_hot_wwl_2_qs;
+  logic [31:0] debug_j_one_hot_wwl_2_wd;
   logic debug_j_one_hot_wwl_2_we;
-  logic [63:0] debug_j_one_hot_wwl_3_qs;
-  logic [63:0] debug_j_one_hot_wwl_3_wd;
+  logic [31:0] debug_j_one_hot_wwl_3_qs;
+  logic [31:0] debug_j_one_hot_wwl_3_wd;
   logic debug_j_one_hot_wwl_3_we;
+  logic [31:0] debug_j_one_hot_wwl_4_qs;
+  logic [31:0] debug_j_one_hot_wwl_4_wd;
+  logic debug_j_one_hot_wwl_4_we;
+  logic [31:0] debug_j_one_hot_wwl_5_qs;
+  logic [31:0] debug_j_one_hot_wwl_5_wd;
+  logic debug_j_one_hot_wwl_5_we;
+  logic [31:0] debug_j_one_hot_wwl_6_qs;
+  logic [31:0] debug_j_one_hot_wwl_6_wd;
+  logic debug_j_one_hot_wwl_6_we;
+  logic [31:0] debug_j_one_hot_wwl_7_qs;
+  logic [31:0] debug_j_one_hot_wwl_7_wd;
+  logic debug_j_one_hot_wwl_7_we;
   logic output_status_dt_cfg_idle_qs;
   logic output_status_dt_cfg_idle_wd;
   logic output_status_dt_cfg_idle_we;
@@ -407,139 +575,247 @@ module lagd_core_reg_top #(
   logic output_status_debug_em_upstream_handshake_qs;
   logic output_status_debug_em_upstream_handshake_wd;
   logic output_status_debug_em_upstream_handshake_we;
-  logic [31:0] output_status_debug_fm_energy_input_qs;
-  logic [31:0] output_status_debug_fm_energy_input_wd;
-  logic output_status_debug_fm_energy_input_we;
-  logic [31:0] energy_fifo_data_energy_fifo_0_qs;
-  logic [31:0] energy_fifo_data_energy_fifo_0_wd;
-  logic energy_fifo_data_energy_fifo_0_we;
-  logic [31:0] energy_fifo_data_energy_fifo_1_qs;
-  logic [31:0] energy_fifo_data_energy_fifo_1_wd;
-  logic energy_fifo_data_energy_fifo_1_we;
-  logic [63:0] spin_fifo_data_0_0_qs;
-  logic [63:0] spin_fifo_data_0_0_wd;
+  logic [31:0] debug_fm_energy_input_qs;
+  logic [31:0] debug_fm_energy_input_wd;
+  logic debug_fm_energy_input_we;
+  logic [31:0] energy_fifo_data_0_qs;
+  logic [31:0] energy_fifo_data_0_wd;
+  logic energy_fifo_data_0_we;
+  logic [31:0] energy_fifo_data_1_qs;
+  logic [31:0] energy_fifo_data_1_wd;
+  logic energy_fifo_data_1_we;
+  logic [31:0] spin_fifo_data_0_0_qs;
+  logic [31:0] spin_fifo_data_0_0_wd;
   logic spin_fifo_data_0_0_we;
-  logic [63:0] spin_fifo_data_0_1_qs;
-  logic [63:0] spin_fifo_data_0_1_wd;
+  logic [31:0] spin_fifo_data_0_1_qs;
+  logic [31:0] spin_fifo_data_0_1_wd;
   logic spin_fifo_data_0_1_we;
-  logic [63:0] spin_fifo_data_0_2_qs;
-  logic [63:0] spin_fifo_data_0_2_wd;
+  logic [31:0] spin_fifo_data_0_2_qs;
+  logic [31:0] spin_fifo_data_0_2_wd;
   logic spin_fifo_data_0_2_we;
-  logic [63:0] spin_fifo_data_0_3_qs;
-  logic [63:0] spin_fifo_data_0_3_wd;
+  logic [31:0] spin_fifo_data_0_3_qs;
+  logic [31:0] spin_fifo_data_0_3_wd;
   logic spin_fifo_data_0_3_we;
-  logic [63:0] spin_fifo_data_1_0_qs;
-  logic [63:0] spin_fifo_data_1_0_wd;
+  logic [31:0] spin_fifo_data_0_4_qs;
+  logic [31:0] spin_fifo_data_0_4_wd;
+  logic spin_fifo_data_0_4_we;
+  logic [31:0] spin_fifo_data_0_5_qs;
+  logic [31:0] spin_fifo_data_0_5_wd;
+  logic spin_fifo_data_0_5_we;
+  logic [31:0] spin_fifo_data_0_6_qs;
+  logic [31:0] spin_fifo_data_0_6_wd;
+  logic spin_fifo_data_0_6_we;
+  logic [31:0] spin_fifo_data_0_7_qs;
+  logic [31:0] spin_fifo_data_0_7_wd;
+  logic spin_fifo_data_0_7_we;
+  logic [31:0] spin_fifo_data_1_0_qs;
+  logic [31:0] spin_fifo_data_1_0_wd;
   logic spin_fifo_data_1_0_we;
-  logic [63:0] spin_fifo_data_1_1_qs;
-  logic [63:0] spin_fifo_data_1_1_wd;
+  logic [31:0] spin_fifo_data_1_1_qs;
+  logic [31:0] spin_fifo_data_1_1_wd;
   logic spin_fifo_data_1_1_we;
-  logic [63:0] spin_fifo_data_1_2_qs;
-  logic [63:0] spin_fifo_data_1_2_wd;
+  logic [31:0] spin_fifo_data_1_2_qs;
+  logic [31:0] spin_fifo_data_1_2_wd;
   logic spin_fifo_data_1_2_we;
-  logic [63:0] spin_fifo_data_1_3_qs;
-  logic [63:0] spin_fifo_data_1_3_wd;
+  logic [31:0] spin_fifo_data_1_3_qs;
+  logic [31:0] spin_fifo_data_1_3_wd;
   logic spin_fifo_data_1_3_we;
-  logic [63:0] debug_j_read_data_0_qs;
-  logic [63:0] debug_j_read_data_0_wd;
+  logic [31:0] spin_fifo_data_1_4_qs;
+  logic [31:0] spin_fifo_data_1_4_wd;
+  logic spin_fifo_data_1_4_we;
+  logic [31:0] spin_fifo_data_1_5_qs;
+  logic [31:0] spin_fifo_data_1_5_wd;
+  logic spin_fifo_data_1_5_we;
+  logic [31:0] spin_fifo_data_1_6_qs;
+  logic [31:0] spin_fifo_data_1_6_wd;
+  logic spin_fifo_data_1_6_we;
+  logic [31:0] spin_fifo_data_1_7_qs;
+  logic [31:0] spin_fifo_data_1_7_wd;
+  logic spin_fifo_data_1_7_we;
+  logic [31:0] debug_j_read_data_0_qs;
+  logic [31:0] debug_j_read_data_0_wd;
   logic debug_j_read_data_0_we;
-  logic [63:0] debug_j_read_data_1_qs;
-  logic [63:0] debug_j_read_data_1_wd;
+  logic [31:0] debug_j_read_data_1_qs;
+  logic [31:0] debug_j_read_data_1_wd;
   logic debug_j_read_data_1_we;
-  logic [63:0] debug_j_read_data_2_qs;
-  logic [63:0] debug_j_read_data_2_wd;
+  logic [31:0] debug_j_read_data_2_qs;
+  logic [31:0] debug_j_read_data_2_wd;
   logic debug_j_read_data_2_we;
-  logic [63:0] debug_j_read_data_3_qs;
-  logic [63:0] debug_j_read_data_3_wd;
+  logic [31:0] debug_j_read_data_3_qs;
+  logic [31:0] debug_j_read_data_3_wd;
   logic debug_j_read_data_3_we;
-  logic [63:0] debug_j_read_data_4_qs;
-  logic [63:0] debug_j_read_data_4_wd;
+  logic [31:0] debug_j_read_data_4_qs;
+  logic [31:0] debug_j_read_data_4_wd;
   logic debug_j_read_data_4_we;
-  logic [63:0] debug_j_read_data_5_qs;
-  logic [63:0] debug_j_read_data_5_wd;
+  logic [31:0] debug_j_read_data_5_qs;
+  logic [31:0] debug_j_read_data_5_wd;
   logic debug_j_read_data_5_we;
-  logic [63:0] debug_j_read_data_6_qs;
-  logic [63:0] debug_j_read_data_6_wd;
+  logic [31:0] debug_j_read_data_6_qs;
+  logic [31:0] debug_j_read_data_6_wd;
   logic debug_j_read_data_6_we;
-  logic [63:0] debug_j_read_data_7_qs;
-  logic [63:0] debug_j_read_data_7_wd;
+  logic [31:0] debug_j_read_data_7_qs;
+  logic [31:0] debug_j_read_data_7_wd;
   logic debug_j_read_data_7_we;
-  logic [63:0] debug_j_read_data_8_qs;
-  logic [63:0] debug_j_read_data_8_wd;
+  logic [31:0] debug_j_read_data_8_qs;
+  logic [31:0] debug_j_read_data_8_wd;
   logic debug_j_read_data_8_we;
-  logic [63:0] debug_j_read_data_9_qs;
-  logic [63:0] debug_j_read_data_9_wd;
+  logic [31:0] debug_j_read_data_9_qs;
+  logic [31:0] debug_j_read_data_9_wd;
   logic debug_j_read_data_9_we;
-  logic [63:0] debug_j_read_data_10_qs;
-  logic [63:0] debug_j_read_data_10_wd;
+  logic [31:0] debug_j_read_data_10_qs;
+  logic [31:0] debug_j_read_data_10_wd;
   logic debug_j_read_data_10_we;
-  logic [63:0] debug_j_read_data_11_qs;
-  logic [63:0] debug_j_read_data_11_wd;
+  logic [31:0] debug_j_read_data_11_qs;
+  logic [31:0] debug_j_read_data_11_wd;
   logic debug_j_read_data_11_we;
-  logic [63:0] debug_j_read_data_12_qs;
-  logic [63:0] debug_j_read_data_12_wd;
+  logic [31:0] debug_j_read_data_12_qs;
+  logic [31:0] debug_j_read_data_12_wd;
   logic debug_j_read_data_12_we;
-  logic [63:0] debug_j_read_data_13_qs;
-  logic [63:0] debug_j_read_data_13_wd;
+  logic [31:0] debug_j_read_data_13_qs;
+  logic [31:0] debug_j_read_data_13_wd;
   logic debug_j_read_data_13_we;
-  logic [63:0] debug_j_read_data_14_qs;
-  logic [63:0] debug_j_read_data_14_wd;
+  logic [31:0] debug_j_read_data_14_qs;
+  logic [31:0] debug_j_read_data_14_wd;
   logic debug_j_read_data_14_we;
-  logic [63:0] debug_j_read_data_15_qs;
-  logic [63:0] debug_j_read_data_15_wd;
+  logic [31:0] debug_j_read_data_15_qs;
+  logic [31:0] debug_j_read_data_15_wd;
   logic debug_j_read_data_15_we;
-  logic [63:0] debug_fm_spin_out_0_qs;
-  logic [63:0] debug_fm_spin_out_0_wd;
+  logic [31:0] debug_j_read_data_16_qs;
+  logic [31:0] debug_j_read_data_16_wd;
+  logic debug_j_read_data_16_we;
+  logic [31:0] debug_j_read_data_17_qs;
+  logic [31:0] debug_j_read_data_17_wd;
+  logic debug_j_read_data_17_we;
+  logic [31:0] debug_j_read_data_18_qs;
+  logic [31:0] debug_j_read_data_18_wd;
+  logic debug_j_read_data_18_we;
+  logic [31:0] debug_j_read_data_19_qs;
+  logic [31:0] debug_j_read_data_19_wd;
+  logic debug_j_read_data_19_we;
+  logic [31:0] debug_j_read_data_20_qs;
+  logic [31:0] debug_j_read_data_20_wd;
+  logic debug_j_read_data_20_we;
+  logic [31:0] debug_j_read_data_21_qs;
+  logic [31:0] debug_j_read_data_21_wd;
+  logic debug_j_read_data_21_we;
+  logic [31:0] debug_j_read_data_22_qs;
+  logic [31:0] debug_j_read_data_22_wd;
+  logic debug_j_read_data_22_we;
+  logic [31:0] debug_j_read_data_23_qs;
+  logic [31:0] debug_j_read_data_23_wd;
+  logic debug_j_read_data_23_we;
+  logic [31:0] debug_j_read_data_24_qs;
+  logic [31:0] debug_j_read_data_24_wd;
+  logic debug_j_read_data_24_we;
+  logic [31:0] debug_j_read_data_25_qs;
+  logic [31:0] debug_j_read_data_25_wd;
+  logic debug_j_read_data_25_we;
+  logic [31:0] debug_j_read_data_26_qs;
+  logic [31:0] debug_j_read_data_26_wd;
+  logic debug_j_read_data_26_we;
+  logic [31:0] debug_j_read_data_27_qs;
+  logic [31:0] debug_j_read_data_27_wd;
+  logic debug_j_read_data_27_we;
+  logic [31:0] debug_j_read_data_28_qs;
+  logic [31:0] debug_j_read_data_28_wd;
+  logic debug_j_read_data_28_we;
+  logic [31:0] debug_j_read_data_29_qs;
+  logic [31:0] debug_j_read_data_29_wd;
+  logic debug_j_read_data_29_we;
+  logic [31:0] debug_j_read_data_30_qs;
+  logic [31:0] debug_j_read_data_30_wd;
+  logic debug_j_read_data_30_we;
+  logic [31:0] debug_j_read_data_31_qs;
+  logic [31:0] debug_j_read_data_31_wd;
+  logic debug_j_read_data_31_we;
+  logic [31:0] debug_fm_spin_out_0_qs;
+  logic [31:0] debug_fm_spin_out_0_wd;
   logic debug_fm_spin_out_0_we;
-  logic [63:0] debug_fm_spin_out_1_qs;
-  logic [63:0] debug_fm_spin_out_1_wd;
+  logic [31:0] debug_fm_spin_out_1_qs;
+  logic [31:0] debug_fm_spin_out_1_wd;
   logic debug_fm_spin_out_1_we;
-  logic [63:0] debug_fm_spin_out_2_qs;
-  logic [63:0] debug_fm_spin_out_2_wd;
+  logic [31:0] debug_fm_spin_out_2_qs;
+  logic [31:0] debug_fm_spin_out_2_wd;
   logic debug_fm_spin_out_2_we;
-  logic [63:0] debug_fm_spin_out_3_qs;
-  logic [63:0] debug_fm_spin_out_3_wd;
+  logic [31:0] debug_fm_spin_out_3_qs;
+  logic [31:0] debug_fm_spin_out_3_wd;
   logic debug_fm_spin_out_3_we;
-  logic [63:0] debug_aw_spin_out_0_qs;
-  logic [63:0] debug_aw_spin_out_0_wd;
+  logic [31:0] debug_fm_spin_out_4_qs;
+  logic [31:0] debug_fm_spin_out_4_wd;
+  logic debug_fm_spin_out_4_we;
+  logic [31:0] debug_fm_spin_out_5_qs;
+  logic [31:0] debug_fm_spin_out_5_wd;
+  logic debug_fm_spin_out_5_we;
+  logic [31:0] debug_fm_spin_out_6_qs;
+  logic [31:0] debug_fm_spin_out_6_wd;
+  logic debug_fm_spin_out_6_we;
+  logic [31:0] debug_fm_spin_out_7_qs;
+  logic [31:0] debug_fm_spin_out_7_wd;
+  logic debug_fm_spin_out_7_we;
+  logic [31:0] debug_aw_spin_out_0_qs;
+  logic [31:0] debug_aw_spin_out_0_wd;
   logic debug_aw_spin_out_0_we;
-  logic [63:0] debug_aw_spin_out_1_qs;
-  logic [63:0] debug_aw_spin_out_1_wd;
+  logic [31:0] debug_aw_spin_out_1_qs;
+  logic [31:0] debug_aw_spin_out_1_wd;
   logic debug_aw_spin_out_1_we;
-  logic [63:0] debug_aw_spin_out_2_qs;
-  logic [63:0] debug_aw_spin_out_2_wd;
+  logic [31:0] debug_aw_spin_out_2_qs;
+  logic [31:0] debug_aw_spin_out_2_wd;
   logic debug_aw_spin_out_2_we;
-  logic [63:0] debug_aw_spin_out_3_qs;
-  logic [63:0] debug_aw_spin_out_3_wd;
+  logic [31:0] debug_aw_spin_out_3_qs;
+  logic [31:0] debug_aw_spin_out_3_wd;
   logic debug_aw_spin_out_3_we;
-  logic [63:0] debug_em_spin_in_0_qs;
-  logic [63:0] debug_em_spin_in_0_wd;
+  logic [31:0] debug_aw_spin_out_4_qs;
+  logic [31:0] debug_aw_spin_out_4_wd;
+  logic debug_aw_spin_out_4_we;
+  logic [31:0] debug_aw_spin_out_5_qs;
+  logic [31:0] debug_aw_spin_out_5_wd;
+  logic debug_aw_spin_out_5_we;
+  logic [31:0] debug_aw_spin_out_6_qs;
+  logic [31:0] debug_aw_spin_out_6_wd;
+  logic debug_aw_spin_out_6_we;
+  logic [31:0] debug_aw_spin_out_7_qs;
+  logic [31:0] debug_aw_spin_out_7_wd;
+  logic debug_aw_spin_out_7_we;
+  logic [31:0] debug_em_spin_in_0_qs;
+  logic [31:0] debug_em_spin_in_0_wd;
   logic debug_em_spin_in_0_we;
-  logic [63:0] debug_em_spin_in_1_qs;
-  logic [63:0] debug_em_spin_in_1_wd;
+  logic [31:0] debug_em_spin_in_1_qs;
+  logic [31:0] debug_em_spin_in_1_wd;
   logic debug_em_spin_in_1_we;
-  logic [63:0] debug_em_spin_in_2_qs;
-  logic [63:0] debug_em_spin_in_2_wd;
+  logic [31:0] debug_em_spin_in_2_qs;
+  logic [31:0] debug_em_spin_in_2_wd;
   logic debug_em_spin_in_2_we;
-  logic [63:0] debug_em_spin_in_3_qs;
-  logic [63:0] debug_em_spin_in_3_wd;
+  logic [31:0] debug_em_spin_in_3_qs;
+  logic [31:0] debug_em_spin_in_3_wd;
   logic debug_em_spin_in_3_we;
+  logic [31:0] debug_em_spin_in_4_qs;
+  logic [31:0] debug_em_spin_in_4_wd;
+  logic debug_em_spin_in_4_we;
+  logic [31:0] debug_em_spin_in_5_qs;
+  logic [31:0] debug_em_spin_in_5_wd;
+  logic debug_em_spin_in_5_we;
+  logic [31:0] debug_em_spin_in_6_qs;
+  logic [31:0] debug_em_spin_in_6_wd;
+  logic debug_em_spin_in_6_we;
+  logic [31:0] debug_em_spin_in_7_qs;
+  logic [31:0] debug_em_spin_in_7_wd;
+  logic debug_em_spin_in_7_we;
 
   // Register instances
-  // R[global_cfg]: V(False)
+  // R[global_cfg_1]: V(False)
 
   //   F[flush_en]: 0:0
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_flush_en (
+  ) u_global_cfg_1_flush_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_flush_en_we),
-    .wd     (global_cfg_flush_en_wd),
+    .we     (global_cfg_1_flush_en_we),
+    .wd     (global_cfg_1_flush_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -547,10 +823,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.flush_en.q ),
+    .q      (reg2hw.global_cfg_1.flush_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_flush_en_qs)
+    .qs     (global_cfg_1_flush_en_qs)
   );
 
 
@@ -559,13 +835,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_aw (
+  ) u_global_cfg_1_en_aw (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_aw_we),
-    .wd     (global_cfg_en_aw_wd),
+    .we     (global_cfg_1_en_aw_we),
+    .wd     (global_cfg_1_en_aw_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -573,10 +849,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_aw.q ),
+    .q      (reg2hw.global_cfg_1.en_aw.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_aw_qs)
+    .qs     (global_cfg_1_en_aw_qs)
   );
 
 
@@ -585,13 +861,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_em (
+  ) u_global_cfg_1_en_em (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_em_we),
-    .wd     (global_cfg_en_em_wd),
+    .we     (global_cfg_1_en_em_we),
+    .wd     (global_cfg_1_en_em_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -599,10 +875,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_em.q ),
+    .q      (reg2hw.global_cfg_1.en_em.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_em_qs)
+    .qs     (global_cfg_1_en_em_qs)
   );
 
 
@@ -611,13 +887,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_fm (
+  ) u_global_cfg_1_en_fm (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_fm_we),
-    .wd     (global_cfg_en_fm_wd),
+    .we     (global_cfg_1_en_fm_we),
+    .wd     (global_cfg_1_en_fm_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -625,10 +901,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_fm.q ),
+    .q      (reg2hw.global_cfg_1.en_fm.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_fm_qs)
+    .qs     (global_cfg_1_en_fm_qs)
   );
 
 
@@ -637,13 +913,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_ff (
+  ) u_global_cfg_1_en_ff (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_ff_we),
-    .wd     (global_cfg_en_ff_wd),
+    .we     (global_cfg_1_en_ff_we),
+    .wd     (global_cfg_1_en_ff_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -651,10 +927,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_ff.q ),
+    .q      (reg2hw.global_cfg_1.en_ff.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_ff_qs)
+    .qs     (global_cfg_1_en_ff_qs)
   );
 
 
@@ -663,13 +939,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_ef (
+  ) u_global_cfg_1_en_ef (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_ef_we),
-    .wd     (global_cfg_en_ef_wd),
+    .we     (global_cfg_1_en_ef_we),
+    .wd     (global_cfg_1_en_ef_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -677,10 +953,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_ef.q ),
+    .q      (reg2hw.global_cfg_1.en_ef.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_ef_qs)
+    .qs     (global_cfg_1_en_ef_qs)
   );
 
 
@@ -689,13 +965,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_analog_loop (
+  ) u_global_cfg_1_en_analog_loop (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_analog_loop_we),
-    .wd     (global_cfg_en_analog_loop_wd),
+    .we     (global_cfg_1_en_analog_loop_we),
+    .wd     (global_cfg_1_en_analog_loop_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -703,10 +979,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_analog_loop.q ),
+    .q      (reg2hw.global_cfg_1.en_analog_loop.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_analog_loop_qs)
+    .qs     (global_cfg_1_en_analog_loop_qs)
   );
 
 
@@ -715,13 +991,13 @@ module lagd_core_reg_top #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_en_comparison (
+  ) u_global_cfg_1_en_comparison (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_en_comparison_we),
-    .wd     (global_cfg_en_comparison_wd),
+    .we     (global_cfg_1_en_comparison_we),
+    .wd     (global_cfg_1_en_comparison_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -729,25 +1005,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.en_comparison.q ),
+    .q      (reg2hw.global_cfg_1.en_comparison.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_en_comparison_qs)
+    .qs     (global_cfg_1_en_comparison_qs)
   );
 
 
-  //   F[cmpt_en]: 8:8
+  //   F[debug_dt_configure_enable]: 8:8
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_cmpt_en (
+  ) u_global_cfg_1_debug_dt_configure_enable (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_cmpt_en_we),
-    .wd     (global_cfg_cmpt_en_wd),
+    .we     (global_cfg_1_debug_dt_configure_enable_we),
+    .wd     (global_cfg_1_debug_dt_configure_enable_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -755,25 +1031,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.cmpt_en.q ),
+    .q      (reg2hw.global_cfg_1.debug_dt_configure_enable.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_cmpt_en_qs)
+    .qs     (global_cfg_1_debug_dt_configure_enable_qs)
   );
 
 
-  //   F[config_valid_aw]: 9:9
+  //   F[debug_spin_configure_enable]: 9:9
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_config_valid_aw (
+  ) u_global_cfg_1_debug_spin_configure_enable (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_config_valid_aw_we),
-    .wd     (global_cfg_config_valid_aw_wd),
+    .we     (global_cfg_1_debug_spin_configure_enable_we),
+    .wd     (global_cfg_1_debug_spin_configure_enable_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -781,25 +1057,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.config_valid_aw.q ),
+    .q      (reg2hw.global_cfg_1.debug_spin_configure_enable.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_config_valid_aw_qs)
+    .qs     (global_cfg_1_debug_spin_configure_enable_qs)
   );
 
 
-  //   F[config_valid_em]: 10:10
+  //   F[config_spin_initial_skip]: 10:10
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_config_valid_em (
+  ) u_global_cfg_1_config_spin_initial_skip (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_config_valid_em_we),
-    .wd     (global_cfg_config_valid_em_wd),
+    .we     (global_cfg_1_config_spin_initial_skip_we),
+    .wd     (global_cfg_1_config_spin_initial_skip_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -807,25 +1083,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.config_valid_em.q ),
+    .q      (reg2hw.global_cfg_1.config_spin_initial_skip.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_config_valid_em_qs)
+    .qs     (global_cfg_1_config_spin_initial_skip_qs)
   );
 
 
-  //   F[config_valid_fm]: 11:11
+  //   F[bypass_data_conversion]: 11:11
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_config_valid_fm (
+  ) u_global_cfg_1_bypass_data_conversion (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_config_valid_fm_we),
-    .wd     (global_cfg_config_valid_fm_wd),
+    .we     (global_cfg_1_bypass_data_conversion_we),
+    .wd     (global_cfg_1_bypass_data_conversion_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -833,25 +1109,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.config_valid_fm.q ),
+    .q      (reg2hw.global_cfg_1.bypass_data_conversion.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_config_valid_fm_qs)
+    .qs     (global_cfg_1_bypass_data_conversion_qs)
   );
 
 
-  //   F[debug_dt_configure_enable]: 12:12
+  //   F[host_readout]: 12:12
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_dt_configure_enable (
+  ) u_global_cfg_1_host_readout (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_dt_configure_enable_we),
-    .wd     (global_cfg_debug_dt_configure_enable_wd),
+    .we     (global_cfg_1_host_readout_we),
+    .wd     (global_cfg_1_host_readout_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -859,25 +1135,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_dt_configure_enable.q ),
+    .q      (reg2hw.global_cfg_1.host_readout.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_dt_configure_enable_qs)
+    .qs     (global_cfg_1_host_readout_qs)
   );
 
 
-  //   F[debug_spin_configure_enable]: 13:13
+  //   F[flip_disable]: 13:13
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_spin_configure_enable (
+  ) u_global_cfg_1_flip_disable (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_spin_configure_enable_we),
-    .wd     (global_cfg_debug_spin_configure_enable_wd),
+    .we     (global_cfg_1_flip_disable_we),
+    .wd     (global_cfg_1_flip_disable_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -885,155 +1161,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_spin_configure_enable.q ),
+    .q      (reg2hw.global_cfg_1.flip_disable.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_spin_configure_enable_qs)
+    .qs     (global_cfg_1_flip_disable_qs)
   );
 
 
-  //   F[config_spin_initial_skip]: 14:14
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_global_cfg_config_spin_initial_skip (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (global_cfg_config_spin_initial_skip_we),
-    .wd     (global_cfg_config_spin_initial_skip_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.global_cfg.config_spin_initial_skip.q ),
-
-    // to register interface (read)
-    .qs     (global_cfg_config_spin_initial_skip_qs)
-  );
-
-
-  //   F[bypass_data_conversion]: 15:15
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_global_cfg_bypass_data_conversion (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (global_cfg_bypass_data_conversion_we),
-    .wd     (global_cfg_bypass_data_conversion_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.global_cfg.bypass_data_conversion.q ),
-
-    // to register interface (read)
-    .qs     (global_cfg_bypass_data_conversion_qs)
-  );
-
-
-  //   F[dt_cfg_enable]: 16:16
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_global_cfg_dt_cfg_enable (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (global_cfg_dt_cfg_enable_we),
-    .wd     (global_cfg_dt_cfg_enable_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.global_cfg.dt_cfg_enable.q ),
-
-    // to register interface (read)
-    .qs     (global_cfg_dt_cfg_enable_qs)
-  );
-
-
-  //   F[host_readout]: 17:17
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_global_cfg_host_readout (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (global_cfg_host_readout_we),
-    .wd     (global_cfg_host_readout_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.global_cfg.host_readout.q ),
-
-    // to register interface (read)
-    .qs     (global_cfg_host_readout_qs)
-  );
-
-
-  //   F[flip_disable]: 18:18
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_global_cfg_flip_disable (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (global_cfg_flip_disable_we),
-    .wd     (global_cfg_flip_disable_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.global_cfg.flip_disable.q ),
-
-    // to register interface (read)
-    .qs     (global_cfg_flip_disable_qs)
-  );
-
-
-  //   F[enable_flip_detection]: 19:19
+  //   F[enable_flip_detection]: 14:14
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_enable_flip_detection (
+  ) u_global_cfg_1_enable_flip_detection (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_enable_flip_detection_we),
-    .wd     (global_cfg_enable_flip_detection_wd),
+    .we     (global_cfg_1_enable_flip_detection_we),
+    .wd     (global_cfg_1_enable_flip_detection_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1041,25 +1187,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.enable_flip_detection.q ),
+    .q      (reg2hw.global_cfg_1.enable_flip_detection.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_enable_flip_detection_qs)
+    .qs     (global_cfg_1_enable_flip_detection_qs)
   );
 
 
-  //   F[debug_j_write_en]: 20:20
+  //   F[debug_j_write_en]: 15:15
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_j_write_en (
+  ) u_global_cfg_1_debug_j_write_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_j_write_en_we),
-    .wd     (global_cfg_debug_j_write_en_wd),
+    .we     (global_cfg_1_debug_j_write_en_we),
+    .wd     (global_cfg_1_debug_j_write_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1067,25 +1213,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_j_write_en.q ),
+    .q      (reg2hw.global_cfg_1.debug_j_write_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_j_write_en_qs)
+    .qs     (global_cfg_1_debug_j_write_en_qs)
   );
 
 
-  //   F[debug_j_read_en]: 21:21
+  //   F[debug_j_read_en]: 16:16
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_j_read_en (
+  ) u_global_cfg_1_debug_j_read_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_j_read_en_we),
-    .wd     (global_cfg_debug_j_read_en_wd),
+    .we     (global_cfg_1_debug_j_read_en_we),
+    .wd     (global_cfg_1_debug_j_read_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1093,25 +1239,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_j_read_en.q ),
+    .q      (reg2hw.global_cfg_1.debug_j_read_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_j_read_en_qs)
+    .qs     (global_cfg_1_debug_j_read_en_qs)
   );
 
 
-  //   F[debug_spin_write_en]: 22:22
+  //   F[debug_spin_write_en]: 17:17
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_spin_write_en (
+  ) u_global_cfg_1_debug_spin_write_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_spin_write_en_we),
-    .wd     (global_cfg_debug_spin_write_en_wd),
+    .we     (global_cfg_1_debug_spin_write_en_we),
+    .wd     (global_cfg_1_debug_spin_write_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1119,25 +1265,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_spin_write_en.q ),
+    .q      (reg2hw.global_cfg_1.debug_spin_write_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_spin_write_en_qs)
+    .qs     (global_cfg_1_debug_spin_write_en_qs)
   );
 
 
-  //   F[debug_spin_compute_en]: 23:23
+  //   F[debug_spin_compute_en]: 18:18
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_spin_compute_en (
+  ) u_global_cfg_1_debug_spin_compute_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_spin_compute_en_we),
-    .wd     (global_cfg_debug_spin_compute_en_wd),
+    .we     (global_cfg_1_debug_spin_compute_en_we),
+    .wd     (global_cfg_1_debug_spin_compute_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1145,25 +1291,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_spin_compute_en.q ),
+    .q      (reg2hw.global_cfg_1.debug_spin_compute_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_spin_compute_en_qs)
+    .qs     (global_cfg_1_debug_spin_compute_en_qs)
   );
 
 
-  //   F[debug_spin_read_en]: 24:24
+  //   F[debug_spin_read_en]: 19:19
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_spin_read_en (
+  ) u_global_cfg_1_debug_spin_read_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_spin_read_en_we),
-    .wd     (global_cfg_debug_spin_read_en_wd),
+    .we     (global_cfg_1_debug_spin_read_en_we),
+    .wd     (global_cfg_1_debug_spin_read_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1171,25 +1317,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_spin_read_en.q ),
+    .q      (reg2hw.global_cfg_1.debug_spin_read_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_spin_read_en_qs)
+    .qs     (global_cfg_1_debug_spin_read_en_qs)
   );
 
 
-  //   F[config_counter]: 32:25
+  //   F[config_counter]: 27:20
   prim_subreg #(
     .DW      (8),
     .SWACCESS("RW"),
     .RESVAL  (8'h0)
-  ) u_global_cfg_config_counter (
+  ) u_global_cfg_1_config_counter (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_config_counter_we),
-    .wd     (global_cfg_config_counter_wd),
+    .we     (global_cfg_1_config_counter_we),
+    .wd     (global_cfg_1_config_counter_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1197,25 +1343,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.config_counter.q ),
+    .q      (reg2hw.global_cfg_1.config_counter.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_config_counter_qs)
+    .qs     (global_cfg_1_config_counter_qs)
   );
 
 
-  //   F[wwl_vdd_cfg_256]: 33:33
+  //   F[wwl_vdd_cfg_256]: 28:28
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h1)
-  ) u_global_cfg_wwl_vdd_cfg_256 (
+  ) u_global_cfg_1_wwl_vdd_cfg_256 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_wwl_vdd_cfg_256_we),
-    .wd     (global_cfg_wwl_vdd_cfg_256_wd),
+    .we     (global_cfg_1_wwl_vdd_cfg_256_we),
+    .wd     (global_cfg_1_wwl_vdd_cfg_256_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1223,25 +1369,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.wwl_vdd_cfg_256.q ),
+    .q      (reg2hw.global_cfg_1.wwl_vdd_cfg_256.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_wwl_vdd_cfg_256_qs)
+    .qs     (global_cfg_1_wwl_vdd_cfg_256_qs)
   );
 
 
-  //   F[wwl_vread_cfg_256]: 34:34
+  //   F[wwl_vread_cfg_256]: 29:29
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_wwl_vread_cfg_256 (
+  ) u_global_cfg_1_wwl_vread_cfg_256 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_wwl_vread_cfg_256_we),
-    .wd     (global_cfg_wwl_vread_cfg_256_wd),
+    .we     (global_cfg_1_wwl_vread_cfg_256_we),
+    .wd     (global_cfg_1_wwl_vread_cfg_256_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1249,25 +1395,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.wwl_vread_cfg_256.q ),
+    .q      (reg2hw.global_cfg_1.wwl_vread_cfg_256.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_wwl_vread_cfg_256_qs)
+    .qs     (global_cfg_1_wwl_vread_cfg_256_qs)
   );
 
 
-  //   F[synchronizer_pipe_num]: 36:35
+  //   F[synchronizer_wbl_pipe_num]: 31:30
   prim_subreg #(
     .DW      (2),
     .SWACCESS("RW"),
     .RESVAL  (2'h3)
-  ) u_global_cfg_synchronizer_pipe_num (
+  ) u_global_cfg_1_synchronizer_wbl_pipe_num (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_synchronizer_pipe_num_we),
-    .wd     (global_cfg_synchronizer_pipe_num_wd),
+    .we     (global_cfg_1_synchronizer_wbl_pipe_num_we),
+    .wd     (global_cfg_1_synchronizer_wbl_pipe_num_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1275,51 +1421,27 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.synchronizer_pipe_num.q ),
+    .q      (reg2hw.global_cfg_1.synchronizer_wbl_pipe_num.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_synchronizer_pipe_num_qs)
+    .qs     (global_cfg_1_synchronizer_wbl_pipe_num_qs)
   );
 
 
-  //   F[synchronizer_wbl_pipe_num]: 38:37
-  prim_subreg #(
-    .DW      (2),
-    .SWACCESS("RW"),
-    .RESVAL  (2'h3)
-  ) u_global_cfg_synchronizer_wbl_pipe_num (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+  // R[global_cfg_2]: V(False)
 
-    // from register interface
-    .we     (global_cfg_synchronizer_wbl_pipe_num_we),
-    .wd     (global_cfg_synchronizer_wbl_pipe_num_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.global_cfg.synchronizer_wbl_pipe_num.q ),
-
-    // to register interface (read)
-    .qs     (global_cfg_synchronizer_wbl_pipe_num_qs)
-  );
-
-
-  //   F[debug_h_wwl]: 39:39
+  //   F[cmpt_en]: 0:0
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_debug_h_wwl (
+  ) u_global_cfg_2_cmpt_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_debug_h_wwl_we),
-    .wd     (global_cfg_debug_h_wwl_wd),
+    .we     (global_cfg_2_cmpt_en_we),
+    .wd     (global_cfg_2_cmpt_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1327,25 +1449,181 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.debug_h_wwl.q ),
+    .q      (reg2hw.global_cfg_2.cmpt_en.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_debug_h_wwl_qs)
+    .qs     (global_cfg_2_cmpt_en_qs)
   );
 
 
-  //   F[dgt_addr_upper_bound]: 45:40
+  //   F[config_valid_aw]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_global_cfg_2_config_valid_aw (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_2_config_valid_aw_we),
+    .wd     (global_cfg_2_config_valid_aw_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg_2.config_valid_aw.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_2_config_valid_aw_qs)
+  );
+
+
+  //   F[config_valid_em]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_global_cfg_2_config_valid_em (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_2_config_valid_em_we),
+    .wd     (global_cfg_2_config_valid_em_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg_2.config_valid_em.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_2_config_valid_em_qs)
+  );
+
+
+  //   F[config_valid_fm]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_global_cfg_2_config_valid_fm (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_2_config_valid_fm_we),
+    .wd     (global_cfg_2_config_valid_fm_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg_2.config_valid_fm.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_2_config_valid_fm_qs)
+  );
+
+
+  //   F[dt_cfg_enable]: 4:4
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_global_cfg_2_dt_cfg_enable (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_2_dt_cfg_enable_we),
+    .wd     (global_cfg_2_dt_cfg_enable_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg_2.dt_cfg_enable.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_2_dt_cfg_enable_qs)
+  );
+
+
+  //   F[synchronizer_pipe_num]: 6:5
+  prim_subreg #(
+    .DW      (2),
+    .SWACCESS("RW"),
+    .RESVAL  (2'h3)
+  ) u_global_cfg_2_synchronizer_pipe_num (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_2_synchronizer_pipe_num_we),
+    .wd     (global_cfg_2_synchronizer_pipe_num_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg_2.synchronizer_pipe_num.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_2_synchronizer_pipe_num_qs)
+  );
+
+
+  //   F[debug_h_wwl]: 7:7
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_global_cfg_2_debug_h_wwl (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (global_cfg_2_debug_h_wwl_we),
+    .wd     (global_cfg_2_debug_h_wwl_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.global_cfg_2.debug_h_wwl.q ),
+
+    // to register interface (read)
+    .qs     (global_cfg_2_debug_h_wwl_qs)
+  );
+
+
+  //   F[dgt_addr_upper_bound]: 13:8
   prim_subreg #(
     .DW      (6),
     .SWACCESS("RW"),
     .RESVAL  (6'h3f)
-  ) u_global_cfg_dgt_addr_upper_bound (
+  ) u_global_cfg_2_dgt_addr_upper_bound (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_dgt_addr_upper_bound_we),
-    .wd     (global_cfg_dgt_addr_upper_bound_wd),
+    .we     (global_cfg_2_dgt_addr_upper_bound_we),
+    .wd     (global_cfg_2_dgt_addr_upper_bound_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1353,25 +1631,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.dgt_addr_upper_bound.q ),
+    .q      (reg2hw.global_cfg_2.dgt_addr_upper_bound.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_dgt_addr_upper_bound_qs)
+    .qs     (global_cfg_2_dgt_addr_upper_bound_qs)
   );
 
 
-  //   F[ctnus_fifo_read]: 46:46
+  //   F[ctnus_fifo_read]: 14:14
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_ctnus_fifo_read (
+  ) u_global_cfg_2_ctnus_fifo_read (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_ctnus_fifo_read_we),
-    .wd     (global_cfg_ctnus_fifo_read_wd),
+    .we     (global_cfg_2_ctnus_fifo_read_we),
+    .wd     (global_cfg_2_ctnus_fifo_read_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1379,25 +1657,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.ctnus_fifo_read.q ),
+    .q      (reg2hw.global_cfg_2.ctnus_fifo_read.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_ctnus_fifo_read_qs)
+    .qs     (global_cfg_2_ctnus_fifo_read_qs)
   );
 
 
-  //   F[ctnus_dgt_debug]: 47:47
+  //   F[ctnus_dgt_debug]: 15:15
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_global_cfg_ctnus_dgt_debug (
+  ) u_global_cfg_2_ctnus_dgt_debug (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (global_cfg_ctnus_dgt_debug_we),
-    .wd     (global_cfg_ctnus_dgt_debug_wd),
+    .we     (global_cfg_2_ctnus_dgt_debug_we),
+    .wd     (global_cfg_2_ctnus_dgt_debug_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1405,10 +1683,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.global_cfg.ctnus_dgt_debug.q ),
+    .q      (reg2hw.global_cfg_2.ctnus_dgt_debug.q ),
 
     // to register interface (read)
-    .qs     (global_cfg_ctnus_dgt_debug_qs)
+    .qs     (global_cfg_2_ctnus_dgt_debug_qs)
   );
 
 
@@ -1417,9 +1695,9 @@ module lagd_core_reg_top #(
   // R[config_spin_initial_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_config_spin_initial_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1444,9 +1722,9 @@ module lagd_core_reg_top #(
   // R[config_spin_initial_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_config_spin_initial_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1471,9 +1749,9 @@ module lagd_core_reg_top #(
   // R[config_spin_initial_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_config_spin_initial_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1498,9 +1776,9 @@ module lagd_core_reg_top #(
   // R[config_spin_initial_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_config_spin_initial_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1519,6 +1797,114 @@ module lagd_core_reg_top #(
 
     // to register interface (read)
     .qs     (config_spin_initial_3_qs)
+  );
+
+  // Subregister 4 of Multireg config_spin_initial
+  // R[config_spin_initial_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_config_spin_initial_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (config_spin_initial_4_we),
+    .wd     (config_spin_initial_4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.config_spin_initial[4].q ),
+
+    // to register interface (read)
+    .qs     (config_spin_initial_4_qs)
+  );
+
+  // Subregister 5 of Multireg config_spin_initial
+  // R[config_spin_initial_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_config_spin_initial_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (config_spin_initial_5_we),
+    .wd     (config_spin_initial_5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.config_spin_initial[5].q ),
+
+    // to register interface (read)
+    .qs     (config_spin_initial_5_qs)
+  );
+
+  // Subregister 6 of Multireg config_spin_initial
+  // R[config_spin_initial_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_config_spin_initial_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (config_spin_initial_6_we),
+    .wd     (config_spin_initial_6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.config_spin_initial[6].q ),
+
+    // to register interface (read)
+    .qs     (config_spin_initial_6_qs)
+  );
+
+  // Subregister 7 of Multireg config_spin_initial
+  // R[config_spin_initial_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_config_spin_initial_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (config_spin_initial_7_we),
+    .wd     (config_spin_initial_7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.config_spin_initial[7].q ),
+
+    // to register interface (read)
+    .qs     (config_spin_initial_7_qs)
   );
 
 
@@ -1576,72 +1962,74 @@ module lagd_core_reg_top #(
   );
 
 
-  //   F[cycle_per_wwl_low]: 47:32
-  prim_subreg #(
-    .DW      (16),
-    .SWACCESS("RW"),
-    .RESVAL  (16'h5)
-  ) u_counter_cfg_1_cycle_per_wwl_low (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (counter_cfg_1_cycle_per_wwl_low_we),
-    .wd     (counter_cfg_1_cycle_per_wwl_low_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.counter_cfg_1.cycle_per_wwl_low.q ),
-
-    // to register interface (read)
-    .qs     (counter_cfg_1_cycle_per_wwl_low_qs)
-  );
-
-
-  //   F[cycle_per_spin_write]: 63:48
-  prim_subreg #(
-    .DW      (16),
-    .SWACCESS("RW"),
-    .RESVAL  (16'h5)
-  ) u_counter_cfg_1_cycle_per_spin_write (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (counter_cfg_1_cycle_per_spin_write_we),
-    .wd     (counter_cfg_1_cycle_per_spin_write_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.counter_cfg_1.cycle_per_spin_write.q ),
-
-    // to register interface (read)
-    .qs     (counter_cfg_1_cycle_per_spin_write_qs)
-  );
-
-
   // R[counter_cfg_2]: V(False)
+
+  //   F[cycle_per_wwl_low]: 15:0
+  prim_subreg #(
+    .DW      (16),
+    .SWACCESS("RW"),
+    .RESVAL  (16'h5)
+  ) u_counter_cfg_2_cycle_per_wwl_low (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (counter_cfg_2_cycle_per_wwl_low_we),
+    .wd     (counter_cfg_2_cycle_per_wwl_low_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.counter_cfg_2.cycle_per_wwl_low.q ),
+
+    // to register interface (read)
+    .qs     (counter_cfg_2_cycle_per_wwl_low_qs)
+  );
+
+
+  //   F[cycle_per_spin_write]: 31:16
+  prim_subreg #(
+    .DW      (16),
+    .SWACCESS("RW"),
+    .RESVAL  (16'h5)
+  ) u_counter_cfg_2_cycle_per_spin_write (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (counter_cfg_2_cycle_per_spin_write_we),
+    .wd     (counter_cfg_2_cycle_per_spin_write_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.counter_cfg_2.cycle_per_spin_write.q ),
+
+    // to register interface (read)
+    .qs     (counter_cfg_2_cycle_per_spin_write_qs)
+  );
+
+
+  // R[counter_cfg_3]: V(False)
 
   //   F[cycle_per_spin_compute]: 15:0
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
     .RESVAL  (16'ha)
-  ) u_counter_cfg_2_cycle_per_spin_compute (
+  ) u_counter_cfg_3_cycle_per_spin_compute (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (counter_cfg_2_cycle_per_spin_compute_we),
-    .wd     (counter_cfg_2_cycle_per_spin_compute_wd),
+    .we     (counter_cfg_3_cycle_per_spin_compute_we),
+    .wd     (counter_cfg_3_cycle_per_spin_compute_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1649,10 +2037,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.counter_cfg_2.cycle_per_spin_compute.q ),
+    .q      (reg2hw.counter_cfg_3.cycle_per_spin_compute.q ),
 
     // to register interface (read)
-    .qs     (counter_cfg_2_cycle_per_spin_compute_qs)
+    .qs     (counter_cfg_3_cycle_per_spin_compute_qs)
   );
 
 
@@ -1661,13 +2049,13 @@ module lagd_core_reg_top #(
     .DW      (16),
     .SWACCESS("RW"),
     .RESVAL  (16'h64)
-  ) u_counter_cfg_2_debug_cycle_per_spin_read (
+  ) u_counter_cfg_3_debug_cycle_per_spin_read (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (counter_cfg_2_debug_cycle_per_spin_read_we),
-    .wd     (counter_cfg_2_debug_cycle_per_spin_read_wd),
+    .we     (counter_cfg_3_debug_cycle_per_spin_read_we),
+    .wd     (counter_cfg_3_debug_cycle_per_spin_read_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1675,25 +2063,27 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.counter_cfg_2.debug_cycle_per_spin_read.q ),
+    .q      (reg2hw.counter_cfg_3.debug_cycle_per_spin_read.q ),
 
     // to register interface (read)
-    .qs     (counter_cfg_2_debug_cycle_per_spin_read_qs)
+    .qs     (counter_cfg_3_debug_cycle_per_spin_read_qs)
   );
 
 
-  //   F[debug_spin_read_num]: 47:32
+  // R[counter_cfg_4]: V(False)
+
+  //   F[debug_spin_read_num]: 15:0
   prim_subreg #(
     .DW      (16),
     .SWACCESS("RW"),
     .RESVAL  (16'h3ff)
-  ) u_counter_cfg_2_debug_spin_read_num (
+  ) u_counter_cfg_4_debug_spin_read_num (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (counter_cfg_2_debug_spin_read_num_we),
-    .wd     (counter_cfg_2_debug_spin_read_num_wd),
+    .we     (counter_cfg_4_debug_spin_read_num_we),
+    .wd     (counter_cfg_4_debug_spin_read_num_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1701,25 +2091,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.counter_cfg_2.debug_spin_read_num.q ),
+    .q      (reg2hw.counter_cfg_4.debug_spin_read_num.q ),
 
     // to register interface (read)
-    .qs     (counter_cfg_2_debug_spin_read_num_qs)
+    .qs     (counter_cfg_4_debug_spin_read_num_qs)
   );
 
 
-  //   F[icon_last_raddr_plus_one]: 58:48
+  //   F[icon_last_raddr_plus_one]: 26:16
   prim_subreg #(
     .DW      (11),
     .SWACCESS("RW"),
     .RESVAL  (11'h400)
-  ) u_counter_cfg_2_icon_last_raddr_plus_one (
+  ) u_counter_cfg_4_icon_last_raddr_plus_one (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (counter_cfg_2_icon_last_raddr_plus_one_we),
-    .wd     (counter_cfg_2_icon_last_raddr_plus_one_wd),
+    .we     (counter_cfg_4_icon_last_raddr_plus_one_we),
+    .wd     (counter_cfg_4_icon_last_raddr_plus_one_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1727,25 +2117,25 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.counter_cfg_2.icon_last_raddr_plus_one.q ),
+    .q      (reg2hw.counter_cfg_4.icon_last_raddr_plus_one.q ),
 
     // to register interface (read)
-    .qs     (counter_cfg_2_icon_last_raddr_plus_one_qs)
+    .qs     (counter_cfg_4_icon_last_raddr_plus_one_qs)
   );
 
 
-  //   F[dgt_hscaling]: 63:59
+  //   F[dgt_hscaling]: 31:27
   prim_subreg #(
     .DW      (5),
     .SWACCESS("RW"),
     .RESVAL  (5'h4)
-  ) u_counter_cfg_2_dgt_hscaling (
+  ) u_counter_cfg_4_dgt_hscaling (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (counter_cfg_2_dgt_hscaling_we),
-    .wd     (counter_cfg_2_dgt_hscaling_wd),
+    .we     (counter_cfg_4_dgt_hscaling_we),
+    .wd     (counter_cfg_4_dgt_hscaling_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -1753,10 +2143,10 @@ module lagd_core_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.counter_cfg_2.dgt_hscaling.q ),
+    .q      (reg2hw.counter_cfg_4.dgt_hscaling.q ),
 
     // to register interface (read)
-    .qs     (counter_cfg_2_dgt_hscaling_qs)
+    .qs     (counter_cfg_4_dgt_hscaling_qs)
   );
 
 
@@ -1765,9 +2155,9 @@ module lagd_core_reg_top #(
   // R[wwl_vdd_cfg_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_wwl_vdd_cfg_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1792,9 +2182,9 @@ module lagd_core_reg_top #(
   // R[wwl_vdd_cfg_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_wwl_vdd_cfg_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1819,9 +2209,9 @@ module lagd_core_reg_top #(
   // R[wwl_vdd_cfg_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_wwl_vdd_cfg_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1846,9 +2236,9 @@ module lagd_core_reg_top #(
   // R[wwl_vdd_cfg_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_wwl_vdd_cfg_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1869,15 +2259,123 @@ module lagd_core_reg_top #(
     .qs     (wwl_vdd_cfg_3_qs)
   );
 
+  // Subregister 4 of Multireg wwl_vdd_cfg
+  // R[wwl_vdd_cfg_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_wwl_vdd_cfg_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vdd_cfg_4_we),
+    .wd     (wwl_vdd_cfg_4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vdd_cfg[4].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vdd_cfg_4_qs)
+  );
+
+  // Subregister 5 of Multireg wwl_vdd_cfg
+  // R[wwl_vdd_cfg_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_wwl_vdd_cfg_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vdd_cfg_5_we),
+    .wd     (wwl_vdd_cfg_5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vdd_cfg[5].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vdd_cfg_5_qs)
+  );
+
+  // Subregister 6 of Multireg wwl_vdd_cfg
+  // R[wwl_vdd_cfg_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_wwl_vdd_cfg_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vdd_cfg_6_we),
+    .wd     (wwl_vdd_cfg_6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vdd_cfg[6].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vdd_cfg_6_qs)
+  );
+
+  // Subregister 7 of Multireg wwl_vdd_cfg
+  // R[wwl_vdd_cfg_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_wwl_vdd_cfg_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vdd_cfg_7_we),
+    .wd     (wwl_vdd_cfg_7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vdd_cfg[7].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vdd_cfg_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg wwl_vread_cfg
   // R[wwl_vread_cfg_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wwl_vread_cfg_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1902,9 +2400,9 @@ module lagd_core_reg_top #(
   // R[wwl_vread_cfg_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wwl_vread_cfg_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1929,9 +2427,9 @@ module lagd_core_reg_top #(
   // R[wwl_vread_cfg_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wwl_vread_cfg_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1956,9 +2454,9 @@ module lagd_core_reg_top #(
   // R[wwl_vread_cfg_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wwl_vread_cfg_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1979,15 +2477,123 @@ module lagd_core_reg_top #(
     .qs     (wwl_vread_cfg_3_qs)
   );
 
+  // Subregister 4 of Multireg wwl_vread_cfg
+  // R[wwl_vread_cfg_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wwl_vread_cfg_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vread_cfg_4_we),
+    .wd     (wwl_vread_cfg_4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vread_cfg[4].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vread_cfg_4_qs)
+  );
+
+  // Subregister 5 of Multireg wwl_vread_cfg
+  // R[wwl_vread_cfg_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wwl_vread_cfg_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vread_cfg_5_we),
+    .wd     (wwl_vread_cfg_5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vread_cfg[5].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vread_cfg_5_qs)
+  );
+
+  // Subregister 6 of Multireg wwl_vread_cfg
+  // R[wwl_vread_cfg_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wwl_vread_cfg_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vread_cfg_6_we),
+    .wd     (wwl_vread_cfg_6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vread_cfg[6].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vread_cfg_6_qs)
+  );
+
+  // Subregister 7 of Multireg wwl_vread_cfg
+  // R[wwl_vread_cfg_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wwl_vread_cfg_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wwl_vread_cfg_7_we),
+    .wd     (wwl_vread_cfg_7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wwl_vread_cfg[7].q ),
+
+    // to register interface (read)
+    .qs     (wwl_vread_cfg_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg spin_wwl_strobe
   // R[spin_wwl_strobe_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_wwl_strobe_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2012,9 +2618,9 @@ module lagd_core_reg_top #(
   // R[spin_wwl_strobe_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_wwl_strobe_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2039,9 +2645,9 @@ module lagd_core_reg_top #(
   // R[spin_wwl_strobe_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_wwl_strobe_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2066,9 +2672,9 @@ module lagd_core_reg_top #(
   // R[spin_wwl_strobe_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_wwl_strobe_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2089,15 +2695,123 @@ module lagd_core_reg_top #(
     .qs     (spin_wwl_strobe_3_qs)
   );
 
+  // Subregister 4 of Multireg spin_wwl_strobe
+  // R[spin_wwl_strobe_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_wwl_strobe_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_wwl_strobe_4_we),
+    .wd     (spin_wwl_strobe_4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_wwl_strobe[4].q ),
+
+    // to register interface (read)
+    .qs     (spin_wwl_strobe_4_qs)
+  );
+
+  // Subregister 5 of Multireg spin_wwl_strobe
+  // R[spin_wwl_strobe_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_wwl_strobe_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_wwl_strobe_5_we),
+    .wd     (spin_wwl_strobe_5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_wwl_strobe[5].q ),
+
+    // to register interface (read)
+    .qs     (spin_wwl_strobe_5_qs)
+  );
+
+  // Subregister 6 of Multireg spin_wwl_strobe
+  // R[spin_wwl_strobe_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_wwl_strobe_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_wwl_strobe_6_we),
+    .wd     (spin_wwl_strobe_6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_wwl_strobe[6].q ),
+
+    // to register interface (read)
+    .qs     (spin_wwl_strobe_6_qs)
+  );
+
+  // Subregister 7 of Multireg spin_wwl_strobe
+  // R[spin_wwl_strobe_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_wwl_strobe_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_wwl_strobe_7_we),
+    .wd     (spin_wwl_strobe_7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_wwl_strobe[7].q ),
+
+    // to register interface (read)
+    .qs     (spin_wwl_strobe_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg spin_feedback_cfg
   // R[spin_feedback_cfg_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_feedback_cfg_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2122,9 +2836,9 @@ module lagd_core_reg_top #(
   // R[spin_feedback_cfg_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_feedback_cfg_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2149,9 +2863,9 @@ module lagd_core_reg_top #(
   // R[spin_feedback_cfg_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_feedback_cfg_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2176,9 +2890,9 @@ module lagd_core_reg_top #(
   // R[spin_feedback_cfg_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'hffffffffffffffff)
+    .RESVAL  (32'hffffffff)
   ) u_spin_feedback_cfg_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2199,15 +2913,123 @@ module lagd_core_reg_top #(
     .qs     (spin_feedback_cfg_3_qs)
   );
 
+  // Subregister 4 of Multireg spin_feedback_cfg
+  // R[spin_feedback_cfg_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_feedback_cfg_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_feedback_cfg_4_we),
+    .wd     (spin_feedback_cfg_4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_feedback_cfg[4].q ),
+
+    // to register interface (read)
+    .qs     (spin_feedback_cfg_4_qs)
+  );
+
+  // Subregister 5 of Multireg spin_feedback_cfg
+  // R[spin_feedback_cfg_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_feedback_cfg_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_feedback_cfg_5_we),
+    .wd     (spin_feedback_cfg_5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_feedback_cfg[5].q ),
+
+    // to register interface (read)
+    .qs     (spin_feedback_cfg_5_qs)
+  );
+
+  // Subregister 6 of Multireg spin_feedback_cfg
+  // R[spin_feedback_cfg_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_feedback_cfg_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_feedback_cfg_6_we),
+    .wd     (spin_feedback_cfg_6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_feedback_cfg[6].q ),
+
+    // to register interface (read)
+    .qs     (spin_feedback_cfg_6_qs)
+  );
+
+  // Subregister 7 of Multireg spin_feedback_cfg
+  // R[spin_feedback_cfg_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'hffffffff)
+  ) u_spin_feedback_cfg_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_feedback_cfg_7_we),
+    .wd     (spin_feedback_cfg_7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.spin_feedback_cfg[7].q ),
+
+    // to register interface (read)
+    .qs     (spin_feedback_cfg_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg h_rdata
   // R[h_rdata_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2232,9 +3054,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2259,9 +3081,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2286,9 +3108,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2313,9 +3135,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_4]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2340,9 +3162,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_5]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2367,9 +3189,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_6]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2394,9 +3216,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_7]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2421,9 +3243,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_8]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2448,9 +3270,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_9]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2475,9 +3297,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_10]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2502,9 +3324,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_11]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2529,9 +3351,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_12]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2556,9 +3378,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_13]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2583,9 +3405,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_14]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2610,9 +3432,9 @@ module lagd_core_reg_top #(
   // R[h_rdata_15]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_h_rdata_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2633,15 +3455,447 @@ module lagd_core_reg_top #(
     .qs     (h_rdata_15_qs)
   );
 
+  // Subregister 16 of Multireg h_rdata
+  // R[h_rdata_16]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_16 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_16_we),
+    .wd     (h_rdata_16_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[16].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_16_qs)
+  );
+
+  // Subregister 17 of Multireg h_rdata
+  // R[h_rdata_17]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_17 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_17_we),
+    .wd     (h_rdata_17_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[17].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_17_qs)
+  );
+
+  // Subregister 18 of Multireg h_rdata
+  // R[h_rdata_18]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_18 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_18_we),
+    .wd     (h_rdata_18_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[18].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_18_qs)
+  );
+
+  // Subregister 19 of Multireg h_rdata
+  // R[h_rdata_19]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_19 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_19_we),
+    .wd     (h_rdata_19_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[19].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_19_qs)
+  );
+
+  // Subregister 20 of Multireg h_rdata
+  // R[h_rdata_20]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_20 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_20_we),
+    .wd     (h_rdata_20_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[20].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_20_qs)
+  );
+
+  // Subregister 21 of Multireg h_rdata
+  // R[h_rdata_21]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_21 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_21_we),
+    .wd     (h_rdata_21_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[21].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_21_qs)
+  );
+
+  // Subregister 22 of Multireg h_rdata
+  // R[h_rdata_22]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_22 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_22_we),
+    .wd     (h_rdata_22_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[22].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_22_qs)
+  );
+
+  // Subregister 23 of Multireg h_rdata
+  // R[h_rdata_23]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_23 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_23_we),
+    .wd     (h_rdata_23_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[23].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_23_qs)
+  );
+
+  // Subregister 24 of Multireg h_rdata
+  // R[h_rdata_24]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_24 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_24_we),
+    .wd     (h_rdata_24_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[24].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_24_qs)
+  );
+
+  // Subregister 25 of Multireg h_rdata
+  // R[h_rdata_25]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_25 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_25_we),
+    .wd     (h_rdata_25_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[25].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_25_qs)
+  );
+
+  // Subregister 26 of Multireg h_rdata
+  // R[h_rdata_26]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_26 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_26_we),
+    .wd     (h_rdata_26_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[26].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_26_qs)
+  );
+
+  // Subregister 27 of Multireg h_rdata
+  // R[h_rdata_27]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_27 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_27_we),
+    .wd     (h_rdata_27_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[27].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_27_qs)
+  );
+
+  // Subregister 28 of Multireg h_rdata
+  // R[h_rdata_28]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_28 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_28_we),
+    .wd     (h_rdata_28_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[28].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_28_qs)
+  );
+
+  // Subregister 29 of Multireg h_rdata
+  // R[h_rdata_29]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_29 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_29_we),
+    .wd     (h_rdata_29_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[29].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_29_qs)
+  );
+
+  // Subregister 30 of Multireg h_rdata
+  // R[h_rdata_30]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_30 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_30_we),
+    .wd     (h_rdata_30_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[30].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_30_qs)
+  );
+
+  // Subregister 31 of Multireg h_rdata
+  // R[h_rdata_31]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_h_rdata_31 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (h_rdata_31_we),
+    .wd     (h_rdata_31_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.h_rdata[31].q ),
+
+    // to register interface (read)
+    .qs     (h_rdata_31_qs)
+  );
+
 
 
   // Subregister 0 of Multireg wbl_floating
   // R[wbl_floating_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2666,9 +3920,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2693,9 +3947,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2720,9 +3974,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2747,9 +4001,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_4]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2774,9 +4028,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_5]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2801,9 +4055,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_6]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2828,9 +4082,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_7]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2855,9 +4109,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_8]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2882,9 +4136,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_9]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2909,9 +4163,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_10]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2936,9 +4190,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_11]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2963,9 +4217,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_12]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2990,9 +4244,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_13]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3017,9 +4271,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_14]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3044,9 +4298,9 @@ module lagd_core_reg_top #(
   // R[wbl_floating_15]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_wbl_floating_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3067,15 +4321,447 @@ module lagd_core_reg_top #(
     .qs     (wbl_floating_15_qs)
   );
 
+  // Subregister 16 of Multireg wbl_floating
+  // R[wbl_floating_16]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_16 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_16_we),
+    .wd     (wbl_floating_16_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[16].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_16_qs)
+  );
+
+  // Subregister 17 of Multireg wbl_floating
+  // R[wbl_floating_17]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_17 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_17_we),
+    .wd     (wbl_floating_17_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[17].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_17_qs)
+  );
+
+  // Subregister 18 of Multireg wbl_floating
+  // R[wbl_floating_18]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_18 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_18_we),
+    .wd     (wbl_floating_18_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[18].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_18_qs)
+  );
+
+  // Subregister 19 of Multireg wbl_floating
+  // R[wbl_floating_19]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_19 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_19_we),
+    .wd     (wbl_floating_19_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[19].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_19_qs)
+  );
+
+  // Subregister 20 of Multireg wbl_floating
+  // R[wbl_floating_20]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_20 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_20_we),
+    .wd     (wbl_floating_20_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[20].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_20_qs)
+  );
+
+  // Subregister 21 of Multireg wbl_floating
+  // R[wbl_floating_21]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_21 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_21_we),
+    .wd     (wbl_floating_21_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[21].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_21_qs)
+  );
+
+  // Subregister 22 of Multireg wbl_floating
+  // R[wbl_floating_22]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_22 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_22_we),
+    .wd     (wbl_floating_22_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[22].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_22_qs)
+  );
+
+  // Subregister 23 of Multireg wbl_floating
+  // R[wbl_floating_23]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_23 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_23_we),
+    .wd     (wbl_floating_23_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[23].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_23_qs)
+  );
+
+  // Subregister 24 of Multireg wbl_floating
+  // R[wbl_floating_24]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_24 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_24_we),
+    .wd     (wbl_floating_24_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[24].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_24_qs)
+  );
+
+  // Subregister 25 of Multireg wbl_floating
+  // R[wbl_floating_25]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_25 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_25_we),
+    .wd     (wbl_floating_25_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[25].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_25_qs)
+  );
+
+  // Subregister 26 of Multireg wbl_floating
+  // R[wbl_floating_26]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_26 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_26_we),
+    .wd     (wbl_floating_26_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[26].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_26_qs)
+  );
+
+  // Subregister 27 of Multireg wbl_floating
+  // R[wbl_floating_27]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_27 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_27_we),
+    .wd     (wbl_floating_27_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[27].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_27_qs)
+  );
+
+  // Subregister 28 of Multireg wbl_floating
+  // R[wbl_floating_28]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_28 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_28_we),
+    .wd     (wbl_floating_28_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[28].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_28_qs)
+  );
+
+  // Subregister 29 of Multireg wbl_floating
+  // R[wbl_floating_29]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_29 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_29_we),
+    .wd     (wbl_floating_29_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[29].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_29_qs)
+  );
+
+  // Subregister 30 of Multireg wbl_floating
+  // R[wbl_floating_30]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_30 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_30_we),
+    .wd     (wbl_floating_30_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[30].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_30_qs)
+  );
+
+  // Subregister 31 of Multireg wbl_floating
+  // R[wbl_floating_31]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_wbl_floating_31 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (wbl_floating_31_we),
+    .wd     (wbl_floating_31_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.wbl_floating[31].q ),
+
+    // to register interface (read)
+    .qs     (wbl_floating_31_qs)
+  );
+
 
 
   // Subregister 0 of Multireg debug_j_one_hot_wwl
   // R[debug_j_one_hot_wwl_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_one_hot_wwl_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3100,9 +4786,9 @@ module lagd_core_reg_top #(
   // R[debug_j_one_hot_wwl_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_one_hot_wwl_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3127,9 +4813,9 @@ module lagd_core_reg_top #(
   // R[debug_j_one_hot_wwl_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_one_hot_wwl_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3154,9 +4840,9 @@ module lagd_core_reg_top #(
   // R[debug_j_one_hot_wwl_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_one_hot_wwl_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3175,6 +4861,114 @@ module lagd_core_reg_top #(
 
     // to register interface (read)
     .qs     (debug_j_one_hot_wwl_3_qs)
+  );
+
+  // Subregister 4 of Multireg debug_j_one_hot_wwl
+  // R[debug_j_one_hot_wwl_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_one_hot_wwl_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_one_hot_wwl_4_we),
+    .wd     (debug_j_one_hot_wwl_4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.debug_j_one_hot_wwl[4].q ),
+
+    // to register interface (read)
+    .qs     (debug_j_one_hot_wwl_4_qs)
+  );
+
+  // Subregister 5 of Multireg debug_j_one_hot_wwl
+  // R[debug_j_one_hot_wwl_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_one_hot_wwl_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_one_hot_wwl_5_we),
+    .wd     (debug_j_one_hot_wwl_5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.debug_j_one_hot_wwl[5].q ),
+
+    // to register interface (read)
+    .qs     (debug_j_one_hot_wwl_5_qs)
+  );
+
+  // Subregister 6 of Multireg debug_j_one_hot_wwl
+  // R[debug_j_one_hot_wwl_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_one_hot_wwl_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_one_hot_wwl_6_we),
+    .wd     (debug_j_one_hot_wwl_6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.debug_j_one_hot_wwl[6].q ),
+
+    // to register interface (read)
+    .qs     (debug_j_one_hot_wwl_6_qs)
+  );
+
+  // Subregister 7 of Multireg debug_j_one_hot_wwl
+  // R[debug_j_one_hot_wwl_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_one_hot_wwl_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_one_hot_wwl_7_we),
+    .wd     (debug_j_one_hot_wwl_7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.debug_j_one_hot_wwl[7].q ),
+
+    // to register interface (read)
+    .qs     (debug_j_one_hot_wwl_7_qs)
   );
 
 
@@ -3544,83 +5338,84 @@ module lagd_core_reg_top #(
   );
 
 
-  //   F[debug_fm_energy_input]: 45:14
+  // R[debug_fm_energy_input]: V(False)
+
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_output_status_debug_fm_energy_input (
+  ) u_debug_fm_energy_input (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (output_status_debug_fm_energy_input_we),
-    .wd     (output_status_debug_fm_energy_input_wd),
+    .we     (debug_fm_energy_input_we),
+    .wd     (debug_fm_energy_input_wd),
 
     // from internal hardware
-    .de     (hw2reg.output_status.debug_fm_energy_input.de),
-    .d      (hw2reg.output_status.debug_fm_energy_input.d ),
+    .de     (hw2reg.debug_fm_energy_input.de),
+    .d      (hw2reg.debug_fm_energy_input.d ),
 
     // to internal hardware
     .qe     (),
     .q      (),
 
     // to register interface (read)
-    .qs     (output_status_debug_fm_energy_input_qs)
+    .qs     (debug_fm_energy_input_qs)
   );
 
 
-  // R[energy_fifo_data]: V(False)
+  // R[energy_fifo_data_0]: V(False)
 
-  //   F[energy_fifo_0]: 31:0
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_energy_fifo_data_energy_fifo_0 (
+  ) u_energy_fifo_data_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (energy_fifo_data_energy_fifo_0_we),
-    .wd     (energy_fifo_data_energy_fifo_0_wd),
+    .we     (energy_fifo_data_0_we),
+    .wd     (energy_fifo_data_0_wd),
 
     // from internal hardware
-    .de     (hw2reg.energy_fifo_data.energy_fifo_0.de),
-    .d      (hw2reg.energy_fifo_data.energy_fifo_0.d ),
+    .de     (hw2reg.energy_fifo_data_0.de),
+    .d      (hw2reg.energy_fifo_data_0.d ),
 
     // to internal hardware
     .qe     (),
     .q      (),
 
     // to register interface (read)
-    .qs     (energy_fifo_data_energy_fifo_0_qs)
+    .qs     (energy_fifo_data_0_qs)
   );
 
 
-  //   F[energy_fifo_1]: 63:32
+  // R[energy_fifo_data_1]: V(False)
+
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_energy_fifo_data_energy_fifo_1 (
+  ) u_energy_fifo_data_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (energy_fifo_data_energy_fifo_1_we),
-    .wd     (energy_fifo_data_energy_fifo_1_wd),
+    .we     (energy_fifo_data_1_we),
+    .wd     (energy_fifo_data_1_wd),
 
     // from internal hardware
-    .de     (hw2reg.energy_fifo_data.energy_fifo_1.de),
-    .d      (hw2reg.energy_fifo_data.energy_fifo_1.d ),
+    .de     (hw2reg.energy_fifo_data_1.de),
+    .d      (hw2reg.energy_fifo_data_1.d ),
 
     // to internal hardware
     .qe     (),
     .q      (),
 
     // to register interface (read)
-    .qs     (energy_fifo_data_energy_fifo_1_qs)
+    .qs     (energy_fifo_data_1_qs)
   );
 
 
@@ -3629,9 +5424,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_0_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_0_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3656,9 +5451,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_0_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_0_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3683,9 +5478,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_0_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_0_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3710,9 +5505,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_0_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_0_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3733,15 +5528,123 @@ module lagd_core_reg_top #(
     .qs     (spin_fifo_data_0_3_qs)
   );
 
+  // Subregister 4 of Multireg spin_fifo_data_0
+  // R[spin_fifo_data_0_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_0_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_0_4_we),
+    .wd     (spin_fifo_data_0_4_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_0[4].de),
+    .d      (hw2reg.spin_fifo_data_0[4].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_0_4_qs)
+  );
+
+  // Subregister 5 of Multireg spin_fifo_data_0
+  // R[spin_fifo_data_0_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_0_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_0_5_we),
+    .wd     (spin_fifo_data_0_5_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_0[5].de),
+    .d      (hw2reg.spin_fifo_data_0[5].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_0_5_qs)
+  );
+
+  // Subregister 6 of Multireg spin_fifo_data_0
+  // R[spin_fifo_data_0_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_0_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_0_6_we),
+    .wd     (spin_fifo_data_0_6_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_0[6].de),
+    .d      (hw2reg.spin_fifo_data_0[6].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_0_6_qs)
+  );
+
+  // Subregister 7 of Multireg spin_fifo_data_0
+  // R[spin_fifo_data_0_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_0_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_0_7_we),
+    .wd     (spin_fifo_data_0_7_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_0[7].de),
+    .d      (hw2reg.spin_fifo_data_0[7].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_0_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg spin_fifo_data_1
   // R[spin_fifo_data_1_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_1_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3766,9 +5669,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_1_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_1_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3793,9 +5696,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_1_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_1_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3820,9 +5723,9 @@ module lagd_core_reg_top #(
   // R[spin_fifo_data_1_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_spin_fifo_data_1_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3843,15 +5746,123 @@ module lagd_core_reg_top #(
     .qs     (spin_fifo_data_1_3_qs)
   );
 
+  // Subregister 4 of Multireg spin_fifo_data_1
+  // R[spin_fifo_data_1_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_1_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_1_4_we),
+    .wd     (spin_fifo_data_1_4_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_1[4].de),
+    .d      (hw2reg.spin_fifo_data_1[4].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_1_4_qs)
+  );
+
+  // Subregister 5 of Multireg spin_fifo_data_1
+  // R[spin_fifo_data_1_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_1_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_1_5_we),
+    .wd     (spin_fifo_data_1_5_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_1[5].de),
+    .d      (hw2reg.spin_fifo_data_1[5].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_1_5_qs)
+  );
+
+  // Subregister 6 of Multireg spin_fifo_data_1
+  // R[spin_fifo_data_1_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_1_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_1_6_we),
+    .wd     (spin_fifo_data_1_6_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_1[6].de),
+    .d      (hw2reg.spin_fifo_data_1[6].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_1_6_qs)
+  );
+
+  // Subregister 7 of Multireg spin_fifo_data_1
+  // R[spin_fifo_data_1_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_spin_fifo_data_1_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (spin_fifo_data_1_7_we),
+    .wd     (spin_fifo_data_1_7_wd),
+
+    // from internal hardware
+    .de     (hw2reg.spin_fifo_data_1[7].de),
+    .d      (hw2reg.spin_fifo_data_1[7].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (spin_fifo_data_1_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg debug_j_read_data
   // R[debug_j_read_data_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3876,9 +5887,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3903,9 +5914,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3930,9 +5941,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3957,9 +5968,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_4]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3984,9 +5995,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_5]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4011,9 +6022,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_6]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4038,9 +6049,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_7]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4065,9 +6076,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_8]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4092,9 +6103,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_9]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4119,9 +6130,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_10]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4146,9 +6157,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_11]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4173,9 +6184,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_12]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4200,9 +6211,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_13]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4227,9 +6238,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_14]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4254,9 +6265,9 @@ module lagd_core_reg_top #(
   // R[debug_j_read_data_15]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_j_read_data_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4277,15 +6288,447 @@ module lagd_core_reg_top #(
     .qs     (debug_j_read_data_15_qs)
   );
 
+  // Subregister 16 of Multireg debug_j_read_data
+  // R[debug_j_read_data_16]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_16 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_16_we),
+    .wd     (debug_j_read_data_16_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[16].de),
+    .d      (hw2reg.debug_j_read_data[16].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_16_qs)
+  );
+
+  // Subregister 17 of Multireg debug_j_read_data
+  // R[debug_j_read_data_17]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_17 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_17_we),
+    .wd     (debug_j_read_data_17_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[17].de),
+    .d      (hw2reg.debug_j_read_data[17].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_17_qs)
+  );
+
+  // Subregister 18 of Multireg debug_j_read_data
+  // R[debug_j_read_data_18]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_18 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_18_we),
+    .wd     (debug_j_read_data_18_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[18].de),
+    .d      (hw2reg.debug_j_read_data[18].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_18_qs)
+  );
+
+  // Subregister 19 of Multireg debug_j_read_data
+  // R[debug_j_read_data_19]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_19 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_19_we),
+    .wd     (debug_j_read_data_19_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[19].de),
+    .d      (hw2reg.debug_j_read_data[19].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_19_qs)
+  );
+
+  // Subregister 20 of Multireg debug_j_read_data
+  // R[debug_j_read_data_20]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_20 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_20_we),
+    .wd     (debug_j_read_data_20_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[20].de),
+    .d      (hw2reg.debug_j_read_data[20].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_20_qs)
+  );
+
+  // Subregister 21 of Multireg debug_j_read_data
+  // R[debug_j_read_data_21]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_21 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_21_we),
+    .wd     (debug_j_read_data_21_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[21].de),
+    .d      (hw2reg.debug_j_read_data[21].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_21_qs)
+  );
+
+  // Subregister 22 of Multireg debug_j_read_data
+  // R[debug_j_read_data_22]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_22 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_22_we),
+    .wd     (debug_j_read_data_22_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[22].de),
+    .d      (hw2reg.debug_j_read_data[22].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_22_qs)
+  );
+
+  // Subregister 23 of Multireg debug_j_read_data
+  // R[debug_j_read_data_23]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_23 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_23_we),
+    .wd     (debug_j_read_data_23_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[23].de),
+    .d      (hw2reg.debug_j_read_data[23].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_23_qs)
+  );
+
+  // Subregister 24 of Multireg debug_j_read_data
+  // R[debug_j_read_data_24]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_24 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_24_we),
+    .wd     (debug_j_read_data_24_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[24].de),
+    .d      (hw2reg.debug_j_read_data[24].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_24_qs)
+  );
+
+  // Subregister 25 of Multireg debug_j_read_data
+  // R[debug_j_read_data_25]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_25 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_25_we),
+    .wd     (debug_j_read_data_25_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[25].de),
+    .d      (hw2reg.debug_j_read_data[25].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_25_qs)
+  );
+
+  // Subregister 26 of Multireg debug_j_read_data
+  // R[debug_j_read_data_26]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_26 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_26_we),
+    .wd     (debug_j_read_data_26_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[26].de),
+    .d      (hw2reg.debug_j_read_data[26].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_26_qs)
+  );
+
+  // Subregister 27 of Multireg debug_j_read_data
+  // R[debug_j_read_data_27]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_27 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_27_we),
+    .wd     (debug_j_read_data_27_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[27].de),
+    .d      (hw2reg.debug_j_read_data[27].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_27_qs)
+  );
+
+  // Subregister 28 of Multireg debug_j_read_data
+  // R[debug_j_read_data_28]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_28 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_28_we),
+    .wd     (debug_j_read_data_28_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[28].de),
+    .d      (hw2reg.debug_j_read_data[28].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_28_qs)
+  );
+
+  // Subregister 29 of Multireg debug_j_read_data
+  // R[debug_j_read_data_29]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_29 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_29_we),
+    .wd     (debug_j_read_data_29_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[29].de),
+    .d      (hw2reg.debug_j_read_data[29].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_29_qs)
+  );
+
+  // Subregister 30 of Multireg debug_j_read_data
+  // R[debug_j_read_data_30]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_30 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_30_we),
+    .wd     (debug_j_read_data_30_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[30].de),
+    .d      (hw2reg.debug_j_read_data[30].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_30_qs)
+  );
+
+  // Subregister 31 of Multireg debug_j_read_data
+  // R[debug_j_read_data_31]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_j_read_data_31 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_j_read_data_31_we),
+    .wd     (debug_j_read_data_31_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_j_read_data[31].de),
+    .d      (hw2reg.debug_j_read_data[31].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_j_read_data_31_qs)
+  );
+
 
 
   // Subregister 0 of Multireg debug_fm_spin_out
   // R[debug_fm_spin_out_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_fm_spin_out_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4310,9 +6753,9 @@ module lagd_core_reg_top #(
   // R[debug_fm_spin_out_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_fm_spin_out_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4337,9 +6780,9 @@ module lagd_core_reg_top #(
   // R[debug_fm_spin_out_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_fm_spin_out_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4364,9 +6807,9 @@ module lagd_core_reg_top #(
   // R[debug_fm_spin_out_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_fm_spin_out_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4387,15 +6830,123 @@ module lagd_core_reg_top #(
     .qs     (debug_fm_spin_out_3_qs)
   );
 
+  // Subregister 4 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_fm_spin_out_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_4_we),
+    .wd     (debug_fm_spin_out_4_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[4].de),
+    .d      (hw2reg.debug_fm_spin_out[4].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_4_qs)
+  );
+
+  // Subregister 5 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_fm_spin_out_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_5_we),
+    .wd     (debug_fm_spin_out_5_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[5].de),
+    .d      (hw2reg.debug_fm_spin_out[5].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_5_qs)
+  );
+
+  // Subregister 6 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_fm_spin_out_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_6_we),
+    .wd     (debug_fm_spin_out_6_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[6].de),
+    .d      (hw2reg.debug_fm_spin_out[6].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_6_qs)
+  );
+
+  // Subregister 7 of Multireg debug_fm_spin_out
+  // R[debug_fm_spin_out_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_fm_spin_out_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_fm_spin_out_7_we),
+    .wd     (debug_fm_spin_out_7_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_fm_spin_out[7].de),
+    .d      (hw2reg.debug_fm_spin_out[7].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_fm_spin_out_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg debug_aw_spin_out
   // R[debug_aw_spin_out_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_aw_spin_out_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4420,9 +6971,9 @@ module lagd_core_reg_top #(
   // R[debug_aw_spin_out_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_aw_spin_out_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4447,9 +6998,9 @@ module lagd_core_reg_top #(
   // R[debug_aw_spin_out_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_aw_spin_out_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4474,9 +7025,9 @@ module lagd_core_reg_top #(
   // R[debug_aw_spin_out_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_aw_spin_out_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4497,15 +7048,123 @@ module lagd_core_reg_top #(
     .qs     (debug_aw_spin_out_3_qs)
   );
 
+  // Subregister 4 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_aw_spin_out_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_4_we),
+    .wd     (debug_aw_spin_out_4_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[4].de),
+    .d      (hw2reg.debug_aw_spin_out[4].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_4_qs)
+  );
+
+  // Subregister 5 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_aw_spin_out_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_5_we),
+    .wd     (debug_aw_spin_out_5_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[5].de),
+    .d      (hw2reg.debug_aw_spin_out[5].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_5_qs)
+  );
+
+  // Subregister 6 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_aw_spin_out_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_6_we),
+    .wd     (debug_aw_spin_out_6_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[6].de),
+    .d      (hw2reg.debug_aw_spin_out[6].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_6_qs)
+  );
+
+  // Subregister 7 of Multireg debug_aw_spin_out
+  // R[debug_aw_spin_out_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_aw_spin_out_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_aw_spin_out_7_we),
+    .wd     (debug_aw_spin_out_7_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_aw_spin_out[7].de),
+    .d      (hw2reg.debug_aw_spin_out[7].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_aw_spin_out_7_qs)
+  );
+
 
 
   // Subregister 0 of Multireg debug_em_spin_in
   // R[debug_em_spin_in_0]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_em_spin_in_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4530,9 +7189,9 @@ module lagd_core_reg_top #(
   // R[debug_em_spin_in_1]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_em_spin_in_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4557,9 +7216,9 @@ module lagd_core_reg_top #(
   // R[debug_em_spin_in_2]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_em_spin_in_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4584,9 +7243,9 @@ module lagd_core_reg_top #(
   // R[debug_em_spin_in_3]: V(False)
 
   prim_subreg #(
-    .DW      (64),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (64'h0)
+    .RESVAL  (32'h0)
   ) u_debug_em_spin_in_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4607,109 +7266,314 @@ module lagd_core_reg_top #(
     .qs     (debug_em_spin_in_3_qs)
   );
 
+  // Subregister 4 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_em_spin_in_4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_4_we),
+    .wd     (debug_em_spin_in_4_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[4].de),
+    .d      (hw2reg.debug_em_spin_in[4].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_4_qs)
+  );
+
+  // Subregister 5 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_em_spin_in_5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_5_we),
+    .wd     (debug_em_spin_in_5_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[5].de),
+    .d      (hw2reg.debug_em_spin_in[5].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_5_qs)
+  );
+
+  // Subregister 6 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_em_spin_in_6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_6_we),
+    .wd     (debug_em_spin_in_6_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[6].de),
+    .d      (hw2reg.debug_em_spin_in[6].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_6_qs)
+  );
+
+  // Subregister 7 of Multireg debug_em_spin_in
+  // R[debug_em_spin_in_7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_debug_em_spin_in_7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (debug_em_spin_in_7_we),
+    .wd     (debug_em_spin_in_7_wd),
+
+    // from internal hardware
+    .de     (hw2reg.debug_em_spin_in[7].de),
+    .d      (hw2reg.debug_em_spin_in[7].d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (debug_em_spin_in_7_qs)
+  );
 
 
 
-  logic [96:0] addr_hit;
+
+  logic [193:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[ 0] = (reg_addr == LAGD_CORE_GLOBAL_CFG_OFFSET);
-    addr_hit[ 1] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_0_OFFSET);
-    addr_hit[ 2] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_1_OFFSET);
-    addr_hit[ 3] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_2_OFFSET);
-    addr_hit[ 4] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_3_OFFSET);
-    addr_hit[ 5] = (reg_addr == LAGD_CORE_COUNTER_CFG_1_OFFSET);
-    addr_hit[ 6] = (reg_addr == LAGD_CORE_COUNTER_CFG_2_OFFSET);
-    addr_hit[ 7] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_0_OFFSET);
-    addr_hit[ 8] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_1_OFFSET);
-    addr_hit[ 9] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_2_OFFSET);
-    addr_hit[10] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_3_OFFSET);
-    addr_hit[11] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_0_OFFSET);
-    addr_hit[12] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_1_OFFSET);
-    addr_hit[13] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_2_OFFSET);
-    addr_hit[14] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_3_OFFSET);
-    addr_hit[15] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_0_OFFSET);
-    addr_hit[16] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_1_OFFSET);
-    addr_hit[17] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_2_OFFSET);
-    addr_hit[18] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_3_OFFSET);
-    addr_hit[19] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_0_OFFSET);
-    addr_hit[20] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_1_OFFSET);
-    addr_hit[21] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_2_OFFSET);
-    addr_hit[22] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_3_OFFSET);
-    addr_hit[23] = (reg_addr == LAGD_CORE_H_RDATA_0_OFFSET);
-    addr_hit[24] = (reg_addr == LAGD_CORE_H_RDATA_1_OFFSET);
-    addr_hit[25] = (reg_addr == LAGD_CORE_H_RDATA_2_OFFSET);
-    addr_hit[26] = (reg_addr == LAGD_CORE_H_RDATA_3_OFFSET);
-    addr_hit[27] = (reg_addr == LAGD_CORE_H_RDATA_4_OFFSET);
-    addr_hit[28] = (reg_addr == LAGD_CORE_H_RDATA_5_OFFSET);
-    addr_hit[29] = (reg_addr == LAGD_CORE_H_RDATA_6_OFFSET);
-    addr_hit[30] = (reg_addr == LAGD_CORE_H_RDATA_7_OFFSET);
-    addr_hit[31] = (reg_addr == LAGD_CORE_H_RDATA_8_OFFSET);
-    addr_hit[32] = (reg_addr == LAGD_CORE_H_RDATA_9_OFFSET);
-    addr_hit[33] = (reg_addr == LAGD_CORE_H_RDATA_10_OFFSET);
-    addr_hit[34] = (reg_addr == LAGD_CORE_H_RDATA_11_OFFSET);
-    addr_hit[35] = (reg_addr == LAGD_CORE_H_RDATA_12_OFFSET);
-    addr_hit[36] = (reg_addr == LAGD_CORE_H_RDATA_13_OFFSET);
-    addr_hit[37] = (reg_addr == LAGD_CORE_H_RDATA_14_OFFSET);
-    addr_hit[38] = (reg_addr == LAGD_CORE_H_RDATA_15_OFFSET);
-    addr_hit[39] = (reg_addr == LAGD_CORE_WBL_FLOATING_0_OFFSET);
-    addr_hit[40] = (reg_addr == LAGD_CORE_WBL_FLOATING_1_OFFSET);
-    addr_hit[41] = (reg_addr == LAGD_CORE_WBL_FLOATING_2_OFFSET);
-    addr_hit[42] = (reg_addr == LAGD_CORE_WBL_FLOATING_3_OFFSET);
-    addr_hit[43] = (reg_addr == LAGD_CORE_WBL_FLOATING_4_OFFSET);
-    addr_hit[44] = (reg_addr == LAGD_CORE_WBL_FLOATING_5_OFFSET);
-    addr_hit[45] = (reg_addr == LAGD_CORE_WBL_FLOATING_6_OFFSET);
-    addr_hit[46] = (reg_addr == LAGD_CORE_WBL_FLOATING_7_OFFSET);
-    addr_hit[47] = (reg_addr == LAGD_CORE_WBL_FLOATING_8_OFFSET);
-    addr_hit[48] = (reg_addr == LAGD_CORE_WBL_FLOATING_9_OFFSET);
-    addr_hit[49] = (reg_addr == LAGD_CORE_WBL_FLOATING_10_OFFSET);
-    addr_hit[50] = (reg_addr == LAGD_CORE_WBL_FLOATING_11_OFFSET);
-    addr_hit[51] = (reg_addr == LAGD_CORE_WBL_FLOATING_12_OFFSET);
-    addr_hit[52] = (reg_addr == LAGD_CORE_WBL_FLOATING_13_OFFSET);
-    addr_hit[53] = (reg_addr == LAGD_CORE_WBL_FLOATING_14_OFFSET);
-    addr_hit[54] = (reg_addr == LAGD_CORE_WBL_FLOATING_15_OFFSET);
-    addr_hit[55] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0_OFFSET);
-    addr_hit[56] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1_OFFSET);
-    addr_hit[57] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2_OFFSET);
-    addr_hit[58] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3_OFFSET);
-    addr_hit[59] = (reg_addr == LAGD_CORE_OUTPUT_STATUS_OFFSET);
-    addr_hit[60] = (reg_addr == LAGD_CORE_ENERGY_FIFO_DATA_OFFSET);
-    addr_hit[61] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_0_OFFSET);
-    addr_hit[62] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_1_OFFSET);
-    addr_hit[63] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_2_OFFSET);
-    addr_hit[64] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_3_OFFSET);
-    addr_hit[65] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_0_OFFSET);
-    addr_hit[66] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_1_OFFSET);
-    addr_hit[67] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_2_OFFSET);
-    addr_hit[68] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_3_OFFSET);
-    addr_hit[69] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_0_OFFSET);
-    addr_hit[70] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_1_OFFSET);
-    addr_hit[71] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_2_OFFSET);
-    addr_hit[72] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_3_OFFSET);
-    addr_hit[73] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_4_OFFSET);
-    addr_hit[74] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_5_OFFSET);
-    addr_hit[75] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_6_OFFSET);
-    addr_hit[76] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_7_OFFSET);
-    addr_hit[77] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_8_OFFSET);
-    addr_hit[78] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_9_OFFSET);
-    addr_hit[79] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_10_OFFSET);
-    addr_hit[80] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_11_OFFSET);
-    addr_hit[81] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_12_OFFSET);
-    addr_hit[82] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_13_OFFSET);
-    addr_hit[83] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_14_OFFSET);
-    addr_hit[84] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_15_OFFSET);
-    addr_hit[85] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_0_OFFSET);
-    addr_hit[86] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_1_OFFSET);
-    addr_hit[87] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_2_OFFSET);
-    addr_hit[88] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_3_OFFSET);
-    addr_hit[89] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_0_OFFSET);
-    addr_hit[90] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_1_OFFSET);
-    addr_hit[91] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_2_OFFSET);
-    addr_hit[92] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_3_OFFSET);
-    addr_hit[93] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_0_OFFSET);
-    addr_hit[94] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_1_OFFSET);
-    addr_hit[95] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_2_OFFSET);
-    addr_hit[96] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_3_OFFSET);
+    addr_hit[  0] = (reg_addr == LAGD_CORE_GLOBAL_CFG_1_OFFSET);
+    addr_hit[  1] = (reg_addr == LAGD_CORE_GLOBAL_CFG_2_OFFSET);
+    addr_hit[  2] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_0_OFFSET);
+    addr_hit[  3] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_1_OFFSET);
+    addr_hit[  4] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_2_OFFSET);
+    addr_hit[  5] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_3_OFFSET);
+    addr_hit[  6] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_4_OFFSET);
+    addr_hit[  7] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_5_OFFSET);
+    addr_hit[  8] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_6_OFFSET);
+    addr_hit[  9] = (reg_addr == LAGD_CORE_CONFIG_SPIN_INITIAL_7_OFFSET);
+    addr_hit[ 10] = (reg_addr == LAGD_CORE_COUNTER_CFG_1_OFFSET);
+    addr_hit[ 11] = (reg_addr == LAGD_CORE_COUNTER_CFG_2_OFFSET);
+    addr_hit[ 12] = (reg_addr == LAGD_CORE_COUNTER_CFG_3_OFFSET);
+    addr_hit[ 13] = (reg_addr == LAGD_CORE_COUNTER_CFG_4_OFFSET);
+    addr_hit[ 14] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_0_OFFSET);
+    addr_hit[ 15] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_1_OFFSET);
+    addr_hit[ 16] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_2_OFFSET);
+    addr_hit[ 17] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_3_OFFSET);
+    addr_hit[ 18] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_4_OFFSET);
+    addr_hit[ 19] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_5_OFFSET);
+    addr_hit[ 20] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_6_OFFSET);
+    addr_hit[ 21] = (reg_addr == LAGD_CORE_WWL_VDD_CFG_7_OFFSET);
+    addr_hit[ 22] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_0_OFFSET);
+    addr_hit[ 23] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_1_OFFSET);
+    addr_hit[ 24] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_2_OFFSET);
+    addr_hit[ 25] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_3_OFFSET);
+    addr_hit[ 26] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_4_OFFSET);
+    addr_hit[ 27] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_5_OFFSET);
+    addr_hit[ 28] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_6_OFFSET);
+    addr_hit[ 29] = (reg_addr == LAGD_CORE_WWL_VREAD_CFG_7_OFFSET);
+    addr_hit[ 30] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_0_OFFSET);
+    addr_hit[ 31] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_1_OFFSET);
+    addr_hit[ 32] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_2_OFFSET);
+    addr_hit[ 33] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_3_OFFSET);
+    addr_hit[ 34] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_4_OFFSET);
+    addr_hit[ 35] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_5_OFFSET);
+    addr_hit[ 36] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_6_OFFSET);
+    addr_hit[ 37] = (reg_addr == LAGD_CORE_SPIN_WWL_STROBE_7_OFFSET);
+    addr_hit[ 38] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_0_OFFSET);
+    addr_hit[ 39] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_1_OFFSET);
+    addr_hit[ 40] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_2_OFFSET);
+    addr_hit[ 41] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_3_OFFSET);
+    addr_hit[ 42] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_4_OFFSET);
+    addr_hit[ 43] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_5_OFFSET);
+    addr_hit[ 44] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_6_OFFSET);
+    addr_hit[ 45] = (reg_addr == LAGD_CORE_SPIN_FEEDBACK_CFG_7_OFFSET);
+    addr_hit[ 46] = (reg_addr == LAGD_CORE_H_RDATA_0_OFFSET);
+    addr_hit[ 47] = (reg_addr == LAGD_CORE_H_RDATA_1_OFFSET);
+    addr_hit[ 48] = (reg_addr == LAGD_CORE_H_RDATA_2_OFFSET);
+    addr_hit[ 49] = (reg_addr == LAGD_CORE_H_RDATA_3_OFFSET);
+    addr_hit[ 50] = (reg_addr == LAGD_CORE_H_RDATA_4_OFFSET);
+    addr_hit[ 51] = (reg_addr == LAGD_CORE_H_RDATA_5_OFFSET);
+    addr_hit[ 52] = (reg_addr == LAGD_CORE_H_RDATA_6_OFFSET);
+    addr_hit[ 53] = (reg_addr == LAGD_CORE_H_RDATA_7_OFFSET);
+    addr_hit[ 54] = (reg_addr == LAGD_CORE_H_RDATA_8_OFFSET);
+    addr_hit[ 55] = (reg_addr == LAGD_CORE_H_RDATA_9_OFFSET);
+    addr_hit[ 56] = (reg_addr == LAGD_CORE_H_RDATA_10_OFFSET);
+    addr_hit[ 57] = (reg_addr == LAGD_CORE_H_RDATA_11_OFFSET);
+    addr_hit[ 58] = (reg_addr == LAGD_CORE_H_RDATA_12_OFFSET);
+    addr_hit[ 59] = (reg_addr == LAGD_CORE_H_RDATA_13_OFFSET);
+    addr_hit[ 60] = (reg_addr == LAGD_CORE_H_RDATA_14_OFFSET);
+    addr_hit[ 61] = (reg_addr == LAGD_CORE_H_RDATA_15_OFFSET);
+    addr_hit[ 62] = (reg_addr == LAGD_CORE_H_RDATA_16_OFFSET);
+    addr_hit[ 63] = (reg_addr == LAGD_CORE_H_RDATA_17_OFFSET);
+    addr_hit[ 64] = (reg_addr == LAGD_CORE_H_RDATA_18_OFFSET);
+    addr_hit[ 65] = (reg_addr == LAGD_CORE_H_RDATA_19_OFFSET);
+    addr_hit[ 66] = (reg_addr == LAGD_CORE_H_RDATA_20_OFFSET);
+    addr_hit[ 67] = (reg_addr == LAGD_CORE_H_RDATA_21_OFFSET);
+    addr_hit[ 68] = (reg_addr == LAGD_CORE_H_RDATA_22_OFFSET);
+    addr_hit[ 69] = (reg_addr == LAGD_CORE_H_RDATA_23_OFFSET);
+    addr_hit[ 70] = (reg_addr == LAGD_CORE_H_RDATA_24_OFFSET);
+    addr_hit[ 71] = (reg_addr == LAGD_CORE_H_RDATA_25_OFFSET);
+    addr_hit[ 72] = (reg_addr == LAGD_CORE_H_RDATA_26_OFFSET);
+    addr_hit[ 73] = (reg_addr == LAGD_CORE_H_RDATA_27_OFFSET);
+    addr_hit[ 74] = (reg_addr == LAGD_CORE_H_RDATA_28_OFFSET);
+    addr_hit[ 75] = (reg_addr == LAGD_CORE_H_RDATA_29_OFFSET);
+    addr_hit[ 76] = (reg_addr == LAGD_CORE_H_RDATA_30_OFFSET);
+    addr_hit[ 77] = (reg_addr == LAGD_CORE_H_RDATA_31_OFFSET);
+    addr_hit[ 78] = (reg_addr == LAGD_CORE_WBL_FLOATING_0_OFFSET);
+    addr_hit[ 79] = (reg_addr == LAGD_CORE_WBL_FLOATING_1_OFFSET);
+    addr_hit[ 80] = (reg_addr == LAGD_CORE_WBL_FLOATING_2_OFFSET);
+    addr_hit[ 81] = (reg_addr == LAGD_CORE_WBL_FLOATING_3_OFFSET);
+    addr_hit[ 82] = (reg_addr == LAGD_CORE_WBL_FLOATING_4_OFFSET);
+    addr_hit[ 83] = (reg_addr == LAGD_CORE_WBL_FLOATING_5_OFFSET);
+    addr_hit[ 84] = (reg_addr == LAGD_CORE_WBL_FLOATING_6_OFFSET);
+    addr_hit[ 85] = (reg_addr == LAGD_CORE_WBL_FLOATING_7_OFFSET);
+    addr_hit[ 86] = (reg_addr == LAGD_CORE_WBL_FLOATING_8_OFFSET);
+    addr_hit[ 87] = (reg_addr == LAGD_CORE_WBL_FLOATING_9_OFFSET);
+    addr_hit[ 88] = (reg_addr == LAGD_CORE_WBL_FLOATING_10_OFFSET);
+    addr_hit[ 89] = (reg_addr == LAGD_CORE_WBL_FLOATING_11_OFFSET);
+    addr_hit[ 90] = (reg_addr == LAGD_CORE_WBL_FLOATING_12_OFFSET);
+    addr_hit[ 91] = (reg_addr == LAGD_CORE_WBL_FLOATING_13_OFFSET);
+    addr_hit[ 92] = (reg_addr == LAGD_CORE_WBL_FLOATING_14_OFFSET);
+    addr_hit[ 93] = (reg_addr == LAGD_CORE_WBL_FLOATING_15_OFFSET);
+    addr_hit[ 94] = (reg_addr == LAGD_CORE_WBL_FLOATING_16_OFFSET);
+    addr_hit[ 95] = (reg_addr == LAGD_CORE_WBL_FLOATING_17_OFFSET);
+    addr_hit[ 96] = (reg_addr == LAGD_CORE_WBL_FLOATING_18_OFFSET);
+    addr_hit[ 97] = (reg_addr == LAGD_CORE_WBL_FLOATING_19_OFFSET);
+    addr_hit[ 98] = (reg_addr == LAGD_CORE_WBL_FLOATING_20_OFFSET);
+    addr_hit[ 99] = (reg_addr == LAGD_CORE_WBL_FLOATING_21_OFFSET);
+    addr_hit[100] = (reg_addr == LAGD_CORE_WBL_FLOATING_22_OFFSET);
+    addr_hit[101] = (reg_addr == LAGD_CORE_WBL_FLOATING_23_OFFSET);
+    addr_hit[102] = (reg_addr == LAGD_CORE_WBL_FLOATING_24_OFFSET);
+    addr_hit[103] = (reg_addr == LAGD_CORE_WBL_FLOATING_25_OFFSET);
+    addr_hit[104] = (reg_addr == LAGD_CORE_WBL_FLOATING_26_OFFSET);
+    addr_hit[105] = (reg_addr == LAGD_CORE_WBL_FLOATING_27_OFFSET);
+    addr_hit[106] = (reg_addr == LAGD_CORE_WBL_FLOATING_28_OFFSET);
+    addr_hit[107] = (reg_addr == LAGD_CORE_WBL_FLOATING_29_OFFSET);
+    addr_hit[108] = (reg_addr == LAGD_CORE_WBL_FLOATING_30_OFFSET);
+    addr_hit[109] = (reg_addr == LAGD_CORE_WBL_FLOATING_31_OFFSET);
+    addr_hit[110] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0_OFFSET);
+    addr_hit[111] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_1_OFFSET);
+    addr_hit[112] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_2_OFFSET);
+    addr_hit[113] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_3_OFFSET);
+    addr_hit[114] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_4_OFFSET);
+    addr_hit[115] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_5_OFFSET);
+    addr_hit[116] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_6_OFFSET);
+    addr_hit[117] = (reg_addr == LAGD_CORE_DEBUG_J_ONE_HOT_WWL_7_OFFSET);
+    addr_hit[118] = (reg_addr == LAGD_CORE_OUTPUT_STATUS_OFFSET);
+    addr_hit[119] = (reg_addr == LAGD_CORE_DEBUG_FM_ENERGY_INPUT_OFFSET);
+    addr_hit[120] = (reg_addr == LAGD_CORE_ENERGY_FIFO_DATA_0_OFFSET);
+    addr_hit[121] = (reg_addr == LAGD_CORE_ENERGY_FIFO_DATA_1_OFFSET);
+    addr_hit[122] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_0_OFFSET);
+    addr_hit[123] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_1_OFFSET);
+    addr_hit[124] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_2_OFFSET);
+    addr_hit[125] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_3_OFFSET);
+    addr_hit[126] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_4_OFFSET);
+    addr_hit[127] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_5_OFFSET);
+    addr_hit[128] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_6_OFFSET);
+    addr_hit[129] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_0_7_OFFSET);
+    addr_hit[130] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_0_OFFSET);
+    addr_hit[131] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_1_OFFSET);
+    addr_hit[132] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_2_OFFSET);
+    addr_hit[133] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_3_OFFSET);
+    addr_hit[134] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_4_OFFSET);
+    addr_hit[135] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_5_OFFSET);
+    addr_hit[136] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_6_OFFSET);
+    addr_hit[137] = (reg_addr == LAGD_CORE_SPIN_FIFO_DATA_1_7_OFFSET);
+    addr_hit[138] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_0_OFFSET);
+    addr_hit[139] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_1_OFFSET);
+    addr_hit[140] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_2_OFFSET);
+    addr_hit[141] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_3_OFFSET);
+    addr_hit[142] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_4_OFFSET);
+    addr_hit[143] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_5_OFFSET);
+    addr_hit[144] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_6_OFFSET);
+    addr_hit[145] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_7_OFFSET);
+    addr_hit[146] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_8_OFFSET);
+    addr_hit[147] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_9_OFFSET);
+    addr_hit[148] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_10_OFFSET);
+    addr_hit[149] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_11_OFFSET);
+    addr_hit[150] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_12_OFFSET);
+    addr_hit[151] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_13_OFFSET);
+    addr_hit[152] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_14_OFFSET);
+    addr_hit[153] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_15_OFFSET);
+    addr_hit[154] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_16_OFFSET);
+    addr_hit[155] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_17_OFFSET);
+    addr_hit[156] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_18_OFFSET);
+    addr_hit[157] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_19_OFFSET);
+    addr_hit[158] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_20_OFFSET);
+    addr_hit[159] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_21_OFFSET);
+    addr_hit[160] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_22_OFFSET);
+    addr_hit[161] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_23_OFFSET);
+    addr_hit[162] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_24_OFFSET);
+    addr_hit[163] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_25_OFFSET);
+    addr_hit[164] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_26_OFFSET);
+    addr_hit[165] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_27_OFFSET);
+    addr_hit[166] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_28_OFFSET);
+    addr_hit[167] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_29_OFFSET);
+    addr_hit[168] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_30_OFFSET);
+    addr_hit[169] = (reg_addr == LAGD_CORE_DEBUG_J_READ_DATA_31_OFFSET);
+    addr_hit[170] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_0_OFFSET);
+    addr_hit[171] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_1_OFFSET);
+    addr_hit[172] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_2_OFFSET);
+    addr_hit[173] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_3_OFFSET);
+    addr_hit[174] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_4_OFFSET);
+    addr_hit[175] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_5_OFFSET);
+    addr_hit[176] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_6_OFFSET);
+    addr_hit[177] = (reg_addr == LAGD_CORE_DEBUG_FM_SPIN_OUT_7_OFFSET);
+    addr_hit[178] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_0_OFFSET);
+    addr_hit[179] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_1_OFFSET);
+    addr_hit[180] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_2_OFFSET);
+    addr_hit[181] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_3_OFFSET);
+    addr_hit[182] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_4_OFFSET);
+    addr_hit[183] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_5_OFFSET);
+    addr_hit[184] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_6_OFFSET);
+    addr_hit[185] = (reg_addr == LAGD_CORE_DEBUG_AW_SPIN_OUT_7_OFFSET);
+    addr_hit[186] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_0_OFFSET);
+    addr_hit[187] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_1_OFFSET);
+    addr_hit[188] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_2_OFFSET);
+    addr_hit[189] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_3_OFFSET);
+    addr_hit[190] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_4_OFFSET);
+    addr_hit[191] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_5_OFFSET);
+    addr_hit[192] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_6_OFFSET);
+    addr_hit[193] = (reg_addr == LAGD_CORE_DEBUG_EM_SPIN_IN_7_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -4717,842 +7581,1448 @@ module lagd_core_reg_top #(
   // Check sub-word write is permitted
   always_comb begin
     wr_err = (reg_we &
-              ((addr_hit[ 0] & (|(LAGD_CORE_PERMIT[ 0] & ~reg_be))) |
-               (addr_hit[ 1] & (|(LAGD_CORE_PERMIT[ 1] & ~reg_be))) |
-               (addr_hit[ 2] & (|(LAGD_CORE_PERMIT[ 2] & ~reg_be))) |
-               (addr_hit[ 3] & (|(LAGD_CORE_PERMIT[ 3] & ~reg_be))) |
-               (addr_hit[ 4] & (|(LAGD_CORE_PERMIT[ 4] & ~reg_be))) |
-               (addr_hit[ 5] & (|(LAGD_CORE_PERMIT[ 5] & ~reg_be))) |
-               (addr_hit[ 6] & (|(LAGD_CORE_PERMIT[ 6] & ~reg_be))) |
-               (addr_hit[ 7] & (|(LAGD_CORE_PERMIT[ 7] & ~reg_be))) |
-               (addr_hit[ 8] & (|(LAGD_CORE_PERMIT[ 8] & ~reg_be))) |
-               (addr_hit[ 9] & (|(LAGD_CORE_PERMIT[ 9] & ~reg_be))) |
-               (addr_hit[10] & (|(LAGD_CORE_PERMIT[10] & ~reg_be))) |
-               (addr_hit[11] & (|(LAGD_CORE_PERMIT[11] & ~reg_be))) |
-               (addr_hit[12] & (|(LAGD_CORE_PERMIT[12] & ~reg_be))) |
-               (addr_hit[13] & (|(LAGD_CORE_PERMIT[13] & ~reg_be))) |
-               (addr_hit[14] & (|(LAGD_CORE_PERMIT[14] & ~reg_be))) |
-               (addr_hit[15] & (|(LAGD_CORE_PERMIT[15] & ~reg_be))) |
-               (addr_hit[16] & (|(LAGD_CORE_PERMIT[16] & ~reg_be))) |
-               (addr_hit[17] & (|(LAGD_CORE_PERMIT[17] & ~reg_be))) |
-               (addr_hit[18] & (|(LAGD_CORE_PERMIT[18] & ~reg_be))) |
-               (addr_hit[19] & (|(LAGD_CORE_PERMIT[19] & ~reg_be))) |
-               (addr_hit[20] & (|(LAGD_CORE_PERMIT[20] & ~reg_be))) |
-               (addr_hit[21] & (|(LAGD_CORE_PERMIT[21] & ~reg_be))) |
-               (addr_hit[22] & (|(LAGD_CORE_PERMIT[22] & ~reg_be))) |
-               (addr_hit[23] & (|(LAGD_CORE_PERMIT[23] & ~reg_be))) |
-               (addr_hit[24] & (|(LAGD_CORE_PERMIT[24] & ~reg_be))) |
-               (addr_hit[25] & (|(LAGD_CORE_PERMIT[25] & ~reg_be))) |
-               (addr_hit[26] & (|(LAGD_CORE_PERMIT[26] & ~reg_be))) |
-               (addr_hit[27] & (|(LAGD_CORE_PERMIT[27] & ~reg_be))) |
-               (addr_hit[28] & (|(LAGD_CORE_PERMIT[28] & ~reg_be))) |
-               (addr_hit[29] & (|(LAGD_CORE_PERMIT[29] & ~reg_be))) |
-               (addr_hit[30] & (|(LAGD_CORE_PERMIT[30] & ~reg_be))) |
-               (addr_hit[31] & (|(LAGD_CORE_PERMIT[31] & ~reg_be))) |
-               (addr_hit[32] & (|(LAGD_CORE_PERMIT[32] & ~reg_be))) |
-               (addr_hit[33] & (|(LAGD_CORE_PERMIT[33] & ~reg_be))) |
-               (addr_hit[34] & (|(LAGD_CORE_PERMIT[34] & ~reg_be))) |
-               (addr_hit[35] & (|(LAGD_CORE_PERMIT[35] & ~reg_be))) |
-               (addr_hit[36] & (|(LAGD_CORE_PERMIT[36] & ~reg_be))) |
-               (addr_hit[37] & (|(LAGD_CORE_PERMIT[37] & ~reg_be))) |
-               (addr_hit[38] & (|(LAGD_CORE_PERMIT[38] & ~reg_be))) |
-               (addr_hit[39] & (|(LAGD_CORE_PERMIT[39] & ~reg_be))) |
-               (addr_hit[40] & (|(LAGD_CORE_PERMIT[40] & ~reg_be))) |
-               (addr_hit[41] & (|(LAGD_CORE_PERMIT[41] & ~reg_be))) |
-               (addr_hit[42] & (|(LAGD_CORE_PERMIT[42] & ~reg_be))) |
-               (addr_hit[43] & (|(LAGD_CORE_PERMIT[43] & ~reg_be))) |
-               (addr_hit[44] & (|(LAGD_CORE_PERMIT[44] & ~reg_be))) |
-               (addr_hit[45] & (|(LAGD_CORE_PERMIT[45] & ~reg_be))) |
-               (addr_hit[46] & (|(LAGD_CORE_PERMIT[46] & ~reg_be))) |
-               (addr_hit[47] & (|(LAGD_CORE_PERMIT[47] & ~reg_be))) |
-               (addr_hit[48] & (|(LAGD_CORE_PERMIT[48] & ~reg_be))) |
-               (addr_hit[49] & (|(LAGD_CORE_PERMIT[49] & ~reg_be))) |
-               (addr_hit[50] & (|(LAGD_CORE_PERMIT[50] & ~reg_be))) |
-               (addr_hit[51] & (|(LAGD_CORE_PERMIT[51] & ~reg_be))) |
-               (addr_hit[52] & (|(LAGD_CORE_PERMIT[52] & ~reg_be))) |
-               (addr_hit[53] & (|(LAGD_CORE_PERMIT[53] & ~reg_be))) |
-               (addr_hit[54] & (|(LAGD_CORE_PERMIT[54] & ~reg_be))) |
-               (addr_hit[55] & (|(LAGD_CORE_PERMIT[55] & ~reg_be))) |
-               (addr_hit[56] & (|(LAGD_CORE_PERMIT[56] & ~reg_be))) |
-               (addr_hit[57] & (|(LAGD_CORE_PERMIT[57] & ~reg_be))) |
-               (addr_hit[58] & (|(LAGD_CORE_PERMIT[58] & ~reg_be))) |
-               (addr_hit[59] & (|(LAGD_CORE_PERMIT[59] & ~reg_be))) |
-               (addr_hit[60] & (|(LAGD_CORE_PERMIT[60] & ~reg_be))) |
-               (addr_hit[61] & (|(LAGD_CORE_PERMIT[61] & ~reg_be))) |
-               (addr_hit[62] & (|(LAGD_CORE_PERMIT[62] & ~reg_be))) |
-               (addr_hit[63] & (|(LAGD_CORE_PERMIT[63] & ~reg_be))) |
-               (addr_hit[64] & (|(LAGD_CORE_PERMIT[64] & ~reg_be))) |
-               (addr_hit[65] & (|(LAGD_CORE_PERMIT[65] & ~reg_be))) |
-               (addr_hit[66] & (|(LAGD_CORE_PERMIT[66] & ~reg_be))) |
-               (addr_hit[67] & (|(LAGD_CORE_PERMIT[67] & ~reg_be))) |
-               (addr_hit[68] & (|(LAGD_CORE_PERMIT[68] & ~reg_be))) |
-               (addr_hit[69] & (|(LAGD_CORE_PERMIT[69] & ~reg_be))) |
-               (addr_hit[70] & (|(LAGD_CORE_PERMIT[70] & ~reg_be))) |
-               (addr_hit[71] & (|(LAGD_CORE_PERMIT[71] & ~reg_be))) |
-               (addr_hit[72] & (|(LAGD_CORE_PERMIT[72] & ~reg_be))) |
-               (addr_hit[73] & (|(LAGD_CORE_PERMIT[73] & ~reg_be))) |
-               (addr_hit[74] & (|(LAGD_CORE_PERMIT[74] & ~reg_be))) |
-               (addr_hit[75] & (|(LAGD_CORE_PERMIT[75] & ~reg_be))) |
-               (addr_hit[76] & (|(LAGD_CORE_PERMIT[76] & ~reg_be))) |
-               (addr_hit[77] & (|(LAGD_CORE_PERMIT[77] & ~reg_be))) |
-               (addr_hit[78] & (|(LAGD_CORE_PERMIT[78] & ~reg_be))) |
-               (addr_hit[79] & (|(LAGD_CORE_PERMIT[79] & ~reg_be))) |
-               (addr_hit[80] & (|(LAGD_CORE_PERMIT[80] & ~reg_be))) |
-               (addr_hit[81] & (|(LAGD_CORE_PERMIT[81] & ~reg_be))) |
-               (addr_hit[82] & (|(LAGD_CORE_PERMIT[82] & ~reg_be))) |
-               (addr_hit[83] & (|(LAGD_CORE_PERMIT[83] & ~reg_be))) |
-               (addr_hit[84] & (|(LAGD_CORE_PERMIT[84] & ~reg_be))) |
-               (addr_hit[85] & (|(LAGD_CORE_PERMIT[85] & ~reg_be))) |
-               (addr_hit[86] & (|(LAGD_CORE_PERMIT[86] & ~reg_be))) |
-               (addr_hit[87] & (|(LAGD_CORE_PERMIT[87] & ~reg_be))) |
-               (addr_hit[88] & (|(LAGD_CORE_PERMIT[88] & ~reg_be))) |
-               (addr_hit[89] & (|(LAGD_CORE_PERMIT[89] & ~reg_be))) |
-               (addr_hit[90] & (|(LAGD_CORE_PERMIT[90] & ~reg_be))) |
-               (addr_hit[91] & (|(LAGD_CORE_PERMIT[91] & ~reg_be))) |
-               (addr_hit[92] & (|(LAGD_CORE_PERMIT[92] & ~reg_be))) |
-               (addr_hit[93] & (|(LAGD_CORE_PERMIT[93] & ~reg_be))) |
-               (addr_hit[94] & (|(LAGD_CORE_PERMIT[94] & ~reg_be))) |
-               (addr_hit[95] & (|(LAGD_CORE_PERMIT[95] & ~reg_be))) |
-               (addr_hit[96] & (|(LAGD_CORE_PERMIT[96] & ~reg_be)))));
+              ((addr_hit[  0] & (|(LAGD_CORE_PERMIT[  0] & ~reg_be))) |
+               (addr_hit[  1] & (|(LAGD_CORE_PERMIT[  1] & ~reg_be))) |
+               (addr_hit[  2] & (|(LAGD_CORE_PERMIT[  2] & ~reg_be))) |
+               (addr_hit[  3] & (|(LAGD_CORE_PERMIT[  3] & ~reg_be))) |
+               (addr_hit[  4] & (|(LAGD_CORE_PERMIT[  4] & ~reg_be))) |
+               (addr_hit[  5] & (|(LAGD_CORE_PERMIT[  5] & ~reg_be))) |
+               (addr_hit[  6] & (|(LAGD_CORE_PERMIT[  6] & ~reg_be))) |
+               (addr_hit[  7] & (|(LAGD_CORE_PERMIT[  7] & ~reg_be))) |
+               (addr_hit[  8] & (|(LAGD_CORE_PERMIT[  8] & ~reg_be))) |
+               (addr_hit[  9] & (|(LAGD_CORE_PERMIT[  9] & ~reg_be))) |
+               (addr_hit[ 10] & (|(LAGD_CORE_PERMIT[ 10] & ~reg_be))) |
+               (addr_hit[ 11] & (|(LAGD_CORE_PERMIT[ 11] & ~reg_be))) |
+               (addr_hit[ 12] & (|(LAGD_CORE_PERMIT[ 12] & ~reg_be))) |
+               (addr_hit[ 13] & (|(LAGD_CORE_PERMIT[ 13] & ~reg_be))) |
+               (addr_hit[ 14] & (|(LAGD_CORE_PERMIT[ 14] & ~reg_be))) |
+               (addr_hit[ 15] & (|(LAGD_CORE_PERMIT[ 15] & ~reg_be))) |
+               (addr_hit[ 16] & (|(LAGD_CORE_PERMIT[ 16] & ~reg_be))) |
+               (addr_hit[ 17] & (|(LAGD_CORE_PERMIT[ 17] & ~reg_be))) |
+               (addr_hit[ 18] & (|(LAGD_CORE_PERMIT[ 18] & ~reg_be))) |
+               (addr_hit[ 19] & (|(LAGD_CORE_PERMIT[ 19] & ~reg_be))) |
+               (addr_hit[ 20] & (|(LAGD_CORE_PERMIT[ 20] & ~reg_be))) |
+               (addr_hit[ 21] & (|(LAGD_CORE_PERMIT[ 21] & ~reg_be))) |
+               (addr_hit[ 22] & (|(LAGD_CORE_PERMIT[ 22] & ~reg_be))) |
+               (addr_hit[ 23] & (|(LAGD_CORE_PERMIT[ 23] & ~reg_be))) |
+               (addr_hit[ 24] & (|(LAGD_CORE_PERMIT[ 24] & ~reg_be))) |
+               (addr_hit[ 25] & (|(LAGD_CORE_PERMIT[ 25] & ~reg_be))) |
+               (addr_hit[ 26] & (|(LAGD_CORE_PERMIT[ 26] & ~reg_be))) |
+               (addr_hit[ 27] & (|(LAGD_CORE_PERMIT[ 27] & ~reg_be))) |
+               (addr_hit[ 28] & (|(LAGD_CORE_PERMIT[ 28] & ~reg_be))) |
+               (addr_hit[ 29] & (|(LAGD_CORE_PERMIT[ 29] & ~reg_be))) |
+               (addr_hit[ 30] & (|(LAGD_CORE_PERMIT[ 30] & ~reg_be))) |
+               (addr_hit[ 31] & (|(LAGD_CORE_PERMIT[ 31] & ~reg_be))) |
+               (addr_hit[ 32] & (|(LAGD_CORE_PERMIT[ 32] & ~reg_be))) |
+               (addr_hit[ 33] & (|(LAGD_CORE_PERMIT[ 33] & ~reg_be))) |
+               (addr_hit[ 34] & (|(LAGD_CORE_PERMIT[ 34] & ~reg_be))) |
+               (addr_hit[ 35] & (|(LAGD_CORE_PERMIT[ 35] & ~reg_be))) |
+               (addr_hit[ 36] & (|(LAGD_CORE_PERMIT[ 36] & ~reg_be))) |
+               (addr_hit[ 37] & (|(LAGD_CORE_PERMIT[ 37] & ~reg_be))) |
+               (addr_hit[ 38] & (|(LAGD_CORE_PERMIT[ 38] & ~reg_be))) |
+               (addr_hit[ 39] & (|(LAGD_CORE_PERMIT[ 39] & ~reg_be))) |
+               (addr_hit[ 40] & (|(LAGD_CORE_PERMIT[ 40] & ~reg_be))) |
+               (addr_hit[ 41] & (|(LAGD_CORE_PERMIT[ 41] & ~reg_be))) |
+               (addr_hit[ 42] & (|(LAGD_CORE_PERMIT[ 42] & ~reg_be))) |
+               (addr_hit[ 43] & (|(LAGD_CORE_PERMIT[ 43] & ~reg_be))) |
+               (addr_hit[ 44] & (|(LAGD_CORE_PERMIT[ 44] & ~reg_be))) |
+               (addr_hit[ 45] & (|(LAGD_CORE_PERMIT[ 45] & ~reg_be))) |
+               (addr_hit[ 46] & (|(LAGD_CORE_PERMIT[ 46] & ~reg_be))) |
+               (addr_hit[ 47] & (|(LAGD_CORE_PERMIT[ 47] & ~reg_be))) |
+               (addr_hit[ 48] & (|(LAGD_CORE_PERMIT[ 48] & ~reg_be))) |
+               (addr_hit[ 49] & (|(LAGD_CORE_PERMIT[ 49] & ~reg_be))) |
+               (addr_hit[ 50] & (|(LAGD_CORE_PERMIT[ 50] & ~reg_be))) |
+               (addr_hit[ 51] & (|(LAGD_CORE_PERMIT[ 51] & ~reg_be))) |
+               (addr_hit[ 52] & (|(LAGD_CORE_PERMIT[ 52] & ~reg_be))) |
+               (addr_hit[ 53] & (|(LAGD_CORE_PERMIT[ 53] & ~reg_be))) |
+               (addr_hit[ 54] & (|(LAGD_CORE_PERMIT[ 54] & ~reg_be))) |
+               (addr_hit[ 55] & (|(LAGD_CORE_PERMIT[ 55] & ~reg_be))) |
+               (addr_hit[ 56] & (|(LAGD_CORE_PERMIT[ 56] & ~reg_be))) |
+               (addr_hit[ 57] & (|(LAGD_CORE_PERMIT[ 57] & ~reg_be))) |
+               (addr_hit[ 58] & (|(LAGD_CORE_PERMIT[ 58] & ~reg_be))) |
+               (addr_hit[ 59] & (|(LAGD_CORE_PERMIT[ 59] & ~reg_be))) |
+               (addr_hit[ 60] & (|(LAGD_CORE_PERMIT[ 60] & ~reg_be))) |
+               (addr_hit[ 61] & (|(LAGD_CORE_PERMIT[ 61] & ~reg_be))) |
+               (addr_hit[ 62] & (|(LAGD_CORE_PERMIT[ 62] & ~reg_be))) |
+               (addr_hit[ 63] & (|(LAGD_CORE_PERMIT[ 63] & ~reg_be))) |
+               (addr_hit[ 64] & (|(LAGD_CORE_PERMIT[ 64] & ~reg_be))) |
+               (addr_hit[ 65] & (|(LAGD_CORE_PERMIT[ 65] & ~reg_be))) |
+               (addr_hit[ 66] & (|(LAGD_CORE_PERMIT[ 66] & ~reg_be))) |
+               (addr_hit[ 67] & (|(LAGD_CORE_PERMIT[ 67] & ~reg_be))) |
+               (addr_hit[ 68] & (|(LAGD_CORE_PERMIT[ 68] & ~reg_be))) |
+               (addr_hit[ 69] & (|(LAGD_CORE_PERMIT[ 69] & ~reg_be))) |
+               (addr_hit[ 70] & (|(LAGD_CORE_PERMIT[ 70] & ~reg_be))) |
+               (addr_hit[ 71] & (|(LAGD_CORE_PERMIT[ 71] & ~reg_be))) |
+               (addr_hit[ 72] & (|(LAGD_CORE_PERMIT[ 72] & ~reg_be))) |
+               (addr_hit[ 73] & (|(LAGD_CORE_PERMIT[ 73] & ~reg_be))) |
+               (addr_hit[ 74] & (|(LAGD_CORE_PERMIT[ 74] & ~reg_be))) |
+               (addr_hit[ 75] & (|(LAGD_CORE_PERMIT[ 75] & ~reg_be))) |
+               (addr_hit[ 76] & (|(LAGD_CORE_PERMIT[ 76] & ~reg_be))) |
+               (addr_hit[ 77] & (|(LAGD_CORE_PERMIT[ 77] & ~reg_be))) |
+               (addr_hit[ 78] & (|(LAGD_CORE_PERMIT[ 78] & ~reg_be))) |
+               (addr_hit[ 79] & (|(LAGD_CORE_PERMIT[ 79] & ~reg_be))) |
+               (addr_hit[ 80] & (|(LAGD_CORE_PERMIT[ 80] & ~reg_be))) |
+               (addr_hit[ 81] & (|(LAGD_CORE_PERMIT[ 81] & ~reg_be))) |
+               (addr_hit[ 82] & (|(LAGD_CORE_PERMIT[ 82] & ~reg_be))) |
+               (addr_hit[ 83] & (|(LAGD_CORE_PERMIT[ 83] & ~reg_be))) |
+               (addr_hit[ 84] & (|(LAGD_CORE_PERMIT[ 84] & ~reg_be))) |
+               (addr_hit[ 85] & (|(LAGD_CORE_PERMIT[ 85] & ~reg_be))) |
+               (addr_hit[ 86] & (|(LAGD_CORE_PERMIT[ 86] & ~reg_be))) |
+               (addr_hit[ 87] & (|(LAGD_CORE_PERMIT[ 87] & ~reg_be))) |
+               (addr_hit[ 88] & (|(LAGD_CORE_PERMIT[ 88] & ~reg_be))) |
+               (addr_hit[ 89] & (|(LAGD_CORE_PERMIT[ 89] & ~reg_be))) |
+               (addr_hit[ 90] & (|(LAGD_CORE_PERMIT[ 90] & ~reg_be))) |
+               (addr_hit[ 91] & (|(LAGD_CORE_PERMIT[ 91] & ~reg_be))) |
+               (addr_hit[ 92] & (|(LAGD_CORE_PERMIT[ 92] & ~reg_be))) |
+               (addr_hit[ 93] & (|(LAGD_CORE_PERMIT[ 93] & ~reg_be))) |
+               (addr_hit[ 94] & (|(LAGD_CORE_PERMIT[ 94] & ~reg_be))) |
+               (addr_hit[ 95] & (|(LAGD_CORE_PERMIT[ 95] & ~reg_be))) |
+               (addr_hit[ 96] & (|(LAGD_CORE_PERMIT[ 96] & ~reg_be))) |
+               (addr_hit[ 97] & (|(LAGD_CORE_PERMIT[ 97] & ~reg_be))) |
+               (addr_hit[ 98] & (|(LAGD_CORE_PERMIT[ 98] & ~reg_be))) |
+               (addr_hit[ 99] & (|(LAGD_CORE_PERMIT[ 99] & ~reg_be))) |
+               (addr_hit[100] & (|(LAGD_CORE_PERMIT[100] & ~reg_be))) |
+               (addr_hit[101] & (|(LAGD_CORE_PERMIT[101] & ~reg_be))) |
+               (addr_hit[102] & (|(LAGD_CORE_PERMIT[102] & ~reg_be))) |
+               (addr_hit[103] & (|(LAGD_CORE_PERMIT[103] & ~reg_be))) |
+               (addr_hit[104] & (|(LAGD_CORE_PERMIT[104] & ~reg_be))) |
+               (addr_hit[105] & (|(LAGD_CORE_PERMIT[105] & ~reg_be))) |
+               (addr_hit[106] & (|(LAGD_CORE_PERMIT[106] & ~reg_be))) |
+               (addr_hit[107] & (|(LAGD_CORE_PERMIT[107] & ~reg_be))) |
+               (addr_hit[108] & (|(LAGD_CORE_PERMIT[108] & ~reg_be))) |
+               (addr_hit[109] & (|(LAGD_CORE_PERMIT[109] & ~reg_be))) |
+               (addr_hit[110] & (|(LAGD_CORE_PERMIT[110] & ~reg_be))) |
+               (addr_hit[111] & (|(LAGD_CORE_PERMIT[111] & ~reg_be))) |
+               (addr_hit[112] & (|(LAGD_CORE_PERMIT[112] & ~reg_be))) |
+               (addr_hit[113] & (|(LAGD_CORE_PERMIT[113] & ~reg_be))) |
+               (addr_hit[114] & (|(LAGD_CORE_PERMIT[114] & ~reg_be))) |
+               (addr_hit[115] & (|(LAGD_CORE_PERMIT[115] & ~reg_be))) |
+               (addr_hit[116] & (|(LAGD_CORE_PERMIT[116] & ~reg_be))) |
+               (addr_hit[117] & (|(LAGD_CORE_PERMIT[117] & ~reg_be))) |
+               (addr_hit[118] & (|(LAGD_CORE_PERMIT[118] & ~reg_be))) |
+               (addr_hit[119] & (|(LAGD_CORE_PERMIT[119] & ~reg_be))) |
+               (addr_hit[120] & (|(LAGD_CORE_PERMIT[120] & ~reg_be))) |
+               (addr_hit[121] & (|(LAGD_CORE_PERMIT[121] & ~reg_be))) |
+               (addr_hit[122] & (|(LAGD_CORE_PERMIT[122] & ~reg_be))) |
+               (addr_hit[123] & (|(LAGD_CORE_PERMIT[123] & ~reg_be))) |
+               (addr_hit[124] & (|(LAGD_CORE_PERMIT[124] & ~reg_be))) |
+               (addr_hit[125] & (|(LAGD_CORE_PERMIT[125] & ~reg_be))) |
+               (addr_hit[126] & (|(LAGD_CORE_PERMIT[126] & ~reg_be))) |
+               (addr_hit[127] & (|(LAGD_CORE_PERMIT[127] & ~reg_be))) |
+               (addr_hit[128] & (|(LAGD_CORE_PERMIT[128] & ~reg_be))) |
+               (addr_hit[129] & (|(LAGD_CORE_PERMIT[129] & ~reg_be))) |
+               (addr_hit[130] & (|(LAGD_CORE_PERMIT[130] & ~reg_be))) |
+               (addr_hit[131] & (|(LAGD_CORE_PERMIT[131] & ~reg_be))) |
+               (addr_hit[132] & (|(LAGD_CORE_PERMIT[132] & ~reg_be))) |
+               (addr_hit[133] & (|(LAGD_CORE_PERMIT[133] & ~reg_be))) |
+               (addr_hit[134] & (|(LAGD_CORE_PERMIT[134] & ~reg_be))) |
+               (addr_hit[135] & (|(LAGD_CORE_PERMIT[135] & ~reg_be))) |
+               (addr_hit[136] & (|(LAGD_CORE_PERMIT[136] & ~reg_be))) |
+               (addr_hit[137] & (|(LAGD_CORE_PERMIT[137] & ~reg_be))) |
+               (addr_hit[138] & (|(LAGD_CORE_PERMIT[138] & ~reg_be))) |
+               (addr_hit[139] & (|(LAGD_CORE_PERMIT[139] & ~reg_be))) |
+               (addr_hit[140] & (|(LAGD_CORE_PERMIT[140] & ~reg_be))) |
+               (addr_hit[141] & (|(LAGD_CORE_PERMIT[141] & ~reg_be))) |
+               (addr_hit[142] & (|(LAGD_CORE_PERMIT[142] & ~reg_be))) |
+               (addr_hit[143] & (|(LAGD_CORE_PERMIT[143] & ~reg_be))) |
+               (addr_hit[144] & (|(LAGD_CORE_PERMIT[144] & ~reg_be))) |
+               (addr_hit[145] & (|(LAGD_CORE_PERMIT[145] & ~reg_be))) |
+               (addr_hit[146] & (|(LAGD_CORE_PERMIT[146] & ~reg_be))) |
+               (addr_hit[147] & (|(LAGD_CORE_PERMIT[147] & ~reg_be))) |
+               (addr_hit[148] & (|(LAGD_CORE_PERMIT[148] & ~reg_be))) |
+               (addr_hit[149] & (|(LAGD_CORE_PERMIT[149] & ~reg_be))) |
+               (addr_hit[150] & (|(LAGD_CORE_PERMIT[150] & ~reg_be))) |
+               (addr_hit[151] & (|(LAGD_CORE_PERMIT[151] & ~reg_be))) |
+               (addr_hit[152] & (|(LAGD_CORE_PERMIT[152] & ~reg_be))) |
+               (addr_hit[153] & (|(LAGD_CORE_PERMIT[153] & ~reg_be))) |
+               (addr_hit[154] & (|(LAGD_CORE_PERMIT[154] & ~reg_be))) |
+               (addr_hit[155] & (|(LAGD_CORE_PERMIT[155] & ~reg_be))) |
+               (addr_hit[156] & (|(LAGD_CORE_PERMIT[156] & ~reg_be))) |
+               (addr_hit[157] & (|(LAGD_CORE_PERMIT[157] & ~reg_be))) |
+               (addr_hit[158] & (|(LAGD_CORE_PERMIT[158] & ~reg_be))) |
+               (addr_hit[159] & (|(LAGD_CORE_PERMIT[159] & ~reg_be))) |
+               (addr_hit[160] & (|(LAGD_CORE_PERMIT[160] & ~reg_be))) |
+               (addr_hit[161] & (|(LAGD_CORE_PERMIT[161] & ~reg_be))) |
+               (addr_hit[162] & (|(LAGD_CORE_PERMIT[162] & ~reg_be))) |
+               (addr_hit[163] & (|(LAGD_CORE_PERMIT[163] & ~reg_be))) |
+               (addr_hit[164] & (|(LAGD_CORE_PERMIT[164] & ~reg_be))) |
+               (addr_hit[165] & (|(LAGD_CORE_PERMIT[165] & ~reg_be))) |
+               (addr_hit[166] & (|(LAGD_CORE_PERMIT[166] & ~reg_be))) |
+               (addr_hit[167] & (|(LAGD_CORE_PERMIT[167] & ~reg_be))) |
+               (addr_hit[168] & (|(LAGD_CORE_PERMIT[168] & ~reg_be))) |
+               (addr_hit[169] & (|(LAGD_CORE_PERMIT[169] & ~reg_be))) |
+               (addr_hit[170] & (|(LAGD_CORE_PERMIT[170] & ~reg_be))) |
+               (addr_hit[171] & (|(LAGD_CORE_PERMIT[171] & ~reg_be))) |
+               (addr_hit[172] & (|(LAGD_CORE_PERMIT[172] & ~reg_be))) |
+               (addr_hit[173] & (|(LAGD_CORE_PERMIT[173] & ~reg_be))) |
+               (addr_hit[174] & (|(LAGD_CORE_PERMIT[174] & ~reg_be))) |
+               (addr_hit[175] & (|(LAGD_CORE_PERMIT[175] & ~reg_be))) |
+               (addr_hit[176] & (|(LAGD_CORE_PERMIT[176] & ~reg_be))) |
+               (addr_hit[177] & (|(LAGD_CORE_PERMIT[177] & ~reg_be))) |
+               (addr_hit[178] & (|(LAGD_CORE_PERMIT[178] & ~reg_be))) |
+               (addr_hit[179] & (|(LAGD_CORE_PERMIT[179] & ~reg_be))) |
+               (addr_hit[180] & (|(LAGD_CORE_PERMIT[180] & ~reg_be))) |
+               (addr_hit[181] & (|(LAGD_CORE_PERMIT[181] & ~reg_be))) |
+               (addr_hit[182] & (|(LAGD_CORE_PERMIT[182] & ~reg_be))) |
+               (addr_hit[183] & (|(LAGD_CORE_PERMIT[183] & ~reg_be))) |
+               (addr_hit[184] & (|(LAGD_CORE_PERMIT[184] & ~reg_be))) |
+               (addr_hit[185] & (|(LAGD_CORE_PERMIT[185] & ~reg_be))) |
+               (addr_hit[186] & (|(LAGD_CORE_PERMIT[186] & ~reg_be))) |
+               (addr_hit[187] & (|(LAGD_CORE_PERMIT[187] & ~reg_be))) |
+               (addr_hit[188] & (|(LAGD_CORE_PERMIT[188] & ~reg_be))) |
+               (addr_hit[189] & (|(LAGD_CORE_PERMIT[189] & ~reg_be))) |
+               (addr_hit[190] & (|(LAGD_CORE_PERMIT[190] & ~reg_be))) |
+               (addr_hit[191] & (|(LAGD_CORE_PERMIT[191] & ~reg_be))) |
+               (addr_hit[192] & (|(LAGD_CORE_PERMIT[192] & ~reg_be))) |
+               (addr_hit[193] & (|(LAGD_CORE_PERMIT[193] & ~reg_be)))));
   end
 
-  assign global_cfg_flush_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_flush_en_wd = reg_wdata[0];
+  assign global_cfg_1_flush_en_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_flush_en_wd = reg_wdata[0];
 
-  assign global_cfg_en_aw_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_aw_wd = reg_wdata[1];
+  assign global_cfg_1_en_aw_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_aw_wd = reg_wdata[1];
 
-  assign global_cfg_en_em_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_em_wd = reg_wdata[2];
+  assign global_cfg_1_en_em_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_em_wd = reg_wdata[2];
 
-  assign global_cfg_en_fm_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_fm_wd = reg_wdata[3];
+  assign global_cfg_1_en_fm_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_fm_wd = reg_wdata[3];
 
-  assign global_cfg_en_ff_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_ff_wd = reg_wdata[4];
+  assign global_cfg_1_en_ff_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_ff_wd = reg_wdata[4];
 
-  assign global_cfg_en_ef_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_ef_wd = reg_wdata[5];
+  assign global_cfg_1_en_ef_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_ef_wd = reg_wdata[5];
 
-  assign global_cfg_en_analog_loop_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_analog_loop_wd = reg_wdata[6];
+  assign global_cfg_1_en_analog_loop_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_analog_loop_wd = reg_wdata[6];
 
-  assign global_cfg_en_comparison_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_en_comparison_wd = reg_wdata[7];
+  assign global_cfg_1_en_comparison_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_en_comparison_wd = reg_wdata[7];
 
-  assign global_cfg_cmpt_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_cmpt_en_wd = reg_wdata[8];
+  assign global_cfg_1_debug_dt_configure_enable_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_dt_configure_enable_wd = reg_wdata[8];
 
-  assign global_cfg_config_valid_aw_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_config_valid_aw_wd = reg_wdata[9];
+  assign global_cfg_1_debug_spin_configure_enable_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_spin_configure_enable_wd = reg_wdata[9];
 
-  assign global_cfg_config_valid_em_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_config_valid_em_wd = reg_wdata[10];
+  assign global_cfg_1_config_spin_initial_skip_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_config_spin_initial_skip_wd = reg_wdata[10];
 
-  assign global_cfg_config_valid_fm_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_config_valid_fm_wd = reg_wdata[11];
+  assign global_cfg_1_bypass_data_conversion_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_bypass_data_conversion_wd = reg_wdata[11];
 
-  assign global_cfg_debug_dt_configure_enable_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_dt_configure_enable_wd = reg_wdata[12];
+  assign global_cfg_1_host_readout_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_host_readout_wd = reg_wdata[12];
 
-  assign global_cfg_debug_spin_configure_enable_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_spin_configure_enable_wd = reg_wdata[13];
+  assign global_cfg_1_flip_disable_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_flip_disable_wd = reg_wdata[13];
 
-  assign global_cfg_config_spin_initial_skip_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_config_spin_initial_skip_wd = reg_wdata[14];
+  assign global_cfg_1_enable_flip_detection_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_enable_flip_detection_wd = reg_wdata[14];
 
-  assign global_cfg_bypass_data_conversion_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_bypass_data_conversion_wd = reg_wdata[15];
+  assign global_cfg_1_debug_j_write_en_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_j_write_en_wd = reg_wdata[15];
 
-  assign global_cfg_dt_cfg_enable_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_dt_cfg_enable_wd = reg_wdata[16];
+  assign global_cfg_1_debug_j_read_en_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_j_read_en_wd = reg_wdata[16];
 
-  assign global_cfg_host_readout_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_host_readout_wd = reg_wdata[17];
+  assign global_cfg_1_debug_spin_write_en_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_spin_write_en_wd = reg_wdata[17];
 
-  assign global_cfg_flip_disable_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_flip_disable_wd = reg_wdata[18];
+  assign global_cfg_1_debug_spin_compute_en_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_spin_compute_en_wd = reg_wdata[18];
 
-  assign global_cfg_enable_flip_detection_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_enable_flip_detection_wd = reg_wdata[19];
+  assign global_cfg_1_debug_spin_read_en_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_debug_spin_read_en_wd = reg_wdata[19];
 
-  assign global_cfg_debug_j_write_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_j_write_en_wd = reg_wdata[20];
+  assign global_cfg_1_config_counter_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_config_counter_wd = reg_wdata[27:20];
 
-  assign global_cfg_debug_j_read_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_j_read_en_wd = reg_wdata[21];
+  assign global_cfg_1_wwl_vdd_cfg_256_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_wwl_vdd_cfg_256_wd = reg_wdata[28];
 
-  assign global_cfg_debug_spin_write_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_spin_write_en_wd = reg_wdata[22];
+  assign global_cfg_1_wwl_vread_cfg_256_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_wwl_vread_cfg_256_wd = reg_wdata[29];
 
-  assign global_cfg_debug_spin_compute_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_spin_compute_en_wd = reg_wdata[23];
+  assign global_cfg_1_synchronizer_wbl_pipe_num_we = addr_hit[0] & reg_we & !reg_error;
+  assign global_cfg_1_synchronizer_wbl_pipe_num_wd = reg_wdata[31:30];
 
-  assign global_cfg_debug_spin_read_en_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_spin_read_en_wd = reg_wdata[24];
+  assign global_cfg_2_cmpt_en_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_cmpt_en_wd = reg_wdata[0];
 
-  assign global_cfg_config_counter_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_config_counter_wd = reg_wdata[32:25];
+  assign global_cfg_2_config_valid_aw_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_config_valid_aw_wd = reg_wdata[1];
 
-  assign global_cfg_wwl_vdd_cfg_256_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_wwl_vdd_cfg_256_wd = reg_wdata[33];
+  assign global_cfg_2_config_valid_em_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_config_valid_em_wd = reg_wdata[2];
 
-  assign global_cfg_wwl_vread_cfg_256_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_wwl_vread_cfg_256_wd = reg_wdata[34];
+  assign global_cfg_2_config_valid_fm_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_config_valid_fm_wd = reg_wdata[3];
 
-  assign global_cfg_synchronizer_pipe_num_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_synchronizer_pipe_num_wd = reg_wdata[36:35];
+  assign global_cfg_2_dt_cfg_enable_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_dt_cfg_enable_wd = reg_wdata[4];
 
-  assign global_cfg_synchronizer_wbl_pipe_num_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_synchronizer_wbl_pipe_num_wd = reg_wdata[38:37];
+  assign global_cfg_2_synchronizer_pipe_num_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_synchronizer_pipe_num_wd = reg_wdata[6:5];
 
-  assign global_cfg_debug_h_wwl_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_debug_h_wwl_wd = reg_wdata[39];
+  assign global_cfg_2_debug_h_wwl_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_debug_h_wwl_wd = reg_wdata[7];
 
-  assign global_cfg_dgt_addr_upper_bound_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_dgt_addr_upper_bound_wd = reg_wdata[45:40];
+  assign global_cfg_2_dgt_addr_upper_bound_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_dgt_addr_upper_bound_wd = reg_wdata[13:8];
 
-  assign global_cfg_ctnus_fifo_read_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_ctnus_fifo_read_wd = reg_wdata[46];
+  assign global_cfg_2_ctnus_fifo_read_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_ctnus_fifo_read_wd = reg_wdata[14];
 
-  assign global_cfg_ctnus_dgt_debug_we = addr_hit[0] & reg_we & !reg_error;
-  assign global_cfg_ctnus_dgt_debug_wd = reg_wdata[47];
+  assign global_cfg_2_ctnus_dgt_debug_we = addr_hit[1] & reg_we & !reg_error;
+  assign global_cfg_2_ctnus_dgt_debug_wd = reg_wdata[15];
 
-  assign config_spin_initial_0_we = addr_hit[1] & reg_we & !reg_error;
-  assign config_spin_initial_0_wd = reg_wdata[63:0];
+  assign config_spin_initial_0_we = addr_hit[2] & reg_we & !reg_error;
+  assign config_spin_initial_0_wd = reg_wdata[31:0];
 
-  assign config_spin_initial_1_we = addr_hit[2] & reg_we & !reg_error;
-  assign config_spin_initial_1_wd = reg_wdata[63:0];
+  assign config_spin_initial_1_we = addr_hit[3] & reg_we & !reg_error;
+  assign config_spin_initial_1_wd = reg_wdata[31:0];
 
-  assign config_spin_initial_2_we = addr_hit[3] & reg_we & !reg_error;
-  assign config_spin_initial_2_wd = reg_wdata[63:0];
+  assign config_spin_initial_2_we = addr_hit[4] & reg_we & !reg_error;
+  assign config_spin_initial_2_wd = reg_wdata[31:0];
 
-  assign config_spin_initial_3_we = addr_hit[4] & reg_we & !reg_error;
-  assign config_spin_initial_3_wd = reg_wdata[63:0];
+  assign config_spin_initial_3_we = addr_hit[5] & reg_we & !reg_error;
+  assign config_spin_initial_3_wd = reg_wdata[31:0];
 
-  assign counter_cfg_1_cfg_trans_num_we = addr_hit[5] & reg_we & !reg_error;
+  assign config_spin_initial_4_we = addr_hit[6] & reg_we & !reg_error;
+  assign config_spin_initial_4_wd = reg_wdata[31:0];
+
+  assign config_spin_initial_5_we = addr_hit[7] & reg_we & !reg_error;
+  assign config_spin_initial_5_wd = reg_wdata[31:0];
+
+  assign config_spin_initial_6_we = addr_hit[8] & reg_we & !reg_error;
+  assign config_spin_initial_6_wd = reg_wdata[31:0];
+
+  assign config_spin_initial_7_we = addr_hit[9] & reg_we & !reg_error;
+  assign config_spin_initial_7_wd = reg_wdata[31:0];
+
+  assign counter_cfg_1_cfg_trans_num_we = addr_hit[10] & reg_we & !reg_error;
   assign counter_cfg_1_cfg_trans_num_wd = reg_wdata[15:0];
 
-  assign counter_cfg_1_cycle_per_wwl_high_we = addr_hit[5] & reg_we & !reg_error;
+  assign counter_cfg_1_cycle_per_wwl_high_we = addr_hit[10] & reg_we & !reg_error;
   assign counter_cfg_1_cycle_per_wwl_high_wd = reg_wdata[31:16];
 
-  assign counter_cfg_1_cycle_per_wwl_low_we = addr_hit[5] & reg_we & !reg_error;
-  assign counter_cfg_1_cycle_per_wwl_low_wd = reg_wdata[47:32];
+  assign counter_cfg_2_cycle_per_wwl_low_we = addr_hit[11] & reg_we & !reg_error;
+  assign counter_cfg_2_cycle_per_wwl_low_wd = reg_wdata[15:0];
 
-  assign counter_cfg_1_cycle_per_spin_write_we = addr_hit[5] & reg_we & !reg_error;
-  assign counter_cfg_1_cycle_per_spin_write_wd = reg_wdata[63:48];
+  assign counter_cfg_2_cycle_per_spin_write_we = addr_hit[11] & reg_we & !reg_error;
+  assign counter_cfg_2_cycle_per_spin_write_wd = reg_wdata[31:16];
 
-  assign counter_cfg_2_cycle_per_spin_compute_we = addr_hit[6] & reg_we & !reg_error;
-  assign counter_cfg_2_cycle_per_spin_compute_wd = reg_wdata[15:0];
+  assign counter_cfg_3_cycle_per_spin_compute_we = addr_hit[12] & reg_we & !reg_error;
+  assign counter_cfg_3_cycle_per_spin_compute_wd = reg_wdata[15:0];
 
-  assign counter_cfg_2_debug_cycle_per_spin_read_we = addr_hit[6] & reg_we & !reg_error;
-  assign counter_cfg_2_debug_cycle_per_spin_read_wd = reg_wdata[31:16];
+  assign counter_cfg_3_debug_cycle_per_spin_read_we = addr_hit[12] & reg_we & !reg_error;
+  assign counter_cfg_3_debug_cycle_per_spin_read_wd = reg_wdata[31:16];
 
-  assign counter_cfg_2_debug_spin_read_num_we = addr_hit[6] & reg_we & !reg_error;
-  assign counter_cfg_2_debug_spin_read_num_wd = reg_wdata[47:32];
+  assign counter_cfg_4_debug_spin_read_num_we = addr_hit[13] & reg_we & !reg_error;
+  assign counter_cfg_4_debug_spin_read_num_wd = reg_wdata[15:0];
 
-  assign counter_cfg_2_icon_last_raddr_plus_one_we = addr_hit[6] & reg_we & !reg_error;
-  assign counter_cfg_2_icon_last_raddr_plus_one_wd = reg_wdata[58:48];
+  assign counter_cfg_4_icon_last_raddr_plus_one_we = addr_hit[13] & reg_we & !reg_error;
+  assign counter_cfg_4_icon_last_raddr_plus_one_wd = reg_wdata[26:16];
 
-  assign counter_cfg_2_dgt_hscaling_we = addr_hit[6] & reg_we & !reg_error;
-  assign counter_cfg_2_dgt_hscaling_wd = reg_wdata[63:59];
+  assign counter_cfg_4_dgt_hscaling_we = addr_hit[13] & reg_we & !reg_error;
+  assign counter_cfg_4_dgt_hscaling_wd = reg_wdata[31:27];
 
-  assign wwl_vdd_cfg_0_we = addr_hit[7] & reg_we & !reg_error;
-  assign wwl_vdd_cfg_0_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_0_we = addr_hit[14] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_0_wd = reg_wdata[31:0];
 
-  assign wwl_vdd_cfg_1_we = addr_hit[8] & reg_we & !reg_error;
-  assign wwl_vdd_cfg_1_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_1_we = addr_hit[15] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_1_wd = reg_wdata[31:0];
 
-  assign wwl_vdd_cfg_2_we = addr_hit[9] & reg_we & !reg_error;
-  assign wwl_vdd_cfg_2_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_2_we = addr_hit[16] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_2_wd = reg_wdata[31:0];
 
-  assign wwl_vdd_cfg_3_we = addr_hit[10] & reg_we & !reg_error;
-  assign wwl_vdd_cfg_3_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_3_we = addr_hit[17] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_3_wd = reg_wdata[31:0];
 
-  assign wwl_vread_cfg_0_we = addr_hit[11] & reg_we & !reg_error;
-  assign wwl_vread_cfg_0_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_4_we = addr_hit[18] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_4_wd = reg_wdata[31:0];
 
-  assign wwl_vread_cfg_1_we = addr_hit[12] & reg_we & !reg_error;
-  assign wwl_vread_cfg_1_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_5_we = addr_hit[19] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_5_wd = reg_wdata[31:0];
 
-  assign wwl_vread_cfg_2_we = addr_hit[13] & reg_we & !reg_error;
-  assign wwl_vread_cfg_2_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_6_we = addr_hit[20] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_6_wd = reg_wdata[31:0];
 
-  assign wwl_vread_cfg_3_we = addr_hit[14] & reg_we & !reg_error;
-  assign wwl_vread_cfg_3_wd = reg_wdata[63:0];
+  assign wwl_vdd_cfg_7_we = addr_hit[21] & reg_we & !reg_error;
+  assign wwl_vdd_cfg_7_wd = reg_wdata[31:0];
 
-  assign spin_wwl_strobe_0_we = addr_hit[15] & reg_we & !reg_error;
-  assign spin_wwl_strobe_0_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_0_we = addr_hit[22] & reg_we & !reg_error;
+  assign wwl_vread_cfg_0_wd = reg_wdata[31:0];
 
-  assign spin_wwl_strobe_1_we = addr_hit[16] & reg_we & !reg_error;
-  assign spin_wwl_strobe_1_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_1_we = addr_hit[23] & reg_we & !reg_error;
+  assign wwl_vread_cfg_1_wd = reg_wdata[31:0];
 
-  assign spin_wwl_strobe_2_we = addr_hit[17] & reg_we & !reg_error;
-  assign spin_wwl_strobe_2_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_2_we = addr_hit[24] & reg_we & !reg_error;
+  assign wwl_vread_cfg_2_wd = reg_wdata[31:0];
 
-  assign spin_wwl_strobe_3_we = addr_hit[18] & reg_we & !reg_error;
-  assign spin_wwl_strobe_3_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_3_we = addr_hit[25] & reg_we & !reg_error;
+  assign wwl_vread_cfg_3_wd = reg_wdata[31:0];
 
-  assign spin_feedback_cfg_0_we = addr_hit[19] & reg_we & !reg_error;
-  assign spin_feedback_cfg_0_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_4_we = addr_hit[26] & reg_we & !reg_error;
+  assign wwl_vread_cfg_4_wd = reg_wdata[31:0];
 
-  assign spin_feedback_cfg_1_we = addr_hit[20] & reg_we & !reg_error;
-  assign spin_feedback_cfg_1_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_5_we = addr_hit[27] & reg_we & !reg_error;
+  assign wwl_vread_cfg_5_wd = reg_wdata[31:0];
 
-  assign spin_feedback_cfg_2_we = addr_hit[21] & reg_we & !reg_error;
-  assign spin_feedback_cfg_2_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_6_we = addr_hit[28] & reg_we & !reg_error;
+  assign wwl_vread_cfg_6_wd = reg_wdata[31:0];
 
-  assign spin_feedback_cfg_3_we = addr_hit[22] & reg_we & !reg_error;
-  assign spin_feedback_cfg_3_wd = reg_wdata[63:0];
+  assign wwl_vread_cfg_7_we = addr_hit[29] & reg_we & !reg_error;
+  assign wwl_vread_cfg_7_wd = reg_wdata[31:0];
 
-  assign h_rdata_0_we = addr_hit[23] & reg_we & !reg_error;
-  assign h_rdata_0_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_0_we = addr_hit[30] & reg_we & !reg_error;
+  assign spin_wwl_strobe_0_wd = reg_wdata[31:0];
 
-  assign h_rdata_1_we = addr_hit[24] & reg_we & !reg_error;
-  assign h_rdata_1_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_1_we = addr_hit[31] & reg_we & !reg_error;
+  assign spin_wwl_strobe_1_wd = reg_wdata[31:0];
 
-  assign h_rdata_2_we = addr_hit[25] & reg_we & !reg_error;
-  assign h_rdata_2_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_2_we = addr_hit[32] & reg_we & !reg_error;
+  assign spin_wwl_strobe_2_wd = reg_wdata[31:0];
 
-  assign h_rdata_3_we = addr_hit[26] & reg_we & !reg_error;
-  assign h_rdata_3_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_3_we = addr_hit[33] & reg_we & !reg_error;
+  assign spin_wwl_strobe_3_wd = reg_wdata[31:0];
 
-  assign h_rdata_4_we = addr_hit[27] & reg_we & !reg_error;
-  assign h_rdata_4_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_4_we = addr_hit[34] & reg_we & !reg_error;
+  assign spin_wwl_strobe_4_wd = reg_wdata[31:0];
 
-  assign h_rdata_5_we = addr_hit[28] & reg_we & !reg_error;
-  assign h_rdata_5_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_5_we = addr_hit[35] & reg_we & !reg_error;
+  assign spin_wwl_strobe_5_wd = reg_wdata[31:0];
 
-  assign h_rdata_6_we = addr_hit[29] & reg_we & !reg_error;
-  assign h_rdata_6_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_6_we = addr_hit[36] & reg_we & !reg_error;
+  assign spin_wwl_strobe_6_wd = reg_wdata[31:0];
 
-  assign h_rdata_7_we = addr_hit[30] & reg_we & !reg_error;
-  assign h_rdata_7_wd = reg_wdata[63:0];
+  assign spin_wwl_strobe_7_we = addr_hit[37] & reg_we & !reg_error;
+  assign spin_wwl_strobe_7_wd = reg_wdata[31:0];
 
-  assign h_rdata_8_we = addr_hit[31] & reg_we & !reg_error;
-  assign h_rdata_8_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_0_we = addr_hit[38] & reg_we & !reg_error;
+  assign spin_feedback_cfg_0_wd = reg_wdata[31:0];
 
-  assign h_rdata_9_we = addr_hit[32] & reg_we & !reg_error;
-  assign h_rdata_9_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_1_we = addr_hit[39] & reg_we & !reg_error;
+  assign spin_feedback_cfg_1_wd = reg_wdata[31:0];
 
-  assign h_rdata_10_we = addr_hit[33] & reg_we & !reg_error;
-  assign h_rdata_10_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_2_we = addr_hit[40] & reg_we & !reg_error;
+  assign spin_feedback_cfg_2_wd = reg_wdata[31:0];
 
-  assign h_rdata_11_we = addr_hit[34] & reg_we & !reg_error;
-  assign h_rdata_11_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_3_we = addr_hit[41] & reg_we & !reg_error;
+  assign spin_feedback_cfg_3_wd = reg_wdata[31:0];
 
-  assign h_rdata_12_we = addr_hit[35] & reg_we & !reg_error;
-  assign h_rdata_12_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_4_we = addr_hit[42] & reg_we & !reg_error;
+  assign spin_feedback_cfg_4_wd = reg_wdata[31:0];
 
-  assign h_rdata_13_we = addr_hit[36] & reg_we & !reg_error;
-  assign h_rdata_13_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_5_we = addr_hit[43] & reg_we & !reg_error;
+  assign spin_feedback_cfg_5_wd = reg_wdata[31:0];
 
-  assign h_rdata_14_we = addr_hit[37] & reg_we & !reg_error;
-  assign h_rdata_14_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_6_we = addr_hit[44] & reg_we & !reg_error;
+  assign spin_feedback_cfg_6_wd = reg_wdata[31:0];
 
-  assign h_rdata_15_we = addr_hit[38] & reg_we & !reg_error;
-  assign h_rdata_15_wd = reg_wdata[63:0];
+  assign spin_feedback_cfg_7_we = addr_hit[45] & reg_we & !reg_error;
+  assign spin_feedback_cfg_7_wd = reg_wdata[31:0];
 
-  assign wbl_floating_0_we = addr_hit[39] & reg_we & !reg_error;
-  assign wbl_floating_0_wd = reg_wdata[63:0];
+  assign h_rdata_0_we = addr_hit[46] & reg_we & !reg_error;
+  assign h_rdata_0_wd = reg_wdata[31:0];
 
-  assign wbl_floating_1_we = addr_hit[40] & reg_we & !reg_error;
-  assign wbl_floating_1_wd = reg_wdata[63:0];
+  assign h_rdata_1_we = addr_hit[47] & reg_we & !reg_error;
+  assign h_rdata_1_wd = reg_wdata[31:0];
 
-  assign wbl_floating_2_we = addr_hit[41] & reg_we & !reg_error;
-  assign wbl_floating_2_wd = reg_wdata[63:0];
+  assign h_rdata_2_we = addr_hit[48] & reg_we & !reg_error;
+  assign h_rdata_2_wd = reg_wdata[31:0];
 
-  assign wbl_floating_3_we = addr_hit[42] & reg_we & !reg_error;
-  assign wbl_floating_3_wd = reg_wdata[63:0];
+  assign h_rdata_3_we = addr_hit[49] & reg_we & !reg_error;
+  assign h_rdata_3_wd = reg_wdata[31:0];
 
-  assign wbl_floating_4_we = addr_hit[43] & reg_we & !reg_error;
-  assign wbl_floating_4_wd = reg_wdata[63:0];
+  assign h_rdata_4_we = addr_hit[50] & reg_we & !reg_error;
+  assign h_rdata_4_wd = reg_wdata[31:0];
 
-  assign wbl_floating_5_we = addr_hit[44] & reg_we & !reg_error;
-  assign wbl_floating_5_wd = reg_wdata[63:0];
+  assign h_rdata_5_we = addr_hit[51] & reg_we & !reg_error;
+  assign h_rdata_5_wd = reg_wdata[31:0];
 
-  assign wbl_floating_6_we = addr_hit[45] & reg_we & !reg_error;
-  assign wbl_floating_6_wd = reg_wdata[63:0];
+  assign h_rdata_6_we = addr_hit[52] & reg_we & !reg_error;
+  assign h_rdata_6_wd = reg_wdata[31:0];
 
-  assign wbl_floating_7_we = addr_hit[46] & reg_we & !reg_error;
-  assign wbl_floating_7_wd = reg_wdata[63:0];
+  assign h_rdata_7_we = addr_hit[53] & reg_we & !reg_error;
+  assign h_rdata_7_wd = reg_wdata[31:0];
 
-  assign wbl_floating_8_we = addr_hit[47] & reg_we & !reg_error;
-  assign wbl_floating_8_wd = reg_wdata[63:0];
+  assign h_rdata_8_we = addr_hit[54] & reg_we & !reg_error;
+  assign h_rdata_8_wd = reg_wdata[31:0];
 
-  assign wbl_floating_9_we = addr_hit[48] & reg_we & !reg_error;
-  assign wbl_floating_9_wd = reg_wdata[63:0];
+  assign h_rdata_9_we = addr_hit[55] & reg_we & !reg_error;
+  assign h_rdata_9_wd = reg_wdata[31:0];
 
-  assign wbl_floating_10_we = addr_hit[49] & reg_we & !reg_error;
-  assign wbl_floating_10_wd = reg_wdata[63:0];
+  assign h_rdata_10_we = addr_hit[56] & reg_we & !reg_error;
+  assign h_rdata_10_wd = reg_wdata[31:0];
 
-  assign wbl_floating_11_we = addr_hit[50] & reg_we & !reg_error;
-  assign wbl_floating_11_wd = reg_wdata[63:0];
+  assign h_rdata_11_we = addr_hit[57] & reg_we & !reg_error;
+  assign h_rdata_11_wd = reg_wdata[31:0];
 
-  assign wbl_floating_12_we = addr_hit[51] & reg_we & !reg_error;
-  assign wbl_floating_12_wd = reg_wdata[63:0];
+  assign h_rdata_12_we = addr_hit[58] & reg_we & !reg_error;
+  assign h_rdata_12_wd = reg_wdata[31:0];
 
-  assign wbl_floating_13_we = addr_hit[52] & reg_we & !reg_error;
-  assign wbl_floating_13_wd = reg_wdata[63:0];
+  assign h_rdata_13_we = addr_hit[59] & reg_we & !reg_error;
+  assign h_rdata_13_wd = reg_wdata[31:0];
 
-  assign wbl_floating_14_we = addr_hit[53] & reg_we & !reg_error;
-  assign wbl_floating_14_wd = reg_wdata[63:0];
+  assign h_rdata_14_we = addr_hit[60] & reg_we & !reg_error;
+  assign h_rdata_14_wd = reg_wdata[31:0];
 
-  assign wbl_floating_15_we = addr_hit[54] & reg_we & !reg_error;
-  assign wbl_floating_15_wd = reg_wdata[63:0];
+  assign h_rdata_15_we = addr_hit[61] & reg_we & !reg_error;
+  assign h_rdata_15_wd = reg_wdata[31:0];
 
-  assign debug_j_one_hot_wwl_0_we = addr_hit[55] & reg_we & !reg_error;
-  assign debug_j_one_hot_wwl_0_wd = reg_wdata[63:0];
+  assign h_rdata_16_we = addr_hit[62] & reg_we & !reg_error;
+  assign h_rdata_16_wd = reg_wdata[31:0];
 
-  assign debug_j_one_hot_wwl_1_we = addr_hit[56] & reg_we & !reg_error;
-  assign debug_j_one_hot_wwl_1_wd = reg_wdata[63:0];
+  assign h_rdata_17_we = addr_hit[63] & reg_we & !reg_error;
+  assign h_rdata_17_wd = reg_wdata[31:0];
 
-  assign debug_j_one_hot_wwl_2_we = addr_hit[57] & reg_we & !reg_error;
-  assign debug_j_one_hot_wwl_2_wd = reg_wdata[63:0];
+  assign h_rdata_18_we = addr_hit[64] & reg_we & !reg_error;
+  assign h_rdata_18_wd = reg_wdata[31:0];
 
-  assign debug_j_one_hot_wwl_3_we = addr_hit[58] & reg_we & !reg_error;
-  assign debug_j_one_hot_wwl_3_wd = reg_wdata[63:0];
+  assign h_rdata_19_we = addr_hit[65] & reg_we & !reg_error;
+  assign h_rdata_19_wd = reg_wdata[31:0];
 
-  assign output_status_dt_cfg_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign h_rdata_20_we = addr_hit[66] & reg_we & !reg_error;
+  assign h_rdata_20_wd = reg_wdata[31:0];
+
+  assign h_rdata_21_we = addr_hit[67] & reg_we & !reg_error;
+  assign h_rdata_21_wd = reg_wdata[31:0];
+
+  assign h_rdata_22_we = addr_hit[68] & reg_we & !reg_error;
+  assign h_rdata_22_wd = reg_wdata[31:0];
+
+  assign h_rdata_23_we = addr_hit[69] & reg_we & !reg_error;
+  assign h_rdata_23_wd = reg_wdata[31:0];
+
+  assign h_rdata_24_we = addr_hit[70] & reg_we & !reg_error;
+  assign h_rdata_24_wd = reg_wdata[31:0];
+
+  assign h_rdata_25_we = addr_hit[71] & reg_we & !reg_error;
+  assign h_rdata_25_wd = reg_wdata[31:0];
+
+  assign h_rdata_26_we = addr_hit[72] & reg_we & !reg_error;
+  assign h_rdata_26_wd = reg_wdata[31:0];
+
+  assign h_rdata_27_we = addr_hit[73] & reg_we & !reg_error;
+  assign h_rdata_27_wd = reg_wdata[31:0];
+
+  assign h_rdata_28_we = addr_hit[74] & reg_we & !reg_error;
+  assign h_rdata_28_wd = reg_wdata[31:0];
+
+  assign h_rdata_29_we = addr_hit[75] & reg_we & !reg_error;
+  assign h_rdata_29_wd = reg_wdata[31:0];
+
+  assign h_rdata_30_we = addr_hit[76] & reg_we & !reg_error;
+  assign h_rdata_30_wd = reg_wdata[31:0];
+
+  assign h_rdata_31_we = addr_hit[77] & reg_we & !reg_error;
+  assign h_rdata_31_wd = reg_wdata[31:0];
+
+  assign wbl_floating_0_we = addr_hit[78] & reg_we & !reg_error;
+  assign wbl_floating_0_wd = reg_wdata[31:0];
+
+  assign wbl_floating_1_we = addr_hit[79] & reg_we & !reg_error;
+  assign wbl_floating_1_wd = reg_wdata[31:0];
+
+  assign wbl_floating_2_we = addr_hit[80] & reg_we & !reg_error;
+  assign wbl_floating_2_wd = reg_wdata[31:0];
+
+  assign wbl_floating_3_we = addr_hit[81] & reg_we & !reg_error;
+  assign wbl_floating_3_wd = reg_wdata[31:0];
+
+  assign wbl_floating_4_we = addr_hit[82] & reg_we & !reg_error;
+  assign wbl_floating_4_wd = reg_wdata[31:0];
+
+  assign wbl_floating_5_we = addr_hit[83] & reg_we & !reg_error;
+  assign wbl_floating_5_wd = reg_wdata[31:0];
+
+  assign wbl_floating_6_we = addr_hit[84] & reg_we & !reg_error;
+  assign wbl_floating_6_wd = reg_wdata[31:0];
+
+  assign wbl_floating_7_we = addr_hit[85] & reg_we & !reg_error;
+  assign wbl_floating_7_wd = reg_wdata[31:0];
+
+  assign wbl_floating_8_we = addr_hit[86] & reg_we & !reg_error;
+  assign wbl_floating_8_wd = reg_wdata[31:0];
+
+  assign wbl_floating_9_we = addr_hit[87] & reg_we & !reg_error;
+  assign wbl_floating_9_wd = reg_wdata[31:0];
+
+  assign wbl_floating_10_we = addr_hit[88] & reg_we & !reg_error;
+  assign wbl_floating_10_wd = reg_wdata[31:0];
+
+  assign wbl_floating_11_we = addr_hit[89] & reg_we & !reg_error;
+  assign wbl_floating_11_wd = reg_wdata[31:0];
+
+  assign wbl_floating_12_we = addr_hit[90] & reg_we & !reg_error;
+  assign wbl_floating_12_wd = reg_wdata[31:0];
+
+  assign wbl_floating_13_we = addr_hit[91] & reg_we & !reg_error;
+  assign wbl_floating_13_wd = reg_wdata[31:0];
+
+  assign wbl_floating_14_we = addr_hit[92] & reg_we & !reg_error;
+  assign wbl_floating_14_wd = reg_wdata[31:0];
+
+  assign wbl_floating_15_we = addr_hit[93] & reg_we & !reg_error;
+  assign wbl_floating_15_wd = reg_wdata[31:0];
+
+  assign wbl_floating_16_we = addr_hit[94] & reg_we & !reg_error;
+  assign wbl_floating_16_wd = reg_wdata[31:0];
+
+  assign wbl_floating_17_we = addr_hit[95] & reg_we & !reg_error;
+  assign wbl_floating_17_wd = reg_wdata[31:0];
+
+  assign wbl_floating_18_we = addr_hit[96] & reg_we & !reg_error;
+  assign wbl_floating_18_wd = reg_wdata[31:0];
+
+  assign wbl_floating_19_we = addr_hit[97] & reg_we & !reg_error;
+  assign wbl_floating_19_wd = reg_wdata[31:0];
+
+  assign wbl_floating_20_we = addr_hit[98] & reg_we & !reg_error;
+  assign wbl_floating_20_wd = reg_wdata[31:0];
+
+  assign wbl_floating_21_we = addr_hit[99] & reg_we & !reg_error;
+  assign wbl_floating_21_wd = reg_wdata[31:0];
+
+  assign wbl_floating_22_we = addr_hit[100] & reg_we & !reg_error;
+  assign wbl_floating_22_wd = reg_wdata[31:0];
+
+  assign wbl_floating_23_we = addr_hit[101] & reg_we & !reg_error;
+  assign wbl_floating_23_wd = reg_wdata[31:0];
+
+  assign wbl_floating_24_we = addr_hit[102] & reg_we & !reg_error;
+  assign wbl_floating_24_wd = reg_wdata[31:0];
+
+  assign wbl_floating_25_we = addr_hit[103] & reg_we & !reg_error;
+  assign wbl_floating_25_wd = reg_wdata[31:0];
+
+  assign wbl_floating_26_we = addr_hit[104] & reg_we & !reg_error;
+  assign wbl_floating_26_wd = reg_wdata[31:0];
+
+  assign wbl_floating_27_we = addr_hit[105] & reg_we & !reg_error;
+  assign wbl_floating_27_wd = reg_wdata[31:0];
+
+  assign wbl_floating_28_we = addr_hit[106] & reg_we & !reg_error;
+  assign wbl_floating_28_wd = reg_wdata[31:0];
+
+  assign wbl_floating_29_we = addr_hit[107] & reg_we & !reg_error;
+  assign wbl_floating_29_wd = reg_wdata[31:0];
+
+  assign wbl_floating_30_we = addr_hit[108] & reg_we & !reg_error;
+  assign wbl_floating_30_wd = reg_wdata[31:0];
+
+  assign wbl_floating_31_we = addr_hit[109] & reg_we & !reg_error;
+  assign wbl_floating_31_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_0_we = addr_hit[110] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_0_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_1_we = addr_hit[111] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_1_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_2_we = addr_hit[112] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_2_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_3_we = addr_hit[113] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_3_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_4_we = addr_hit[114] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_4_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_5_we = addr_hit[115] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_5_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_6_we = addr_hit[116] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_6_wd = reg_wdata[31:0];
+
+  assign debug_j_one_hot_wwl_7_we = addr_hit[117] & reg_we & !reg_error;
+  assign debug_j_one_hot_wwl_7_wd = reg_wdata[31:0];
+
+  assign output_status_dt_cfg_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_dt_cfg_idle_wd = reg_wdata[0];
 
-  assign output_status_cmpt_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_cmpt_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_cmpt_idle_wd = reg_wdata[1];
 
-  assign output_status_energy_fifo_update_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_energy_fifo_update_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_energy_fifo_update_wd = reg_wdata[2];
 
-  assign output_status_spin_fifo_update_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_spin_fifo_update_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_spin_fifo_update_wd = reg_wdata[3];
 
-  assign output_status_debug_j_read_data_valid_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_j_read_data_valid_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_j_read_data_valid_wd = reg_wdata[4];
 
-  assign output_status_debug_analog_dt_w_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_analog_dt_w_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_analog_dt_w_idle_wd = reg_wdata[5];
 
-  assign output_status_debug_analog_dt_r_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_analog_dt_r_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_analog_dt_r_idle_wd = reg_wdata[6];
 
-  assign output_status_debug_spin_w_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_spin_w_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_spin_w_idle_wd = reg_wdata[7];
 
-  assign output_status_debug_spin_r_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_spin_r_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_spin_r_idle_wd = reg_wdata[8];
 
-  assign output_status_debug_spin_cmpt_idle_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_spin_cmpt_idle_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_spin_cmpt_idle_wd = reg_wdata[9];
 
-  assign output_status_debug_fm_upstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_fm_upstream_handshake_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_fm_upstream_handshake_wd = reg_wdata[10];
 
-  assign output_status_debug_fm_downstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_fm_downstream_handshake_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_fm_downstream_handshake_wd = reg_wdata[11];
 
-  assign output_status_debug_aw_downstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_aw_downstream_handshake_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_aw_downstream_handshake_wd = reg_wdata[12];
 
-  assign output_status_debug_em_upstream_handshake_we = addr_hit[59] & reg_we & !reg_error;
+  assign output_status_debug_em_upstream_handshake_we = addr_hit[118] & reg_we & !reg_error;
   assign output_status_debug_em_upstream_handshake_wd = reg_wdata[13];
 
-  assign output_status_debug_fm_energy_input_we = addr_hit[59] & reg_we & !reg_error;
-  assign output_status_debug_fm_energy_input_wd = reg_wdata[45:14];
+  assign debug_fm_energy_input_we = addr_hit[119] & reg_we & !reg_error;
+  assign debug_fm_energy_input_wd = reg_wdata[31:0];
 
-  assign energy_fifo_data_energy_fifo_0_we = addr_hit[60] & reg_we & !reg_error;
-  assign energy_fifo_data_energy_fifo_0_wd = reg_wdata[31:0];
+  assign energy_fifo_data_0_we = addr_hit[120] & reg_we & !reg_error;
+  assign energy_fifo_data_0_wd = reg_wdata[31:0];
 
-  assign energy_fifo_data_energy_fifo_1_we = addr_hit[60] & reg_we & !reg_error;
-  assign energy_fifo_data_energy_fifo_1_wd = reg_wdata[63:32];
+  assign energy_fifo_data_1_we = addr_hit[121] & reg_we & !reg_error;
+  assign energy_fifo_data_1_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_0_0_we = addr_hit[61] & reg_we & !reg_error;
-  assign spin_fifo_data_0_0_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_0_we = addr_hit[122] & reg_we & !reg_error;
+  assign spin_fifo_data_0_0_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_0_1_we = addr_hit[62] & reg_we & !reg_error;
-  assign spin_fifo_data_0_1_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_1_we = addr_hit[123] & reg_we & !reg_error;
+  assign spin_fifo_data_0_1_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_0_2_we = addr_hit[63] & reg_we & !reg_error;
-  assign spin_fifo_data_0_2_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_2_we = addr_hit[124] & reg_we & !reg_error;
+  assign spin_fifo_data_0_2_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_0_3_we = addr_hit[64] & reg_we & !reg_error;
-  assign spin_fifo_data_0_3_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_3_we = addr_hit[125] & reg_we & !reg_error;
+  assign spin_fifo_data_0_3_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_1_0_we = addr_hit[65] & reg_we & !reg_error;
-  assign spin_fifo_data_1_0_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_4_we = addr_hit[126] & reg_we & !reg_error;
+  assign spin_fifo_data_0_4_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_1_1_we = addr_hit[66] & reg_we & !reg_error;
-  assign spin_fifo_data_1_1_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_5_we = addr_hit[127] & reg_we & !reg_error;
+  assign spin_fifo_data_0_5_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_1_2_we = addr_hit[67] & reg_we & !reg_error;
-  assign spin_fifo_data_1_2_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_6_we = addr_hit[128] & reg_we & !reg_error;
+  assign spin_fifo_data_0_6_wd = reg_wdata[31:0];
 
-  assign spin_fifo_data_1_3_we = addr_hit[68] & reg_we & !reg_error;
-  assign spin_fifo_data_1_3_wd = reg_wdata[63:0];
+  assign spin_fifo_data_0_7_we = addr_hit[129] & reg_we & !reg_error;
+  assign spin_fifo_data_0_7_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_0_we = addr_hit[69] & reg_we & !reg_error;
-  assign debug_j_read_data_0_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_0_we = addr_hit[130] & reg_we & !reg_error;
+  assign spin_fifo_data_1_0_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_1_we = addr_hit[70] & reg_we & !reg_error;
-  assign debug_j_read_data_1_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_1_we = addr_hit[131] & reg_we & !reg_error;
+  assign spin_fifo_data_1_1_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_2_we = addr_hit[71] & reg_we & !reg_error;
-  assign debug_j_read_data_2_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_2_we = addr_hit[132] & reg_we & !reg_error;
+  assign spin_fifo_data_1_2_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_3_we = addr_hit[72] & reg_we & !reg_error;
-  assign debug_j_read_data_3_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_3_we = addr_hit[133] & reg_we & !reg_error;
+  assign spin_fifo_data_1_3_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_4_we = addr_hit[73] & reg_we & !reg_error;
-  assign debug_j_read_data_4_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_4_we = addr_hit[134] & reg_we & !reg_error;
+  assign spin_fifo_data_1_4_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_5_we = addr_hit[74] & reg_we & !reg_error;
-  assign debug_j_read_data_5_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_5_we = addr_hit[135] & reg_we & !reg_error;
+  assign spin_fifo_data_1_5_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_6_we = addr_hit[75] & reg_we & !reg_error;
-  assign debug_j_read_data_6_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_6_we = addr_hit[136] & reg_we & !reg_error;
+  assign spin_fifo_data_1_6_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_7_we = addr_hit[76] & reg_we & !reg_error;
-  assign debug_j_read_data_7_wd = reg_wdata[63:0];
+  assign spin_fifo_data_1_7_we = addr_hit[137] & reg_we & !reg_error;
+  assign spin_fifo_data_1_7_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_8_we = addr_hit[77] & reg_we & !reg_error;
-  assign debug_j_read_data_8_wd = reg_wdata[63:0];
+  assign debug_j_read_data_0_we = addr_hit[138] & reg_we & !reg_error;
+  assign debug_j_read_data_0_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_9_we = addr_hit[78] & reg_we & !reg_error;
-  assign debug_j_read_data_9_wd = reg_wdata[63:0];
+  assign debug_j_read_data_1_we = addr_hit[139] & reg_we & !reg_error;
+  assign debug_j_read_data_1_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_10_we = addr_hit[79] & reg_we & !reg_error;
-  assign debug_j_read_data_10_wd = reg_wdata[63:0];
+  assign debug_j_read_data_2_we = addr_hit[140] & reg_we & !reg_error;
+  assign debug_j_read_data_2_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_11_we = addr_hit[80] & reg_we & !reg_error;
-  assign debug_j_read_data_11_wd = reg_wdata[63:0];
+  assign debug_j_read_data_3_we = addr_hit[141] & reg_we & !reg_error;
+  assign debug_j_read_data_3_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_12_we = addr_hit[81] & reg_we & !reg_error;
-  assign debug_j_read_data_12_wd = reg_wdata[63:0];
+  assign debug_j_read_data_4_we = addr_hit[142] & reg_we & !reg_error;
+  assign debug_j_read_data_4_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_13_we = addr_hit[82] & reg_we & !reg_error;
-  assign debug_j_read_data_13_wd = reg_wdata[63:0];
+  assign debug_j_read_data_5_we = addr_hit[143] & reg_we & !reg_error;
+  assign debug_j_read_data_5_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_14_we = addr_hit[83] & reg_we & !reg_error;
-  assign debug_j_read_data_14_wd = reg_wdata[63:0];
+  assign debug_j_read_data_6_we = addr_hit[144] & reg_we & !reg_error;
+  assign debug_j_read_data_6_wd = reg_wdata[31:0];
 
-  assign debug_j_read_data_15_we = addr_hit[84] & reg_we & !reg_error;
-  assign debug_j_read_data_15_wd = reg_wdata[63:0];
+  assign debug_j_read_data_7_we = addr_hit[145] & reg_we & !reg_error;
+  assign debug_j_read_data_7_wd = reg_wdata[31:0];
 
-  assign debug_fm_spin_out_0_we = addr_hit[85] & reg_we & !reg_error;
-  assign debug_fm_spin_out_0_wd = reg_wdata[63:0];
+  assign debug_j_read_data_8_we = addr_hit[146] & reg_we & !reg_error;
+  assign debug_j_read_data_8_wd = reg_wdata[31:0];
 
-  assign debug_fm_spin_out_1_we = addr_hit[86] & reg_we & !reg_error;
-  assign debug_fm_spin_out_1_wd = reg_wdata[63:0];
+  assign debug_j_read_data_9_we = addr_hit[147] & reg_we & !reg_error;
+  assign debug_j_read_data_9_wd = reg_wdata[31:0];
 
-  assign debug_fm_spin_out_2_we = addr_hit[87] & reg_we & !reg_error;
-  assign debug_fm_spin_out_2_wd = reg_wdata[63:0];
+  assign debug_j_read_data_10_we = addr_hit[148] & reg_we & !reg_error;
+  assign debug_j_read_data_10_wd = reg_wdata[31:0];
 
-  assign debug_fm_spin_out_3_we = addr_hit[88] & reg_we & !reg_error;
-  assign debug_fm_spin_out_3_wd = reg_wdata[63:0];
+  assign debug_j_read_data_11_we = addr_hit[149] & reg_we & !reg_error;
+  assign debug_j_read_data_11_wd = reg_wdata[31:0];
 
-  assign debug_aw_spin_out_0_we = addr_hit[89] & reg_we & !reg_error;
-  assign debug_aw_spin_out_0_wd = reg_wdata[63:0];
+  assign debug_j_read_data_12_we = addr_hit[150] & reg_we & !reg_error;
+  assign debug_j_read_data_12_wd = reg_wdata[31:0];
 
-  assign debug_aw_spin_out_1_we = addr_hit[90] & reg_we & !reg_error;
-  assign debug_aw_spin_out_1_wd = reg_wdata[63:0];
+  assign debug_j_read_data_13_we = addr_hit[151] & reg_we & !reg_error;
+  assign debug_j_read_data_13_wd = reg_wdata[31:0];
 
-  assign debug_aw_spin_out_2_we = addr_hit[91] & reg_we & !reg_error;
-  assign debug_aw_spin_out_2_wd = reg_wdata[63:0];
+  assign debug_j_read_data_14_we = addr_hit[152] & reg_we & !reg_error;
+  assign debug_j_read_data_14_wd = reg_wdata[31:0];
 
-  assign debug_aw_spin_out_3_we = addr_hit[92] & reg_we & !reg_error;
-  assign debug_aw_spin_out_3_wd = reg_wdata[63:0];
+  assign debug_j_read_data_15_we = addr_hit[153] & reg_we & !reg_error;
+  assign debug_j_read_data_15_wd = reg_wdata[31:0];
 
-  assign debug_em_spin_in_0_we = addr_hit[93] & reg_we & !reg_error;
-  assign debug_em_spin_in_0_wd = reg_wdata[63:0];
+  assign debug_j_read_data_16_we = addr_hit[154] & reg_we & !reg_error;
+  assign debug_j_read_data_16_wd = reg_wdata[31:0];
 
-  assign debug_em_spin_in_1_we = addr_hit[94] & reg_we & !reg_error;
-  assign debug_em_spin_in_1_wd = reg_wdata[63:0];
+  assign debug_j_read_data_17_we = addr_hit[155] & reg_we & !reg_error;
+  assign debug_j_read_data_17_wd = reg_wdata[31:0];
 
-  assign debug_em_spin_in_2_we = addr_hit[95] & reg_we & !reg_error;
-  assign debug_em_spin_in_2_wd = reg_wdata[63:0];
+  assign debug_j_read_data_18_we = addr_hit[156] & reg_we & !reg_error;
+  assign debug_j_read_data_18_wd = reg_wdata[31:0];
 
-  assign debug_em_spin_in_3_we = addr_hit[96] & reg_we & !reg_error;
-  assign debug_em_spin_in_3_wd = reg_wdata[63:0];
+  assign debug_j_read_data_19_we = addr_hit[157] & reg_we & !reg_error;
+  assign debug_j_read_data_19_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_20_we = addr_hit[158] & reg_we & !reg_error;
+  assign debug_j_read_data_20_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_21_we = addr_hit[159] & reg_we & !reg_error;
+  assign debug_j_read_data_21_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_22_we = addr_hit[160] & reg_we & !reg_error;
+  assign debug_j_read_data_22_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_23_we = addr_hit[161] & reg_we & !reg_error;
+  assign debug_j_read_data_23_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_24_we = addr_hit[162] & reg_we & !reg_error;
+  assign debug_j_read_data_24_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_25_we = addr_hit[163] & reg_we & !reg_error;
+  assign debug_j_read_data_25_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_26_we = addr_hit[164] & reg_we & !reg_error;
+  assign debug_j_read_data_26_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_27_we = addr_hit[165] & reg_we & !reg_error;
+  assign debug_j_read_data_27_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_28_we = addr_hit[166] & reg_we & !reg_error;
+  assign debug_j_read_data_28_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_29_we = addr_hit[167] & reg_we & !reg_error;
+  assign debug_j_read_data_29_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_30_we = addr_hit[168] & reg_we & !reg_error;
+  assign debug_j_read_data_30_wd = reg_wdata[31:0];
+
+  assign debug_j_read_data_31_we = addr_hit[169] & reg_we & !reg_error;
+  assign debug_j_read_data_31_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_0_we = addr_hit[170] & reg_we & !reg_error;
+  assign debug_fm_spin_out_0_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_1_we = addr_hit[171] & reg_we & !reg_error;
+  assign debug_fm_spin_out_1_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_2_we = addr_hit[172] & reg_we & !reg_error;
+  assign debug_fm_spin_out_2_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_3_we = addr_hit[173] & reg_we & !reg_error;
+  assign debug_fm_spin_out_3_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_4_we = addr_hit[174] & reg_we & !reg_error;
+  assign debug_fm_spin_out_4_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_5_we = addr_hit[175] & reg_we & !reg_error;
+  assign debug_fm_spin_out_5_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_6_we = addr_hit[176] & reg_we & !reg_error;
+  assign debug_fm_spin_out_6_wd = reg_wdata[31:0];
+
+  assign debug_fm_spin_out_7_we = addr_hit[177] & reg_we & !reg_error;
+  assign debug_fm_spin_out_7_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_0_we = addr_hit[178] & reg_we & !reg_error;
+  assign debug_aw_spin_out_0_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_1_we = addr_hit[179] & reg_we & !reg_error;
+  assign debug_aw_spin_out_1_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_2_we = addr_hit[180] & reg_we & !reg_error;
+  assign debug_aw_spin_out_2_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_3_we = addr_hit[181] & reg_we & !reg_error;
+  assign debug_aw_spin_out_3_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_4_we = addr_hit[182] & reg_we & !reg_error;
+  assign debug_aw_spin_out_4_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_5_we = addr_hit[183] & reg_we & !reg_error;
+  assign debug_aw_spin_out_5_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_6_we = addr_hit[184] & reg_we & !reg_error;
+  assign debug_aw_spin_out_6_wd = reg_wdata[31:0];
+
+  assign debug_aw_spin_out_7_we = addr_hit[185] & reg_we & !reg_error;
+  assign debug_aw_spin_out_7_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_0_we = addr_hit[186] & reg_we & !reg_error;
+  assign debug_em_spin_in_0_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_1_we = addr_hit[187] & reg_we & !reg_error;
+  assign debug_em_spin_in_1_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_2_we = addr_hit[188] & reg_we & !reg_error;
+  assign debug_em_spin_in_2_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_3_we = addr_hit[189] & reg_we & !reg_error;
+  assign debug_em_spin_in_3_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_4_we = addr_hit[190] & reg_we & !reg_error;
+  assign debug_em_spin_in_4_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_5_we = addr_hit[191] & reg_we & !reg_error;
+  assign debug_em_spin_in_5_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_6_we = addr_hit[192] & reg_we & !reg_error;
+  assign debug_em_spin_in_6_wd = reg_wdata[31:0];
+
+  assign debug_em_spin_in_7_we = addr_hit[193] & reg_we & !reg_error;
+  assign debug_em_spin_in_7_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[0] = global_cfg_flush_en_qs;
-        reg_rdata_next[1] = global_cfg_en_aw_qs;
-        reg_rdata_next[2] = global_cfg_en_em_qs;
-        reg_rdata_next[3] = global_cfg_en_fm_qs;
-        reg_rdata_next[4] = global_cfg_en_ff_qs;
-        reg_rdata_next[5] = global_cfg_en_ef_qs;
-        reg_rdata_next[6] = global_cfg_en_analog_loop_qs;
-        reg_rdata_next[7] = global_cfg_en_comparison_qs;
-        reg_rdata_next[8] = global_cfg_cmpt_en_qs;
-        reg_rdata_next[9] = global_cfg_config_valid_aw_qs;
-        reg_rdata_next[10] = global_cfg_config_valid_em_qs;
-        reg_rdata_next[11] = global_cfg_config_valid_fm_qs;
-        reg_rdata_next[12] = global_cfg_debug_dt_configure_enable_qs;
-        reg_rdata_next[13] = global_cfg_debug_spin_configure_enable_qs;
-        reg_rdata_next[14] = global_cfg_config_spin_initial_skip_qs;
-        reg_rdata_next[15] = global_cfg_bypass_data_conversion_qs;
-        reg_rdata_next[16] = global_cfg_dt_cfg_enable_qs;
-        reg_rdata_next[17] = global_cfg_host_readout_qs;
-        reg_rdata_next[18] = global_cfg_flip_disable_qs;
-        reg_rdata_next[19] = global_cfg_enable_flip_detection_qs;
-        reg_rdata_next[20] = global_cfg_debug_j_write_en_qs;
-        reg_rdata_next[21] = global_cfg_debug_j_read_en_qs;
-        reg_rdata_next[22] = global_cfg_debug_spin_write_en_qs;
-        reg_rdata_next[23] = global_cfg_debug_spin_compute_en_qs;
-        reg_rdata_next[24] = global_cfg_debug_spin_read_en_qs;
-        reg_rdata_next[32:25] = global_cfg_config_counter_qs;
-        reg_rdata_next[33] = global_cfg_wwl_vdd_cfg_256_qs;
-        reg_rdata_next[34] = global_cfg_wwl_vread_cfg_256_qs;
-        reg_rdata_next[36:35] = global_cfg_synchronizer_pipe_num_qs;
-        reg_rdata_next[38:37] = global_cfg_synchronizer_wbl_pipe_num_qs;
-        reg_rdata_next[39] = global_cfg_debug_h_wwl_qs;
-        reg_rdata_next[45:40] = global_cfg_dgt_addr_upper_bound_qs;
-        reg_rdata_next[46] = global_cfg_ctnus_fifo_read_qs;
-        reg_rdata_next[47] = global_cfg_ctnus_dgt_debug_qs;
+        reg_rdata_next[0] = global_cfg_1_flush_en_qs;
+        reg_rdata_next[1] = global_cfg_1_en_aw_qs;
+        reg_rdata_next[2] = global_cfg_1_en_em_qs;
+        reg_rdata_next[3] = global_cfg_1_en_fm_qs;
+        reg_rdata_next[4] = global_cfg_1_en_ff_qs;
+        reg_rdata_next[5] = global_cfg_1_en_ef_qs;
+        reg_rdata_next[6] = global_cfg_1_en_analog_loop_qs;
+        reg_rdata_next[7] = global_cfg_1_en_comparison_qs;
+        reg_rdata_next[8] = global_cfg_1_debug_dt_configure_enable_qs;
+        reg_rdata_next[9] = global_cfg_1_debug_spin_configure_enable_qs;
+        reg_rdata_next[10] = global_cfg_1_config_spin_initial_skip_qs;
+        reg_rdata_next[11] = global_cfg_1_bypass_data_conversion_qs;
+        reg_rdata_next[12] = global_cfg_1_host_readout_qs;
+        reg_rdata_next[13] = global_cfg_1_flip_disable_qs;
+        reg_rdata_next[14] = global_cfg_1_enable_flip_detection_qs;
+        reg_rdata_next[15] = global_cfg_1_debug_j_write_en_qs;
+        reg_rdata_next[16] = global_cfg_1_debug_j_read_en_qs;
+        reg_rdata_next[17] = global_cfg_1_debug_spin_write_en_qs;
+        reg_rdata_next[18] = global_cfg_1_debug_spin_compute_en_qs;
+        reg_rdata_next[19] = global_cfg_1_debug_spin_read_en_qs;
+        reg_rdata_next[27:20] = global_cfg_1_config_counter_qs;
+        reg_rdata_next[28] = global_cfg_1_wwl_vdd_cfg_256_qs;
+        reg_rdata_next[29] = global_cfg_1_wwl_vread_cfg_256_qs;
+        reg_rdata_next[31:30] = global_cfg_1_synchronizer_wbl_pipe_num_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[63:0] = config_spin_initial_0_qs;
+        reg_rdata_next[0] = global_cfg_2_cmpt_en_qs;
+        reg_rdata_next[1] = global_cfg_2_config_valid_aw_qs;
+        reg_rdata_next[2] = global_cfg_2_config_valid_em_qs;
+        reg_rdata_next[3] = global_cfg_2_config_valid_fm_qs;
+        reg_rdata_next[4] = global_cfg_2_dt_cfg_enable_qs;
+        reg_rdata_next[6:5] = global_cfg_2_synchronizer_pipe_num_qs;
+        reg_rdata_next[7] = global_cfg_2_debug_h_wwl_qs;
+        reg_rdata_next[13:8] = global_cfg_2_dgt_addr_upper_bound_qs;
+        reg_rdata_next[14] = global_cfg_2_ctnus_fifo_read_qs;
+        reg_rdata_next[15] = global_cfg_2_ctnus_dgt_debug_qs;
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[63:0] = config_spin_initial_1_qs;
+        reg_rdata_next[31:0] = config_spin_initial_0_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[63:0] = config_spin_initial_2_qs;
+        reg_rdata_next[31:0] = config_spin_initial_1_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[63:0] = config_spin_initial_3_qs;
+        reg_rdata_next[31:0] = config_spin_initial_2_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[15:0] = counter_cfg_1_cfg_trans_num_qs;
-        reg_rdata_next[31:16] = counter_cfg_1_cycle_per_wwl_high_qs;
-        reg_rdata_next[47:32] = counter_cfg_1_cycle_per_wwl_low_qs;
-        reg_rdata_next[63:48] = counter_cfg_1_cycle_per_spin_write_qs;
+        reg_rdata_next[31:0] = config_spin_initial_3_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[15:0] = counter_cfg_2_cycle_per_spin_compute_qs;
-        reg_rdata_next[31:16] = counter_cfg_2_debug_cycle_per_spin_read_qs;
-        reg_rdata_next[47:32] = counter_cfg_2_debug_spin_read_num_qs;
-        reg_rdata_next[58:48] = counter_cfg_2_icon_last_raddr_plus_one_qs;
-        reg_rdata_next[63:59] = counter_cfg_2_dgt_hscaling_qs;
+        reg_rdata_next[31:0] = config_spin_initial_4_qs;
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[63:0] = wwl_vdd_cfg_0_qs;
+        reg_rdata_next[31:0] = config_spin_initial_5_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[63:0] = wwl_vdd_cfg_1_qs;
+        reg_rdata_next[31:0] = config_spin_initial_6_qs;
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[63:0] = wwl_vdd_cfg_2_qs;
+        reg_rdata_next[31:0] = config_spin_initial_7_qs;
       end
 
       addr_hit[10]: begin
-        reg_rdata_next[63:0] = wwl_vdd_cfg_3_qs;
+        reg_rdata_next[15:0] = counter_cfg_1_cfg_trans_num_qs;
+        reg_rdata_next[31:16] = counter_cfg_1_cycle_per_wwl_high_qs;
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[63:0] = wwl_vread_cfg_0_qs;
+        reg_rdata_next[15:0] = counter_cfg_2_cycle_per_wwl_low_qs;
+        reg_rdata_next[31:16] = counter_cfg_2_cycle_per_spin_write_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[63:0] = wwl_vread_cfg_1_qs;
+        reg_rdata_next[15:0] = counter_cfg_3_cycle_per_spin_compute_qs;
+        reg_rdata_next[31:16] = counter_cfg_3_debug_cycle_per_spin_read_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[63:0] = wwl_vread_cfg_2_qs;
+        reg_rdata_next[15:0] = counter_cfg_4_debug_spin_read_num_qs;
+        reg_rdata_next[26:16] = counter_cfg_4_icon_last_raddr_plus_one_qs;
+        reg_rdata_next[31:27] = counter_cfg_4_dgt_hscaling_qs;
       end
 
       addr_hit[14]: begin
-        reg_rdata_next[63:0] = wwl_vread_cfg_3_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_0_qs;
       end
 
       addr_hit[15]: begin
-        reg_rdata_next[63:0] = spin_wwl_strobe_0_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_1_qs;
       end
 
       addr_hit[16]: begin
-        reg_rdata_next[63:0] = spin_wwl_strobe_1_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_2_qs;
       end
 
       addr_hit[17]: begin
-        reg_rdata_next[63:0] = spin_wwl_strobe_2_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_3_qs;
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[63:0] = spin_wwl_strobe_3_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_4_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[63:0] = spin_feedback_cfg_0_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_5_qs;
       end
 
       addr_hit[20]: begin
-        reg_rdata_next[63:0] = spin_feedback_cfg_1_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_6_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[63:0] = spin_feedback_cfg_2_qs;
+        reg_rdata_next[31:0] = wwl_vdd_cfg_7_qs;
       end
 
       addr_hit[22]: begin
-        reg_rdata_next[63:0] = spin_feedback_cfg_3_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_0_qs;
       end
 
       addr_hit[23]: begin
-        reg_rdata_next[63:0] = h_rdata_0_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_1_qs;
       end
 
       addr_hit[24]: begin
-        reg_rdata_next[63:0] = h_rdata_1_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_2_qs;
       end
 
       addr_hit[25]: begin
-        reg_rdata_next[63:0] = h_rdata_2_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_3_qs;
       end
 
       addr_hit[26]: begin
-        reg_rdata_next[63:0] = h_rdata_3_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_4_qs;
       end
 
       addr_hit[27]: begin
-        reg_rdata_next[63:0] = h_rdata_4_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_5_qs;
       end
 
       addr_hit[28]: begin
-        reg_rdata_next[63:0] = h_rdata_5_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_6_qs;
       end
 
       addr_hit[29]: begin
-        reg_rdata_next[63:0] = h_rdata_6_qs;
+        reg_rdata_next[31:0] = wwl_vread_cfg_7_qs;
       end
 
       addr_hit[30]: begin
-        reg_rdata_next[63:0] = h_rdata_7_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_0_qs;
       end
 
       addr_hit[31]: begin
-        reg_rdata_next[63:0] = h_rdata_8_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_1_qs;
       end
 
       addr_hit[32]: begin
-        reg_rdata_next[63:0] = h_rdata_9_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_2_qs;
       end
 
       addr_hit[33]: begin
-        reg_rdata_next[63:0] = h_rdata_10_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_3_qs;
       end
 
       addr_hit[34]: begin
-        reg_rdata_next[63:0] = h_rdata_11_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_4_qs;
       end
 
       addr_hit[35]: begin
-        reg_rdata_next[63:0] = h_rdata_12_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_5_qs;
       end
 
       addr_hit[36]: begin
-        reg_rdata_next[63:0] = h_rdata_13_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_6_qs;
       end
 
       addr_hit[37]: begin
-        reg_rdata_next[63:0] = h_rdata_14_qs;
+        reg_rdata_next[31:0] = spin_wwl_strobe_7_qs;
       end
 
       addr_hit[38]: begin
-        reg_rdata_next[63:0] = h_rdata_15_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_0_qs;
       end
 
       addr_hit[39]: begin
-        reg_rdata_next[63:0] = wbl_floating_0_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_1_qs;
       end
 
       addr_hit[40]: begin
-        reg_rdata_next[63:0] = wbl_floating_1_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_2_qs;
       end
 
       addr_hit[41]: begin
-        reg_rdata_next[63:0] = wbl_floating_2_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_3_qs;
       end
 
       addr_hit[42]: begin
-        reg_rdata_next[63:0] = wbl_floating_3_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_4_qs;
       end
 
       addr_hit[43]: begin
-        reg_rdata_next[63:0] = wbl_floating_4_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_5_qs;
       end
 
       addr_hit[44]: begin
-        reg_rdata_next[63:0] = wbl_floating_5_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_6_qs;
       end
 
       addr_hit[45]: begin
-        reg_rdata_next[63:0] = wbl_floating_6_qs;
+        reg_rdata_next[31:0] = spin_feedback_cfg_7_qs;
       end
 
       addr_hit[46]: begin
-        reg_rdata_next[63:0] = wbl_floating_7_qs;
+        reg_rdata_next[31:0] = h_rdata_0_qs;
       end
 
       addr_hit[47]: begin
-        reg_rdata_next[63:0] = wbl_floating_8_qs;
+        reg_rdata_next[31:0] = h_rdata_1_qs;
       end
 
       addr_hit[48]: begin
-        reg_rdata_next[63:0] = wbl_floating_9_qs;
+        reg_rdata_next[31:0] = h_rdata_2_qs;
       end
 
       addr_hit[49]: begin
-        reg_rdata_next[63:0] = wbl_floating_10_qs;
+        reg_rdata_next[31:0] = h_rdata_3_qs;
       end
 
       addr_hit[50]: begin
-        reg_rdata_next[63:0] = wbl_floating_11_qs;
+        reg_rdata_next[31:0] = h_rdata_4_qs;
       end
 
       addr_hit[51]: begin
-        reg_rdata_next[63:0] = wbl_floating_12_qs;
+        reg_rdata_next[31:0] = h_rdata_5_qs;
       end
 
       addr_hit[52]: begin
-        reg_rdata_next[63:0] = wbl_floating_13_qs;
+        reg_rdata_next[31:0] = h_rdata_6_qs;
       end
 
       addr_hit[53]: begin
-        reg_rdata_next[63:0] = wbl_floating_14_qs;
+        reg_rdata_next[31:0] = h_rdata_7_qs;
       end
 
       addr_hit[54]: begin
-        reg_rdata_next[63:0] = wbl_floating_15_qs;
+        reg_rdata_next[31:0] = h_rdata_8_qs;
       end
 
       addr_hit[55]: begin
-        reg_rdata_next[63:0] = debug_j_one_hot_wwl_0_qs;
+        reg_rdata_next[31:0] = h_rdata_9_qs;
       end
 
       addr_hit[56]: begin
-        reg_rdata_next[63:0] = debug_j_one_hot_wwl_1_qs;
+        reg_rdata_next[31:0] = h_rdata_10_qs;
       end
 
       addr_hit[57]: begin
-        reg_rdata_next[63:0] = debug_j_one_hot_wwl_2_qs;
+        reg_rdata_next[31:0] = h_rdata_11_qs;
       end
 
       addr_hit[58]: begin
-        reg_rdata_next[63:0] = debug_j_one_hot_wwl_3_qs;
+        reg_rdata_next[31:0] = h_rdata_12_qs;
       end
 
       addr_hit[59]: begin
+        reg_rdata_next[31:0] = h_rdata_13_qs;
+      end
+
+      addr_hit[60]: begin
+        reg_rdata_next[31:0] = h_rdata_14_qs;
+      end
+
+      addr_hit[61]: begin
+        reg_rdata_next[31:0] = h_rdata_15_qs;
+      end
+
+      addr_hit[62]: begin
+        reg_rdata_next[31:0] = h_rdata_16_qs;
+      end
+
+      addr_hit[63]: begin
+        reg_rdata_next[31:0] = h_rdata_17_qs;
+      end
+
+      addr_hit[64]: begin
+        reg_rdata_next[31:0] = h_rdata_18_qs;
+      end
+
+      addr_hit[65]: begin
+        reg_rdata_next[31:0] = h_rdata_19_qs;
+      end
+
+      addr_hit[66]: begin
+        reg_rdata_next[31:0] = h_rdata_20_qs;
+      end
+
+      addr_hit[67]: begin
+        reg_rdata_next[31:0] = h_rdata_21_qs;
+      end
+
+      addr_hit[68]: begin
+        reg_rdata_next[31:0] = h_rdata_22_qs;
+      end
+
+      addr_hit[69]: begin
+        reg_rdata_next[31:0] = h_rdata_23_qs;
+      end
+
+      addr_hit[70]: begin
+        reg_rdata_next[31:0] = h_rdata_24_qs;
+      end
+
+      addr_hit[71]: begin
+        reg_rdata_next[31:0] = h_rdata_25_qs;
+      end
+
+      addr_hit[72]: begin
+        reg_rdata_next[31:0] = h_rdata_26_qs;
+      end
+
+      addr_hit[73]: begin
+        reg_rdata_next[31:0] = h_rdata_27_qs;
+      end
+
+      addr_hit[74]: begin
+        reg_rdata_next[31:0] = h_rdata_28_qs;
+      end
+
+      addr_hit[75]: begin
+        reg_rdata_next[31:0] = h_rdata_29_qs;
+      end
+
+      addr_hit[76]: begin
+        reg_rdata_next[31:0] = h_rdata_30_qs;
+      end
+
+      addr_hit[77]: begin
+        reg_rdata_next[31:0] = h_rdata_31_qs;
+      end
+
+      addr_hit[78]: begin
+        reg_rdata_next[31:0] = wbl_floating_0_qs;
+      end
+
+      addr_hit[79]: begin
+        reg_rdata_next[31:0] = wbl_floating_1_qs;
+      end
+
+      addr_hit[80]: begin
+        reg_rdata_next[31:0] = wbl_floating_2_qs;
+      end
+
+      addr_hit[81]: begin
+        reg_rdata_next[31:0] = wbl_floating_3_qs;
+      end
+
+      addr_hit[82]: begin
+        reg_rdata_next[31:0] = wbl_floating_4_qs;
+      end
+
+      addr_hit[83]: begin
+        reg_rdata_next[31:0] = wbl_floating_5_qs;
+      end
+
+      addr_hit[84]: begin
+        reg_rdata_next[31:0] = wbl_floating_6_qs;
+      end
+
+      addr_hit[85]: begin
+        reg_rdata_next[31:0] = wbl_floating_7_qs;
+      end
+
+      addr_hit[86]: begin
+        reg_rdata_next[31:0] = wbl_floating_8_qs;
+      end
+
+      addr_hit[87]: begin
+        reg_rdata_next[31:0] = wbl_floating_9_qs;
+      end
+
+      addr_hit[88]: begin
+        reg_rdata_next[31:0] = wbl_floating_10_qs;
+      end
+
+      addr_hit[89]: begin
+        reg_rdata_next[31:0] = wbl_floating_11_qs;
+      end
+
+      addr_hit[90]: begin
+        reg_rdata_next[31:0] = wbl_floating_12_qs;
+      end
+
+      addr_hit[91]: begin
+        reg_rdata_next[31:0] = wbl_floating_13_qs;
+      end
+
+      addr_hit[92]: begin
+        reg_rdata_next[31:0] = wbl_floating_14_qs;
+      end
+
+      addr_hit[93]: begin
+        reg_rdata_next[31:0] = wbl_floating_15_qs;
+      end
+
+      addr_hit[94]: begin
+        reg_rdata_next[31:0] = wbl_floating_16_qs;
+      end
+
+      addr_hit[95]: begin
+        reg_rdata_next[31:0] = wbl_floating_17_qs;
+      end
+
+      addr_hit[96]: begin
+        reg_rdata_next[31:0] = wbl_floating_18_qs;
+      end
+
+      addr_hit[97]: begin
+        reg_rdata_next[31:0] = wbl_floating_19_qs;
+      end
+
+      addr_hit[98]: begin
+        reg_rdata_next[31:0] = wbl_floating_20_qs;
+      end
+
+      addr_hit[99]: begin
+        reg_rdata_next[31:0] = wbl_floating_21_qs;
+      end
+
+      addr_hit[100]: begin
+        reg_rdata_next[31:0] = wbl_floating_22_qs;
+      end
+
+      addr_hit[101]: begin
+        reg_rdata_next[31:0] = wbl_floating_23_qs;
+      end
+
+      addr_hit[102]: begin
+        reg_rdata_next[31:0] = wbl_floating_24_qs;
+      end
+
+      addr_hit[103]: begin
+        reg_rdata_next[31:0] = wbl_floating_25_qs;
+      end
+
+      addr_hit[104]: begin
+        reg_rdata_next[31:0] = wbl_floating_26_qs;
+      end
+
+      addr_hit[105]: begin
+        reg_rdata_next[31:0] = wbl_floating_27_qs;
+      end
+
+      addr_hit[106]: begin
+        reg_rdata_next[31:0] = wbl_floating_28_qs;
+      end
+
+      addr_hit[107]: begin
+        reg_rdata_next[31:0] = wbl_floating_29_qs;
+      end
+
+      addr_hit[108]: begin
+        reg_rdata_next[31:0] = wbl_floating_30_qs;
+      end
+
+      addr_hit[109]: begin
+        reg_rdata_next[31:0] = wbl_floating_31_qs;
+      end
+
+      addr_hit[110]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_0_qs;
+      end
+
+      addr_hit[111]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_1_qs;
+      end
+
+      addr_hit[112]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_2_qs;
+      end
+
+      addr_hit[113]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_3_qs;
+      end
+
+      addr_hit[114]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_4_qs;
+      end
+
+      addr_hit[115]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_5_qs;
+      end
+
+      addr_hit[116]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_6_qs;
+      end
+
+      addr_hit[117]: begin
+        reg_rdata_next[31:0] = debug_j_one_hot_wwl_7_qs;
+      end
+
+      addr_hit[118]: begin
         reg_rdata_next[0] = output_status_dt_cfg_idle_qs;
         reg_rdata_next[1] = output_status_cmpt_idle_qs;
         reg_rdata_next[2] = output_status_energy_fifo_update_qs;
@@ -5567,156 +9037,306 @@ module lagd_core_reg_top #(
         reg_rdata_next[11] = output_status_debug_fm_downstream_handshake_qs;
         reg_rdata_next[12] = output_status_debug_aw_downstream_handshake_qs;
         reg_rdata_next[13] = output_status_debug_em_upstream_handshake_qs;
-        reg_rdata_next[45:14] = output_status_debug_fm_energy_input_qs;
       end
 
-      addr_hit[60]: begin
-        reg_rdata_next[31:0] = energy_fifo_data_energy_fifo_0_qs;
-        reg_rdata_next[63:32] = energy_fifo_data_energy_fifo_1_qs;
+      addr_hit[119]: begin
+        reg_rdata_next[31:0] = debug_fm_energy_input_qs;
       end
 
-      addr_hit[61]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_0_0_qs;
+      addr_hit[120]: begin
+        reg_rdata_next[31:0] = energy_fifo_data_0_qs;
       end
 
-      addr_hit[62]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_0_1_qs;
+      addr_hit[121]: begin
+        reg_rdata_next[31:0] = energy_fifo_data_1_qs;
       end
 
-      addr_hit[63]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_0_2_qs;
+      addr_hit[122]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_0_qs;
       end
 
-      addr_hit[64]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_0_3_qs;
+      addr_hit[123]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_1_qs;
       end
 
-      addr_hit[65]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_1_0_qs;
+      addr_hit[124]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_2_qs;
       end
 
-      addr_hit[66]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_1_1_qs;
+      addr_hit[125]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_3_qs;
       end
 
-      addr_hit[67]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_1_2_qs;
+      addr_hit[126]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_4_qs;
       end
 
-      addr_hit[68]: begin
-        reg_rdata_next[63:0] = spin_fifo_data_1_3_qs;
+      addr_hit[127]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_5_qs;
       end
 
-      addr_hit[69]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_0_qs;
+      addr_hit[128]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_6_qs;
       end
 
-      addr_hit[70]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_1_qs;
+      addr_hit[129]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_0_7_qs;
       end
 
-      addr_hit[71]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_2_qs;
+      addr_hit[130]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_0_qs;
       end
 
-      addr_hit[72]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_3_qs;
+      addr_hit[131]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_1_qs;
       end
 
-      addr_hit[73]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_4_qs;
+      addr_hit[132]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_2_qs;
       end
 
-      addr_hit[74]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_5_qs;
+      addr_hit[133]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_3_qs;
       end
 
-      addr_hit[75]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_6_qs;
+      addr_hit[134]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_4_qs;
       end
 
-      addr_hit[76]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_7_qs;
+      addr_hit[135]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_5_qs;
       end
 
-      addr_hit[77]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_8_qs;
+      addr_hit[136]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_6_qs;
       end
 
-      addr_hit[78]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_9_qs;
+      addr_hit[137]: begin
+        reg_rdata_next[31:0] = spin_fifo_data_1_7_qs;
       end
 
-      addr_hit[79]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_10_qs;
+      addr_hit[138]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_0_qs;
       end
 
-      addr_hit[80]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_11_qs;
+      addr_hit[139]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_1_qs;
       end
 
-      addr_hit[81]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_12_qs;
+      addr_hit[140]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_2_qs;
       end
 
-      addr_hit[82]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_13_qs;
+      addr_hit[141]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_3_qs;
       end
 
-      addr_hit[83]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_14_qs;
+      addr_hit[142]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_4_qs;
       end
 
-      addr_hit[84]: begin
-        reg_rdata_next[63:0] = debug_j_read_data_15_qs;
+      addr_hit[143]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_5_qs;
       end
 
-      addr_hit[85]: begin
-        reg_rdata_next[63:0] = debug_fm_spin_out_0_qs;
+      addr_hit[144]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_6_qs;
       end
 
-      addr_hit[86]: begin
-        reg_rdata_next[63:0] = debug_fm_spin_out_1_qs;
+      addr_hit[145]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_7_qs;
       end
 
-      addr_hit[87]: begin
-        reg_rdata_next[63:0] = debug_fm_spin_out_2_qs;
+      addr_hit[146]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_8_qs;
       end
 
-      addr_hit[88]: begin
-        reg_rdata_next[63:0] = debug_fm_spin_out_3_qs;
+      addr_hit[147]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_9_qs;
       end
 
-      addr_hit[89]: begin
-        reg_rdata_next[63:0] = debug_aw_spin_out_0_qs;
+      addr_hit[148]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_10_qs;
       end
 
-      addr_hit[90]: begin
-        reg_rdata_next[63:0] = debug_aw_spin_out_1_qs;
+      addr_hit[149]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_11_qs;
       end
 
-      addr_hit[91]: begin
-        reg_rdata_next[63:0] = debug_aw_spin_out_2_qs;
+      addr_hit[150]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_12_qs;
       end
 
-      addr_hit[92]: begin
-        reg_rdata_next[63:0] = debug_aw_spin_out_3_qs;
+      addr_hit[151]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_13_qs;
       end
 
-      addr_hit[93]: begin
-        reg_rdata_next[63:0] = debug_em_spin_in_0_qs;
+      addr_hit[152]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_14_qs;
       end
 
-      addr_hit[94]: begin
-        reg_rdata_next[63:0] = debug_em_spin_in_1_qs;
+      addr_hit[153]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_15_qs;
       end
 
-      addr_hit[95]: begin
-        reg_rdata_next[63:0] = debug_em_spin_in_2_qs;
+      addr_hit[154]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_16_qs;
       end
 
-      addr_hit[96]: begin
-        reg_rdata_next[63:0] = debug_em_spin_in_3_qs;
+      addr_hit[155]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_17_qs;
+      end
+
+      addr_hit[156]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_18_qs;
+      end
+
+      addr_hit[157]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_19_qs;
+      end
+
+      addr_hit[158]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_20_qs;
+      end
+
+      addr_hit[159]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_21_qs;
+      end
+
+      addr_hit[160]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_22_qs;
+      end
+
+      addr_hit[161]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_23_qs;
+      end
+
+      addr_hit[162]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_24_qs;
+      end
+
+      addr_hit[163]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_25_qs;
+      end
+
+      addr_hit[164]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_26_qs;
+      end
+
+      addr_hit[165]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_27_qs;
+      end
+
+      addr_hit[166]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_28_qs;
+      end
+
+      addr_hit[167]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_29_qs;
+      end
+
+      addr_hit[168]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_30_qs;
+      end
+
+      addr_hit[169]: begin
+        reg_rdata_next[31:0] = debug_j_read_data_31_qs;
+      end
+
+      addr_hit[170]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_0_qs;
+      end
+
+      addr_hit[171]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_1_qs;
+      end
+
+      addr_hit[172]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_2_qs;
+      end
+
+      addr_hit[173]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_3_qs;
+      end
+
+      addr_hit[174]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_4_qs;
+      end
+
+      addr_hit[175]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_5_qs;
+      end
+
+      addr_hit[176]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_6_qs;
+      end
+
+      addr_hit[177]: begin
+        reg_rdata_next[31:0] = debug_fm_spin_out_7_qs;
+      end
+
+      addr_hit[178]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_0_qs;
+      end
+
+      addr_hit[179]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_1_qs;
+      end
+
+      addr_hit[180]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_2_qs;
+      end
+
+      addr_hit[181]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_3_qs;
+      end
+
+      addr_hit[182]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_4_qs;
+      end
+
+      addr_hit[183]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_5_qs;
+      end
+
+      addr_hit[184]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_6_qs;
+      end
+
+      addr_hit[185]: begin
+        reg_rdata_next[31:0] = debug_aw_spin_out_7_qs;
+      end
+
+      addr_hit[186]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_0_qs;
+      end
+
+      addr_hit[187]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_1_qs;
+      end
+
+      addr_hit[188]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_2_qs;
+      end
+
+      addr_hit[189]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_3_qs;
+      end
+
+      addr_hit[190]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_4_qs;
+      end
+
+      addr_hit[191]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_5_qs;
+      end
+
+      addr_hit[192]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_6_qs;
+      end
+
+      addr_hit[193]: begin
+        reg_rdata_next[31:0] = debug_em_spin_in_7_qs;
       end
 
       default: begin
@@ -5742,7 +9362,7 @@ endmodule
 module lagd_core_reg_top_intf
 #(
   parameter int AW = 10,
-  localparam int DW = 64
+  localparam int DW = 32
 ) (
   input logic clk_i,
   input logic rst_ni,

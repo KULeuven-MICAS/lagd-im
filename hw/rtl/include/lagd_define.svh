@@ -21,6 +21,9 @@
     `define LAGD_AXI_DATA_WIDTH 64
     `define LAGD_AXI_ID_WIDTH 6
 
+    // Register
+    `define LAGD_REG_DATA_WIDTH 32
+
     // L2 memory
     `define L2_MEM_BASE_ADDR 'h8000_0000
     `define L2_MEM_ADDR_WIDTH $clog2(`L2_MEM_SIZE_B)

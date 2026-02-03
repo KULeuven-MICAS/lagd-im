@@ -238,70 +238,71 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // Unpack register signals
     // reg2hw
-    assign flush_en                         = reg2hw.global_cfg.flush_en.q;
-    assign en_aw                            = reg2hw.global_cfg.en_aw.q;
-    assign en_fm                            = reg2hw.global_cfg.en_fm.q;
-    assign en_em                            = reg2hw.global_cfg.en_em.q;
-    assign en_ff                            = reg2hw.global_cfg.en_ff.q;
-    assign en_ef                            = reg2hw.global_cfg.en_ef.q;
-    assign en_analog_loop                   = reg2hw.global_cfg.en_analog_loop.q;
-    assign en_comparison                    = reg2hw.global_cfg.en_comparison.q;
-    assign cmpt_en                          = reg2hw.global_cfg.cmpt_en.q;
-    assign config_valid_aw                  = reg2hw.global_cfg.config_valid_aw.q;
-    assign config_valid_em                  = reg2hw.global_cfg.config_valid_em.q;
-    assign config_valid_fm                  = reg2hw.global_cfg.config_valid_fm.q;
-    assign debug_dt_configure_enable        = reg2hw.global_cfg.debug_dt_configure_enable.q;
-    assign debug_spin_configure_enable      = reg2hw.global_cfg.debug_spin_configure_enable.q;
-    assign config_spin_initial_skip         = reg2hw.global_cfg.config_spin_initial_skip.q;
-    assign bypass_data_conversion           = reg2hw.global_cfg.bypass_data_conversion.q;
-    assign dt_cfg_enable                    = reg2hw.global_cfg.dt_cfg_enable.q;
-    assign host_readout                     = reg2hw.global_cfg.host_readout.q;
-    assign flip_disable                     = reg2hw.global_cfg.flip_disable.q;
-    assign enable_flip_detection            = reg2hw.global_cfg.enable_flip_detection.q;
-    assign debug_j_write_en                 = reg2hw.global_cfg.debug_j_write_en.q;
-    assign debug_j_read_en                  = reg2hw.global_cfg.debug_j_read_en.q;
-    assign debug_spin_write_en              = reg2hw.global_cfg.debug_spin_write_en.q;
-    assign debug_spin_compute_en            = reg2hw.global_cfg.debug_spin_compute_en.q;
-    assign debug_spin_read_en               = reg2hw.global_cfg.debug_spin_read_en.q;
-    assign config_counter                   = reg2hw.global_cfg.config_counter.q;
-    assign synchronizer_pipe_num            = reg2hw.global_cfg.synchronizer_pipe_num.q;
-    assign synchronizer_wbl_pipe_num        = reg2hw.global_cfg.synchronizer_wbl_pipe_num.q;
-    assign debug_h_wwl                      = reg2hw.global_cfg.debug_h_wwl.q;
-    assign dgt_addr_upper_bound             = reg2hw.global_cfg.dgt_addr_upper_bound.q;
-    assign ctnus_fifo_read                  = reg2hw.global_cfg.ctnus_fifo_read.q;
-    assign ctnus_dgt_debug                  = reg2hw.global_cfg.ctnus_dgt_debug.q;
+    assign flush_en                         = reg2hw.global_cfg_1.flush_en.q;
+    assign en_aw                            = reg2hw.global_cfg_1.en_aw.q;
+    assign en_fm                            = reg2hw.global_cfg_1.en_fm.q;
+    assign en_em                            = reg2hw.global_cfg_1.en_em.q;
+    assign en_ff                            = reg2hw.global_cfg_1.en_ff.q;
+    assign en_ef                            = reg2hw.global_cfg_1.en_ef.q;
+    assign en_analog_loop                   = reg2hw.global_cfg_1.en_analog_loop.q;
+    assign en_comparison                    = reg2hw.global_cfg_1.en_comparison.q;
+    assign debug_dt_configure_enable        = reg2hw.global_cfg_1.debug_dt_configure_enable.q;
+    assign debug_spin_configure_enable      = reg2hw.global_cfg_1.debug_spin_configure_enable.q;
+    assign config_spin_initial_skip         = reg2hw.global_cfg_1.config_spin_initial_skip.q;
+    assign bypass_data_conversion           = reg2hw.global_cfg_1.bypass_data_conversion.q;
+    assign host_readout                     = reg2hw.global_cfg_1.host_readout.q;
+    assign flip_disable                     = reg2hw.global_cfg_1.flip_disable.q;
+    assign enable_flip_detection            = reg2hw.global_cfg_1.enable_flip_detection.q;
+    assign debug_j_write_en                 = reg2hw.global_cfg_1.debug_j_write_en.q;
+    assign debug_j_read_en                  = reg2hw.global_cfg_1.debug_j_read_en.q;
+    assign debug_spin_write_en              = reg2hw.global_cfg_1.debug_spin_write_en.q;
+    assign debug_spin_compute_en            = reg2hw.global_cfg_1.debug_spin_compute_en.q;
+    assign debug_spin_read_en               = reg2hw.global_cfg_1.debug_spin_read_en.q;
+    assign config_counter                   = reg2hw.global_cfg_1.config_counter.q;
+    assign synchronizer_wbl_pipe_num        = reg2hw.global_cfg_1.synchronizer_wbl_pipe_num.q;
+
+    assign cmpt_en                          = reg2hw.global_cfg_2.cmpt_en.q;
+    assign config_valid_aw                  = reg2hw.global_cfg_2.config_valid_aw.q;
+    assign config_valid_em                  = reg2hw.global_cfg_2.config_valid_em.q;
+    assign config_valid_fm                  = reg2hw.global_cfg_2.config_valid_fm.q;
+    assign dt_cfg_enable                    = reg2hw.global_cfg_2.dt_cfg_enable.q;
+    assign synchronizer_pipe_num            = reg2hw.global_cfg_2.synchronizer_pipe_num.q;
+    assign debug_h_wwl                      = reg2hw.global_cfg_2.debug_h_wwl.q;
+    assign dgt_addr_upper_bound             = reg2hw.global_cfg_2.dgt_addr_upper_bound.q;
+    assign ctnus_fifo_read                  = reg2hw.global_cfg_2.ctnus_fifo_read.q;
+    assign ctnus_dgt_debug                  = reg2hw.global_cfg_2.ctnus_dgt_debug.q;
 
     assign cfg_trans_num                    = reg2hw.counter_cfg_1.cfg_trans_num.q;
     assign cycle_per_wwl_high               = reg2hw.counter_cfg_1.cycle_per_wwl_high.q;
-    assign cycle_per_wwl_low                = reg2hw.counter_cfg_1.cycle_per_wwl_low.q;
-    assign cycle_per_spin_write             = reg2hw.counter_cfg_1.cycle_per_spin_write.q;
-    assign cycle_per_spin_compute           = reg2hw.counter_cfg_2.cycle_per_spin_compute.q;
-    assign debug_cycle_per_spin_read        = reg2hw.counter_cfg_2.debug_cycle_per_spin_read.q;
-    assign debug_spin_read_num              = reg2hw.counter_cfg_2.debug_spin_read_num.q;
-    assign icon_last_raddr_plus_one         = reg2hw.counter_cfg_2.icon_last_raddr_plus_one.q;
-    assign dgt_hscaling                     = reg2hw.counter_cfg_2.dgt_hscaling.q;
+    assign cycle_per_wwl_low                = reg2hw.counter_cfg_2.cycle_per_wwl_low.q;
+    assign cycle_per_spin_write             = reg2hw.counter_cfg_2.cycle_per_spin_write.q;
+    assign cycle_per_spin_compute           = reg2hw.counter_cfg_3.cycle_per_spin_compute.q;
+    assign debug_cycle_per_spin_read        = reg2hw.counter_cfg_3.debug_cycle_per_spin_read.q;
+    assign debug_spin_read_num              = reg2hw.counter_cfg_4.debug_spin_read_num.q;
+    assign icon_last_raddr_plus_one         = reg2hw.counter_cfg_4.icon_last_raddr_plus_one.q;
+    assign dgt_hscaling                     = reg2hw.counter_cfg_4.dgt_hscaling.q;
 
     assign dgt_hbias = h_rdata;
 
     always_comb begin
         wwl_vdd_cfg = '0;
         wwl_vread_cfg = '0;
-        for (int i = 0; i < logic_cfg.NumSpin/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
-            config_spin_initial[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH] = reg2hw.config_spin_initial[i].q;
-            wwl_vdd_cfg[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]         = reg2hw.wwl_vdd_cfg[i].q;
-            wwl_vread_cfg[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]       = reg2hw.wwl_vread_cfg[i].q;
-            spin_wwl_strobe[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]     = reg2hw.spin_wwl_strobe[i].q;
-            spin_feedback_cfg[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]   = reg2hw.spin_feedback_cfg[i].q;
-            debug_j_one_hot_wwl[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH] = reg2hw.debug_j_one_hot_wwl[i].q;
+        for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
+            config_spin_initial[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.config_spin_initial[i].q;
+            wwl_vdd_cfg        [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wwl_vdd_cfg[i].q;
+            wwl_vread_cfg      [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wwl_vread_cfg[i].q;
+            spin_wwl_strobe    [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.spin_wwl_strobe[i].q;
+            spin_feedback_cfg  [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.spin_feedback_cfg[i].q;
+            debug_j_one_hot_wwl[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.debug_j_one_hot_wwl[i].q;
         end
-        wwl_vdd_cfg[logic_cfg.NumSpin]   = reg2hw.global_cfg.wwl_vdd_cfg_256.q;
-        wwl_vread_cfg[logic_cfg.NumSpin] = reg2hw.global_cfg.wwl_vread_cfg_256.q;
+        wwl_vdd_cfg[logic_cfg.NumSpin]   = reg2hw.global_cfg_1.wwl_vdd_cfg_256.q;
+        wwl_vread_cfg[logic_cfg.NumSpin] = reg2hw.global_cfg_1.wwl_vread_cfg_256.q;
     end
 
     always_comb begin
-        for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
-            h_rdata[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]           = reg2hw.h_rdata[i].q;
-            wbl_floating[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH]      = reg2hw.wbl_floating[i].q;
+        for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_REG_DATA_WIDTH; i=i+1) begin
+            h_rdata            [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.h_rdata[i].q;
+            wbl_floating       [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wbl_floating[i].q;
         end
     end
 
@@ -320,9 +321,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_fm_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_aw_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_em_upstream_handshake  .de = ctnus_dgt_debug;
-    assign hw2reg.output_status.debug_fm_energy_input        .de = ctnus_dgt_debug;
-    assign hw2reg.energy_fifo_data.energy_fifo_0             .de = energy_fifo_update | ctnus_fifo_read;
-    assign hw2reg.energy_fifo_data.energy_fifo_1             .de = energy_fifo_update | ctnus_fifo_read;
+    assign hw2reg.debug_fm_energy_input                      .de = ctnus_dgt_debug;
+    assign hw2reg.energy_fifo_data_0                         .de = ctnus_dgt_debug & (energy_fifo_update | ctnus_fifo_read);
+    assign hw2reg.energy_fifo_data_1                         .de = ctnus_dgt_debug & (energy_fifo_update | ctnus_fifo_read);
 
     assign hw2reg.output_status.dt_cfg_idle                   .d = dt_cfg_idle;
     assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
@@ -338,30 +339,30 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_fm_downstream_handshake .d = debug_fm_downstream_handshake;
     assign hw2reg.output_status.debug_aw_downstream_handshake .d = debug_aw_downstream_handshake;
     assign hw2reg.output_status.debug_em_upstream_handshake   .d = debug_em_upstream_handshake;
-    assign hw2reg.output_status.debug_fm_energy_input         .d = debug_fm_energy_input;
-    assign hw2reg.energy_fifo_data.energy_fifo_0              .d = energy_fifo_data[0];
-    assign hw2reg.energy_fifo_data.energy_fifo_1              .d = energy_fifo_data[1];
+    assign hw2reg.debug_fm_energy_input                       .d = debug_fm_energy_input;
+    assign hw2reg.energy_fifo_data_0                          .d = energy_fifo_data[0];
+    assign hw2reg.energy_fifo_data_1                          .d = energy_fifo_data[1];
 
     always_comb begin
-        for (int i = 0; i < logic_cfg.NumSpin/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
-            hw2reg.spin_fifo_data_0 [i].de = spin_fifo_update | ctnus_fifo_read;
-            hw2reg.spin_fifo_data_1 [i].de = spin_fifo_update | ctnus_fifo_read;
+        for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
+            hw2reg.spin_fifo_data_0 [i].de = ctnus_dgt_debug & (spin_fifo_update | ctnus_fifo_read);
+            hw2reg.spin_fifo_data_1 [i].de = ctnus_dgt_debug & (spin_fifo_update | ctnus_fifo_read);
             hw2reg.debug_fm_spin_out[i].de = ctnus_dgt_debug;
             hw2reg.debug_aw_spin_out[i].de = ctnus_dgt_debug;
             hw2reg.debug_em_spin_in [i].de = ctnus_dgt_debug;
 
-            hw2reg.spin_fifo_data_0 [i].d = spin_fifo_data[0][i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
-            hw2reg.spin_fifo_data_1 [i].d = spin_fifo_data[1][i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
-            hw2reg.debug_fm_spin_out[i].d = debug_fm_spin_out[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
-            hw2reg.debug_aw_spin_out[i].d = debug_aw_spin_out[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
-            hw2reg.debug_em_spin_in [i].d = debug_em_spin_in[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+            hw2reg.spin_fifo_data_0 [i].d = spin_fifo_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.spin_fifo_data_1 [i].d = spin_fifo_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_fm_spin_out[i].d = debug_fm_spin_out[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_aw_spin_out[i].d = debug_aw_spin_out[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_em_spin_in [i].d = debug_em_spin_in [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         end
     end
 
     always_comb begin
-        for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_AXI_DATA_WIDTH; i=i+1) begin
+        for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_REG_DATA_WIDTH; i=i+1) begin
             hw2reg.debug_j_read_data[i].de = debug_j_read_data_valid;
-            hw2reg.debug_j_read_data[i].d  = debug_j_read_data[i*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+            hw2reg.debug_j_read_data[i].d  = debug_j_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         end
     end
 

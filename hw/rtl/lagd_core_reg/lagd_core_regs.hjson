@@ -10,11 +10,11 @@
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
   ],
-  regwidth: 64
+  regwidth: 32
   registers: [
 
-    { name:     "global_cfg"
-      desc:     "Global configuration signals"
+    { name:     "global_cfg_1"
+      desc:     "Global configuration signals 1"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
@@ -26,32 +26,40 @@
         { bits: "5",     resval: "1",  name: "en_ef",                       desc: "Whether to enable the energy monitor fifo"              }
         { bits: "6",     resval: "1",  name: "en_analog_loop",              desc: "Whether to include analog in the loop"                  }
         { bits: "7",     resval: "1",  name: "en_comparison",               desc: "Whether to enable energy comparison"                    }
-        { bits: "8",     resval: "0",  name: "cmpt_en",                     desc: "Whether to start computation"                           }
-        { bits: "9",     resval: "0",  name: "config_valid_aw",             desc: "Whether to enable configuration for analog wrap"        }
-        { bits: "10",    resval: "0",  name: "config_valid_em",             desc: "Whether to enable configuration for energy monitor"     }
-        { bits: "11",    resval: "0",  name: "config_valid_fm",             desc: "Whether to enable configuration for flip manager"       }
-        { bits: "12",    resval: "0",  name: "debug_dt_configure_enable",   desc: "Whether to enable configuration for debug dt module"    }
-        { bits: "13",    resval: "0",  name: "debug_spin_configure_enable", desc: "Whether to enable configuration for debug spin module"  }
-        { bits: "14",    resval: "0",  name: "config_spin_initial_skip",    desc: "Whether to skip current spin initial value"             }
-        { bits: "15",    resval: "0",  name: "bypass_data_conversion",      desc: "Whether to skip analog data conversion"                 }
-        { bits: "16",    resval: "0",  name: "dt_cfg_enable",               desc: "Whether to start analog weight onloading"               }
-        { bits: "17",    resval: "0",  name: "host_readout",                desc: "Whether to read spins from spin pop interface"          }
-        { bits: "18",    resval: "0",  name: "flip_disable",                desc: "Whether to disable applying flip icons"                 }
-        { bits: "19",    resval: "1",  name: "enable_flip_detection",       desc: "Whether to enable flip detection"                       }
-        { bits: "20",    resval: "0",  name: "debug_j_write_en",            desc: "Whether to enable debug J writing mode"                 }
-        { bits: "21",    resval: "0",  name: "debug_j_read_en",             desc: "Whether to enable debug J reading mode"                 }
-        { bits: "22",    resval: "0",  name: "debug_spin_write_en",         desc: "Whether to enable debug spin writing mode"              }
-        { bits: "23",    resval: "0",  name: "debug_spin_compute_en",       desc: "Whether to enable debug spin computing mode"            }
-        { bits: "24",    resval: "0",  name: "debug_spin_read_en",          desc: "Whether to enable debug spin reading mode"              }
-        { bits: "32:25", resval: "0",  name: "config_counter",              desc: "Number of spins"                                        }
-        { bits: "33",    resval: "1",  name: "wwl_vdd_cfg_256",             desc: "wwl_vdd_cfg [256]"                                      }
-        { bits: "34",    resval: "0",  name: "wwl_vread_cfg_256",           desc: "wwl_vread_cfg [256]"                                    }
-        { bits: "36:35", resval: "3",  name: "synchronizer_pipe_num",       desc: "Selected synchronizer num"                              }
-        { bits: "38:37", resval: "3",  name: "synchronizer_wbl_pipe_num",   desc: "Selected synchronizer num for wbl read"                 }
-        { bits: "39",    resval: "0",  name: "debug_h_wwl",                 desc: "h_wwl in debug dt write/read mode"                      }
-        { bits: "45:40", resval: "63", name: "dgt_addr_upper_bound",        desc: "J address upper bound (inclusive)"                      }
-        { bits: "46",    resval: "0",  name: "ctnus_fifo_read",             desc: "Whether to read energy/spin fifo continuously"          }
-        { bits: "47",    resval: "0",  name: "ctnus_dgt_debug",             desc: "Whether to enable digital debugging logic continuously" }
+        { bits: "8",     resval: "0",  name: "debug_dt_configure_enable",   desc: "Whether to enable configuration for debug dt module"    }
+        { bits: "9",     resval: "0",  name: "debug_spin_configure_enable", desc: "Whether to enable configuration for debug spin module"  }
+        { bits: "10",    resval: "0",  name: "config_spin_initial_skip",    desc: "Whether to skip current spin initial value"             }
+        { bits: "11",    resval: "0",  name: "bypass_data_conversion",      desc: "Whether to skip analog data conversion"                 }
+        { bits: "12",    resval: "0",  name: "host_readout",                desc: "Whether to read spins from spin pop interface"          }
+        { bits: "13",    resval: "0",  name: "flip_disable",                desc: "Whether to disable applying flip icons"                 }
+        { bits: "14",    resval: "1",  name: "enable_flip_detection",       desc: "Whether to enable flip detection"                       }
+        { bits: "15",    resval: "0",  name: "debug_j_write_en",            desc: "Whether to enable debug J writing mode"                 }
+        { bits: "16",    resval: "0",  name: "debug_j_read_en",             desc: "Whether to enable debug J reading mode"                 }
+        { bits: "17",    resval: "0",  name: "debug_spin_write_en",         desc: "Whether to enable debug spin writing mode"              }
+        { bits: "18",    resval: "0",  name: "debug_spin_compute_en",       desc: "Whether to enable debug spin computing mode"            }
+        { bits: "19",    resval: "0",  name: "debug_spin_read_en",          desc: "Whether to enable debug spin reading mode"              }
+        { bits: "27:20", resval: "0",  name: "config_counter",              desc: "Number of spins"                                        }
+        { bits: "28",    resval: "1",  name: "wwl_vdd_cfg_256",             desc: "wwl_vdd_cfg [256]"                                      }
+        { bits: "29",    resval: "0",  name: "wwl_vread_cfg_256",           desc: "wwl_vread_cfg [256]"                                    }
+        { bits: "31:30", resval: "3",  name: "synchronizer_wbl_pipe_num",   desc: "Selected synchronizer num for wbl read"                 }
+      ]
+    }
+
+    { name:     "global_cfg_2"
+      desc:     "Global configuration signals 2"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0",     resval: "0",  name: "cmpt_en",                     desc: "Whether to start computation"                           }
+        { bits: "1",     resval: "0",  name: "config_valid_aw",             desc: "Whether to enable configuration for analog wrap"        }
+        { bits: "2",     resval: "0",  name: "config_valid_em",             desc: "Whether to enable configuration for energy monitor"     }
+        { bits: "3",     resval: "0",  name: "config_valid_fm",             desc: "Whether to enable configuration for flip manager"       }
+        { bits: "4",     resval: "0",  name: "dt_cfg_enable",               desc: "Whether to start analog weight onloading"               }
+        { bits: "6:5",   resval: "3",  name: "synchronizer_pipe_num",       desc: "Selected synchronizer num"                              }
+        { bits: "7",     resval: "0",  name: "debug_h_wwl",                 desc: "h_wwl in debug dt write/read mode"                      }
+        { bits: "13:8",  resval: "63", name: "dgt_addr_upper_bound",        desc: "J address upper bound (inclusive)"                      }
+        { bits: "14",    resval: "0",  name: "ctnus_fifo_read",             desc: "Whether to read energy/spin fifo continuously"          }
+        { bits: "15",    resval: "0",  name: "ctnus_dgt_debug",             desc: "Whether to enable digital debugging logic continuously" }
       ]
     }
 
@@ -60,10 +68,10 @@
         desc:     "Registers for setting initial spin values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "4"
+        count:    "8"
         cname:    "config_spin_initial"
         fields: [
-          { bits: "63:0", resval: "0",   name: "config_spin_initial",       desc: "Registers for setting initial spin values"              }
+          { bits: "31:0", resval: "0",   name: "config_spin_initial",       desc: "Registers for setting initial spin values"              }
         ]
       }
     }
@@ -75,8 +83,6 @@
       fields: [
         { bits: "15:0",  resval: "64",   name: "cfg_trans_num",             desc: "Analog cfg trans number (including h, as the last one)" }
         { bits: "31:16", resval: "5",    name: "cycle_per_wwl_high",        desc: "Cycle per wwl high"                                     }
-        { bits: "47:32", resval: "5",    name: "cycle_per_wwl_low",         desc: "Cycle per wwl low"                                      }
-        { bits: "63:48", resval: "5",    name: "cycle_per_spin_write",      desc: "Cycle per spin write"                                   }
       ]
     }
 
@@ -85,11 +91,29 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
+        { bits: "15:0",  resval: "5",    name: "cycle_per_wwl_low",         desc: "Cycle per wwl low"                                      }
+        { bits: "31:16", resval: "5",    name: "cycle_per_spin_write",      desc: "Cycle per spin write"                                   }
+      ]
+    }
+
+    { name:     "counter_cfg_3"
+      desc:     "Registers for counter configuration 3"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
         { bits: "15:0",  resval: "10",   name: "cycle_per_spin_compute",    desc: "Cycle per spin compute"                                 }
         { bits: "31:16", resval: "100",  name: "debug_cycle_per_spin_read", desc: "Cycle per debug spin read"                              }
-        { bits: "47:32", resval: "1023", name: "debug_spin_read_num",       desc: "Cycle per debug spin read number"                       }
-        { bits: "58:48", resval: "1024", name: "icon_last_raddr_plus_one",  desc: "Flip icon last address plus one"                        }
-        { bits: "63:59", resval: "4",    name: "dgt_hscaling",              desc: "Scaling factor for dgt"                                 }
+      ]
+    }
+
+    { name:     "counter_cfg_4"
+      desc:     "Registers for counter configuration 4"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0",  resval: "1023", name: "debug_spin_read_num",       desc: "Cycle per debug spin read number"                       }
+        { bits: "26:16", resval: "1024", name: "icon_last_raddr_plus_one",  desc: "Flip icon last address plus one"                        }
+        { bits: "31:27", resval: "4",    name: "dgt_hscaling",              desc: "Scaling factor for dgt"                                 }
       ]
     }
 
@@ -98,10 +122,10 @@
         desc:     "wwl_vdd_cfg values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "4"
+        count:    "8"
         cname:    "wwl_vdd_cfg"
         fields: [
-          { bits: "63:0", resval: "0xFFFFFFFFFFFFFFFF", name: "wwl_vdd_cfg", desc: "wwl_vdd_cfg values" }
+          { bits: "31:0", resval: "0xFFFFFFFF", name: "wwl_vdd_cfg", desc: "wwl_vdd_cfg values" }
         ]
       }
     }
@@ -111,10 +135,10 @@
         desc:     "wwl_vread_cfg values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "4"
+        count:    "8"
         cname:    "wwl_vread_cfg"
         fields: [
-          { bits: "63:0", resval: "0", name: "wwl_vread_cfg", desc: "wwl_vread_cfg values" }
+          { bits: "31:0", resval: "0", name: "wwl_vread_cfg", desc: "wwl_vread_cfg values" }
         ]
       }
     }
@@ -124,10 +148,10 @@
         desc:     "spin_wwl_strobe values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "4"
+        count:    "8"
         cname:    "spin_wwl_strobe"
         fields: [
-          { bits: "63:0", resval: "0xFFFFFFFFFFFFFFFF", name: "spin_wwl_strobe", desc: "spin_wwl_strobe values" }
+          { bits: "31:0", resval: "0xFFFFFFFF", name: "spin_wwl_strobe", desc: "spin_wwl_strobe values" }
         ]
       }
     }
@@ -137,10 +161,10 @@
         desc:     "spin_feedback_cfg values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "4"
+        count:    "8"
         cname:    "spin_feedback_cfg"
         fields: [
-          { bits: "63:0", resval: "0xFFFFFFFFFFFFFFFF", name: "spin_feedback_cfg", desc: "spin_feedback_cfg values" }
+          { bits: "31:0", resval: "0xFFFFFFFF", name: "spin_feedback_cfg", desc: "spin_feedback_cfg values" }
         ]
       }
     }
@@ -150,10 +174,10 @@
         desc:     "h_rdata values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "16"
+        count:    "32"
         cname:    "h_rdata"
         fields: [
-          { bits: "63:0", resval: "0", name: "h_rdata", desc: "h_rdata values" }
+          { bits: "31:0", resval: "0", name: "h_rdata", desc: "h_rdata values" }
         ]
       }
     }
@@ -163,10 +187,10 @@
         desc:     "wbl_floating values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "16"
+        count:    "32"
         cname:    "wbl_floating"
         fields: [
-          { bits: "63:0", resval: "0", name: "wbl_floating", desc: "wbl_floating values" }
+          { bits: "31:0", resval: "0", name: "wbl_floating", desc: "wbl_floating values" }
         ]
       }
     }
@@ -176,10 +200,10 @@
         desc:     "debug_j_one_hot_wwl values"
         swaccess: "rw"
         hwaccess: "hro"
-        count:    "4"
+        count:    "8"
         cname:    "debug_j_one_hot_wwl"
         fields: [
-          { bits: "63:0", resval: "0", name: "debug_j_one_hot_wwl", desc: "debug_j_one_hot_wwl values" }
+          { bits: "31:0", resval: "0", name: "debug_j_one_hot_wwl", desc: "debug_j_one_hot_wwl values" }
         ]
       }
     }
@@ -203,17 +227,33 @@
         { bits: "11",    resval: "0",  name: "debug_fm_downstream_handshake", desc: "Whether the fm downstream handshake is on"            }
         { bits: "12",    resval: "0",  name: "debug_aw_downstream_handshake", desc: "Whether the aw downstream handshake is on"            }
         { bits: "13",    resval: "0",  name: "debug_em_upstream_handshake",   desc: "Whether the em upstream handshake is on"              }
-        { bits: "45:14", resval: "0",  name: "debug_fm_energy_input",         desc: "Energy input to the fm"                               }
       ]
     }
 
-    { name:     "energy_fifo_data"
-      desc:     "Registers for energy fifo data"
+    { name:     "debug_fm_energy_input"
+      desc:     "debug_fm_energy_input signals"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0",  resval: "0",  name: "debug_fm_energy_input",         desc: "Energy input to the fm"                               }
+      ]
+    }
+
+    { name:     "energy_fifo_data_0"
+      desc:     "Registers for energy fifo data 0"
       swaccess: "rw"
       hwaccess: "hwo"
       fields: [
         { bits: "31:0",  resval: "0",  name: "energy_fifo_0", desc: "Energy fifo data 0" }
-        { bits: "63:32", resval: "0",  name: "energy_fifo_1", desc: "Energy fifo data 1" }
+      ]
+    }
+
+    { name:     "energy_fifo_data_1"
+      desc:     "Registers for energy fifo data 1"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", resval: "0",  name: "energy_fifo_1", desc: "Energy fifo data 1" }
       ]
     }
 
@@ -222,10 +262,10 @@
         desc:     "spin_fifo_data_0 values"
         swaccess: "rw"
         hwaccess: "hwo"
-        count:    "4"
+        count:    "8"
         cname:    "spin_fifo_data_0"
         fields: [
-          { bits: "63:0", resval: "0", name: "spin_fifo_data_0", desc: "spin_fifo_data_0 values" }
+          { bits: "31:0", resval: "0", name: "spin_fifo_data_0", desc: "spin_fifo_data_0 values" }
         ]
       }
     }
@@ -235,10 +275,10 @@
         desc:     "spin_fifo_data_1 values"
         swaccess: "rw"
         hwaccess: "hwo"
-        count:    "4"
+        count:    "8"
         cname:    "spin_fifo_data_1"
         fields: [
-          { bits: "63:0", resval: "0", name: "spin_fifo_data_1", desc: "spin_fifo_data_1 values" }
+          { bits: "31:0", resval: "0", name: "spin_fifo_data_1", desc: "spin_fifo_data_1 values" }
         ]
       }
     }
@@ -248,10 +288,10 @@
         desc:     "debug_j_read_data values"
         swaccess: "rw"
         hwaccess: "hwo"
-        count:    "16"
+        count:    "32"
         cname:    "debug_j_read_data"
         fields: [
-          { bits: "63:0", resval: "0", name: "debug_j_read_data", desc: "debug_j_read_data values" }
+          { bits: "31:0", resval: "0", name: "debug_j_read_data", desc: "debug_j_read_data values" }
         ]
       }
     }
@@ -261,10 +301,10 @@
         desc:     "debug_fm_spin_out values"
         swaccess: "rw"
         hwaccess: "hwo"
-        count:    "4"
+        count:    "8"
         cname:    "debug_fm_spin_out"
         fields: [
-          { bits: "63:0", resval: "0", name: "debug_fm_spin_out", desc: "debug_fm_spin_out values" }
+          { bits: "31:0", resval: "0", name: "debug_fm_spin_out", desc: "debug_fm_spin_out values" }
         ]
       }
     }
@@ -274,10 +314,10 @@
         desc:     "debug_aw_spin_out values"
         swaccess: "rw"
         hwaccess: "hwo"
-        count:    "4"
+        count:    "8"
         cname:    "debug_aw_spin_out"
         fields: [
-          { bits: "63:0", resval: "0", name: "debug_aw_spin_out", desc: "debug_aw_spin_out values" }
+          { bits: "31:0", resval: "0", name: "debug_aw_spin_out", desc: "debug_aw_spin_out values" }
         ]
       }
     }
@@ -287,10 +327,10 @@
         desc:     "debug_em_spin_in values"
         swaccess: "rw"
         hwaccess: "hwo"
-        count:    "4"
+        count:    "8"
         cname:    "debug_em_spin_in"
         fields: [
-          { bits: "63:0", resval: "0", name: "debug_em_spin_in", desc: "debug_em_spin_in values" }
+          { bits: "31:0", resval: "0", name: "debug_em_spin_in", desc: "debug_em_spin_in values" }
         ]
       }
     }
