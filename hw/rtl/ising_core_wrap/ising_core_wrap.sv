@@ -57,10 +57,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     inout wire galena_vread_i
 );
     // Internal signals
-    // axi_narrow_req_t axi_s_req_j, axi_s_req_flip;
-    // axi_narrow_rsp_t axi_s_rsp_j, axi_s_rsp_flip;
-    // axi_narrow_req_t [1:0] axi_xbar_out_req; // 0: j, 1: flip
-    // axi_narrow_rsp_t [1:0] axi_xbar_out_rsp;  // 0: j, 1: flip
     mem_j_req_t drt_s_req_j;
     mem_j_rsp_t drt_s_rsp_j;
     mem_f_req_t drt_s_req_flip;
