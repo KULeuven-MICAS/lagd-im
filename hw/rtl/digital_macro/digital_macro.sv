@@ -238,6 +238,7 @@ module digital_macro #(
     assign flip_raddr_o = flip_raddr_fm[FLIP_ICON_ADDR_DEPTH-1:0];
     assign debug_fm_spin_out_o = fm_spin_out;
     assign debug_aw_spin_out_o = analog_spin;
+    assign debug_em_spin_in_o = em_spin_in;
     assign debug_fm_energy_input_o = fm_energy_input;
 
     `FFL(config_valid_em_dly1, config_valid_em_i, en_em_i, 1'b0, clk_i, rst_ni);
