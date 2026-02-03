@@ -530,7 +530,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_flip.q.strb          = '0; // not used for read
                 drt_s_req_flip.q.user          = '0; // not used
                 drt_s_req_flip.q_valid         = flip_ren;
-                // drt_s_rsp_flip.q_ready         = 1'b1; // always ready to accept read data
             end
             1'b1: begin: debug_spin_read
                 drt_s_req_flip.q.addr          = debug_spin_waddr;
@@ -539,7 +538,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_flip.q.user          = '0; // not used
                 drt_s_req_flip.q_valid         = 1'b1;
-                // drt_s_rsp_flip.q_ready         = 1'b1;
             end
         endcase
     end
@@ -554,7 +552,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.strb         = '0; // not used for read
                 drt_s_req_j.q.user         = '0; // not used
                 drt_s_req_j.q_valid        = j_mem_ren_load;
-                // drt_s_rsp_j.q_ready        = 1'b1; // always ready to accept read data
             end
             1'b1: begin: compute_mode
                 drt_s_req_j.q.addr         = dgt_weight_raddr;
@@ -563,7 +560,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.strb         = '0; // not used for read
                 drt_s_req_j.q.user         = '0; // not used
                 drt_s_req_j.q_valid        = dgt_weight_ren;
-                // drt_s_rsp_j.q_ready        = 1'b1; // always ready to accept read data
             end
         endcase
     end
