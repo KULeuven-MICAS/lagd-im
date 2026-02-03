@@ -48,9 +48,9 @@ module tb_ising_core_wrap;
     logic [(`NUM_SPIN*`BIT_J)-1:0] h_rdata, wbl_floating;
 
     // External AXI interconnect
-    lagd_axi_slv_req_t axi_ext_slv_req_0;
+    lagd_axi_slv_req_t axi_ext_slv_req_0 = 'd0;
     lagd_axi_slv_rsp_t axi_ext_slv_rsp_0;
-    lagd_axi_slv_req_t axi_ext_slv_req_1;
+    lagd_axi_slv_req_t axi_ext_slv_req_1 = 'd0;
     lagd_axi_slv_rsp_t axi_ext_slv_rsp_1;
     // Register interface
     lagd_reg_req_t reg_ext_req;
