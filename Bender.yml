@@ -52,7 +52,7 @@ sources:
       - hw/rtl/lagd_pkg.sv
       - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
-      - hw/rtl/lagd_core_reg_pkg.sv
+      - hw/rtl/lagd_core_reg/lagd_core_reg_pkg.sv
       - hw/rtl/ising_core_wrap/ising_core_wrap.sv
       - hw/rtl/lagd_axi_spi_slave.sv
       - hw/rtl/digital_macro/digital_macro.sv
