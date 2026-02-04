@@ -231,4 +231,7 @@ runs/
 # Autotest results
 results/
 
+# Digital macro testbench generated files
+**/output/**
+
 .nfs*

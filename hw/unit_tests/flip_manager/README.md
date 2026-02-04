@@ -1,5 +1,13 @@
 # Flip Manager Testbench
 
+# Description
+
+This testbench is for testing the function and performance of the flip manager module. Enter the command below to run the testbench:
+
+```
+./ci/ut-run.sh --test=flip_manager
+```
+
 ## Testbench parameters (applied value)
 
 *NUM_SPIN* (256): number of spins.
