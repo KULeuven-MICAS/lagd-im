@@ -33,6 +33,7 @@ module digital_macro #(
     // parameters: entire macro
     parameter integer H_IS_NEGATIVE = `False,
     parameter integer ENABLE_FLIP_DETECTION = `False,
+    parameter integer CC_COUNTER_BITWIDTH = 32,
     // derived parameters
     parameter integer BITH = BITJ,
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
@@ -157,7 +158,10 @@ module digital_macro #(
     output logic debug_em_upstream_handshake_o,
     output logic [NUM_SPIN-1:0] debug_em_spin_in_o,
     // measurement purposes
-    input  logic infinite_icon_loop_en_i
+    input  logic infinite_icon_loop_en_i,
+    output [2*COUNTER_BITWIDTH-1:0] cmpt_cycle_cnt_o,
+    output cmpt_cycle_cnt_maxed_o,
+    output cmpt_cycle_cnt_overflow_o
 );
     // Internal signals
     logic aw_mst_valid;
@@ -619,6 +623,23 @@ module digital_macro #(
         .dt_cfg_idle_o                  (dt_cfg_idle_o              ),
         .analog_rx_idle_o               (                           ),
         .analog_tx_idle_o               (                           )
+    );
+
+    // cmpt cycle counter for measurement purposes
+    step_counter #(
+        .COUNTER_BITWIDTH (CC_COUNTER_BITWIDTH),
+        .PARALLELISM (1)
+    ) cmpt_cycle_counter (
+        .clk_i (clk_i),
+        .rst_ni (rst_ni),
+        .en_i (en_fm_i),
+        .load_i (1'b0),
+        .d_i ({(CC_COUNTER_BITWIDTH){1'b0}}),
+        .recount_en_i (cmpt_en_pos_trigger),
+        .step_en_i (~cmpt_idle_o),
+        .q_o (cmpt_cycle_cnt_o),
+        .maxed_o (cmpt_cycle_cnt_maxed_o),
+        .overflow_o (cmpt_cycle_cnt_overflow_o)
     );
 
 endmodule

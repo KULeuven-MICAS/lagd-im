@@ -108,6 +108,9 @@ module tb_digital_macro;
     logic enable_flip_detection_i;
     logic debug_spin_compute_en_i;
     logic infinite_icon_loop_en_i;
+    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_cycle_cnt_o;
+    logic cmpt_cycle_cnt_maxed_o;
+    logic cmpt_cycle_cnt_overflow_o;
 
     // debugging interface
     logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_spin_read_i;
@@ -189,7 +192,8 @@ module tb_digital_macro;
         .SYNCHRONIZER_PIPEDEPTH          (SYNCHRONIZER_PIPEDEPTH        ),
         .SPIN_WBL_OFFSET                 (SPIN_WBL_OFFSET               ),
         .H_IS_NEGATIVE                   (H_IS_NEGATIVE                 ),
-        .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION         )
+        .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION         ),
+        .CC_COUNTER_BITWIDTH             (CC_COUNTER_BITWIDTH           )
     ) dut (
         .clk_i                           (clk_i                         ),
         .rst_ni                          (rst_ni                        ),
@@ -290,7 +294,10 @@ module tb_digital_macro;
         .debug_em_upstream_handshake_o   (                              ),
         .debug_em_spin_in_o              (                              ),
         // measurement purposes
-        .infinite_icon_loop_en_i         (infinite_icon_loop_en_i       )
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en_i       ),
+        .cmpt_cycle_cnt_o                (cmpt_cycle_cnt_o              ),
+        .cmpt_cycle_cnt_maxed_o          (cmpt_cycle_cnt_maxed_o        ),
+        .cmpt_cycle_cnt_overflow_o       (cmpt_cycle_cnt_overflow_o     )
     );
 
     // Clock generation

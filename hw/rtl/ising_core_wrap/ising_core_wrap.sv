@@ -140,6 +140,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin-1:0] debug_aw_spin_out;
     logic debug_em_upstream_handshake;
     logic [logic_cfg.NumSpin-1:0] debug_em_spin_in;
+    logic cmpt_cycle_cnt_maxed;
+    logic cmpt_cycle_cnt_overflow;
+    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_cycle_cnt;
     // memories
     logic j_mem_ren_load;
     logic dgt_weight_ren;
@@ -319,9 +322,12 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_fm_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_aw_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_em_upstream_handshake  .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.cmpt_cycle_cnt_maxed         .de = en_fm;
+    assign hw2reg.output_status.cmpt_cycle_cnt_overflow      .de = en_fm;
     assign hw2reg.debug_fm_energy_input                      .de = ctnus_dgt_debug;
     assign hw2reg.energy_fifo_data_0                         .de = (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
     assign hw2reg.energy_fifo_data_1                         .de = (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
+    assign hw2reg.cmpt_cycle_cnt                             .de = en_fm;
 
     assign hw2reg.output_status.dt_cfg_idle                   .d = dt_cfg_idle;
     assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
@@ -336,10 +342,12 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_fm_upstream_handshake   .d = debug_fm_upstream_handshake;
     assign hw2reg.output_status.debug_fm_downstream_handshake .d = debug_fm_downstream_handshake;
     assign hw2reg.output_status.debug_aw_downstream_handshake .d = debug_aw_downstream_handshake;
-    assign hw2reg.output_status.debug_em_upstream_handshake   .d = debug_em_upstream_handshake;
+    assign hw2reg.output_status.cmpt_cycle_cnt_maxed          .d = cmpt_cycle_cnt_maxed;
+    assign hw2reg.output_status.cmpt_cycle_cnt_overflow       .d = cmpt_cycle_cnt_overflow;
     assign hw2reg.debug_fm_energy_input                       .d = debug_fm_energy_input;
     assign hw2reg.energy_fifo_data_0                          .d = energy_fifo_data[0];
     assign hw2reg.energy_fifo_data_1                          .d = energy_fifo_data[1];
+    assign hw2reg.cmpt_cycle_cnt                              .d = cmpt_cycle_cnt;
 
     always_comb begin
         for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
@@ -414,7 +422,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .SYNCHRONIZER_PIPEDEPTH          (logic_cfg.SynchronizerPipeDepth  ),
         .SPIN_WBL_OFFSET                 (logic_cfg.SpinWblOffset          ),
         .H_IS_NEGATIVE                   (logic_cfg.HIsNegative            ),
-        .ENABLE_FLIP_DETECTION           (logic_cfg.EnableFlipDetection    )
+        .ENABLE_FLIP_DETECTION           (logic_cfg.EnableFlipDetection    ),
+        .CC_COUNTER_BITWIDTH             (logic_cfg.CcCounterBitwidth      )
     ) u_digital_macro (
         .clk_i                           (clk_i                            ),
         .rst_ni                          (rst_ni                           ),
@@ -514,7 +523,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .debug_aw_spin_out_o             (debug_aw_spin_out                ),
         .debug_em_upstream_handshake_o   (debug_em_upstream_handshake      ),
         .debug_em_spin_in_o              (debug_em_spin_in                 ),
-        .infinite_icon_loop_en_i         (infinite_icon_loop_en            )
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en            ),
+        .cmpt_cycle_cnt_o                (cmpt_cycle_cnt                   ),
+        .cmpt_cycle_cnt_maxed_o          (cmpt_cycle_cnt_maxed             ),
+        .cmpt_cycle_cnt_overflow_o       (cmpt_cycle_cnt_overflow          )
     );
 
     //////////////////////////////////////////////////////////

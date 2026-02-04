@@ -228,6 +228,8 @@
         { bits: "11",    resval: "0",  name: "debug_fm_downstream_handshake", desc: "Whether the fm downstream handshake is on"            }
         { bits: "12",    resval: "0",  name: "debug_aw_downstream_handshake", desc: "Whether the aw downstream handshake is on"            }
         { bits: "13",    resval: "0",  name: "debug_em_upstream_handshake",   desc: "Whether the em upstream handshake is on"              }
+        { bits: "14",    resval: "0",  name: "cmpt_cycle_cnt_maxed",          desc: "Whether the cmpt cycle counter is maxed"              }
+        { bits: "15",    resval: "0",  name: "cmpt_cycle_cnt_overflow",       desc: "Whether the cmpt cycle counter is overflow"           }
       ]
     }
 
@@ -334,6 +336,15 @@
           { bits: "31:0", resval: "0", name: "debug_em_spin_in", desc: "debug_em_spin_in values" }
         ]
       }
+    }
+
+    { name:     "cmpt_cycle_cnt"
+      desc:     "Registers for cmpt cycle counter"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", resval: "0",  name: "cmpt_cycle_cnt", desc: "cmpt cycle counter q" }
+      ]
     }
 
   ]

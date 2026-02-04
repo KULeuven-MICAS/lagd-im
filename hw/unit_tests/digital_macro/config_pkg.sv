@@ -25,6 +25,7 @@ package config_pkg;
     parameter int SPIN_DEPTH = 2;
     parameter int FLIP_ICON_DEPTH = 1024;
     parameter int COUNTER_BITWIDTH = 16;
+    parameter int CC_COUNTER_BITWIDTH = 32; // bit width of the cmpt cycle counter for measurement purposes
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
     parameter int H_IS_NEGATIVE = `True;
