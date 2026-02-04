@@ -14,3 +14,6 @@ lagd_core_reg_top.sv lagd_core_reg_pkg.sv: lagd_core_regs.hjson
 
 lagd_core_reg.h: lagd_core_regs.hjson
 	$(REGTOOL) -D $< > $@
+
+clean:
+	rm -f lagd_core_reg_top.sv lagd_core_reg_pkg.sv lagd_core_reg.h
