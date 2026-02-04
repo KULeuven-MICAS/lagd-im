@@ -112,6 +112,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_spin_read_en;
     logic ctnus_fifo_read;
     logic ctnus_dgt_debug;
+    logic infinite_icon_loop_en;
     // memories
     logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
     logic [logic_cfg.NumSpin-1:0] flip_rdata;
@@ -267,6 +268,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign dgt_addr_upper_bound             = reg2hw.global_cfg_2.dgt_addr_upper_bound.q;
     assign ctnus_fifo_read                  = reg2hw.global_cfg_2.ctnus_fifo_read.q;
     assign ctnus_dgt_debug                  = reg2hw.global_cfg_2.ctnus_dgt_debug.q;
+    assign infinite_icon_loop_en            = reg2hw.global_cfg_2.infinite_icon_loop_en.q;
 
     assign cfg_trans_num                    = reg2hw.counter_cfg_1.cfg_trans_num.q;
     assign cycle_per_wwl_high               = reg2hw.counter_cfg_1.cycle_per_wwl_high.q;
@@ -511,7 +513,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .debug_aw_downstream_handshake_o (debug_aw_downstream_handshake    ),
         .debug_aw_spin_out_o             (debug_aw_spin_out                ),
         .debug_em_upstream_handshake_o   (debug_em_upstream_handshake      ),
-        .debug_em_spin_in_o              (debug_em_spin_in                 )
+        .debug_em_spin_in_o              (debug_em_spin_in                 ),
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en            )
     );
 
     //////////////////////////////////////////////////////////

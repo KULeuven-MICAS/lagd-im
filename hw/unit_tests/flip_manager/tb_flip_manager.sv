@@ -20,6 +20,7 @@ module tb_flip_manager;
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int SPIN_DEPTH = 2; // depth of spin/energy FIFOs
     localparam int FLIP_ICON_DEPTH = 1024; // number of entries in flip, can be odd and even number
+    localparam bit INFINITE_ICON_LOOP_EN = 1; // set to 1 to enable infinite icon loop for measurement
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
@@ -62,6 +63,7 @@ module tb_flip_manager;
     logic [NUM_SPIN-1:0] spin_read_out_host;
     logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
     logic [NUM_SPIN-1:0] [SPIN_DEPTH-1:0] spin_fifo_o;
+    logic infinite_icon_loop_en_i;
 
     logic configure_test_done;
     logic spin_pop_handshake;
@@ -93,6 +95,8 @@ module tb_flip_manager;
     assign spin_pop_handshake = spin_pop_valid_o & spin_pop_ready_i;
 
     assign spin_pop_ready_i = spin_pop_ready_host ? spin_pop_ready_host : spin_pop_ready_analog;
+
+    assign infinite_icon_loop_en_i = INFINITE_ICON_LOOP_EN;
 
     initial begin
         en_i = 1;
@@ -134,7 +138,8 @@ module tb_flip_manager;
         .energy_fifo_update_o(energy_fifo_update_o),
         .spin_fifo_update_o(spin_fifo_update_o),
         .energy_fifo_o(energy_fifo_o),
-        .spin_fifo_o(spin_fifo_o)
+        .spin_fifo_o(spin_fifo_o),
+        .infinite_icon_loop_en_i(infinite_icon_loop_en_i)
     );
 
     // Clock generation
@@ -165,7 +170,7 @@ module tb_flip_manager;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            #(20_000_000 * CLKCYCLE);
+            #(50_000 * CLKCYCLE);
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -241,7 +246,7 @@ module tb_flip_manager;
         end
     endtask
 
-    // Task for lip icon rdata interface
+    // Task for flip icon rdata interface
     task automatic flip_icon_rdata_interface();
         begin
             flip_rdata_i = {(NUM_SPIN/2){2'b10}};
@@ -259,7 +264,7 @@ module tb_flip_manager;
     task automatic flip_icon_interface();
         begin
             while (!rst_ni) begin
-                icon_finished = 0;
+                icon_finished = 1'b0;
                 icon_addr = 'd0;
                 transaction_count_flip_icon = 0;
                 @(posedge clk_i);
@@ -279,8 +284,15 @@ module tb_flip_manager;
                 icon_addr++;
                 transaction_count_flip_icon++;
                 // check for end of icon
-                if (icon_addr == icon_last_raddr_plus_one_i - 1) begin
-                    icon_finished = 1;
+                if (INFINITE_ICON_LOOP_EN == 0) begin
+                    if (icon_addr == icon_last_raddr_plus_one_i - 1) begin
+                        icon_finished = 1'b1;
+                    end
+                end else begin
+                    if (icon_addr == icon_last_raddr_plus_one_i) begin
+                        icon_addr = 'd0;
+                        icon_finished = 1'b0;
+                    end
                 end
 
                 // Insert latency
@@ -343,7 +355,7 @@ module tb_flip_manager;
                 cmpt_en_i = 0;
                 // wait for completion
                 do @(posedge clk_i);
-                while (energy_handshake_count < icon_last_raddr_plus_one_i);
+                while ((INFINITE_ICON_LOOP_EN == 1) || (energy_handshake_count < icon_last_raddr_plus_one_i));
 
                 // read out the FIFO content
                 #(2.1 * CLKCYCLE); // small delay before readout
@@ -417,7 +429,7 @@ module tb_flip_manager;
                 @(posedge clk_i);
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
-            while (energy_handshake_count < icon_last_raddr_plus_one_i) begin
+            while ((INFINITE_ICON_LOOP_EN == 1) || (energy_handshake_count < icon_last_raddr_plus_one_i)) begin
                 if (spin_pop_handshake_count == 0) begin
                     wait (spin_pop_handshake);
                 end
@@ -459,7 +471,7 @@ module tb_flip_manager;
                 @(posedge clk_i);
             end
             while (!configure_test_done | !en_i) @(posedge clk_i);
-            while (spin_pop_handshake_count < icon_last_raddr_plus_one_i) begin
+            while ((INFINITE_ICON_LOOP_EN == 1) || (spin_pop_handshake_count < icon_last_raddr_plus_one_i)) begin
                 while (!spin_pop_handshake) @(negedge clk_i);
                 // compute expected flipped spin
                 expected_flipped_spin = spin_fifo_scoreboard[spin_pop_handshake_count%SPIN_DEPTH];
@@ -497,7 +509,7 @@ module tb_flip_manager;
                 @(posedge clk_i);
             end
             while (!cmpt_en_i) @(negedge clk_i);
-            while (energy_handshake_count < icon_last_raddr_plus_one_i) begin
+            while ((INFINITE_ICON_LOOP_EN == 1) || (energy_handshake_count < icon_last_raddr_plus_one_i)) begin
                 while (!energy_valid_i || !energy_ready_o) @(negedge clk_i);
                 if (en_comparison_i & (energy_i < energy_fifo_scoreboard[energy_fifo_pointer])) begin
                     energy_fifo_scoreboard[energy_fifo_pointer] = energy_i;
@@ -511,7 +523,7 @@ module tb_flip_manager;
                 end else begin
                     // $display("Pass: Energy FIFO content match at time %t: got 'h%h", $time, energy_fifo_scoreboard[energy_fifo_pointer]);
                 end
-                energy_fifo_pointer = (energy_fifo_pointer + 1);
+                energy_fifo_pointer = (energy_fifo_pointer + 1) % SPIN_DEPTH;
                 @(negedge clk_i);
                 if (dut.u_spin_fifo_maintainer.spin_fifo.mem_q[spin_fifo_pointer] != spin_fifo_scoreboard[spin_fifo_pointer]) begin
                     $display("Error: Spin FIFO content mismatch at time %t: expected 'h%h, got 'h%h", $time, spin_fifo_scoreboard[spin_fifo_pointer], dut.u_spin_fifo_maintainer.spin_fifo.mem_q[spin_fifo_pointer]);
@@ -520,7 +532,7 @@ module tb_flip_manager;
                 end else begin
                     // $display("Pass: Spin FIFO content match at time %t: got 'h%h", $time, spin_fifo_scoreboard[spin_fifo_pointer]);
                 end
-                spin_fifo_pointer = (spin_fifo_pointer + 1);
+                spin_fifo_pointer = (spin_fifo_pointer + 1) % SPIN_DEPTH;
             end
             $display("------------- Scoreboard Check: spin update -----------");
             $display("-- Scoreboard check completed successfully ['d%0d/'d%0d]! --", energy_handshake_count, icon_last_raddr_plus_one_i);

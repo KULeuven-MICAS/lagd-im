@@ -43,7 +43,7 @@ module tb_ising_core_wrap;
     logic [$clog2(`SYNCH_PIPE_DEPTH)-1:0] synchronizer_pipe_num, synchronizer_wbl_pipe_num;
     logic debug_h_wwl;
     logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound;
-    logic ctnus_fifo_read, ctnus_dgt_debug;
+    logic ctnus_fifo_read, ctnus_dgt_debug, infinite_icon_loop_en;
     logic [`LAGD_REG_DATA_WIDTH-1:0] global_cfg_reg_1, global_cfg_reg_2;
     logic [(`NUM_SPIN*`BIT_J)-1:0] h_rdata, wbl_floating;
 
@@ -74,7 +74,7 @@ module tb_ising_core_wrap;
                             debug_dt_configure_enable, en_comparison, en_analog_loop,
                             en_ef, en_ff, en_fm, en_em, en_aw, flush_en};
 
-    assign global_cfg_reg_2 = {16'd0, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
+    assign global_cfg_reg_2 = {15'd0, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
                             debug_h_wwl, synchronizer_pipe_num,
                             dt_cfg_enable, config_valid_fm, config_valid_em,
                             config_valid_aw, cmpt_en};
@@ -231,6 +231,7 @@ task automatic reg_config();
     dgt_addr_upper_bound = `NUM_SPIN/`PARALLELISM-1;
     ctnus_fifo_read = 1'b0;
     ctnus_dgt_debug = 1'b0;
+    infinite_icon_loop_en = 1'b0;
 
     config_spin_initial_0 = {`NUM_SPIN{1'b0}}; // all zeros
     config_spin_initial_1 = {`NUM_SPIN{1'b1}}; // all ones

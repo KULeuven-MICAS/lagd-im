@@ -107,6 +107,7 @@ module tb_digital_macro;
     logic spin_fifo_update_o;
     logic enable_flip_detection_i;
     logic debug_spin_compute_en_i;
+    logic infinite_icon_loop_en_i;
 
     // debugging interface
     logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_spin_read_i;
@@ -162,6 +163,7 @@ module tb_digital_macro;
     assign wwl_vread_i = {NUM_SPIN+1{1'b0}}; // all VREADs are disabled
     assign debug_cycle_per_spin_read_i = 'd0;
     assign debug_spin_read_num_i = 'd0;
+    assign infinite_icon_loop_en_i = INFINITE_ICON_LOOP_EN;
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -286,7 +288,9 @@ module tb_digital_macro;
         .debug_aw_downstream_handshake_o (                              ),
         .debug_aw_spin_out_o             (                              ),
         .debug_em_upstream_handshake_o   (                              ),
-        .debug_em_spin_in_o              (                              )
+        .debug_em_spin_in_o              (                              ),
+        // measurement purposes
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en_i       )
     );
 
     // Clock generation
@@ -313,7 +317,7 @@ module tb_digital_macro;
             $display("Debug mode enabled. Running with detailed output.");
             $timeformat(-9, 1, " ns", 9);
             $dumpfile(`VCD_FILE);
-            $dumpvars(3, tb_digital_macro); // Dump all variables in testbench module
+            $dumpvars(1, tb_digital_macro); // Dump all variables in testbench module
             #(500 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
             $finish;

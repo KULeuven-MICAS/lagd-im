@@ -155,7 +155,9 @@ module digital_macro #(
     output logic [NUM_SPIN-1:0] debug_aw_spin_out_o,
     // debugging interface: energy monitor
     output logic debug_em_upstream_handshake_o,
-    output logic [NUM_SPIN-1:0] debug_em_spin_in_o
+    output logic [NUM_SPIN-1:0] debug_em_spin_in_o,
+    // measurement purposes
+    input  logic infinite_icon_loop_en_i
 );
     // Internal signals
     logic aw_mst_valid;
@@ -536,7 +538,8 @@ module digital_macro #(
         .energy_fifo_update_o           (energy_fifo_update_o       ),
         .spin_fifo_update_o             (spin_fifo_update_o         ),
         .energy_fifo_o                  (energy_fifo_o              ),
-        .spin_fifo_o                    (spin_fifo_o                )
+        .spin_fifo_o                    (spin_fifo_o                ),
+        .infinite_icon_loop_en_i        (infinite_icon_loop_en_i    )
     );
 
     // instantiate analog macro wrapper for analog interface management

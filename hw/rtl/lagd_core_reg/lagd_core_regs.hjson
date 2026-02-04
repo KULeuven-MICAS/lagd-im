@@ -60,6 +60,7 @@
         { bits: "13:8",  resval: "63", name: "dgt_addr_upper_bound",        desc: "J address upper bound (inclusive)"                      }
         { bits: "14",    resval: "0",  name: "ctnus_fifo_read",             desc: "Whether to read energy/spin fifo continuously"          }
         { bits: "15",    resval: "0",  name: "ctnus_dgt_debug",             desc: "Whether to enable digital debugging logic continuously" }
+        { bits: "16",    resval: "0",  name: "infinite_icon_loop_en",       desc: "Whether to never stop cmpt after it starts (for power measurement purpose)"}
       ]
     }
 

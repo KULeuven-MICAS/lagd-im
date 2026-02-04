@@ -32,6 +32,7 @@ package config_pkg;
 
     // run-time parameters (related to algorithm, others are defined at the beginning of the testbench)
     parameter int IconLastAddrPlusOne = FLIP_ICON_DEPTH;
+    logic INFINITE_ICON_LOOP_EN = `False; // set to 1 to enable infinite icon loop for measurement
 
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;
