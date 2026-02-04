@@ -210,9 +210,11 @@ module digital_macro #(
     logic config_valid_em_dly1;
     logic config_valid_fm_dly1;
     logic config_valid_aw_dly1;
+    logic dt_cfg_enable_dly1;
     logic config_valid_em_posedge;
     logic config_valid_fm_posedge;
     logic config_valid_aw_posedge;
+    logic dt_cfg_enable_posedge;
 
     // control logic
     assign em_upstream_handshake = em_slv_ready & em_upstream_mst_valid;
@@ -233,6 +235,7 @@ module digital_macro #(
     assign config_valid_em_posedge = config_valid_em_i & ~config_valid_em_dly1;
     assign config_valid_fm_posedge = config_valid_fm_i & ~config_valid_fm_dly1;
     assign config_valid_aw_posedge = config_valid_aw_i & ~config_valid_aw_dly1;
+    assign dt_cfg_enable_posedge   = dt_cfg_enable_i & ~dt_cfg_enable_dly1;
 
     assign debug_fm_downstream_handshake_o = fm_downstream_handshake;
     assign debug_aw_downstream_handshake_o = aw_downstream_ready & aw_mst_valid;
@@ -251,6 +254,7 @@ module digital_macro #(
     `FFL(config_valid_em_dly1, config_valid_em_i, en_em_i, 1'b0, clk_i, rst_ni);
     `FFL(config_valid_fm_dly1, config_valid_fm_i, en_fm_i, 1'b0, clk_i, rst_ni);
     `FFL(config_valid_aw_dly1, config_valid_aw_i, en_aw_i, 1'b0, clk_i, rst_ni);
+    `FFL(dt_cfg_enable_dly1, dt_cfg_enable_i, en_aw_i, 1'b0, clk_i, rst_ni);
     `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
     `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni);
 
@@ -565,7 +569,7 @@ module digital_macro #(
         .synchronizer_wbl_pipe_num_i    (synchronizer_wbl_pipe_num_i),
         .debug_cycle_per_spin_read_i    (debug_cycle_per_spin_read_i),
         .debug_spin_read_num_i          (debug_spin_read_num_i      ),
-        .dt_cfg_enable_i                (dt_cfg_enable_i            ),
+        .dt_cfg_enable_i                (dt_cfg_enable_posedge      ),
         .j_mem_ren_o                    (j_mem_ren_o                ),
         .j_raddr_o                      (j_raddr_o                  ),
         .j_rdata_i                      (j_rdata_i                  ),
