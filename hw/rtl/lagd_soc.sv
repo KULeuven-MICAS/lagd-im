@@ -224,8 +224,10 @@ module lagd_soc import lagd_pkg::*; (
                 .clk_i             (clk_i                                   ),
                 .rst_ni            (rst_ni                                  ),
                 // AXI slave interface
-                .axi_s_req_i       (axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
-                .axi_s_rsp_o       (axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + i]),
+                .axi_s_req_0_i       (axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i    ]),
+                .axi_s_rsp_0_o       (axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i    ]),
+                .axi_s_req_1_i       (axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i + 1]),
+                .axi_s_rsp_1_o       (axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i + 1]),
                 // Register interface
                 .reg_s_req_i       (reg_ext_req[i]                          ),
                 .reg_s_rsp_o       (reg_ext_rsp[i]                          ),

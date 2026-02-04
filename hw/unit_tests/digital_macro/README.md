@@ -6,6 +6,18 @@ This folder is for function verification of the digital macro module.
 
 This module is the top module of the digital logic for a single Ising core.
 
+Enter the command below to run the testbench:
+
+```
+./ci/ut-run.sh --test=digital_macro --defines="DataFromFile=1 EnComparison=1 EnableFlipDetection=1 FlipDisable=0 EnableAnalogLoop=1"
+```
+
+Another option is to run the autotest script in python, by entering the command:
+
+```
+python utils/autotest_digital_macro.py
+```
+
 ## Testbench parameters
 
 *DataFromFile*: whether the input data is from the data file, or randomly generated.
