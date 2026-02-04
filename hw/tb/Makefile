@@ -17,9 +17,11 @@ SIM_DIR := $(PROJECT_ROOT)/target/sim
 # Flist generation for system verification
 # ============================================================
 
-ifdef TECH_MODELS
+ifeq ($(USE_TECH_MODELS),1)
 $(info "TECH_MODELS is set to $(TECH_MODELS), including tech cells in the flist")
 TECH_ARGS := -t tech_cells_generic_exclude_tc_sram
+TECH_MODELS_DEFINES = TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1 TSMC_CM_HOLD=10000ns
+TECH_MODELS_DEFINES += TSMC_INITIALIZE_MEM=1 TSMC_MEM_LOAD_RANDOM=1
 else
 TECH_ARGS :=
 endif
@@ -71,7 +73,8 @@ HDL_FILES ?=
 DBG ?= 1
 CXX_PATH ?= $(which g++)
 VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
-VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} # -sv_lib libelfloader
+VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} +notimingchecks
+# VSIM_FLAGS += -sv_lib libelfloader
 
 # Simulation defines
 BOOT_MODE ?= 0
@@ -79,7 +82,6 @@ PRELOAD_MODE ?= 0
 PRELOAD_ELF ?= ""
 CHIP_LEVEL_TEST ?= 0
 DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
-DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST)
-DEFINES += TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1 TSMC_CM_HOLD=10000ns
+DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST) $(TECH_MODELS_DEFINES)
 
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk

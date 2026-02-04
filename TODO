@@ -1,2 +1,10 @@
 Make corner configurable from synthesis flow
 Comment different memory data types
+
+// TODO
+Add synchronization to reset
+Add clock gating (?)
+remove check timing from sim
+Check synchronizers
+Add clock gating directives to syntehsis flow
+Add rtc constraint file
