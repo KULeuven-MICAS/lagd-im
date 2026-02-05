@@ -259,6 +259,8 @@ package ising_logic_pkg;
         int unsigned FlipIconDepth;
         /// Config counter bitwidth
         int unsigned CounterBitwidth;
+        // Clock cycle counter bitwidth
+        int unsigned CcCounterBitwidth;
         /// Synchronizer pipe depth
         int unsigned SynchronizerPipeDepth;
         /// Offset for spin WBL in analog macro
