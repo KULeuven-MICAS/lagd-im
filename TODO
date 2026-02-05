@@ -4,7 +4,13 @@ Comment different memory data types
 // TODO
 Add synchronization to reset
 Add clock gating (?)
-remove check timing from sim
 Check synchronizers
 Add clock gating directives to syntehsis flow
 Add rtc constraint file
+Add rtc pad
+Look into periphery cdc, how SPI goes to core clock
+Look into directive files of CVA6 and other IP
+Double check load, transitiona nd uncertainty on timing
+Share jitter value of the PLL
+Constraint analog to digital interface - set isolation cells and synchronizers as don't touch
+Provide the id pattern for isolation cells and synchronizer
