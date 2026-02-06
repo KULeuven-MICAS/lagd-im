@@ -93,10 +93,6 @@ for i in "$@"; do
             USE_TECH_MODELS=1
             shift
             ;;
-        --help)
-            show_help
-            exit 0
-            ;;
         *)
             echo "Unknown option: $i"
             show_usage
