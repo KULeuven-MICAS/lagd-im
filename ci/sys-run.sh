@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
-# ut-run.sh - Run unit tests
+# sys-run.sh - Run system tests
 
 set -e
 
@@ -92,10 +92,6 @@ for i in "$@"; do
         --use_tech_models)
             USE_TECH_MODELS=1
             shift
-            ;;
-        --help)
-            show_help
-            exit 0
             ;;
         *)
             echo "Unknown option: $i"
