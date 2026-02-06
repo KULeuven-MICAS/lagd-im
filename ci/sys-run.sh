@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
-# ut-run.sh - Run unit tests
+# sys-run.sh - Run system tests
 
 set -e
 
