@@ -44,7 +44,7 @@ module analog_tx #(
     assign spin_o = spin_out_reg;
     assign synchronizer_pipe_num_reg_o = synchronizer_pipe_num_reg;
 
-    lagd_synchronizer #(
+    synchronizer #(
         .DATAW(NUM_SPIN),
         .SYNCHRONIZER_PIPEDEPTH(SYNCHRONIZER_PIPEDEPTH),
         .WITH_ISOLATION_CELLS(1)
