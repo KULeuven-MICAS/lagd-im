@@ -7,19 +7,14 @@
 PROJECT_ROOT := $(shell realpath ../)
 include $(PROJECT_ROOT)/common.mk
 
+CHS_SW_GCC_BINROOT ?= $(PROJECT_ROOT)/.opt/riscv-gnu-toolchain/bin
+CHS_SW_LD_DIR ?= ./link
+
 CHS_ROOT := $(shell $(BENDER) path cheshire)
+CHS_SW_PATH := $(CHS_ROOT)/sw
 include $(CHS_ROOT)/cheshire.mk
 
-all: chs-hw-all uts soc_tb
+all: chs-sw-all
 
-uts: memory_island_flist
-
-soc_tb: lagd_chip_test_flist
-
-memory_island_flist:
-	$(MAKE) -C unit_tests/memory_island flist
-
-lagd_chip_test_flist:
-	$(MAKE) -C ./tb flist
-
-.PHONY: all uts memory_island_flist lagd_chip_test_flist soc_tb
+clean-chs:
+	cd $(CHS_SW_PATH)/tests && rm -rf *.dump *.elf *.memh

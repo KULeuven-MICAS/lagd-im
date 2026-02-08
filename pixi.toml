@@ -25,6 +25,7 @@ mkdocs = "*"
 mkdocs-material = "*"
 flatdict = "*"
 git-crypt = "*"
+mpfr = "*"
 
 # Exstra dependencies for tclint
 importlib-metadata = "==6.8.0"
@@ -38,3 +39,4 @@ tclint = "==0.4.2"
 
 [activation.env]
 PATH = "$HOME/ising/lagd-im/.opt/riscv-gnu-toolchain/bin:$HOME/.cargo/bin:$PATH"
+LD_LIBRARY_PATH = "$HOME/ising/lagd-im/.pixi/envs/default/lib:$LD_LIBRARY_PATH"

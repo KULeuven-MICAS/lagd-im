@@ -6,12 +6,15 @@
 
 include ./common.mk
 
-.PHONY: all build install target-syn target-sim target-all
+.PHONY: all build install target-syn target-sim target-all sw
 
 all: build
 
 build:
 	$(MAKE) -C hw all
+
+sw:
+	$(MAKE) -C sw all
 
 target-syn:
 	$(MAKE) -C target/syn all

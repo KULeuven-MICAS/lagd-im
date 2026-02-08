@@ -231,6 +231,7 @@ runs/
 # Autotest results
 results/
 
+bender_list.tcl
 # Digital macro testbench generated files
 **/output/**
 

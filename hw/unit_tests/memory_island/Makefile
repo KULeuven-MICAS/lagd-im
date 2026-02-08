@@ -4,7 +4,16 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-# Note: bender_list.tcl is generated from hw/Makefile
+SIM_TOOL := vsim
+VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
+MI_TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+PROJECT_ROOT ?= $(abspath $(CURDIR)/../../..)
+include $(PROJECT_ROOT)/common.mk
+
+# ============================================================
+# Simulation directives
+# ============================================================
 
 ifdef REGRESSION
 	TEST_LIST := $(shell ls $(CURDIR)/tests/*.tcl)
@@ -15,3 +24,21 @@ endif
 HDL_FILES_LIST ?= $(CURDIR)/tests/memory_island.tcl
 
 include ../common.mk
+
+# ============================================================
+# Memory Island flist generation
+# ============================================================
+
+ifdef TECH_MODELS
+	TECH_ARGS := -t tech_cells_generic_include_tc_sram
+else
+	TECH_ARGS :=
+endif
+
+# Memory island hdl_file_list.tcl generation
+MI_SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
+
+flist: $(MI_TEST_PATH)/bender_list.tcl
+
+$(MI_TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
+	$(BENDER) script $(SIM_TOOL) $(MI_SIM_ARGS) $(TECH_ARGS) > $@

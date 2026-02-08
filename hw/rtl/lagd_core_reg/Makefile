@@ -4,7 +4,7 @@
 
 # Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 
-CHS_REG_DIR   := $(shell $(BENDER) path register_interface)
+CHS_REG_DIR := $(shell bender path register_interface)
 REGTOOL ?= $(CHS_REG_DIR)/vendor/lowrisc_opentitan/util/regtool.py
 
 all: lagd_core_reg_top.sv lagd_core_reg_pkg.sv lagd_core_reg.h
