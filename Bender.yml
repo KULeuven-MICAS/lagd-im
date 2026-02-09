@@ -35,7 +35,7 @@ sources:
     target: all(tech_cells_generic_exclude_tc_sram, synthesis)
   - files:
       - target/syn/tech/tsmc7ff/rtl/synchronizer.sv
-      - target/syn/tech/tsmc7ff/rtl/chronos_pll_wrap.sv
+      - target/syn/tech/tsmc7ff/rtl/pomelo_pll_wrap.sv
       - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
     target: all(synthesis)
   - files:
