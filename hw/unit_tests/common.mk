@@ -5,7 +5,7 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # Basic simulation makefile
 
-PROJECT_ROOT = $(realpath ../../../)
+PROJECT_ROOT ?= $(realpath ../../../)
 
 # PATHS
 SIM_DIR = $(PROJECT_ROOT)/target/sim
