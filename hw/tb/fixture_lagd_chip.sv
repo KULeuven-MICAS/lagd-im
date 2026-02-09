@@ -43,6 +43,7 @@ module fixture_lagd_chip ();
     logic pad_jtag_tms_i; assign pad_jtag_tms_i = jtag_tms;
     logic pad_jtag_tdi_i; assign pad_jtag_tdi_i = jtag_tdi;
     logic pad_jtag_tdo_o; assign jtag_tdo = pad_jtag_tdo_o;
+    logic pad_jtag_tdo_oe_o; assign jtag_tdo_oe = pad_jtag_tdo_oe_o;
     logic pad_uart_tx_o; assign uart_tx = pad_uart_tx_o;
     logic pad_uart_rx_i; assign pad_uart_rx_i = uart_rx;
     logic pad_uart_rts_no;
