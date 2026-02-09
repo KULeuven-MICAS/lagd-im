@@ -87,7 +87,8 @@ module energy_fifo_maintainer #(
         .FALL_THROUGH(1'b0),
         .DATA_WIDTH(ENERGY_TOTAL_BIT),
         .DEPTH(SPIN_DEPTH),
-        .RESET_VALUE(1)
+        .RESET_VALUE(1),
+        .FLUSH_VALUE(1)
     ) energy_fifo (
         .clk_i(clk_i),
         .rst_ni(rst_ni),

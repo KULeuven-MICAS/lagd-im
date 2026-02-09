@@ -83,6 +83,8 @@ The module supports generally two different modes (only the regular mode is supp
 
 *en_ef_i*: active-high enable signal for the memory fifo module.
 
+*en_perf_counter_i*: performance counter enable signal.
+
 *en_analog_loop_i*: active-high enable signal for whether involving analog wrap module into the datapath loop. If low, the flip manager will send output directly to the energy monitor.
 
 *en_comparison_i*: whether or not to enable energy comparison in u_energy_fifo_maintainer. If 0, new energy value and spin value are always updated into energy FIFO and spin FIFO.
@@ -135,66 +137,4 @@ The module supports generally two different modes (only the regular mode is supp
 
 *dt_cfg_enable_i*: enable signal of starting data onloading to the analog macro.
 
-#### Analog wrap to J memory and h/scaling reg interface
-
-*j_mem_ren_o*: J memory read enable signal.
-
-*j_raddr_o*: [J_ADDRESS_WIDTH-1:0] J memory read address.
-
-*j_rdata_i*: [NUM_SPIN*BITDATA*PARALLELISM-1:0] returned data from J memory.
-
-*h_ren_o*: h register read enable signal.
-
-*h_rdata_i*: [NUM_SPIN*BITDATA-1:0] returned h data.
-
-*dt_cfg_idle_o*: status (idle or not) of submodule u_analog_cfg.
-
-#### Flip memory interface
-
-*flip_ren_o*: read enable signal to flip icon memory.
-
-*flip_raddr_o*: [$clog2(FLIP_ICON_DEPTH)+1-1:0] read address signal to flip icon memory.
-
-*icon_last_raddr_plus_one_i*: [$clog2(FLIP_ICON_DEPTH)+1-1:0] targeted uplimit for *flip_raddr_o*.
-
-*flip_rdata_i*: [NUM_SPIN-1:0] received flip icon from flip icon memory.
-
-#### Debugging interface
-
-*energy_fifo_update_o*: flag for when the energy fifo is updated.
-
-*spin_fifo_update_o*: flag for when the spin fifo is updated.
-
-*energy_fifo_o*: [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] the read-only port for energy FIFO.
-
-*spin_fifo_o*: [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] the read-only port for spin FIFO.
-
-#### J memory and h/scaling factor interface
-
-*dgt_weight_ren_o*: read enable signal for external J memory.
-
-*dgt_weight_raddr_o*: [J_MEM_ADDR_WIDTH-1:0] read address signal for external J memory.
-
-*dgt_weight_i*: [NUM_SPIN * BITJ * PARALLELISM-1:0] input weight data (must happens the next cycle after *dgt_weight_ren_o*).
-
-*dgt_hbias_i*: [BITH*NUM_SPIN-1:0] bias data input. Must be constant during the energy computation.
-
-*dgt_hscaling_i*: [SCALING_BIT-1:0] scaling data input. Must be constant during the energy computation.
-
-#### Analog interface
-
-*j_one_hot_wwl_o*: [NUM_SPIN-1:0] WWL output to analog macro during data onloading.
-
-*h_wwl_o*: WWL for h address.
-
-*wbl_o*: [NUM_SPIN*BITDATA-1:0] WBL to analog macro.
-
-*wblb_o*: [NUM_SPIN*BITDATA-1:0] WBLB to analog macro.
-
-*wbl_floating_o*: wbl floating signal for the analog macro.
-
-*spin_wwl_o*: [NUM_SPIN-1:0] spin WWL to analog macro.
-
-*spin_feedback_o*: [NUM_SPIN-1:0] the spin feedback signal to analog macro. The value is set by *spin_feedback_i*.
-
-*spin_analog_i*: [NUM_SPIN-1:0] returned spin value from analog macro.
+*cmpt_max_num_i*: maximal high-level loop number under the multi-cmpt mode.

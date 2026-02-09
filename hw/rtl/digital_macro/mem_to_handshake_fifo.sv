@@ -77,7 +77,8 @@ module mem_to_handshake_fifo #(
         .FALL_THROUGH(1'b0),
         .DATA_WIDTH(DATA_WIDTH),
         .DEPTH(DEPTH),
-        .RESET_VALUE(0)
+        .RESET_VALUE(0),
+        .FLUSH_VALUE(0)
     ) data_cache_fifo (
         .clk_i(clk_i),
         .rst_ni(rst_ni),

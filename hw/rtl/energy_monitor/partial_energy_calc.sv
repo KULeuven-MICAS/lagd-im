@@ -41,6 +41,7 @@ module partial_energy_calc #(
     )(
     input logic clk_i,
     input logic rst_ni,
+    input logic flush_i,
     input logic en_i,
     input logic data_valid_i,
     input logic [NUM_SPIN-1:0] spin_vector_i,
@@ -122,6 +123,7 @@ module partial_energy_calc #(
     ) u_pipe_hbias (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(hbias_scaled),
         .data_o(hbias_scaled_pipe),
         .valid_i(data_valid_i),
@@ -136,6 +138,7 @@ module partial_energy_calc #(
     ) u_pipe_double_weight_contri (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(double_weight_contri_i),
         .data_o(double_weight_contri_pipe),
         .valid_i(data_valid_i),
@@ -158,6 +161,7 @@ module partial_energy_calc #(
     ) u_pipe_current_spin (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(current_spin_i),
         .data_o(current_spin_pipe),
         .valid_i(data_valid_i),

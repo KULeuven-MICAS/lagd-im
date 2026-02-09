@@ -22,7 +22,8 @@ def simulate_digital_macro_tb(
         EnComparison: int = 1,
         EnableFlipDetection: int = 1,
         FlipDisable: int = 1,
-        EnableAnalogLoop: int = 1
+        EnableAnalogLoop: int = 1,
+        MultiCmptModeEn: int = 1,
         ) -> None:
     command = [
         "./ci/ut-run.sh",
@@ -30,13 +31,14 @@ def simulate_digital_macro_tb(
         "--clean",
         f"--defines=\"DataFromFile={DataFromFile} EnComparison={EnComparison} "
         f"EnableFlipDetection={EnableFlipDetection} FlipDisable={FlipDisable} "
-        f"EnableAnalogLoop={EnableAnalogLoop}\"",
+        f"EnableAnalogLoop={EnableAnalogLoop} MultiCmptModeEn={MultiCmptModeEn}\"",
         ]
     if show_terminal_output:
         print(f"Running command: {' '.join(command)} 2>&1 | tee {log_file}")
         os.system(f"{' '.join(command)} 2>&1 | tee {log_file}")
     else:
         os.system(f"{' '.join(command)} 2>&1 > {log_file}")
+    return ' '.join(command)
 
 
 def fetch_scoreboard_in_log(log_file: str) -> tuple[int, int, int]:
@@ -80,6 +82,7 @@ if __name__ == "__main__":
     tb_file_path = "hw/unit_tests/digital_macro/tb_digital_macro.sv"
     log_folder = "results"
     show_terminal_output = False
+    msg_verbose = False
     Path(log_folder).mkdir(parents=True, exist_ok=True)
 
     #############################
@@ -89,6 +92,7 @@ if __name__ == "__main__":
     EnableFlipDetection_pool = [0, 1]
     FlipDisable_pool = [0, 1]
     EnableAnalogLoop_pool = [0, 1]
+    MULTI_CMPT_MODE_EN_pool = [0, 1]
     #############################
 
     msg_pool = []
@@ -98,6 +102,7 @@ if __name__ == "__main__":
         * len(EnableFlipDetection_pool)
         * len(FlipDisable_pool)
         * len(EnableAnalogLoop_pool)
+        * len(MULTI_CMPT_MODE_EN_pool)
     )
     error_cases = 0
     pass_cases = 0
@@ -115,22 +120,24 @@ if __name__ == "__main__":
         EnableFlipDetection,
         FlipDisable,
         EnableAnalogLoop,
+        MultiCmptModeEn,
     ) in itertools.product(
         DataFromFile_pool,
         EnComparison_pool,
         EnableFlipDetection_pool,
         FlipDisable_pool,
         EnableAnalogLoop_pool,
+        MULTI_CMPT_MODE_EN_pool,
     ):
         test_mode_for_log = str(
             f"DF{DataFromFile}_EC{EnComparison}_EFD{EnableFlipDetection}"
-            f"_FD{FlipDisable}_EAL{EnableAnalogLoop}"
+            f"_FD{FlipDisable}_EAL{EnableAnalogLoop}_MCM{MultiCmptModeEn}"
         )
         log_file_path = (
             f"{log_folder}/autotest_digital_macro_{test_mode_for_log}.log"
         )
 
-        simulate_digital_macro_tb(
+        command = simulate_digital_macro_tb(
             log_file=log_file_path,
             show_terminal_output=show_terminal_output,
             DataFromFile=DataFromFile,
@@ -138,31 +145,42 @@ if __name__ == "__main__":
             EnableFlipDetection=EnableFlipDetection,
             FlipDisable=FlipDisable,
             EnableAnalogLoop=EnableAnalogLoop,
+            MultiCmptModeEn=MultiCmptModeEn,
         )
 
         (tests_passed, total_tests,
          tests_failed, error_case) = fetch_scoreboard_in_log(log_file_path)
 
         if error_case:
-            msg = (
-                f"Error, case: DataFromFile={DataFromFile}, "
-                f"EnComparison={EnComparison}, EnableFlipDetection={EnableFlipDetection}, "
-                f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop}. "
-                f"Scoreboard: {tests_passed}/{total_tests} correct, "
-                f"{tests_failed}/{total_tests} errors. "
-                f"Check log file: {log_file_path}"
-            )
+            if msg_verbose:
+                msg = (
+                    f"Error, case: DataFromFile={DataFromFile}, "
+                    f"EnComparison={EnComparison}, EnableFlipDetection={EnableFlipDetection}, "
+                    f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop}, MultiCmptModeEn={MultiCmptModeEn}. "
+                    f"Scoreboard: {tests_passed}/{total_tests} correct, "
+                    f"{tests_failed}/{total_tests} errors. "
+                    f"Check log file: {log_file_path}"
+                )
+            else:
+                msg = (
+                    f"Error, command: {command}, "
+                    f"Check log file: {log_file_path}"
+                )
             error_cases += 1
+            msg_pool.append(msg)
         else:
-            msg = (
-                f"Passed, case: DataFromFile={DataFromFile}, "
-                f"EnComparison={EnComparison}, EnableFlipDetection={EnableFlipDetection}, "
-                f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop}. "
-                f"Scoreboard: {tests_passed}/{total_tests} correct, "
-                f"{tests_failed}/{total_tests} errors."
-            )
+            if msg_verbose:
+                msg = (
+                    f"Passed, case: DataFromFile={DataFromFile}, "
+                    f"EnComparison={EnComparison}, EnableFlipDetection={EnableFlipDetection}, "
+                    f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop}. "
+                    f"Scoreboard: {tests_passed}/{total_tests} correct, "
+                    f"{tests_failed}/{total_tests} errors."
+                )
+            else:
+                msg = f"Passed, command: {command}."
             pass_cases += 1
-        msg_pool.append(msg)
+
         pbar.update(1)
         pbar.set_description(
             f"Running autotests: [Pass: {pass_cases}/{total_cases}, "

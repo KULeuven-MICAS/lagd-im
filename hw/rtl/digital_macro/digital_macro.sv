@@ -53,6 +53,7 @@ module digital_macro #(
     input  logic en_ff_i,
     input  logic en_ef_i,
     input  logic en_analog_loop_i,
+    input  logic en_perf_counter_i,
     // config interface: ctrl
     input  logic config_valid_em_i,
     input  logic config_valid_fm_i,
@@ -62,8 +63,8 @@ module digital_macro #(
     // config interface: energy monitor
     input  logic [SPIN_IDX_BIT-1:0] config_counter_i,
     // config interface: flip manager
-    input  logic [NUM_SPIN-1:0] config_spin_initial_i,
-    input  logic config_spin_initial_skip_i,
+    input  logic [NUM_SPIN*SPIN_DEPTH-1:0] config_spin_initial_i,
+    input  logic [SPIN_DEPTH-1:0] config_spin_initial_skip_i,
     // config interface: analog wrap
     input  logic [COUNTER_BITWIDTH-1:0] cfg_trans_num_i,
     input  logic [COUNTER_BITWIDTH-1:0] cycle_per_wwl_high_i,
@@ -159,9 +160,13 @@ module digital_macro #(
     output logic [NUM_SPIN-1:0] debug_em_spin_in_o,
     // measurement purposes
     input  logic infinite_icon_loop_en_i,
-    output [2*COUNTER_BITWIDTH-1:0] cmpt_cycle_cnt_o,
-    output cmpt_cycle_cnt_maxed_o,
-    output cmpt_cycle_cnt_overflow_o
+    input  logic multi_cmpt_mode_en_i,
+    input  logic [CC_COUNTER_BITWIDTH-1:0] cmpt_max_num_i,
+    output logic multi_cmpt_mode_idle_o,
+    output logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o,
+    output logic [CC_COUNTER_BITWIDTH-1:0] cycle_per_iteration_o,
+    output logic [CC_COUNTER_BITWIDTH-1:0] cycle_per_cmpt_o,
+    output logic [2*CC_COUNTER_BITWIDTH-1:0] cycle_all_cmpt_o
 );
     // Internal signals
     logic aw_mst_valid;
@@ -221,6 +226,16 @@ module digital_macro #(
     logic config_valid_fm_posedge;
     logic config_valid_aw_posedge;
     logic dt_cfg_enable_posedge;
+    logic cmpt_idle_dly1;
+    logic fm_pre_config_flush;
+    logic config_valid_fm;
+    logic [NUM_SPIN-1:0] config_spin_initial_fm;
+    logic config_spin_initial_skip_fm;
+    logic config_spin_ctrl_idle;
+    logic multi_cmpt_idx_maxed;
+    logic multi_cmpt_en;
+    logic cmpt_en_fm;
+    logic flush_comb;
 
     // control logic
     assign em_upstream_handshake = em_slv_ready & em_upstream_mst_valid;
@@ -229,7 +244,8 @@ module digital_macro #(
 
     assign hscaling_expanded = {PARALLELISM{dgt_hscaling_i}};
     assign cmpt_en_pos_trigger = cmpt_en_i & ~cmpt_en_dly1;
-    assign em_fifo_flush_comb = flush_i | (enable_flip_detection_i & ~enable_flip_detection_dly1);
+    assign flush_comb = flush_i | fm_pre_config_flush;
+    assign em_fifo_flush_comb = flush_comb | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
     // The config_valid_*_i inputs originate from a register / CSR interface, which cannot
     // reliably control signal levels on a cycle-accurate basis. If these inputs were used
@@ -242,12 +258,12 @@ module digital_macro #(
     assign config_valid_fm_posedge = config_valid_fm_i & ~config_valid_fm_dly1;
     assign config_valid_aw_posedge = config_valid_aw_i & ~config_valid_aw_dly1;
     assign dt_cfg_enable_posedge   = dt_cfg_enable_i & ~dt_cfg_enable_dly1;
+    assign cmpt_idle_posedge = cmpt_idle_o & ~cmpt_idle_dly1;
 
     assign debug_fm_downstream_handshake_o = fm_downstream_handshake;
     assign debug_aw_downstream_handshake_o = aw_downstream_ready & aw_mst_valid;
     assign debug_em_upstream_handshake_o = em_upstream_handshake;
     assign debug_fm_upstream_handshake_o = fm_upstream_handshake;
-
 
     // data path
     assign muxed_analog_spin = en_analog_loop_i ? analog_spin : fm_spin_out;
@@ -256,13 +272,16 @@ module digital_macro #(
     assign debug_aw_spin_out_o = analog_spin;
     assign debug_em_spin_in_o = em_spin_in;
     assign debug_fm_energy_input_o = fm_energy_input;
+    assign cmpt_en_fm = cmpt_en_pos_trigger | multi_cmpt_en;
 
-    `FFL(config_valid_em_dly1, config_valid_em_i, en_em_i, 1'b0, clk_i, rst_ni);
-    `FFL(config_valid_fm_dly1, config_valid_fm_i, en_fm_i, 1'b0, clk_i, rst_ni);
-    `FFL(config_valid_aw_dly1, config_valid_aw_i, en_aw_i, 1'b0, clk_i, rst_ni);
-    `FFL(dt_cfg_enable_dly1, dt_cfg_enable_i, en_aw_i, 1'b0, clk_i, rst_ni);
-    `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni);
-    `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni);
+    `FFL(config_valid_em_dly1, config_valid_em_i, en_em_i, 1'b0, clk_i, rst_ni)
+    `FFL(config_valid_fm_dly1, config_valid_fm_i, en_fm_i, 1'b0, clk_i, rst_ni)
+    `FFL(config_valid_aw_dly1, config_valid_aw_i, en_aw_i, 1'b0, clk_i, rst_ni)
+    `FFL(dt_cfg_enable_dly1, dt_cfg_enable_i, en_aw_i, 1'b0, clk_i, rst_ni)
+    `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni)
+    `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni)
+    `FFL(cmpt_idle_dly1, cmpt_idle_o, en_fm_i, 1'b0, clk_i, rst_ni)
+    `FFLARNC(multi_cmpt_mode_idle_o, 1'b0, multi_cmpt_mode_en_i & cmpt_en_pos_trigger, (multi_cmpt_idx_maxed | (~multi_cmpt_mode_en_i)) & cmpt_idle_o, 1'b1, clk_i, rst_ni)
 
     generate
         if (ENABLE_FLIP_DETECTION) begin: initialize_flip_filter
@@ -320,7 +339,7 @@ module digital_macro #(
                 assign hbias_sliced = dgt_hbias_i[(NUM_SPIN - em_external_counter_q - PARALLELISM) * BITH +: BITH * PARALLELISM];
             end
 
-            `FFLARNC(ff_bits_unflipped_dly1, ff_bits_unflipped, ff_ef_handshake, flush_i, {NUM_SPIN{1'b1}}, clk_i, rst_ni);
+            `FFLARNC(ff_bits_unflipped_dly1, ff_bits_unflipped, ff_ef_handshake, flush_comb, {NUM_SPIN{1'b1}}, clk_i, rst_ni);
 
             // pipeline to handle handshake conflict when both ff_empty and energy monitor handshake occur
             // here its handshake has lower priority than energy monitor
@@ -331,6 +350,7 @@ module digital_macro #(
             ) u_pipe_ff_empty (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
+                .flush_i(flush_comb),
                 .data_i({ff_energy_baseline, ff_spin_baseline}),
                 .data_o({ff_energy_baseline_pipe, ff_spin_baseline_pipe}),
                 .valid_i(ff_empty),
@@ -344,11 +364,12 @@ module digital_macro #(
                 .FALL_THROUGH(1'b0),
                 .DATA_WIDTH(ENERGY_TOTAL_BIT + PARALLELISM+1+J_MEM_ADDR_WIDTH+1),
                 .DEPTH(3), // same as u_em_fifo + memory latency
-                .RESET_VALUE(0)
+                .RESET_VALUE(0),
+                .FLUSH_VALUE(0)
             ) weight_info_fifo (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
-                .flush_i(flush_i),
+                .flush_i(flush_comb),
                 .full_o(),
                 .empty_o(parallel_fifo_empty),
                 .usage_o(),
@@ -440,7 +461,7 @@ module digital_macro #(
         end
     endgenerate
 
-    `FFLARNC(dgt_weight_ren_dly1, dgt_weight_ren_o, en_ef_i, flush_i, 1'b0, clk_i, rst_ni);
+    `FFLARNC(dgt_weight_ren_dly1, dgt_weight_ren_o, en_ef_i, flush_comb, 1'b0, clk_i, rst_ni)
     // memory to handshake fifo for weight loading
     mem_to_handshake_fifo #(
         .DEPTH                          (2                          ),
@@ -508,6 +529,28 @@ module digital_macro #(
         .busy_o                         (em_busy                    )
     );
 
+    // instantiate flip manager's spin config module
+    config_spin_ctrl #(
+        .NUM_SPIN                      (NUM_SPIN                    ),
+        .SPIN_DEPTH                    (SPIN_DEPTH                  ),
+        .LITTLE_ENDIAN                 (1                           )
+    ) u_config_spin_ctrl (
+        .clk_i                         (clk_i                       ),
+        .rst_ni                        (rst_ni                      ),
+        .en_i                          (en_fm_i                     ),
+        .flush_i                       (flush_i                     ),
+        .multi_cmpt_start_i            (~multi_cmpt_mode_idle_o     ),
+        .config_start_i                (config_valid_fm_posedge | ((~multi_cmpt_mode_idle_o) & cmpt_idle_o & (~cmpt_idle_dly1)) ),
+        .config_spin_initial_i         (config_spin_initial_i       ),
+        .config_spin_initial_skip_i    (config_spin_initial_skip_i  ),
+        .fm_flush_o                    (fm_pre_config_flush         ),
+        .config_spin_valid_o           (config_valid_fm             ),
+        .config_spin_initial_o         (config_spin_initial_fm      ),
+        .config_spin_initial_skip_o    (config_spin_initial_skip_fm ),
+        .config_spin_ctrl_idle_o       (config_spin_ctrl_idle       ),
+        .multi_cmpt_en_o               (multi_cmpt_en               )
+    );
+
     // instantiate flip manager for spin flipping and spin management
     flip_manager #(
         .NUM_SPIN                       (NUM_SPIN                   ),
@@ -515,35 +558,35 @@ module digital_macro #(
         .ENERGY_TOTAL_BIT               (ENERGY_TOTAL_BIT           ),
         .FLIP_ICON_DEPTH                (FLIP_ICON_DEPTH            )
     ) u_flip_manager (
-        .clk_i                          (clk_i                      ),
-        .rst_ni                         (rst_ni                     ),
-        .en_i                           (en_fm_i                    ),
-        .flush_i                        (flush_i                    ),
-        .en_comparison_i                (en_comparison_i            ),
-        .cmpt_en_i                      (cmpt_en_pos_trigger        ),
-        .cmpt_idle_o                    (cmpt_idle_o                ),
-        .host_readout_i                 (host_readout_i             ),
-        .spin_configure_valid_i         (config_valid_fm_posedge    ),
-        .spin_configure_i               (config_spin_initial_i      ),
-        .spin_configure_push_none_i     (config_spin_initial_skip_i ),
-        .spin_configure_ready_o         (                           ),
-        .spin_pop_valid_o               (fm_mst_valid               ),
-        .spin_pop_o                     (fm_spin_out                ),
-        .spin_pop_ready_i               (fm_downstream_slv_ready    ),
-        .energy_valid_i                 (fm_upstream_mst_valid      ),
-        .energy_ready_o                 (fm_slv_ready               ),
-        .energy_i                       (fm_energy_input            ),
-        .spin_i                         (fm_spin_input              ),
-        .flip_ren_o                     (flip_ren_o                 ),
-        .flip_raddr_o                   (flip_raddr_fm              ),
-        .icon_last_raddr_plus_one_i     (icon_last_raddr_plus_one_i ),
-        .flip_rdata_i                   (flip_rdata_i               ),
-        .flip_disable_i                 (flip_disable_i             ),
-        .energy_fifo_update_o           (energy_fifo_update_o       ),
-        .spin_fifo_update_o             (spin_fifo_update_o         ),
-        .energy_fifo_o                  (energy_fifo_o              ),
-        .spin_fifo_o                    (spin_fifo_o                ),
-        .infinite_icon_loop_en_i        (infinite_icon_loop_en_i    )
+        .clk_i                          (clk_i                                    ),
+        .rst_ni                         (rst_ni                                   ),
+        .en_i                           (en_fm_i                                  ),
+        .flush_i                        (flush_comb                               ),
+        .en_comparison_i                (en_comparison_i                          ),
+        .cmpt_en_i                      (cmpt_en_fm                               ),
+        .cmpt_idle_o                    (cmpt_idle_o                              ),
+        .host_readout_i                 (host_readout_i                           ),
+        .spin_configure_valid_i         (config_valid_fm                          ),
+        .spin_configure_i               (config_spin_initial_fm                   ),
+        .spin_configure_push_none_i     (config_spin_initial_skip_fm              ),
+        .spin_configure_ready_o         (                                         ),
+        .spin_pop_valid_o               (fm_mst_valid                             ),
+        .spin_pop_o                     (fm_spin_out                              ),
+        .spin_pop_ready_i               (fm_downstream_slv_ready                  ),
+        .energy_valid_i                 (fm_upstream_mst_valid                    ),
+        .energy_ready_o                 (fm_slv_ready                             ),
+        .energy_i                       (fm_energy_input                          ),
+        .spin_i                         (fm_spin_input                            ),
+        .flip_ren_o                     (flip_ren_o                               ),
+        .flip_raddr_o                   (flip_raddr_fm                            ),
+        .icon_last_raddr_plus_one_i     (icon_last_raddr_plus_one_i               ),
+        .flip_rdata_i                   (flip_rdata_i                             ),
+        .flip_disable_i                 (flip_disable_i                           ),
+        .energy_fifo_update_o           (energy_fifo_update_o                     ),
+        .spin_fifo_update_o             (spin_fifo_update_o                       ),
+        .energy_fifo_o                  (energy_fifo_o                            ),
+        .spin_fifo_o                    (spin_fifo_o                              ),
+        .infinite_icon_loop_en_i        (infinite_icon_loop_en_i                  )
     );
 
     // instantiate analog macro wrapper for analog interface management
@@ -629,17 +672,65 @@ module digital_macro #(
     step_counter #(
         .COUNTER_BITWIDTH (CC_COUNTER_BITWIDTH),
         .PARALLELISM (1)
-    ) cmpt_cycle_counter (
-        .clk_i (clk_i),
-        .rst_ni (rst_ni),
-        .en_i (en_fm_i),
-        .load_i (1'b0),
-        .d_i ({(CC_COUNTER_BITWIDTH){1'b0}}),
-        .recount_en_i (cmpt_en_pos_trigger),
-        .step_en_i (~cmpt_idle_o),
-        .q_o (cmpt_cycle_cnt_o),
-        .maxed_o (cmpt_cycle_cnt_maxed_o),
-        .overflow_o (cmpt_cycle_cnt_overflow_o)
+    ) iteration_cycle_counter (
+        .clk_i        (clk_i                                        ),
+        .rst_ni       (rst_ni                                       ),
+        .en_i         (en_perf_counter_i                            ),
+        .load_i       (1'b0                                         ),
+        .d_i          ({(CC_COUNTER_BITWIDTH){1'b0}}                ),
+        .recount_en_i (cmpt_en_fm | fm_upstream_handshake           ),
+        .step_en_i    (~cmpt_idle_o                                 ),
+        .q_o          (cycle_per_iteration_o                        ),
+        .maxed_o      (                                             ),
+        .overflow_o   (                                             )
+    );
+
+    step_counter #(
+        .COUNTER_BITWIDTH (CC_COUNTER_BITWIDTH),
+        .PARALLELISM (1)
+    ) single_cmpt_cycle_counter (
+        .clk_i        (clk_i                                        ),
+        .rst_ni       (rst_ni                                       ),
+        .en_i         (en_perf_counter_i                            ),
+        .load_i       (1'b0                                         ),
+        .d_i          ({(CC_COUNTER_BITWIDTH){1'b0}}                ),
+        .recount_en_i (cmpt_en_fm                                   ),
+        .step_en_i    (~cmpt_idle_o                                 ),
+        .q_o          (cycle_per_cmpt_o                             ),
+        .maxed_o      (                                             ),
+        .overflow_o   (                                             )
+    );
+
+    step_counter #(
+        .COUNTER_BITWIDTH (2*CC_COUNTER_BITWIDTH),
+        .PARALLELISM (1)
+    ) multi_cmpt_cycle_counter (
+        .clk_i        (clk_i                                        ),
+        .rst_ni       (rst_ni                                       ),
+        .en_i         (en_perf_counter_i                            ),
+        .load_i       (1'b0                                         ),
+        .d_i          ({(2*CC_COUNTER_BITWIDTH){1'b0}}              ),
+        .recount_en_i (cmpt_en_pos_trigger                          ),
+        .step_en_i    (~multi_cmpt_mode_idle_o                      ),
+        .q_o          (cycle_all_cmpt_o                             ),
+        .maxed_o      (                                             ),
+        .overflow_o   (                                             )
+    );
+
+    step_counter #(
+        .COUNTER_BITWIDTH (CC_COUNTER_BITWIDTH),
+        .PARALLELISM (1)
+    ) multi_cmpt_loop_idx_counter (
+        .clk_i        (clk_i                                        ),
+        .rst_ni       (rst_ni                                       ),
+        .en_i         (en_perf_counter_i                            ),
+        .load_i       (config_valid_fm_posedge                      ),
+        .d_i          (cmpt_max_num_i                               ),
+        .recount_en_i (cmpt_en_pos_trigger                          ),
+        .step_en_i    ((~multi_cmpt_mode_idle_o) & cmpt_idle_posedge),
+        .q_o          (cmpt_idx_o                                   ),
+        .maxed_o      (multi_cmpt_idx_maxed                         ),
+        .overflow_o   (                                             )
     );
 
 endmodule
