@@ -156,7 +156,8 @@ if __name__ == "__main__":
                 msg = (
                     f"Error, case: DataFromFile={DataFromFile}, "
                     f"EnComparison={EnComparison}, EnableFlipDetection={EnableFlipDetection}, "
-                    f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop}, MultiCmptModeEn={MultiCmptModeEn}. "
+                    f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop},"
+                    f"MultiCmptModeEn={MultiCmptModeEn}. "
                     f"Scoreboard: {tests_passed}/{total_tests} correct, "
                     f"{tests_failed}/{total_tests} errors. "
                     f"Check log file: {log_file_path}"
