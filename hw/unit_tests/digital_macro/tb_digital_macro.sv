@@ -179,7 +179,7 @@ module tb_digital_macro;
     assign debug_spin_read_num_i = 'd0;
     assign infinite_icon_loop_en_i = INFINITE_ICON_LOOP_EN;
     assign multi_cmpt_mode_en_i = `MULTI_CMPT_MODE_EN;
-    assign cmpt_max_num_i = CmptMaxNum; // max number of computations in multi-cmpt mode
+    assign cmpt_max_num_i = CmptMaxNum - 1; // max number of computations in multi-cmpt mode
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
