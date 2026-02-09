@@ -12,7 +12,7 @@ set HDL_FILES [ list \
 
 set PROJECT_ROOT [exec realpath ../..]
 
-set TECH_SIM_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/IPs/tech_sim_flist.tcl
+set TECH_SIM_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_sim_flist.tcl
 
 if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
     if { [file exists $TECH_SIM_FLIST] } {
