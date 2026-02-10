@@ -24,7 +24,7 @@
 // - current_spin_i: current spin value
 // - weight_i: input weight data
 // - hbias_i: h bias
-// - hscaling_i: h scaling factor (must be a power of 2, including 0)
+// - hscaling_i: unsigned h scaling factor
 // - energy_o: output energy value
 
 `include "common_cells/registers.svh"
