@@ -100,6 +100,7 @@ module partial_energy_calc #(
     ) u_adder_tree (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_valid_i(data_valid_i),
         .en_i(en_i),
         .data_i(mult_out),
