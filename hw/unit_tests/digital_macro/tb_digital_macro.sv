@@ -179,7 +179,7 @@ module tb_digital_macro;
     assign debug_spin_read_num_i = 'd0;
     assign infinite_icon_loop_en_i = INFINITE_ICON_LOOP_EN;
     assign multi_cmpt_mode_en_i = `MultiCmptModeEn;
-    assign cmpt_max_num_i = CmptMaxNum - 1; // max number of computations in multi-cmpt mode
+    assign cmpt_max_num_i = CmptMaxNum; // max number of computations in multi-cmpt mode
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -700,7 +700,7 @@ module tb_digital_macro;
                     for (int k = 0; k < NUM_SPIN; k = k + 1) begin
                         wbl_i[k*BITDATA] = {{(BITJ-1){1'b0}}, states_out_ref[state_out_ref_idx][k]} << SPIN_WBL_OFFSET;
                     end
-                    state_out_ref_idx = (state_out_ref_idx + 1) % (IconLastAddrPlusOne);
+                    state_out_ref_idx = (state_out_ref_idx + 1) % (CheckLastAddrPlusOne);
                 end else begin
                     wbl_i = wbl_copy;
                 end
@@ -959,15 +959,15 @@ module tb_digital_macro;
         end while (`MultiCmptModeEn && multi_cmpt_idx < CmptMaxNum);
         // after all tests
         if (`MultiCmptModeEn) begin
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
             $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_cmpt_idx: %0d/%0d",
                 $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne, multi_cmpt_idx, CmptMaxNum);
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
         end else begin
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
             $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
                 $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne);
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
         end
     endtask
 
@@ -1003,15 +1003,15 @@ module tb_digital_macro;
         end while (`MultiCmptModeEn && multi_spin_check_idx < CmptMaxNum);
         // after all tests
         if (`MultiCmptModeEn) begin
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
             $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_spin_check_idx: %0d/%0d",
                 $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne, multi_spin_check_idx, CmptMaxNum);
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
         end else begin
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
             $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
                 $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne);
-            $display("----------------------------------------");
+            $display("-------------------------------------------------------------------------------------------------------");
         end
     endtask
 
@@ -1097,16 +1097,17 @@ module tb_digital_macro;
             total_cycles = total_time / CLKCYCLE;
             transaction_cycles = total_cycles / CheckLastAddrPlusOne;
             transaction_time = transaction_cycles * CLKCYCLE;
-            $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
+            $display("---------------------------------------- Timer per Computation ----------------------------------------");
             $display("Timer [Time %0d ns]: start time: %0d ns, end time: %0d ns, duration: %0d ns, flips: %0d",
                 $time, start_time, end_time, total_time, CheckLastAddrPlusOne);
             $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
                 $time, total_cycles, total_time, transaction_cycles, transaction_time);
             $display("Timer [Time %0d ns]: MultiCmptModeEn: %d, multi_cmpt_timer_idx: %0d/%0d",
                 $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum);
-            $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
+            $display("---------------------------------------- Timer per Computation ----------------------------------------");
             multi_cmpt_timer_idx = multi_cmpt_timer_idx + 1;
         end while (`MultiCmptModeEn && multi_cmpt_timer_idx < CmptMaxNum);
+        @(posedge clk_i);
         $finish;
     endtask
 
