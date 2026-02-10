@@ -46,7 +46,7 @@ def fetch_scoreboard_in_log(log_file: str) -> tuple[int, int, int]:
         log_content = file.read()
 
     start_search_pattern = (
-        r"@@ Timer per Computation @@"
+        r".*Note: \$finish"
     )
 
     scoreboard_pattern = (
