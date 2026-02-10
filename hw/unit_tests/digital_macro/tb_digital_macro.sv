@@ -48,7 +48,6 @@ module tb_digital_macro;
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
-    localparam int NUM_TESTS = 1; // number of computation processes (only 1 is supported currently)
 
     // dut signals
     logic clk_i;
@@ -149,6 +148,7 @@ module tb_digital_macro;
     logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_initial_states;
     logic [NUM_SPIN*BITDATA-1:0] wbl_i;
     int signed constant;
+    localparam int CheckLastAddrPlusOne = `FlipDisable ? SPIN_DEPTH : IconLastAddrPlusOne;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] flip_icons_in_mem;
     logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_ref;
     logic [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_ref;
@@ -939,7 +939,7 @@ module tb_digital_macro;
         do begin
             check_idx = 0;
             test_correct_cnt = 0;
-            while (check_idx < IconLastAddrPlusOne) begin
+            while (check_idx < CheckLastAddrPlusOne) begin
                 while (energy_fifo_update_o == 0) @(negedge clk_i);
                 for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
                     // check energy fifo
@@ -961,12 +961,12 @@ module tb_digital_macro;
         if (`MultiCmptModeEn) begin
             $display("----------------------------------------");
             $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_cmpt_idx: %0d/%0d",
-                $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne, multi_cmpt_idx, CmptMaxNum);
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne, multi_cmpt_idx, CmptMaxNum);
             $display("----------------------------------------");
         end else begin
             $display("----------------------------------------");
             $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
-                $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne);
             $display("----------------------------------------");
         end
     endtask
@@ -983,7 +983,7 @@ module tb_digital_macro;
             test_correct_cnt = 0;
             wait (dut.cmpt_en_fm == 1'b1); // wait for compute start
             repeat (2) @(posedge clk_i);
-            while (check_idx < IconLastAddrPlusOne) begin
+            while (check_idx < CheckLastAddrPlusOne) begin
                 while (spin_fifo_update_o == 0) @(negedge clk_i);
                 for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
                     // check spin fifo
@@ -1005,12 +1005,12 @@ module tb_digital_macro;
         if (`MultiCmptModeEn) begin
             $display("----------------------------------------");
             $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_spin_check_idx: %0d/%0d",
-                $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne, multi_spin_check_idx, CmptMaxNum);
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne, multi_spin_check_idx, CmptMaxNum);
             $display("----------------------------------------");
         end else begin
             $display("----------------------------------------");
             $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
-                $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne);
             $display("----------------------------------------");
         end
     endtask
@@ -1028,9 +1028,9 @@ module tb_digital_macro;
             @(negedge clk_i);
             while(check_fifo_idx < SPIN_DEPTH) begin
                 if (`FlipDisable == `False) begin
-                    if (spin_fifo_o[check_fifo_idx] !== spin_fifo_ref[IconLastAddrPlusOne][check_fifo_idx]) begin
+                    if (spin_fifo_o[check_fifo_idx] !== spin_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx]) begin
                         $fatal(1, "[Time: %t] Error: Final spin fifo mismatch at test_idx 'd%0d, check_fifo_idx 'd%0d. Expected: 'h%0h, Got: 'h%0h",
-                            $time, test_idx, check_fifo_idx, spin_fifo_ref[IconLastAddrPlusOne][check_fifo_idx], spin_fifo_o[check_fifo_idx]);
+                            $time, test_idx, check_fifo_idx, spin_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx], spin_fifo_o[check_fifo_idx]);
                     end
                 end else begin
                     if (spin_fifo_o[check_fifo_idx] !== spin_fifo_ref[2][check_fifo_idx]) begin
@@ -1041,9 +1041,9 @@ module tb_digital_macro;
                 // $display("[Time: %t] Final spin fifo check successfully at idx 'd%0d, value: 'b%0b",
                 //     $time, check_fifo_idx, spin_fifo_o[check_fifo_idx]);
                 if (`FlipDisable == `False) begin
-                    if (energy_fifo_o[check_fifo_idx] !== energy_fifo_ref[IconLastAddrPlusOne][check_fifo_idx]) begin
+                    if (energy_fifo_o[check_fifo_idx] !== energy_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx]) begin
                         $fatal(1, "[Time: %t] Error: Final energy fifo mismatch at test_idx 'd%0d, check_fifo_idx 'd%0d. Expected: 'h%h, Got: 'h%h",
-                            $time, test_idx, check_fifo_idx, energy_fifo_ref[IconLastAddrPlusOne][check_fifo_idx], energy_fifo_o[check_fifo_idx]);
+                            $time, test_idx, check_fifo_idx, energy_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx], energy_fifo_o[check_fifo_idx]);
                     end
                 end else begin
                     if (energy_fifo_o[check_fifo_idx] !== energy_fifo_ref[2][check_fifo_idx]) begin
@@ -1095,11 +1095,11 @@ module tb_digital_macro;
             // calculate compute cycles
             total_time = end_time - start_time;
             total_cycles = total_time / CLKCYCLE;
-            transaction_cycles = total_cycles / IconLastAddrPlusOne;
+            transaction_cycles = total_cycles / CheckLastAddrPlusOne;
             transaction_time = transaction_cycles * CLKCYCLE;
             $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
             $display("Timer [Time %0d ns]: start time: %0d ns, end time: %0d ns, duration: %0d ns, flips: %0d",
-                $time, start_time, end_time, total_time, IconLastAddrPlusOne);
+                $time, start_time, end_time, total_time, CheckLastAddrPlusOne);
             $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
                 $time, total_cycles, total_time, transaction_cycles, transaction_time);
             $display("Timer [Time %0d ns]: MultiCmptModeEn: %d, multi_cmpt_timer_idx: %0d/%0d",
@@ -1112,12 +1112,12 @@ module tb_digital_macro;
 
     // Task for timing record on each computation
     task automatic timing_record();
-        logic [IconLastAddrPlusOne-1:0][31:0] cycle_cnt;
+        logic [CheckLastAddrPlusOne-1:0][31:0] cycle_cnt;
         integer idx = 0;
         integer time_a, time_b;
 
         wait (cmpt_en_i == 1);
-        while (idx < IconLastAddrPlusOne) begin
+        while (idx < CheckLastAddrPlusOne) begin
             @(posedge clk_i);
             time_a = $time;
             wait (dut.fm_upstream_handshake == 1);
