@@ -20,7 +20,7 @@ module tb_flip_manager;
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
     localparam int SPIN_DEPTH = 2; // depth of spin/energy FIFOs
     localparam int FLIP_ICON_DEPTH = 1024; // number of entries in flip, can be odd and even number
-    localparam bit INFINITE_ICON_LOOP_EN = 1; // set to 1 to enable infinite icon loop for measurement
+    localparam bit INFINITE_ICON_LOOP_EN = 0; // set to 1 to enable infinite icon loop for measurement
 
     // Testbench parameters
     localparam int CLKCYCLE = 2;
