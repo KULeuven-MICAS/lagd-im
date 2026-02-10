@@ -124,6 +124,7 @@ module energy_fifo_maintainer #(
     ) u_pipe_spin (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(spin_i),
         .data_o(spin_o),
         .valid_i(energy_valid_i),

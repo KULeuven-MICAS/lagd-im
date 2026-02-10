@@ -166,6 +166,7 @@ module flip_engine #(
     ) u_pipe_spin (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(prev_spin_i),
         .data_o(prev_spin_pipe),
         .valid_i(prev_spin_valid_i),
