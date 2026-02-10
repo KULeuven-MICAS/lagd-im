@@ -625,8 +625,8 @@ module tb_energy_monitor;
                         `S0W1H1_TEST: hscaling_temp = 'd1;
                         `S0W0H0_TEST: hscaling_temp = 'd1;
                         `S1W0H0_TEST: hscaling_temp = 'd1;
-                        `MaxPosValue_TEST: hscaling_temp = 'd31;
-                        `MaxNegValue_TEST: hscaling_temp = 'd31;
+                        `MaxPosValue_TEST: hscaling_temp = (1 << SCALING_BIT) - 1; // Max value
+                        `MaxNegValue_TEST: hscaling_temp = (1 << SCALING_BIT) - 1; // Max value
                         `RANDOM_TEST: hscaling_temp = $urandom_range(0, (1 << SCALING_BIT) - 1);
                         default: hscaling_temp = 'd1;
                     endcase
