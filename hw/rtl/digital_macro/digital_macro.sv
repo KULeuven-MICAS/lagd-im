@@ -236,6 +236,9 @@ module digital_macro #(
     logic multi_cmpt_en;
     logic cmpt_en_fm;
     logic flush_comb;
+    logic cmpt_idle_posedge;
+    logic multi_cmpt_mode_idle_en_cond;
+    logic multi_cmpt_mode_idle_reset_cond;
 
     // control logic
     assign em_upstream_handshake = em_slv_ready & em_upstream_mst_valid;
@@ -259,6 +262,8 @@ module digital_macro #(
     assign config_valid_aw_posedge = config_valid_aw_i & ~config_valid_aw_dly1;
     assign dt_cfg_enable_posedge   = dt_cfg_enable_i & ~dt_cfg_enable_dly1;
     assign cmpt_idle_posedge = cmpt_idle_o & ~cmpt_idle_dly1;
+    assign multi_cmpt_mode_idle_en_cond = multi_cmpt_mode_en_i & cmpt_en_pos_trigger;
+    assign multi_cmpt_mode_idle_reset_cond = (multi_cmpt_idx_maxed | (~multi_cmpt_mode_en_i)) & cmpt_idle_o;
 
     assign debug_fm_downstream_handshake_o = fm_downstream_handshake;
     assign debug_aw_downstream_handshake_o = aw_downstream_ready & aw_mst_valid;
@@ -281,7 +286,7 @@ module digital_macro #(
     `FFL(cmpt_en_dly1, cmpt_en_i, en_fm_i, 1'b0, clk_i, rst_ni)
     `FFL(enable_flip_detection_dly1, enable_flip_detection_i, en_ff_i, 1'b0, clk_i, rst_ni)
     `FFL(cmpt_idle_dly1, cmpt_idle_o, en_fm_i, 1'b0, clk_i, rst_ni)
-    `FFLARNC(multi_cmpt_mode_idle_o, 1'b0, multi_cmpt_mode_en_i & cmpt_en_pos_trigger, (multi_cmpt_idx_maxed | (~multi_cmpt_mode_en_i)) & cmpt_idle_o, 1'b1, clk_i, rst_ni)
+    `FFLARNC(multi_cmpt_mode_idle_o, 1'b0, multi_cmpt_mode_idle_en_cond, multi_cmpt_mode_idle_reset_cond, 1'b1, clk_i, rst_ni)
 
     generate
         if (ENABLE_FLIP_DETECTION) begin: initialize_flip_filter
