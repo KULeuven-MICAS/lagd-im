@@ -215,7 +215,7 @@ module tb_energy_monitor;
         if (`DBG) begin
             $display("Debug mode enabled. Generating VCD waveform.");
             $dumpfile(`VCD_FILE);
-            $dumpvars(2, tb_energy_monitor);
+            $dumpvars(4, tb_energy_monitor);
             #(200 * CLKCYCLE); // To avoid generating too large VCD files
             $fatal(1, "Testbench timeout reached. Ending simulation.");
         end
@@ -625,9 +625,9 @@ module tb_energy_monitor;
                         `S0W1H1_TEST: hscaling_temp = 'd1;
                         `S0W0H0_TEST: hscaling_temp = 'd1;
                         `S1W0H0_TEST: hscaling_temp = 'd1;
-                        `MaxPosValue_TEST: hscaling_temp = 'd16;
-                        `MaxNegValue_TEST: hscaling_temp = 'd16;
-                        `RANDOM_TEST: hscaling_temp = (1 << ($urandom() % SCALING_BIT));
+                        `MaxPosValue_TEST: hscaling_temp = 'd31;
+                        `MaxNegValue_TEST: hscaling_temp = 'd31;
+                        `RANDOM_TEST: hscaling_temp = $urandom_range(0, (1 << SCALING_BIT) - 1);
                         default: hscaling_temp = 'd1;
                     endcase
                     hscaling_i[i*SCALING_BIT +: SCALING_BIT] = hscaling_temp;

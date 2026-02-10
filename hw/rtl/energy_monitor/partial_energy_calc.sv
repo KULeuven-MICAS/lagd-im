@@ -35,7 +35,8 @@ module partial_energy_calc #(
     parameter int NUM_SPIN = 256,
     parameter int SCALING_BIT = 4,
     parameter int PIPES = 0,
-    parameter int MULTBIT = BITH + SCALING_BIT - 1, // bit width of the multiplier output
+    // derived parameters
+    parameter int MULTBIT = BITH + SCALING_BIT, // bit width of the multiplier output
     parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT, // bit width of local energy output
     parameter int DATAJ = NUM_SPIN * BITJ
     )(
@@ -50,7 +51,7 @@ module partial_energy_calc #(
     input logic signed [BITH-1:0] hbias_i,
     input logic unsigned [SCALING_BIT-1:0] hscaling_i,
     input logic double_weight_contri_i,
-    output logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_o
+    output logic signed [LOCAL_ENERGY_BIT-1:0] energy_o
 );
     // Internal signals
     logic signed [NUM_SPIN-1:0][MULTBIT-1:0] weight_extended; // sign extended weight
@@ -58,8 +59,8 @@ module partial_energy_calc #(
     logic signed [MULTBIT-1:0] hbias_scaled; // scaled hbias
     logic signed [NUM_SPIN-1:0][MULTBIT-1:0] mult_out; // multiplier output
     logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias; // local energy value without hbias
-    logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local_wo_hbias_doubled; // local energy value without hbias
-    logic signed [LOCAL_ENERGY_BIT-1+1:0] energy_local; // local energy value
+    logic signed [LOCAL_ENERGY_BIT-1:0] energy_local_wo_hbias_doubled; // local energy value without hbias
+    logic signed [LOCAL_ENERGY_BIT-1:0] energy_local; // local energy value
     logic signed [MULTBIT-1:0] hbias_scaled_pipe;
     logic current_spin_pipe;
     logic double_weight_contri_pipe;
@@ -81,16 +82,7 @@ module partial_energy_calc #(
     // ========================================================================
     // calculate hbias * scaling factor
     assign hbias_extended = {{(MULTBIT-BITH){hbias_i[BITH-1]}}, hbias_i}; // sign extension
-    always_comb begin
-        case(hscaling_i)
-            'd1: hbias_scaled = hbias_extended;
-            'd2: hbias_scaled = hbias_extended << 1;
-            'd4: hbias_scaled = hbias_extended << 2;
-            'd8: hbias_scaled = hbias_extended << 3;
-            'd16: hbias_scaled = hbias_extended << 4;
-            default: hbias_scaled = hbias_extended;
-        endcase
-    end
+    assign hbias_scaled = hbias_extended * $signed({1'b0, hscaling_i});
 
     always_comb begin: weight_mult
         for (int i = 0; i < NUM_SPIN; i++) begin

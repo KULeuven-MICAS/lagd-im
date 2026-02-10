@@ -80,8 +80,9 @@ module energy_monitor #(
     parameter int PIPESMID = 0,
     parameter bit ENABLE_EXTERNAL_FINISH_SIGNAL = `False,
     parameter bit H_IS_NEGATIVE = `True,
-    // Derived parameters
-    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1 + 1,
+    // derived parameters
+    parameter int MULTBIT = BITH + SCALING_BIT,
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT,
     parameter int DATAJ = NUM_SPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
