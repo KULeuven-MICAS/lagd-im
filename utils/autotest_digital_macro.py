@@ -24,7 +24,7 @@ def simulate_digital_macro_tb(
         FlipDisable: int = 1,
         EnableAnalogLoop: int = 1,
         MultiCmptModeEn: int = 1,
-        ) -> None:
+        ) -> str:
     command = [
         "./ci/ut-run.sh",
         "--test=digital_macro",

@@ -36,8 +36,8 @@
 `define EnableAnalogLoop `True
 `endif
 
-`ifndef MULTI_CMPT_MODE_EN
-`define MULTI_CMPT_MODE_EN `False
+`ifndef MultiCmptModeEn
+`define MultiCmptModeEn `False
 `endif
 
 module tb_digital_macro;
@@ -178,7 +178,7 @@ module tb_digital_macro;
     assign debug_cycle_per_spin_read_i = 'd0;
     assign debug_spin_read_num_i = 'd0;
     assign infinite_icon_loop_en_i = INFINITE_ICON_LOOP_EN;
-    assign multi_cmpt_mode_en_i = `MULTI_CMPT_MODE_EN;
+    assign multi_cmpt_mode_en_i = `MultiCmptModeEn;
     assign cmpt_max_num_i = CmptMaxNum - 1; // max number of computations in multi-cmpt mode
 
     always_comb begin
@@ -349,7 +349,7 @@ module tb_digital_macro;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            if (`MULTI_CMPT_MODE_EN) begin
+            if (`MultiCmptModeEn) begin
                 #(500_000 * CmptMaxNum * CLKCYCLE);
             end else begin
                 #(500_000 * CLKCYCLE);
@@ -956,9 +956,9 @@ module tb_digital_macro;
                 @(negedge clk_i);
             end
             multi_cmpt_idx = multi_cmpt_idx + 1;
-        end while (`MULTI_CMPT_MODE_EN && multi_cmpt_idx < CmptMaxNum);
+        end while (`MultiCmptModeEn && multi_cmpt_idx < CmptMaxNum);
         // after all tests
-        if (`MULTI_CMPT_MODE_EN) begin
+        if (`MultiCmptModeEn) begin
             $display("----------------------------------------");
             $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_cmpt_idx: %0d/%0d",
                 $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne, multi_cmpt_idx, CmptMaxNum);
@@ -1000,9 +1000,9 @@ module tb_digital_macro;
                 @(negedge clk_i);
             end
             multi_spin_check_idx = multi_spin_check_idx + 1;
-        end while (`MULTI_CMPT_MODE_EN && multi_spin_check_idx < CmptMaxNum);
+        end while (`MultiCmptModeEn && multi_spin_check_idx < CmptMaxNum);
         // after all tests
-        if (`MULTI_CMPT_MODE_EN) begin
+        if (`MultiCmptModeEn) begin
             $display("----------------------------------------");
             $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_spin_check_idx: %0d/%0d",
                 $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne, multi_spin_check_idx, CmptMaxNum);
@@ -1057,7 +1057,7 @@ module tb_digital_macro;
             end
             multi_final_check_idx = multi_final_check_idx + 1;
             check_fifo_idx = 0;
-        end while (`MULTI_CMPT_MODE_EN && multi_final_check_idx < CmptMaxNum);
+        end while (`MultiCmptModeEn && multi_final_check_idx < CmptMaxNum);
         final_fifo_check_end = 1;
     endtask
 
@@ -1067,12 +1067,12 @@ module tb_digital_macro;
         do begin
             wait (cmpt_idle_o == 0); // wait for compute start
             wait (cmpt_idle_o == 1); // wait for compute end
-            if (`MULTI_CMPT_MODE_EN && cmpt_idx_o != multi_cmpt_idx) begin
+            if (`MultiCmptModeEn && cmpt_idx_o != multi_cmpt_idx) begin
                 $fatal(1, "[Time: %t] Error: cmpt_idx_o mismatch in multiple computation mode. Expected: %0d, Got: %0d",
                     $time, multi_cmpt_idx, cmpt_idx_o);
             end
             multi_cmpt_idx = multi_cmpt_idx + 1;
-        end while (`MULTI_CMPT_MODE_EN && multi_cmpt_idx < CmptMaxNum);
+        end while (`MultiCmptModeEn && multi_cmpt_idx < CmptMaxNum);
     endtask
 
     // Cmpt enable and timer
@@ -1102,11 +1102,11 @@ module tb_digital_macro;
                 $time, start_time, end_time, total_time, IconLastAddrPlusOne);
             $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
                 $time, total_cycles, total_time, transaction_cycles, transaction_time);
-            $display("Timer [Time %0d ns]: MULTI_CMPT_MODE_EN: %d, multi_cmpt_timer_idx: %0d/%0d",
-                $time, `MULTI_CMPT_MODE_EN, multi_cmpt_timer_idx, CmptMaxNum);
+            $display("Timer [Time %0d ns]: MultiCmptModeEn: %d, multi_cmpt_timer_idx: %0d/%0d",
+                $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum);
             $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
             multi_cmpt_timer_idx = multi_cmpt_timer_idx + 1;
-        end while (`MULTI_CMPT_MODE_EN && multi_cmpt_timer_idx < CmptMaxNum);
+        end while (`MultiCmptModeEn && multi_cmpt_timer_idx < CmptMaxNum);
         $finish;
     endtask
 
