@@ -29,7 +29,7 @@ module config_spin_ctrl #(
     input  logic rst_ni,
     input  logic en_i,
     input  logic flush_i,
-    input  logic multi_cmpt_start_i, // continusly high when in multi-computation mode, otherwise 0
+    input  logic multi_cmpt_start_i, // continuously high when in multi-computation mode, otherwise 0
     // upstream interface
     input  logic config_start_i, // must be a 1-cycle pulse
     input  logic [NUM_SPIN*SPIN_DEPTH-1:0] config_spin_initial_i,
