@@ -170,16 +170,6 @@ if __name__ == "__main__":
             error_cases += 1
             msg_pool.append(msg)
         else:
-            if msg_verbose:
-                msg = (
-                    f"Passed, case: DataFromFile={DataFromFile}, "
-                    f"EnComparison={EnComparison}, EnableFlipDetection={EnableFlipDetection}, "
-                    f"FlipDisable={FlipDisable}, EnableAnalogLoop={EnableAnalogLoop}. "
-                    f"Scoreboard: {tests_passed}/{total_tests} correct, "
-                    f"{tests_failed}/{total_tests} errors."
-                )
-            else:
-                msg = f"Passed, command: {command}."
             pass_cases += 1
 
         pbar.update(1)
