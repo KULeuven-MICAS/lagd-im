@@ -5,10 +5,16 @@
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 //
 // Module description:
-// Logic FSM for the energy monitor module.
+// This module controls the configuration of initial spins.
+// It receives the initial values and skip flags for each SPIN from the upstream module, and outputs them to the downstream module one by one.
+// It also generates the fm_flush signal at the beginning of the configuration,
+// and generates multi_cmpt_en signal for multi-computation mode.
 //
 // Parameters:
-// - None
+// - NUM_SPIN: the number of SPINs
+// - SPIN_DEPTH: the number of configuration sets for each SPIN, must be a power of 2
+// - LITTLE_ENDIAN: the order of outputting the configuration sets, if 1, the order is the same as the input, otherwise, the order is reversed
+// - COUNTER_BITWIDTH: the bitwidth of the counter, derived from SPIN_DEPTH
 
 `include "common_cells/registers.svh"
 
