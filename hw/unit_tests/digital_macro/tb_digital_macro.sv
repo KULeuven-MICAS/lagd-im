@@ -412,7 +412,7 @@ module tb_digital_macro;
             end while (model.hbias[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
         end
         // generate random scaling factor
-        model.scaling_factor = 1 << ($urandom_range(0, SCALING_BIT-1));
+        model.scaling_factor = $urandom_range(0, 2**SCALING_BIT-1);
         // constant
         model.constant = 0;
         return model;
