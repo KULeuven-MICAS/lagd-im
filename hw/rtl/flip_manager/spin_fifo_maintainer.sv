@@ -92,7 +92,7 @@ module spin_fifo_maintainer #(
         .DATA_WIDTH(NUM_SPIN),
         .DEPTH(SPIN_DEPTH),
         .RESET_VALUE(0),
-        .FLUSH_VALUE(0)
+        .FLUSH_VALUE(1)
     ) spin_fifo (
         .clk_i(clk_i),
         .rst_ni(rst_ni),

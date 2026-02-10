@@ -370,7 +370,7 @@ module digital_macro #(
                 .DATA_WIDTH             (ENERGY_TOTAL_BIT + PARALLELISM+1+J_MEM_ADDR_WIDTH+1),
                 .DEPTH                  (3                             ), // same as u_em_fifo + memory latency
                 .RESET_VALUE            (0                             ),
-                .FLUSH_VALUE            (0                             )
+                .FLUSH_VALUE            (1                             )
             ) weight_info_fifo (
                 .clk_i                  (clk_i                         ),
                 .rst_ni                 (rst_ni                        ),
