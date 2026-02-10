@@ -26,6 +26,7 @@ set HDL_FILES [ list \
     "[exec bender path common_cells]/src/onehot_to_bin.sv" \
     "[exec bender path common_cells]/src/popcount.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
+    "${HDL_PATH}/digital_macro/config_spin_ctrl.sv" \
     "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
     "${HDL_PATH}/flip_filter/flip_filter.sv" \
     "${HDL_PATH}/flip_filter/dgt_raddr_manager.sv" \

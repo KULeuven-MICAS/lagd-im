@@ -28,7 +28,7 @@
         { bits: "7",     resval: "1",  name: "en_comparison",               desc: "Whether to enable energy comparison"                    }
         { bits: "8",     resval: "0",  name: "debug_dt_configure_enable",   desc: "Whether to enable configuration for debug dt module"    }
         { bits: "9",     resval: "0",  name: "debug_spin_configure_enable", desc: "Whether to enable configuration for debug spin module"  }
-        { bits: "10",    resval: "0",  name: "config_spin_initial_skip",    desc: "Whether to skip current spin initial value"             }
+        { bits: "10",    resval: "0",  name: "en_perf_counter",             desc: "Whether to enable performance counter"                  }
         { bits: "11",    resval: "0",  name: "bypass_data_conversion",      desc: "Whether to skip analog data conversion"                 }
         { bits: "12",    resval: "0",  name: "host_readout",                desc: "Whether to read spins from spin pop interface"          }
         { bits: "13",    resval: "0",  name: "flip_disable",                desc: "Whether to disable applying flip icons"                 }
@@ -60,19 +60,44 @@
         { bits: "13:8",  resval: "63", name: "dgt_addr_upper_bound",        desc: "J address upper bound (inclusive)"                      }
         { bits: "14",    resval: "0",  name: "ctnus_fifo_read",             desc: "Whether to read energy/spin fifo continuously"          }
         { bits: "15",    resval: "0",  name: "ctnus_dgt_debug",             desc: "Whether to enable digital debugging logic continuously" }
-        { bits: "16",    resval: "0",  name: "infinite_icon_loop_en",       desc: "Whether to never stop cmpt after it starts (for power measurement purpose)"}
+        { bits: "16",    resval: "0",  name: "infinite_icon_loop_en",       desc: "Whether to never stop cmpt after it starts"             }
+        { bits: "17",    resval: "0",  name: "multi_cmpt_mode_en",          desc: "Whether to repeat the computation multiple times with the same configuration  (for power measurement purpose)"}
+        { bits: "18",    resval: "0",  name: "config_spin_initial_skip_0",  desc: "Whether to skip current spin initial value, set 0"      }
+        { bits: "19",    resval: "0",  name: "config_spin_initial_skip_1",  desc: "Whether to skip current spin initial value, set 1"      }
+      ]
+    }
+
+    { name:     "cmpt_max_num"
+      desc:     "Computation max number configuration under multi_cmpt_mode"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "31:0",  resval: "0xFFFFFFFF",   name: "cmpt_max_num",              desc: "cmpt_max_num value"                             }
       ]
     }
 
     { multireg:
-      { name:     "config_spin_initial"
-        desc:     "Registers for setting initial spin values"
+      { name:     "config_spin_initial_0"
+        desc:     "Registers for setting initial spin values, set 0"
         swaccess: "rw"
         hwaccess: "hro"
         count:    "8"
-        cname:    "config_spin_initial"
+        cname:    "config_spin_initial_0"
         fields: [
-          { bits: "31:0", resval: "0",   name: "config_spin_initial",       desc: "Registers for setting initial spin values"              }
+          { bits: "31:0", resval: "0",           name: "config_spin_initial_0",      desc: "Registers for setting initial spin values, set 0"}
+        ]
+      }
+    }
+
+    { multireg:
+      { name:     "config_spin_initial_1"
+        desc:     "Registers for setting initial spin values, set 1"
+        swaccess: "rw"
+        hwaccess: "hro"
+        count:    "8"
+        cname:    "config_spin_initial_1"
+        fields: [
+          { bits: "31:0", resval: "0",           name: "config_spin_initial_1",      desc: "Registers for setting initial spin values, set 1"}
         ]
       }
     }
@@ -228,8 +253,7 @@
         { bits: "11",    resval: "0",  name: "debug_fm_downstream_handshake", desc: "Whether the fm downstream handshake is on"            }
         { bits: "12",    resval: "0",  name: "debug_aw_downstream_handshake", desc: "Whether the aw downstream handshake is on"            }
         { bits: "13",    resval: "0",  name: "debug_em_upstream_handshake",   desc: "Whether the em upstream handshake is on"              }
-        { bits: "14",    resval: "0",  name: "cmpt_cycle_cnt_maxed",          desc: "Whether the cmpt cycle counter is maxed"              }
-        { bits: "15",    resval: "0",  name: "cmpt_cycle_cnt_overflow",       desc: "Whether the cmpt cycle counter is overflow"           }
+        { bits: "14",    resval: "0",  name: "multi_cmpt_mode_idle",          desc: "Whether the multi computation mode is idle"           }
       ]
     }
 
@@ -338,12 +362,72 @@
       }
     }
 
-    { name:     "cmpt_cycle_cnt"
-      desc:     "Registers for cmpt cycle counter"
+    { name:     "cmpt_idx"
+      desc:     "Registers for cmpt index"
       swaccess: "rw"
       hwaccess: "hwo"
       fields: [
-        { bits: "31:0", resval: "0",  name: "cmpt_cycle_cnt", desc: "cmpt cycle counter q" }
+        { bits: "31:0", resval: "0",  name: "cmpt_idx", desc: "cmpt index q" }
+      ]
+    }
+
+    { name:     "cycle_per_iteration"
+      desc:     "Registers for cycle per iteration"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", resval: "0",  name: "cycle_per_iteration", desc: "cycle per iteration" }
+      ]
+    }
+
+    { name:     "cycle_per_cmpt"
+      desc:     "Registers for cycle per cmpt"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", resval: "0",  name: "cycle_per_cmpt", desc: "cycle per cmpt" }
+      ]
+    }
+
+    { name:     "cycle_all_cmpt_lsb"
+      desc:     "Registers for cycle all cmpt LSB"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", resval: "0",  name: "cycle_all_cmpt_lsb", desc: "cycle all cmpt LSB" }
+      ]
+    }
+
+    { name:     "cycle_all_cmpt_msb"
+      desc:     "Registers for cycle all cmpt MSB"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", resval: "0",  name: "cycle_all_cmpt_msb", desc: "cycle all cmpt MSB" }
+      ]
+    }
+
+    { name:     "flip_mem_ren_raddr"
+      desc:     "Registers for flip memory read enable and read address"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0",     resval: "0",  name: "debug_spin_valid", desc: "Whether flip memory is used by spin debugging mode" }
+        { bits: "1",     resval: "1",  name: "flip_q_valid",     desc: "Whether flip memory is valid"                       }
+        { bits: "11:2",  resval: "0",  name: "flip_raddr",       desc: "Flip memory read address from flip manager"         }
+        { bits: "21:12", resval: "0",  name: "debug_spin_waddr", desc: "Flip memory write address from spin debugging mode" }
+      ]
+    }
+
+    { name:     "j_mem_ren_raddr"
+      desc:     "Registers for J memory read enable and read address"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0",     resval: "0",  name: "j_mem_ren_load",   desc: "Whether J memory is used by analog cfg module"   }
+        { bits: "1",     resval: "1",  name: "dgt_weight_ren",   desc: "Whether J memory is used by energy monitor"      }
+        { bits: "7:2",   resval: "0",  name: "j_raddr_load",     desc: "J memory read address from analog cfg module"    }
+        { bits: "13:8",  resval: "0",  name: "dgt_weight_raddr", desc: "J memory write address from energy monitor"      }
       ]
     }
 
