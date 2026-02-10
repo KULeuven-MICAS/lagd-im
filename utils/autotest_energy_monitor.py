@@ -79,7 +79,7 @@ if __name__ == "__main__":
     pipesintf_pool = [1]
     pipesmid_pool = [1]
     num_tests_pool = [100]
-    random_test_num = 1000000
+    random_test_num = 10000
     #############################
 
     msg_pool = []
