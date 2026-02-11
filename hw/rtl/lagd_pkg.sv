@@ -259,6 +259,8 @@ package ising_logic_pkg;
         int unsigned FlipIconDepth;
         /// Config counter bitwidth
         int unsigned CounterBitwidth;
+        // Clock cycle counter bitwidth
+        int unsigned CcCounterBitwidth;
         /// Synchronizer pipe depth
         int unsigned SynchronizerPipeDepth;
         /// Offset for spin WBL in analog macro
@@ -279,28 +281,29 @@ package ising_logic_pkg;
         int unsigned HRegDataBitwidth;
     } ising_logic_cfg_t;
     localparam ising_logic_cfg_t IsingLogicCfg = '{
-        NumSpin : `NUM_SPIN,
-        BitJ    : `BIT_J,
-        BitH    : `BIT_H,
-        ScalingBit: `SCALING_BIT,
-        LittleEndian: 0,
-        PipesIntf: 1, // pipeline at energy monitor interface
-        PipesMid: 1, // pipeline in adder tree of energy monitor
-        PipesFlipFilter: 1, // pipeline at flip filter interface
-        Parallelism: `PARALLELISM,
-        EnergyTotalBit: `ENERGY_TOTAL_BIT,
-        SpinDepth: 2,
-        FlipIconDepth : `FLIP_ICON_DEPTH,
-        CounterBitwidth : `COUNTER_BITWIDTH,
+        NumSpin              : `NUM_SPIN,
+        BitJ                 : `BIT_J,
+        BitH                 : `BIT_H,
+        ScalingBit           : `SCALING_BIT,
+        LittleEndian         : 0,
+        PipesIntf            : 1, // pipeline at energy monitor interface
+        PipesMid             : 1, // pipeline in adder tree of energy monitor
+        PipesFlipFilter      : 1, // pipeline at flip filter interface
+        Parallelism          : `PARALLELISM,
+        EnergyTotalBit       : `ENERGY_TOTAL_BIT,
+        SpinDepth            : 2,
+        FlipIconDepth        : `FLIP_ICON_DEPTH,
+        CounterBitwidth      : `COUNTER_BITWIDTH,
+        CcCounterBitwidth    : `CC_COUNTER_BITWIDTH,
         SynchronizerPipeDepth: `SYNCH_PIPE_DEPTH,
-        SpinWblOffset: `SPIN_WBL_OFFSET,
-        HIsNegative: 1,
-        EnableFlipDetection: `ENABLE_FLIP_DETECTION,
-        JmemAddrBitwidth: `IC_L1_J_MEM_ADDR_WIDTH,
-        FmemAddrBitwidth: `IC_L1_FLIP_MEM_ADDR_WIDTH,
-        JmemDataBitwidth: `IC_L1_J_MEM_DATA_WIDTH,
-        FmemDataBitwidth: `IC_L1_FLIP_MEM_DATA_WIDTH,
-        HRegDataBitwidth: `NUM_SPIN*`BIT_H
+        SpinWblOffset        : `SPIN_WBL_OFFSET,
+        HIsNegative          : 1,
+        EnableFlipDetection  : `ENABLE_FLIP_DETECTION,
+        JmemAddrBitwidth     : `IC_L1_J_MEM_ADDR_WIDTH,
+        FmemAddrBitwidth     : `IC_L1_FLIP_MEM_ADDR_WIDTH,
+        JmemDataBitwidth     : `IC_L1_J_MEM_DATA_WIDTH,
+        FmemDataBitwidth     : `IC_L1_FLIP_MEM_DATA_WIDTH,
+        HRegDataBitwidth     : `NUM_SPIN*`BIT_H
     };
 
 endpackage: ising_logic_pkg

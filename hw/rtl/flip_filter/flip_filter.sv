@@ -86,6 +86,7 @@ module flip_filter #(
     ) u_pipe_ups (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i({spin_upstream_i, energy_baseline_i, spin_baseline_i}),
         .data_o({spin_upstream_pipe, energy_baseline_pipe, spin_baseline_pipe}),
         .valid_i(spin_upstream_valid_i),

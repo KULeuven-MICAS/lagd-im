@@ -63,7 +63,9 @@ module flip_manager #(
     output logic energy_fifo_update_o,
     output logic spin_fifo_update_o,
     output logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o,
-    output logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o
+    output logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o,
+    // for measurement purposes
+    input logic infinite_icon_loop_en_i
 );
     // Internal signals
     logic cmpt_busy;
@@ -177,7 +179,8 @@ module flip_manager #(
         .flip_rdata_i(flip_rdata_i),
         .icon_last_raddr_plus_one_i(icon_last_raddr_plus_one_i),
         .icon_finish_o(icon_finish),
-        .flip_disable_i(flip_disable_i)
+        .flip_disable_i(flip_disable_i),
+        .infinite_icon_loop_en_i(infinite_icon_loop_en_i)
     );
 
 endmodule

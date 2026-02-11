@@ -79,7 +79,7 @@ if __name__ == "__main__":
     pipesintf_pool = [1]
     pipesmid_pool = [1]
     num_tests_pool = [100]
-    random_test_num = 100
+    random_test_num = 10000
     #############################
 
     msg_pool = []
@@ -115,6 +115,8 @@ if __name__ == "__main__":
             f"{log_folder}/autotest_energy_monitor_{test_mode_for_log}"
             f"_PI{pipesintf}_PM{pipesmid}.log"
         )
+        if test_mode == "'b110":
+            num_tests = random_test_num
 
         simulate_energy_monitor_tb(
             log_file=log_file_path,

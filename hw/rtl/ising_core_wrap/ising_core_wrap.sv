@@ -69,7 +69,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Digital macro input signals
     // registers
     logic flush_en;
-    logic en_aw, en_fm, en_em, en_ff, en_ef, en_analog_loop;
+    logic en_aw, en_fm, en_em, en_ff, en_ef, en_analog_loop, en_perf_counter;
     logic en_comparison;
     logic cmpt_en;
     logic config_valid_em;
@@ -78,8 +78,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_dt_configure_enable;
     logic debug_spin_configure_enable;
     logic [$clog2(logic_cfg.NumSpin)-1:0] config_counter;
-    logic [logic_cfg.NumSpin-1:0] config_spin_initial;
-    logic config_spin_initial_skip;
+    logic [logic_cfg.NumSpin*logic_cfg.SpinDepth-1:0] config_spin_initial;
+    logic [logic_cfg.SpinDepth-1:0] config_spin_initial_skip;
     logic [logic_cfg.CounterBitwidth-1:0] cfg_trans_num;
     logic [logic_cfg.CounterBitwidth-1:0] cycle_per_wwl_high;
     logic [logic_cfg.CounterBitwidth-1:0] cycle_per_wwl_low;
@@ -112,6 +112,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_spin_read_en;
     logic ctnus_fifo_read;
     logic ctnus_dgt_debug;
+    logic infinite_icon_loop_en;
+    logic multi_cmpt_mode_en;
+    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_max_num;
     // memories
     logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
     logic [logic_cfg.NumSpin-1:0] flip_rdata;
@@ -139,6 +142,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin-1:0] debug_aw_spin_out;
     logic debug_em_upstream_handshake;
     logic [logic_cfg.NumSpin-1:0] debug_em_spin_in;
+    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_idx, cycle_per_iteration, cycle_per_cmpt;
+    logic [2*logic_cfg.CcCounterBitwidth-1:0] cycle_all_cmpt;
+    logic multi_cmpt_mode_idle;
     // memories
     logic j_mem_ren_load;
     logic dgt_weight_ren;
@@ -244,7 +250,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign en_comparison                    = reg2hw.global_cfg_1.en_comparison.q;
     assign debug_dt_configure_enable        = reg2hw.global_cfg_1.debug_dt_configure_enable.q;
     assign debug_spin_configure_enable      = reg2hw.global_cfg_1.debug_spin_configure_enable.q;
-    assign config_spin_initial_skip         = reg2hw.global_cfg_1.config_spin_initial_skip.q;
+    assign en_perf_counter                  = reg2hw.global_cfg_1.en_perf_counter.q;
     assign bypass_data_conversion           = reg2hw.global_cfg_1.bypass_data_conversion.q;
     assign host_readout                     = reg2hw.global_cfg_1.host_readout.q;
     assign flip_disable                     = reg2hw.global_cfg_1.flip_disable.q;
@@ -267,6 +273,12 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign dgt_addr_upper_bound             = reg2hw.global_cfg_2.dgt_addr_upper_bound.q;
     assign ctnus_fifo_read                  = reg2hw.global_cfg_2.ctnus_fifo_read.q;
     assign ctnus_dgt_debug                  = reg2hw.global_cfg_2.ctnus_dgt_debug.q;
+    assign infinite_icon_loop_en            = reg2hw.global_cfg_2.infinite_icon_loop_en.q;
+    assign multi_cmpt_mode_en               = reg2hw.global_cfg_2.multi_cmpt_mode_en.q;
+    assign config_spin_initial_skip[0]      = reg2hw.global_cfg_2.config_spin_initial_skip_0.q;
+    assign config_spin_initial_skip[1]      = reg2hw.global_cfg_2.config_spin_initial_skip_1.q;
+
+    assign cmpt_max_num                     = reg2hw.cmpt_max_num.q;
 
     assign cfg_trans_num                    = reg2hw.counter_cfg_1.cfg_trans_num.q;
     assign cycle_per_wwl_high               = reg2hw.counter_cfg_1.cycle_per_wwl_high.q;
@@ -284,7 +296,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         wwl_vdd_cfg = '0;
         wwl_vread_cfg = '0;
         for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
-            config_spin_initial[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.config_spin_initial[i].q;
+            config_spin_initial[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.config_spin_initial_0[i].q;
+            config_spin_initial[logic_cfg.NumSpin + i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.config_spin_initial_1[i].q;
             wwl_vdd_cfg        [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wwl_vdd_cfg[i].q;
             wwl_vread_cfg      [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wwl_vread_cfg[i].q;
             spin_wwl_strobe    [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.spin_wwl_strobe[i].q;
@@ -317,9 +330,23 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_fm_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_aw_downstream_handshake.de = ctnus_dgt_debug;
     assign hw2reg.output_status.debug_em_upstream_handshake  .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.multi_cmpt_mode_idle         .de = multi_cmpt_mode_en;
     assign hw2reg.debug_fm_energy_input                      .de = ctnus_dgt_debug;
     assign hw2reg.energy_fifo_data_0                         .de = (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
     assign hw2reg.energy_fifo_data_1                         .de = (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
+    assign hw2reg.cmpt_idx                                   .de = en_perf_counter;
+    assign hw2reg.cycle_per_iteration                        .de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt                             .de = en_perf_counter;
+    assign hw2reg.cycle_all_cmpt_lsb                         .de = en_perf_counter;
+    assign hw2reg.cycle_all_cmpt_msb                         .de = en_perf_counter;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_valid        .de = ctnus_dgt_debug;
+    assign hw2reg.flip_mem_ren_raddr.flip_q_valid            .de = ctnus_dgt_debug;
+    assign hw2reg.flip_mem_ren_raddr.flip_raddr              .de = ctnus_dgt_debug;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_waddr        .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.j_mem_ren_load             .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_ren             .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.j_raddr_load               .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr           .de = ctnus_dgt_debug;
 
     assign hw2reg.output_status.dt_cfg_idle                   .d = dt_cfg_idle;
     assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
@@ -335,9 +362,24 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.debug_fm_downstream_handshake .d = debug_fm_downstream_handshake;
     assign hw2reg.output_status.debug_aw_downstream_handshake .d = debug_aw_downstream_handshake;
     assign hw2reg.output_status.debug_em_upstream_handshake   .d = debug_em_upstream_handshake;
+    assign hw2reg.output_status.multi_cmpt_mode_idle          .d = multi_cmpt_mode_idle;
     assign hw2reg.debug_fm_energy_input                       .d = debug_fm_energy_input;
     assign hw2reg.energy_fifo_data_0                          .d = energy_fifo_data[0];
     assign hw2reg.energy_fifo_data_1                          .d = energy_fifo_data[1];
+    assign hw2reg.cmpt_idx                                    .d = cmpt_idx;
+    assign hw2reg.cycle_per_iteration                         .d = cycle_per_iteration;
+    assign hw2reg.cycle_per_cmpt                              .d = cycle_per_cmpt;
+    assign hw2reg.cycle_all_cmpt_lsb                          .d = cycle_all_cmpt[logic_cfg.CcCounterBitwidth-1:0];
+    assign hw2reg.cycle_all_cmpt_msb                          .d = cycle_all_cmpt[2*logic_cfg.CcCounterBitwidth-1:logic_cfg.CcCounterBitwidth];
+
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_valid         .d = debug_spin_valid;
+    assign hw2reg.flip_mem_ren_raddr.flip_q_valid             .d = drt_s_req_flip.q_valid;
+    assign hw2reg.flip_mem_ren_raddr.flip_raddr               .d = flip_raddr;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_waddr         .d = debug_spin_waddr;
+    assign hw2reg.j_mem_ren_raddr.j_mem_ren_load              .d = j_mem_ren_load;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_ren              .d = dgt_weight_ren;
+    assign hw2reg.j_mem_ren_raddr.j_raddr_load                .d = j_raddr_load;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr            .d = dgt_weight_raddr;
 
     always_comb begin
         for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
@@ -412,7 +454,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .SYNCHRONIZER_PIPEDEPTH          (logic_cfg.SynchronizerPipeDepth  ),
         .SPIN_WBL_OFFSET                 (logic_cfg.SpinWblOffset          ),
         .H_IS_NEGATIVE                   (logic_cfg.HIsNegative            ),
-        .ENABLE_FLIP_DETECTION           (logic_cfg.EnableFlipDetection    )
+        .ENABLE_FLIP_DETECTION           (logic_cfg.EnableFlipDetection    ),
+        .CC_COUNTER_BITWIDTH             (logic_cfg.CcCounterBitwidth      )
     ) u_digital_macro (
         .clk_i                           (clk_i                            ),
         .rst_ni                          (rst_ni                           ),
@@ -422,6 +465,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .en_fm_i                         (en_fm                            ),
         .en_ef_i                         (en_ef                            ),
         .en_analog_loop_i                (en_analog_loop                   ),
+        .en_perf_counter_i               (en_perf_counter                  ),
         .config_valid_em_i               (config_valid_em                  ),
         .config_valid_fm_i               (config_valid_fm                  ),
         .config_valid_aw_i               (config_valid_aw                  ),
@@ -511,7 +555,15 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .debug_aw_downstream_handshake_o (debug_aw_downstream_handshake    ),
         .debug_aw_spin_out_o             (debug_aw_spin_out                ),
         .debug_em_upstream_handshake_o   (debug_em_upstream_handshake      ),
-        .debug_em_spin_in_o              (debug_em_spin_in                 )
+        .debug_em_spin_in_o              (debug_em_spin_in                 ),
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en            ),
+        .multi_cmpt_mode_en_i            (multi_cmpt_mode_en               ),
+        .cmpt_max_num_i                  (cmpt_max_num                     ),
+        .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle             ),
+        .cmpt_idx_o                      (cmpt_idx                         ),
+        .cycle_per_iteration_o           (cycle_per_iteration              ),
+        .cycle_per_cmpt_o                (cycle_per_cmpt                   ),
+        .cycle_all_cmpt_o                (cycle_all_cmpt                   )
     );
 
     //////////////////////////////////////////////////////////

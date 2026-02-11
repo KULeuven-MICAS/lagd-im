@@ -25,6 +25,7 @@ module adder_tree #(
 )(
     input logic clk_i,
     input logic rst_ni,
+    input logic flush_i,
     input logic en_i,
     input logic data_valid_i,
     input logic [IN_WIDTH-1:0] data_i,
@@ -59,6 +60,7 @@ module adder_tree #(
     ) u_pipe_sum (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(stage_data[STAGES][0]),
         .data_o(sum_o),
         .valid_i(data_valid_i),
