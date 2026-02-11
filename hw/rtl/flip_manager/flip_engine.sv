@@ -89,7 +89,9 @@ module flip_engine #(
 
     output logic icon_finish_o,
 
-    input logic flip_disable_i
+    input logic flip_disable_i,
+    // for measurement purposes
+    input logic infinite_icon_loop_en_i
 );
 
     // Internal signals
@@ -113,7 +115,7 @@ module flip_engine #(
     // Data logic
     assign flipped_spin_o = flip_disable_i ? prev_spin_pipe : (prev_spin_pipe ^ flip_icon);
 
-    assign flip_raddr_n = flip_raddr_reg + 1'b1;
+    assign flip_raddr_n = (flip_raddr_reg == icon_last_raddr_plus_one_i) ? {{(FLIP_ICON_ADDR_DEPTH){1'b0}}, 1'b1} : flip_raddr_reg + 1'b1;
 
     assign flip_icon = flip_ren_n ? flip_rdata_i : flip_rdata_reg;
 
@@ -123,9 +125,9 @@ module flip_engine #(
     assign flip_disable_reg_flush_cond = flush_i | (~flip_disable_i);
 
     assign flip_ren_p = en_i & prev_spin_handshake & (~flush_i) & (~flip_disable_i);
-    assign icon_fifo_empty_comb = (flip_raddr_reg == icon_last_raddr_plus_one_i);
+    assign icon_fifo_empty_comb = (~infinite_icon_loop_en_i) & (flip_raddr_reg == icon_last_raddr_plus_one_i);
     assign flip_ren_o = flip_ren_p;
-    assign flip_raddr_o = flip_raddr_reg;
+    assign flip_raddr_o = (flip_raddr_reg == icon_last_raddr_plus_one_i) ? {{(FLIP_ICON_ADDR_DEPTH){1'b0}}, 1'b0} : flip_raddr_reg;
     assign icon_finish_o = flip_disable_reg || (icon_finish_reg || icon_fifo_empty_comb);
 
     // Sequential logic
@@ -164,6 +166,7 @@ module flip_engine #(
     ) u_pipe_spin (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(prev_spin_i),
         .data_o(prev_spin_pipe),
         .valid_i(prev_spin_valid_i),

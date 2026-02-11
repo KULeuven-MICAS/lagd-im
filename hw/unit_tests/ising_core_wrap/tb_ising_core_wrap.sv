@@ -22,6 +22,7 @@ module tb_ising_core_wrap;
     import lagd_mem_cfg_pkg::*;
     import ising_logic_pkg::*;
     import lagd_pkg::*;
+    import lagd_core_reg_pkg::*;
 
     localparam int CLKCYCLE = 2;
     localparam int HSCALING = 5'd4;
@@ -35,7 +36,7 @@ module tb_ising_core_wrap;
     logic reg_config_done;
     logic flush_en, en_aw, en_em, en_fm, en_ff, en_ef, en_analog_loop, en_comparison;
     logic cmpt_en, config_valid_aw, config_valid_em, config_valid_fm;
-    logic debug_dt_configure_enable, debug_spin_configure_enable, config_spin_initial_skip;
+    logic debug_dt_configure_enable, debug_spin_configure_enable, en_perf_counter, config_spin_initial_skip_0, config_spin_initial_skip_1;
     logic bypass_data_conversion, dt_cfg_enable, host_readout, flip_disable;
     logic enable_flip_detection, debug_j_write_en, debug_j_read_en, debug_spin_write_en, debug_spin_compute_en, debug_spin_read_en;
     logic [$clog2(`NUM_SPIN)-1:0] config_counter;
@@ -43,9 +44,10 @@ module tb_ising_core_wrap;
     logic [$clog2(`SYNCH_PIPE_DEPTH)-1:0] synchronizer_pipe_num, synchronizer_wbl_pipe_num;
     logic debug_h_wwl;
     logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound;
-    logic ctnus_fifo_read, ctnus_dgt_debug;
+    logic ctnus_fifo_read, ctnus_dgt_debug, infinite_icon_loop_en, multi_cmpt_mode_en;
     logic [`LAGD_REG_DATA_WIDTH-1:0] global_cfg_reg_1, global_cfg_reg_2;
     logic [(`NUM_SPIN*`BIT_J)-1:0] h_rdata, wbl_floating;
+    logic [`CC_COUNTER_BITWIDTH-1:0] cmpt_max_num;
 
     // External AXI interconnect
     lagd_axi_slv_req_t axi_ext_slv_req_0 = 'd0;
@@ -70,11 +72,11 @@ module tb_ising_core_wrap;
                             debug_spin_read_en, debug_spin_compute_en, debug_spin_write_en,
                             debug_j_read_en, debug_j_write_en, enable_flip_detection,
                             flip_disable, host_readout, bypass_data_conversion,
-                            config_spin_initial_skip, debug_spin_configure_enable,
+                            en_perf_counter, debug_spin_configure_enable,
                             debug_dt_configure_enable, en_comparison, en_analog_loop,
                             en_ef, en_ff, en_fm, en_em, en_aw, flush_en};
 
-    assign global_cfg_reg_2 = {16'd0, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
+    assign global_cfg_reg_2 = {12'd0, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
                             debug_h_wwl, synchronizer_pipe_num,
                             dt_cfg_enable, config_valid_fm, config_valid_em,
                             config_valid_aw, cmpt_en};
@@ -211,7 +213,7 @@ task automatic reg_config();
     config_valid_fm = 1'b0;
     debug_dt_configure_enable = 1'b0;
     debug_spin_configure_enable = 1'b0;
-    config_spin_initial_skip = 1'b0;
+    en_perf_counter = 1'b0;
     bypass_data_conversion = 1'b0;
     dt_cfg_enable = 1'b0;
     host_readout = 1'b0;
@@ -231,6 +233,12 @@ task automatic reg_config();
     dgt_addr_upper_bound = `NUM_SPIN/`PARALLELISM-1;
     ctnus_fifo_read = 1'b0;
     ctnus_dgt_debug = 1'b0;
+    infinite_icon_loop_en = 1'b0;
+    multi_cmpt_mode_en = 1'b0;
+    config_spin_initial_skip_0 = 1'b0;
+    config_spin_initial_skip_1 = 1'b0;
+
+    cmpt_max_num = 'hffffffff; // set to max
 
     config_spin_initial_0 = {`NUM_SPIN{1'b0}}; // all zeros
     config_spin_initial_1 = {`NUM_SPIN{1'b1}}; // all ones
@@ -256,109 +264,105 @@ task automatic reg_config();
     debug_j_one_hot_wwl = 'd0;
 
     // Write configuration registers
+    // max num of cmpt
+    reg_data = cmpt_max_num;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_CMPT_MAX_NUM_OFFSET, 1'b1, reg_data, 1'b1);
+
     // Spin initial configuration, set 0
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = config_spin_initial_0[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_CONFIG_SPIN_INITIAL_0_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
-    config_valid_fm = 1'b1;
-    @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
-    config_valid_fm = 1'b0;
-    @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
+
     // Spin initial configuration, set 1
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = config_spin_initial_1[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_CONFIG_SPIN_INITIAL_1_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
-    config_valid_fm = 1'b1;
-    @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
-    config_valid_fm = 1'b0;
-    @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
 
     // Counters, set 1
     reg_data = {cycle_per_wwl_high, cfg_trans_num};
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h28, 1'b1, reg_data, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_1_OFFSET, 1'b1, reg_data, 1'b1);
     // Counters, set 2
     reg_data = {cycle_per_spin_write, cycle_per_wwl_low};
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h2c, 1'b1, reg_data, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_2_OFFSET, 1'b1, reg_data, 1'b1);
     // Counters, set 3
     reg_data = {debug_cycle_per_spin_read, cycle_per_spin_compute};
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h30, 1'b1, reg_data, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_3_OFFSET, 1'b1, reg_data, 1'b1);
     // Counters, set 4
     reg_data = {dgt_hscaling, icon_last_raddr_plus_one, debug_spin_read_num};
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h34, 1'b1, reg_data, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_4_OFFSET, 1'b1, reg_data, 1'b1);
     // WWL VDD
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = wwl_vdd_cfg[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h38 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_WWL_VDD_CFG_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // WWL VREAD
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = wwl_vread_cfg[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h58 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_WWL_VREAD_CFG_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // Spin WWL strobe
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = spin_wwl_strobe[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h78 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_WWL_STROBE_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // Spin feedback
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = spin_feedback[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h98 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FEEDBACK_CFG_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // h_rdata
     for (i = 0; i < `NUM_SPIN*`BIT_J/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = h_rdata[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'hb8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_H_RDATA_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // wbl_floating
     for (i = 0; i < `NUM_SPIN*`BIT_J/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = wbl_floating[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h138 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_WBL_FLOATING_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // debug_j_one_hot_wwl
     for (i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i = i + 1) begin
         reg_data = debug_j_one_hot_wwl[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         @ (posedge clk_i);
-        reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h1b8 + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
+        reg_ext_req = gen_reg_req(LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0_OFFSET + (i * `LAGD_REG_DATA_WIDTH/8), 1'b1, reg_data, 1'b1);
     end
     // load all configurations into the core
     config_valid_aw = 1'b1;
     config_valid_em = 1'b1;
+    config_valid_fm = 1'b1;
     debug_dt_configure_enable = 1'b1;
     debug_spin_configure_enable = 1'b1;
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h0, 1'b1, global_cfg_reg_1, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_1_OFFSET, 1'b1, global_cfg_reg_1, 1'b1);
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
     config_valid_aw = 1'b0;
     config_valid_em = 1'b0;
+    config_valid_fm = 1'b0;
     debug_dt_configure_enable = 1'b0;
     debug_spin_configure_enable = 1'b0;
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h0, 1'b1, global_cfg_reg_1, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_1_OFFSET, 1'b1, global_cfg_reg_1, 1'b1);
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b1);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
     @ (posedge clk_i);
-    // Deassert valid signals
-    reg_ext_req = gen_reg_req(`CVA6_ADDR_WIDTH'h4, 1'b1, global_cfg_reg_2, 1'b0);
+    // Deassert write valid signals
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b0);
     @ (posedge clk_i);
 endtask
 

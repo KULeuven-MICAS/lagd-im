@@ -36,6 +36,10 @@
 `define EnableAnalogLoop `True
 `endif
 
+`ifndef MultiCmptModeEn
+`define MultiCmptModeEn `False
+`endif
+
 module tb_digital_macro;
     import analog_format_pkg::*;
     import energy_calc_pkg::*;
@@ -44,12 +48,11 @@ module tb_digital_macro;
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
-    localparam int NUM_TESTS = 1; // number of computation processes (only 1 is supported currently)
 
     // dut signals
     logic clk_i;
     logic rst_ni;
-    logic en_aw_i, en_fm_i, en_em_i, en_ff_i, en_ef_i, en_analog_loop_i;
+    logic en_aw_i, en_fm_i, en_em_i, en_ff_i, en_ef_i, en_analog_loop_i, en_perf_counter_i;
     logic en_i;
     logic config_valid_em_i;
     logic config_valid_fm_i;
@@ -57,8 +60,8 @@ module tb_digital_macro;
     logic debug_dt_configure_enable_i;
     logic debug_spin_configure_enable_i;
     logic [ $clog2(NUM_SPIN)-1 : 0 ] config_counter_i;
-    logic [ NUM_SPIN-1 : 0 ] config_spin_initial_i;
-    logic config_spin_initial_skip_i;
+    logic [ NUM_SPIN*SPIN_DEPTH-1 : 0 ] config_spin_initial_i;
+    logic [ SPIN_DEPTH-1 : 0 ] config_spin_initial_skip_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cfg_trans_num_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_wwl_high_i;
     logic [ COUNTER_BITWIDTH-1 : 0] cycle_per_wwl_low_i;
@@ -107,6 +110,11 @@ module tb_digital_macro;
     logic spin_fifo_update_o;
     logic enable_flip_detection_i;
     logic debug_spin_compute_en_i;
+    logic infinite_icon_loop_en_i;
+    logic multi_cmpt_mode_en_i;
+    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_cycle_cnt_o;
+    logic cmpt_cycle_cnt_maxed_o;
+    logic cmpt_cycle_cnt_overflow_o;
 
     // debugging interface
     logic [COUNTER_BITWIDTH-1:0] debug_cycle_per_spin_read_i;
@@ -140,21 +148,28 @@ module tb_digital_macro;
     logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_initial_states;
     logic [NUM_SPIN*BITDATA-1:0] wbl_i;
     int signed constant;
+    localparam int CheckLastAddrPlusOne = `FlipDisable ? SPIN_DEPTH : IconLastAddrPlusOne;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] flip_icons_in_mem;
     logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_ref;
     logic [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_ref;
     int unsigned total_cycles, transaction_cycles, total_time, transaction_time, start_time, end_time;
     int test_idx;
     logic cmpt_test_start, cmpt_test_end;
-    logic host_readout_check_end;
+    logic final_fifo_check_end;
     integer dt_write_cycle_cnt_j;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
     model_t model_data;
+    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_max_num_i;
+    logic multi_cmpt_mode_idle_o;
+    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o, cycle_per_iteration_o, cycle_per_cmpt_o;
+    logic [2*CC_COUNTER_BITWIDTH-1:0] cycle_all_cmpt_o;
+    logic [COUNTER_BITWIDTH-1:0] multi_cmpt_idx;
 
     assign en_aw_i = en_i;
     assign en_em_i = en_i;
     assign en_fm_i = en_i;
     assign en_ff_i = en_i;
+    assign en_perf_counter_i = en_i;
     assign dgt_addr_upper_bound_i = NUM_SPIN / PARALLELISM - 1;
     assign debug_dt_configure_enable_i = 1'b0;
     assign debug_spin_configure_enable_i = 1'b0;
@@ -162,6 +177,9 @@ module tb_digital_macro;
     assign wwl_vread_i = {NUM_SPIN+1{1'b0}}; // all VREADs are disabled
     assign debug_cycle_per_spin_read_i = 'd0;
     assign debug_spin_read_num_i = 'd0;
+    assign infinite_icon_loop_en_i = INFINITE_ICON_LOOP_EN;
+    assign multi_cmpt_mode_en_i = `MultiCmptModeEn;
+    assign cmpt_max_num_i = CmptMaxNum; // max number of computations in multi-cmpt mode
 
     always_comb begin
         for (int i=0; i < NUM_SPIN; i=i+1) begin
@@ -187,7 +205,8 @@ module tb_digital_macro;
         .SYNCHRONIZER_PIPEDEPTH          (SYNCHRONIZER_PIPEDEPTH        ),
         .SPIN_WBL_OFFSET                 (SPIN_WBL_OFFSET               ),
         .H_IS_NEGATIVE                   (H_IS_NEGATIVE                 ),
-        .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION         )
+        .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION         ),
+        .CC_COUNTER_BITWIDTH             (CC_COUNTER_BITWIDTH           )
     ) dut (
         .clk_i                           (clk_i                         ),
         .rst_ni                          (rst_ni                        ),
@@ -197,6 +216,7 @@ module tb_digital_macro;
         .en_fm_i                         (en_fm_i                       ),
         .en_ef_i                         (en_ef_i                       ),
         .en_analog_loop_i                (en_analog_loop_i              ),
+        .en_perf_counter_i               (en_perf_counter_i             ),
         .config_valid_em_i               (config_valid_em_i             ),
         .config_valid_fm_i               (config_valid_fm_i             ),
         .config_valid_aw_i               (config_valid_aw_i             ),
@@ -286,7 +306,16 @@ module tb_digital_macro;
         .debug_aw_downstream_handshake_o (                              ),
         .debug_aw_spin_out_o             (                              ),
         .debug_em_upstream_handshake_o   (                              ),
-        .debug_em_spin_in_o              (                              )
+        .debug_em_spin_in_o              (                              ),
+        // measurement purposes
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en_i       ),
+        .multi_cmpt_mode_en_i            (multi_cmpt_mode_en_i          ),
+        .cmpt_max_num_i                  (cmpt_max_num_i                ),
+        .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle_o        ),
+        .cmpt_idx_o                      (cmpt_idx_o                    ),
+        .cycle_per_iteration_o           (cycle_per_iteration_o         ),
+        .cycle_per_cmpt_o                (cycle_per_cmpt_o              ),
+        .cycle_all_cmpt_o                (cycle_all_cmpt_o              )
     );
 
     // Clock generation
@@ -313,14 +342,18 @@ module tb_digital_macro;
             $display("Debug mode enabled. Running with detailed output.");
             $timeformat(-9, 1, " ns", 9);
             $dumpfile(`VCD_FILE);
-            $dumpvars(3, tb_digital_macro); // Dump all variables in testbench module
-            #(500 * CLKCYCLE); // To avoid generating huge VCD files
+            $dumpvars(1, tb_digital_macro); // Dump all variables in testbench module
+            #(1000 * CLKCYCLE); // To avoid generating huge VCD files
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
         else begin
             $timeformat(-9, 1, " ns", 9);
-            #(500_000 * CLKCYCLE);
+            if (`MultiCmptModeEn) begin
+                #(500_000 * CmptMaxNum * CLKCYCLE);
+            end else begin
+                #(500_000 * CLKCYCLE);
+            end
             $display("[Time: %t] Testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
@@ -379,7 +412,7 @@ module tb_digital_macro;
             end while (model.hbias[i*BITH +: BITH] == {1'b1, {BITH-1{1'b0}}}); // avoid generating the invalid code
         end
         // generate random scaling factor
-        model.scaling_factor = 1 << ($urandom_range(0, SCALING_BIT-1));
+        model.scaling_factor = $urandom_range(0, 2**SCALING_BIT-1);
         // constant
         model.constant = 0;
         return model;
@@ -555,7 +588,7 @@ module tb_digital_macro;
         config_fm_done = 0;
         config_valid_fm_i = 0;
         config_spin_initial_i = 'd0;
-        config_spin_initial_skip_i = `False;
+        config_spin_initial_skip_i = 'd0;
         flush_i = Flush;
         en_comparison_i = `EnComparison;
         icon_last_raddr_plus_one_i = IconLastAddrPlusOne;
@@ -564,14 +597,10 @@ module tb_digital_macro;
         wait (rst_ni == 1 && en_i == 1 && config_em_done == 1);
         @(posedge clk_i);
         // $display("[Time: %t] FM configuration starts.", $time);
-        for (int i = 0; i < SPIN_DEPTH; i = i + 1) begin
-            config_valid_fm_i = 1;
-            config_spin_initial_i = spin_initial_states[i];
-            config_spin_initial_skip_i = `False;
-            @(posedge clk_i);
-            config_valid_fm_i = 0;
-            @(posedge clk_i);
-        end
+        config_spin_initial_i = spin_initial_states;
+        config_spin_initial_skip_i = 'd0;
+        config_valid_fm_i = 1'b1;
+        @(posedge clk_i);
         config_valid_fm_i = 0;
         config_fm_done = 1;
         $display("[Time: %t] FM configuration finished.", $time);
@@ -671,7 +700,7 @@ module tb_digital_macro;
                     for (int k = 0; k < NUM_SPIN; k = k + 1) begin
                         wbl_i[k*BITDATA] = {{(BITJ-1){1'b0}}, states_out_ref[state_out_ref_idx][k]} << SPIN_WBL_OFFSET;
                     end
-                    state_out_ref_idx = (state_out_ref_idx + 1) % (IconLastAddrPlusOne);
+                    state_out_ref_idx = (state_out_ref_idx + 1) % (CheckLastAddrPlusOne);
                 end else begin
                     wbl_i = wbl_copy;
                 end
@@ -751,15 +780,10 @@ module tb_digital_macro;
         wait (rst_ni == 1 && en_i == 1 && config_dut_done == 1);
         @(posedge clk_i);
         cmpt_test_start = 1;
-        while (test_idx < NUM_TESTS) begin
-            cmpt_en_i = 1;
-            @(posedge clk_i);
-            repeat (2) @(posedge clk_i);
-            wait (host_readout_check_end == 1);
-            // wait some cycles between tests
-            repeat (5) @(posedge clk_i);
-            test_idx = test_idx + 1;
-        end
+        cmpt_en_i = 1;
+        @(posedge clk_i);
+        repeat (2) @(posedge clk_i);
+        wait (final_fifo_check_end == 1);
         @(posedge clk_i);
         cmpt_test_end = 1;
     endtask
@@ -768,22 +792,18 @@ module tb_digital_macro;
     // Debug
     // ========================================================================
     task automatic debug_model_wr();
-    begin
         debug_j_write_en_i = 1'b0;
         debug_j_read_en_i = 1'b0;
         debug_j_one_hot_wwl_i = 'd0;
         debug_h_wwl_i = 1'b0;
         debug_wbl_i = 'd0;
         wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
-    end
     endtask
 
     task automatic debug_model_spin_wr();
-    begin
         debug_spin_write_en_i = 1'b0;
         debug_spin_read_en_i = 1'b0;
         debug_spin_compute_en_i = 1'b0;
-    end
     endtask
 
     // ========================================================================
@@ -913,111 +933,151 @@ module tb_digital_macro;
     task automatic energy_fifo_check();
         integer test_correct_cnt = 0;
         integer check_idx = 0;
+
+        multi_cmpt_idx = 0;
         wait (cmpt_test_start == 1);
-        while (check_idx < IconLastAddrPlusOne) begin
-            wait (energy_fifo_update_o == 1);
-            // wait 1 cycle for energy fifo to update
-            // note: not allow to wait for more than 1 cycle, as dut..fm_upstream_handshake can be continuously high
-            @(posedge clk_i);
-            // switch to negedge to observe signals
-            @(negedge clk_i);
-            for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
-                // check energy fifo
-                if (energy_fifo_o[depth_idx] !== energy_fifo_ref[check_idx+1][depth_idx]) begin
-                    $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, hbias: 'h%h, hscaling: 'h%h, spin: 'h%h, state_out_ref: 'h%h",
-                        $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], hbias_in_reg, hscaling_in_reg, spin_fifo_ref[check_idx+1][depth_idx], states_out_ref[check_idx]);
-                end else begin
-                    // $display("[Time: %t] Energy fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'h%h",
-                    //     $time, check_idx, depth_idx, energy_fifo_o[depth_idx]);
+        do begin
+            check_idx = 0;
+            test_correct_cnt = 0;
+            while (check_idx < CheckLastAddrPlusOne) begin
+                while (energy_fifo_update_o == 0) @(negedge clk_i);
+                for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
+                    // check energy fifo
+                    if (energy_fifo_o[depth_idx] !== energy_fifo_ref[check_idx+1][depth_idx]) begin
+                        $fatal(1, "[Time: %t] Error: Energy fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h, hbias: 'h%h, hscaling: 'h%h, spin: 'h%h, state_out_ref: 'h%h",
+                            $time, check_idx, depth_idx, energy_fifo_ref[check_idx+1][depth_idx], energy_fifo_o[depth_idx], hbias_in_reg, hscaling_in_reg, spin_fifo_ref[check_idx+1][depth_idx], states_out_ref[check_idx]);
+                    end else begin
+                        // $display("[Time: %t] Energy fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'h%h",
+                        //     $time, check_idx, depth_idx, energy_fifo_o[depth_idx]);
+                    end
                 end
+                test_correct_cnt = test_correct_cnt + 1;
+                check_idx = check_idx + 1;
+                @(negedge clk_i);
             end
-            test_correct_cnt = test_correct_cnt + 1;
-            check_idx = check_idx + 1;
-        end
+            multi_cmpt_idx = multi_cmpt_idx + 1;
+        end while (`MultiCmptModeEn && multi_cmpt_idx < CmptMaxNum);
         // after all tests
-        $display("----------------------------------------");
-        $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
-            $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
-        $display("----------------------------------------");
+        if (`MultiCmptModeEn) begin
+            $display("-------------------------------------------------------------------------------------------------------");
+            $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_cmpt_idx: %0d/%0d",
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne, multi_cmpt_idx, CmptMaxNum);
+            $display("-------------------------------------------------------------------------------------------------------");
+        end else begin
+            $display("-------------------------------------------------------------------------------------------------------");
+            $display("Energy FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne);
+            $display("-------------------------------------------------------------------------------------------------------");
+        end
     endtask
 
     // Check spin fifo content
     task automatic spin_fifo_check();
         integer test_correct_cnt = 0;
         integer check_idx = 0;
+        integer multi_spin_check_idx = 0;
+
         wait (cmpt_test_start == 1);
-        while (check_idx < IconLastAddrPlusOne) begin
-            wait (spin_fifo_update_o == 1);
-            // wait 1 cycle for energy fifo to update
-            // note: not allow to wait for more than 1 cycle, as dut..fm_upstream_handshake can be continuously high
-            @(posedge clk_i);
-            // switch to negedge to observe signals
-            @(negedge clk_i);
-            for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
-                // check spin fifo
-                if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
-                    $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%0d, Got: 'h%0d",
-                        $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
-                end else begin
-                    // $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
-                    //     $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
+        do begin
+            check_idx = 0;
+            test_correct_cnt = 0;
+            wait (dut.cmpt_en_fm == 1'b1); // wait for compute start
+            repeat (2) @(posedge clk_i);
+            while (check_idx < CheckLastAddrPlusOne) begin
+                while (spin_fifo_update_o == 0) @(negedge clk_i);
+                for (int depth_idx = 0; depth_idx < SPIN_DEPTH; depth_idx = depth_idx + 1) begin
+                    // check spin fifo
+                    if (spin_fifo_o[depth_idx] !== spin_fifo_ref[check_idx+1][depth_idx]) begin
+                        $fatal(1, "[Time: %t] Error: Spin fifo mismatch at check_idx 'd%0d, depth_idx 'd%0d. Expected: 'h%h, Got: 'h%h",
+                            $time, check_idx, depth_idx, spin_fifo_ref[check_idx+1][depth_idx], spin_fifo_o[depth_idx]);
+                    end else begin
+                        // $display("[Time: %t] Spin fifo match at check_idx 'd%0d, depth_idx 'd%0d. Value: 'b%b",
+                        //     $time, check_idx, depth_idx, spin_fifo_o[depth_idx]);
+                    end
                 end
+                test_correct_cnt = test_correct_cnt + 1;
+                check_idx = check_idx + 1;
+                @(negedge clk_i);
             end
-            test_correct_cnt = test_correct_cnt + 1;
-            check_idx = check_idx + 1;
-        end
+            multi_spin_check_idx = multi_spin_check_idx + 1;
+        end while (`MultiCmptModeEn && multi_spin_check_idx < CmptMaxNum);
         // after all tests
-        $display("----------------------------------------");
-        $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
-            $time, test_correct_cnt, IconLastAddrPlusOne, IconLastAddrPlusOne - test_correct_cnt, IconLastAddrPlusOne);
-        $display("----------------------------------------");
+        if (`MultiCmptModeEn) begin
+            $display("-------------------------------------------------------------------------------------------------------");
+            $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors, multi_spin_check_idx: %0d/%0d",
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne, multi_spin_check_idx, CmptMaxNum);
+            $display("-------------------------------------------------------------------------------------------------------");
+        end else begin
+            $display("-------------------------------------------------------------------------------------------------------");
+            $display("Spin FIFO Scoreboard [Time %0d ns]: %0d/%0d correct, %0d/%0d errors",
+                $time, test_correct_cnt, CheckLastAddrPlusOne, CheckLastAddrPlusOne - test_correct_cnt, CheckLastAddrPlusOne);
+            $display("-------------------------------------------------------------------------------------------------------");
+        end
     endtask
 
     // Host readout check
     task automatic host_readout_check();
-        integer readout_count_host = 0;
+        integer check_fifo_idx = 0;
+        integer multi_final_check_idx = 0;
 
-        host_readout_check_end = 0;
+        final_fifo_check_end = 0;
 
-        while(test_idx < NUM_TESTS) begin
+        do begin
             wait (cmpt_idle_o == 0); // wait for compute start
             wait (cmpt_idle_o == 1); // wait for compute end
             @(negedge clk_i);
-            while(readout_count_host < SPIN_DEPTH) begin
+            while(check_fifo_idx < SPIN_DEPTH) begin
                 if (`FlipDisable == `False) begin
-                    if (spin_fifo_o[readout_count_host] !== spin_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
-                        $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
-                            $time, test_idx, readout_count_host, spin_fifo_ref[IconLastAddrPlusOne][readout_count_host], spin_fifo_o[readout_count_host]);
+                    if (spin_fifo_o[check_fifo_idx] !== spin_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx]) begin
+                        $fatal(1, "[Time: %t] Error: Final spin fifo mismatch at test_idx 'd%0d, check_fifo_idx 'd%0d. Expected: 'h%0h, Got: 'h%0h",
+                            $time, test_idx, check_fifo_idx, spin_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx], spin_fifo_o[check_fifo_idx]);
                     end
                 end else begin
-                    if (spin_fifo_o[readout_count_host] !== spin_fifo_ref[2][readout_count_host]) begin
-                        $fatal(1, "[Time: %t] Error: Host readout spin fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%0h, Got: 'h%0h",
-                            $time, test_idx, readout_count_host, spin_fifo_ref[2][readout_count_host], spin_fifo_o[readout_count_host]);
+                    if (spin_fifo_o[check_fifo_idx] !== spin_fifo_ref[2][check_fifo_idx]) begin
+                        $fatal(1, "[Time: %t] Error: Final spin fifo mismatch at test_idx 'd%0d, check_fifo_idx 'd%0d. Expected: 'h%0h, Got: 'h%0h",
+                            $time, test_idx, check_fifo_idx, spin_fifo_ref[2][check_fifo_idx], spin_fifo_o[check_fifo_idx]);
                     end
                 end
-                $display("[Time: %t] Host readout spin fifo successfully at idx 'd%0d, value: 'b%0b",
-                    $time, readout_count_host, spin_fifo_o[readout_count_host]);
+                // $display("[Time: %t] Final spin fifo check successfully at idx 'd%0d, value: 'b%0b",
+                //     $time, check_fifo_idx, spin_fifo_o[check_fifo_idx]);
                 if (`FlipDisable == `False) begin
-                    if (energy_fifo_o[readout_count_host] !== energy_fifo_ref[IconLastAddrPlusOne][readout_count_host]) begin
-                        $fatal(1, "[Time: %t] Error: Host readout energy fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%h, Got: 'h%h",
-                            $time, test_idx, readout_count_host, energy_fifo_ref[IconLastAddrPlusOne][readout_count_host], energy_fifo_o[readout_count_host]);
+                    if (energy_fifo_o[check_fifo_idx] !== energy_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx]) begin
+                        $fatal(1, "[Time: %t] Error: Final energy fifo mismatch at test_idx 'd%0d, check_fifo_idx 'd%0d. Expected: 'h%h, Got: 'h%h",
+                            $time, test_idx, check_fifo_idx, energy_fifo_ref[CheckLastAddrPlusOne][check_fifo_idx], energy_fifo_o[check_fifo_idx]);
                     end
                 end else begin
-                    if (energy_fifo_o[readout_count_host] !== energy_fifo_ref[2][readout_count_host]) begin
-                        $fatal(1, "[Time: %t] Error: Host readout energy fifo mismatch at test_idx 'd%0d, readout_count_host 'd%0d. Expected: 'h%h, Got: 'h%h",
-                            $time, test_idx, readout_count_host, energy_fifo_ref[2][readout_count_host], energy_fifo_o[readout_count_host]);
+                    if (energy_fifo_o[check_fifo_idx] !== energy_fifo_ref[2][check_fifo_idx]) begin
+                        $fatal(1, "[Time: %t] Error: Final energy fifo mismatch at test_idx 'd%0d, check_fifo_idx 'd%0d. Expected: 'h%h, Got: 'h%h",
+                            $time, test_idx, check_fifo_idx, energy_fifo_ref[2][check_fifo_idx], energy_fifo_o[check_fifo_idx]);
                     end
                 end
-                $display("[Time: %t] Host readout energy fifo successfully at idx 'd%0d, value: 'h%h",
-                    $time, readout_count_host, energy_fifo_o[readout_count_host]);
-                readout_count_host = readout_count_host + 1;
+                // $display("[Time: %t] Final energy fifo check successfully at idx 'd%0d, value: 'h%h",
+                //     $time, check_fifo_idx, energy_fifo_o[check_fifo_idx]);
+                check_fifo_idx = check_fifo_idx + 1;
             end
-            host_readout_check_end = 1;
-        end
+            multi_final_check_idx = multi_final_check_idx + 1;
+            check_fifo_idx = 0;
+        end while (`MultiCmptModeEn && multi_final_check_idx < CmptMaxNum);
+        final_fifo_check_end = 1;
+    endtask
+
+    // Multiple computation mode check
+    task automatic multi_cmpt_idx_check();
+        integer multi_cmpt_idx = 0;
+        do begin
+            wait (cmpt_idle_o == 0); // wait for compute start
+            wait (cmpt_idle_o == 1); // wait for compute end
+            if (`MultiCmptModeEn && cmpt_idx_o != multi_cmpt_idx) begin
+                $fatal(1, "[Time: %t] Error: cmpt_idx_o mismatch in multiple computation mode. Expected: %0d, Got: %0d",
+                    $time, multi_cmpt_idx, cmpt_idx_o);
+            end
+            multi_cmpt_idx = multi_cmpt_idx + 1;
+        end while (`MultiCmptModeEn && multi_cmpt_idx < CmptMaxNum);
     endtask
 
     // Cmpt enable and timer
     task automatic cmpt_enable_and_timer();
+        integer multi_cmpt_timer_idx = 0;
         wait (rst_ni == 0);
         total_cycles = 0;
         transaction_cycles = 0;
@@ -1025,35 +1085,40 @@ module tb_digital_macro;
         transaction_time = 0;
         start_time = 0;
         end_time = 0;
-        while (test_idx < NUM_TESTS) begin
-            wait (cmpt_test_start == 1);
+        wait (cmpt_test_start == 1);
+        do begin
+            wait (cmpt_idle_o == 0);
             start_time = $time;
             @(posedge clk_i);
-            wait (cmpt_test_end == 1);
+            wait (cmpt_idle_o == 1);
             end_time = $time;
             // calculate compute cycles
             total_time = end_time - start_time;
             total_cycles = total_time / CLKCYCLE;
-            transaction_cycles = total_cycles / IconLastAddrPlusOne;
+            transaction_cycles = total_cycles / CheckLastAddrPlusOne;
             transaction_time = transaction_cycles * CLKCYCLE;
-            $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
+            $display("---------------------------------------- Timer per Computation ----------------------------------------");
             $display("Timer [Time %0d ns]: start time: %0d ns, end time: %0d ns, duration: %0d ns, flips: %0d",
-                $time, start_time, end_time, total_time, IconLastAddrPlusOne);
+                $time, start_time, end_time, total_time, CheckLastAddrPlusOne);
             $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
                 $time, total_cycles, total_time, transaction_cycles, transaction_time);
-            $display("@@@@@@ Timer per Computation @@@@@@@@@@@@");
-        end
+            $display("Timer [Time %0d ns]: MultiCmptModeEn: %d, multi_cmpt_timer_idx: %0d/%0d",
+                $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum);
+            $display("---------------------------------------- Timer per Computation ----------------------------------------");
+            multi_cmpt_timer_idx = multi_cmpt_timer_idx + 1;
+        end while (`MultiCmptModeEn && multi_cmpt_timer_idx < CmptMaxNum);
+        @(posedge clk_i);
         $finish;
     endtask
 
     // Task for timing record on each computation
     task automatic timing_record();
-        logic [IconLastAddrPlusOne-1:0][31:0] cycle_cnt;
+        logic [CheckLastAddrPlusOne-1:0][31:0] cycle_cnt;
         integer idx = 0;
         integer time_a, time_b;
 
         wait (cmpt_en_i == 1);
-        while (idx < IconLastAddrPlusOne) begin
+        while (idx < CheckLastAddrPlusOne) begin
             @(posedge clk_i);
             time_a = $time;
             wait (dut.fm_upstream_handshake == 1);
@@ -1087,6 +1152,7 @@ module tb_digital_macro;
             energy_fifo_check();
             spin_fifo_check();
             host_readout_check();
+            multi_cmpt_idx_check();
             // timer
             cmpt_enable_and_timer();
             timing_record();

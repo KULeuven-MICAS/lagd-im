@@ -25,6 +25,7 @@ package config_pkg;
     parameter int SPIN_DEPTH = 2;
     parameter int FLIP_ICON_DEPTH = 1024;
     parameter int COUNTER_BITWIDTH = 16;
+    parameter int CC_COUNTER_BITWIDTH = 32; // bit width of the cmpt cycle counter for measurement purposes
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
     parameter int H_IS_NEGATIVE = `True;
@@ -32,6 +33,8 @@ package config_pkg;
 
     // run-time parameters (related to algorithm, others are defined at the beginning of the testbench)
     parameter int IconLastAddrPlusOne = FLIP_ICON_DEPTH;
+    logic INFINITE_ICON_LOOP_EN = `False; // set to 1 to enable infinite icon loop for measurement (this mode is not supported in testbench)
+    parameter int CmptMaxNum = 10;
 
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;

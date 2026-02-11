@@ -80,8 +80,9 @@ module energy_monitor #(
     parameter int PIPESMID = 0,
     parameter bit ENABLE_EXTERNAL_FINISH_SIGNAL = `False,
     parameter bit H_IS_NEGATIVE = `True,
-    // Derived parameters
-    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1 + 1,
+    // derived parameters
+    parameter int MULTBIT = BITH + SCALING_BIT,
+    parameter int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + MULTBIT,
     parameter int DATAJ = NUM_SPIN * BITJ * PARALLELISM,
     parameter int DATAH = BITH * PARALLELISM,
     parameter int DATASCALING = SCALING_BIT * PARALLELISM,
@@ -205,6 +206,7 @@ module energy_monitor #(
     ) u_pipe_config (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(config_counter_i),
         .data_o(config_counter_pipe),
         .valid_i(config_valid_i),
@@ -218,6 +220,7 @@ module energy_monitor #(
     ) u_pipe_spin (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i(spin_i),
         .data_o(spin_pipe),
         .valid_i(spin_valid_i),
@@ -231,6 +234,7 @@ module energy_monitor #(
     ) u_pipe_weight (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
+        .flush_i(flush_i),
         .data_i({weight_i, hbias_i, hscaling_i, weight_valid_parallel_i, external_finish_i, external_counter_q_i, double_weight_contri_i, energy_baseline_in_i}),
         .data_o({weight_pipe, hbias_pipe, hscaling_pipe, weight_valid_parallel_pipe, external_finish_pipe, external_counter_q_pipe, double_weight_contri_pipe, energy_baseline_in_pipe}),
         .valid_i(weight_valid_i),
@@ -394,6 +398,7 @@ module energy_monitor #(
                 ) u_partial_energy_calc (
                     .clk_i(clk_i),
                     .rst_ni(rst_ni),
+                    .flush_i(flush_i),
                     .en_i(en_i),
                     .data_valid_i(weight_handshake),
                     .spin_vector_i(spin_cached),
@@ -414,6 +419,7 @@ module energy_monitor #(
                 ) u_partial_energy_calc (
                     .clk_i(clk_i),
                     .rst_ni(rst_ni),
+                    .flush_i(flush_i),
                     .en_i(en_i),
                     .data_valid_i(weight_handshake),
                     .spin_vector_i(spin_cached),

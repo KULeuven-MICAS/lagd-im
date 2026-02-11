@@ -23,6 +23,7 @@ module bp_pipe #(
 ) (
     input logic clk_i,
     input logic rst_ni,
+    input logic flush_i,
 
     input logic [DATAW-1:0] data_i,
     output logic [DATAW-1:0] data_o,
@@ -52,8 +53,8 @@ module bp_pipe #(
             for (genvar i = 0; i < PIPES; i++) begin : g_pipe_stage
                 assign pipe_load[i] = (pipe_valid[i] && ~pipe_valid[i+1])    //pipe is free
                                     || (pipe_ready[i+1] && pipe_valid[i+1]); //pipe is sampled
-                `FFL(pipe_data[i+1], pipe_data[i], pipe_load[i], '0, clk_i, rst_ni);
-                `FFL(pipe_valid[i+1], pipe_valid[i], pipe_load[i], '0, clk_i, rst_ni);
+                `FFLARNC(pipe_data[i+1], pipe_data[i], pipe_load[i], flush_i, '0, clk_i, rst_ni);
+                `FFLARNC(pipe_valid[i+1], pipe_valid[i], pipe_load[i], flush_i, '0, clk_i, rst_ni);
                 assign pipe_ready[i] = pipe_ready[i+1] || ~pipe_valid[i+1];
             end
 
