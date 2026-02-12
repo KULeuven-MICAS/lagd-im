@@ -231,8 +231,6 @@ module lagd_soc import lagd_pkg::*; (
                 .l1_mem_cfg_j      (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ    ),
                 .l1_mem_cfg_flip   (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip ),
                 .logic_cfg         (ising_logic_pkg::IsingLogicCfg          ),
-                .axi_slv_req_t     (lagd_axi_slv_req_t                      ),
-                .axi_slv_rsp_t     (lagd_axi_slv_rsp_t                      ),
                 .axi_narrow_req_t  (lagd_axi_slv_req_t                      ),
                 .axi_narrow_rsp_t  (lagd_axi_slv_rsp_t                      ),
                 .axi_wide_req_t    (lagd_axi_wide_slv_req_t                 ),
