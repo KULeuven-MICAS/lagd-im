@@ -685,7 +685,7 @@ task automatic reg_config();
     // switch to output register
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_OUTPUT_STATUS_OFFSET, 1'b0, 'd0, 1'b1);
-     repeat (5) @ (posedge clk_i);
+    repeat (2) @ (posedge clk_i);
     wait (dut.debug_fm_downstream_handshake == 1'b1); // wait for the first handshake indicating the first output is ready
     $display("Ending simulation.");
     @ (posedge clk_i);
