@@ -594,21 +594,21 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // j memory request mux
     always_comb begin
         case(dt_cfg_enable)
-            1'b0: begin: load_mode
-                drt_s_req_j.q.addr         = j_raddr_load;
-                drt_s_req_j.q.write        = 1'b0; // read
-                drt_s_req_j.q.data         = {`IC_L1_J_MEM_DATA_WIDTH{1'b0}}; // not used for read
-                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
-                drt_s_req_j.q.user         = 'd0; // not used
-                drt_s_req_j.q_valid        = j_mem_ren_load;
-            end
-            1'b1: begin: compute_mode
+            1'b0: begin: compute_mode
                 drt_s_req_j.q.addr         = dgt_weight_raddr;
                 drt_s_req_j.q.write        = 1'b0; // read
                 drt_s_req_j.q.data         = {`IC_L1_J_MEM_DATA_WIDTH{1'b0}}; // not used for read
                 drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
                 drt_s_req_j.q.user         = 'd0; // not used
                 drt_s_req_j.q_valid        = dgt_weight_ren;
+            end
+            1'b1: begin: load_mode
+                drt_s_req_j.q.addr         = j_raddr_load;
+                drt_s_req_j.q.write        = 1'b0; // read
+                drt_s_req_j.q.data         = {`IC_L1_J_MEM_DATA_WIDTH{1'b0}}; // not used for read
+                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_j.q.user         = 'd0; // not used
+                drt_s_req_j.q_valid        = j_mem_ren_load;
             end
         endcase
     end
