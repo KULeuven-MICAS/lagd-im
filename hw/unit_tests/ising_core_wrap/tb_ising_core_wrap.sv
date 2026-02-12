@@ -435,6 +435,7 @@ module tb_ising_core_wrap;
                     $error("Write failed with response: %0d", axi_ext_slv_rsp_0.b.resp);
             end
         end
+        axi_ext_slv_req_0 = 'd0; // Deassert after use
 
         // axi1 test
         for (int i = 0; i < 1024; i++) begin
@@ -449,6 +450,7 @@ module tb_ising_core_wrap;
                     $error("Write failed with response: %0d", axi_ext_slv_rsp_1.b.resp);
             end
         end
+        axi_ext_slv_req_1 = 'd0; // Deassert after use
         $display("AXI test completed successfully.");
         axi_test_done = 1'b1;
     end
@@ -499,7 +501,7 @@ task automatic reg_config();
     en_em = 1'b1;
     en_fm = 1'b1;
     en_ff = 1'b1;
-    en_ef = 1'b1;
+    en_ef = 1'b0;
     en_analog_loop = 1'b1;
     en_comparison = 1'b1;
     cmpt_en = 1'b0;
@@ -513,7 +515,7 @@ task automatic reg_config();
     dt_cfg_enable = 1'b0;
     host_readout = 1'b0;
     flip_disable = 1'b0;
-    enable_flip_detection = 1'b0;
+    enable_flip_detection = 1'b1;
     debug_j_write_en = 1'b0;
     debug_j_read_en = 1'b0;
     debug_spin_write_en = 1'b0;
@@ -664,13 +666,16 @@ task automatic reg_config();
     reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
     dt_cfg_enable = 1'b0;
     @ (posedge clk_i);
-    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b0);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
     // switch to output regsiter
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_OUTPUT_STATUS_OFFSET, 1'b0, 'd0, 1'b1);
     repeat (5) @ (posedge clk_i);
     wait (reg_ext_rsp.rdata[0] == 1'b1); // wait for dt configuration done
     // Start computation
+    en_ef = 1'b1;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_1_OFFSET, 1'b1, global_cfg_reg_1, 1'b1);
     cmpt_en = 1'b1;
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
