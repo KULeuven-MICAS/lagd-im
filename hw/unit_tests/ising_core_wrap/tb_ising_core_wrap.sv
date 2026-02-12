@@ -13,10 +13,31 @@
 `define VCD_FILE "tb_ising_core_wrap.vcd"
 `endif
 
-`include "../../rtl/include/lagd_config.svh"
-`include "../../rtl/include/lagd_define.svh"
-`include "../../rtl/include/lagd_platform.svh"
-`include "../../rtl/include/lagd_typedef.svh"
+`ifndef MODEL_FILE
+`define MODEL_FILE "../digital_macro/data/model_1"
+`endif
+
+`ifndef FLIP_ICON_FILE_1
+`define FLIP_ICON_FILE_1 "../digital_macro/data/clusters_1"
+`endif
+
+`ifndef FLIP_ICON_FILE_2
+`define FLIP_ICON_FILE_2 "../digital_macro/data/clusters_2"
+`endif
+
+`ifndef STATE_IN_FILE_1
+`define STATE_IN_FILE_1 "../digital_macro/data/states_in_1"
+`endif
+
+`ifndef STATE_IN_FILE_2
+`define STATE_IN_FILE_2 "../digital_macro/data/states_in_2"
+`endif
+
+// Project-wide includes
+`include "lagd_config.svh"
+`include "lagd_define.svh"
+`include "lagd_platform.svh"
+`include "lagd_typedef.svh"
 
 module tb_ising_core_wrap;
     import lagd_mem_cfg_pkg::*;
@@ -25,7 +46,14 @@ module tb_ising_core_wrap;
     import lagd_core_reg_pkg::*;
 
     localparam int CLKCYCLE = 2;
-    localparam int HSCALING = 5'd4;
+
+    // model type definition
+    typedef struct {
+        logic [`NUM_SPIN-1:0][`NUM_SPIN*`BIT_J-1:0] weights;
+        logic [`NUM_SPIN*`BIT_H-1:0] hbias;
+        logic [`SCALING_BIT-1:0] scaling_factor;
+        int signed constant;
+    } model_t;
 
     // defines axi and register interface types
     `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, CheshireCfg)
@@ -48,6 +76,11 @@ module tb_ising_core_wrap;
     logic [`LAGD_REG_DATA_WIDTH-1:0] global_cfg_reg_1, global_cfg_reg_2;
     logic [(`NUM_SPIN*`BIT_J)-1:0] h_rdata, wbl_floating;
     logic [`CC_COUNTER_BITWIDTH-1:0] cmpt_max_num;
+    logic axi_test_done;
+    model_t model;
+    logic [`CVA6_ADDR_WIDTH-1:0] axi_write_addr;
+    logic [`LAGD_AXI_DATA_WIDTH-1:0] axi_write_data;
+    logic [1024-1:0] [`NUM_SPIN-1:0] flip_icon;
 
     // External AXI interconnect
     lagd_axi_slv_req_t axi_ext_slv_req_0 = 'd0;
@@ -57,6 +90,8 @@ module tb_ising_core_wrap;
     // Register interface
     lagd_reg_req_t reg_ext_req;
     lagd_reg_rsp_t reg_ext_rsp;
+    logic [`LAGD_REG_DATA_WIDTH-1:0] reg_rsp_rdata;
+    logic reg_rsp_ready;
 
     // Galena wires
     wire galena_j_iref_i;
@@ -80,6 +115,9 @@ module tb_ising_core_wrap;
                             debug_h_wwl, synchronizer_pipe_num,
                             dt_cfg_enable, config_valid_fm, config_valid_em,
                             config_valid_aw, cmpt_en};
+
+    assign reg_rsp_ready = reg_ext_rsp.ready;
+    assign reg_rsp_rdata = reg_ext_rsp.rdata;
 
     // Module instantiation
     ising_core_wrap #(
@@ -105,7 +143,7 @@ module tb_ising_core_wrap;
         .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t                   ),
         .reg_req_t         (lagd_reg_req_t                          ),
         .reg_rsp_t         (lagd_reg_rsp_t                          )
-    ) i_core (
+    ) dut (
         .clk_i             (clk_i                                   ),
         .rst_ni            (rst_ni                                  ),
         // AXI slave interface
@@ -126,6 +164,26 @@ module tb_ising_core_wrap;
         .galena_vread_i    (galena_vread_i                          )
     );
 
+    // Run tests
+    initial begin
+        if (`DBG) begin
+            $display("Debug mode enabled. Running with detailed output.");
+            $dumpfile(`VCD_FILE);
+            $dumpvars(2, tb_ising_core_wrap); // Dump all variables in testbench module
+            $timeformat(-9, 1, " ns", 9);
+            #(10_000 * CLKCYCLE); // To avoid generating huge VCD files
+            $display("Testbench timeout reached. Ending simulation.");
+            $finish;
+        end
+        else begin
+            $timeformat(-9, 1, " ns", 9);
+            #(1_000_000_000 * CLKCYCLE);
+            $display("Testbench timeout reached. Ending simulation.");
+            $finish;
+        end
+    end
+
+
     // Clock generation
     initial begin
         clk_i = 0;
@@ -140,36 +198,273 @@ module tb_ising_core_wrap;
         #(5 * CLKCYCLE);
     end
 
+    // ========================================================================
+    // Model reading function (copied from digital macro)
+    // ========================================================================
+    // Function to parse a line (max length: NUM_SPIN*BITJ) from the model file
+    function automatic logic [`NUM_SPIN*`BIT_J-1:0] parse_bit_string(string line);
+        logic [`NUM_SPIN*`BIT_J-1:0] result = 'd0;
+        int bit_idx = 0;
+        int i = 0;
+        while (i < line.len() && bit_idx < `NUM_SPIN*`BIT_J) begin
+            if (line[i] == "0" || line[i] == "1") begin
+                result[`NUM_SPIN*`BIT_J-1-bit_idx] = $unsigned(line[i]);
+                bit_idx = bit_idx + 1;
+            end
+            i = i + 1;
+        end
+        return result;
+    endfunction
+
+    // Function to read weight model from file
+    function automatic model_t load_model();
+        int model_file;
+        string line;
+        int line_num = 0;
+        int weight_idx = 0;
+        int hbias_idx = 0;
+        model_t model;
+        real const_real;
+        int const_round;
+        real scaling_real;
+        int scaling_int;
+
+        model_file = $fopen(`MODEL_FILE, "r");
+        if (model_file == 0) begin
+            $display("Error: Could not open model file %s", `MODEL_FILE);
+            $finish;
+        end
+
+        // Read the file line by line
+        while (!$feof(model_file)) begin
+            line = "";
+            if ($fgets(line, model_file) != 0) begin
+                line_num = line_num + 1;
+                // Skip comment lines and header lines
+                if (line[0] == "#" || line[0] == "\n") begin
+                    continue;
+                end
+                // Read weights into memory (1024 bits per line)
+                if (line_num > 1 && line_num <= (1 + `NUM_SPIN)) begin
+                    model.weights[weight_idx] = parse_bit_string(line);
+                    weight_idx = weight_idx + 1;
+                end
+                // Read hbias (4 bits per line)
+                else if (line_num > (1 + `NUM_SPIN) && line_num <= (2 + 2*`NUM_SPIN)) begin
+                    model.hbias[(`NUM_SPIN - 1 - hbias_idx) * `BIT_H +: `BIT_H] = parse_bit_string(line)[`NUM_SPIN*`BIT_J-1 -: `BIT_H];
+                    hbias_idx = hbias_idx + 1;
+                end
+                // Read constant as a signed integer
+                else if (line_num > (2 + 2*`NUM_SPIN) && line_num <= (4 + 2*`NUM_SPIN)) begin
+                    if ($sscanf(line, "%f", const_real) != 1) begin
+                        $display("Error: Failed to parse constant from line: %s (@ line %0d)", line, line_num);
+                        $finish;
+                    end
+                    if (const_real >= 0)
+                        const_round = $rtoi(const_real + 0.5);
+                    else
+                        const_round = $rtoi(const_real - 0.5);
+                    model.constant = const_round;
+                end else begin
+                    if (line_num > (4 + 2*`NUM_SPIN)) begin
+                        if ($sscanf(line, "%f", scaling_real) != 1) begin
+                        $display("Error: Failed to parse the scaling factor from line: %s (@ line %0d)", line, line_num);
+                        $finish;
+                        end
+                    scaling_int = $rtoi(scaling_real + 0.5);
+                    // check if scaling_int is in the legal range [1, 16]
+                    if (scaling_int <= 0 || scaling_int > 16) begin
+                        $fatal(1, "The scaling_int 'd%d is beyond the range of [1, 16]", scaling_int);
+                        end
+                    // check if scaling_int is in the power of 2
+                    if ((scaling_int & (scaling_int-1)) != 0) begin
+                        $fatal(1, "The scaling_int 'd%d is not in the power of 2", scaling_int);
+                        end
+                    model.scaling_factor = scaling_int[`SCALING_BIT-1:0];
+                    end
+                end
+            end
+        end
+        $fclose(model_file);
+        $display("[Time: %t] Model file %s is loaded successfully.", $time, `MODEL_FILE);
+        return model;
+    endfunction
+
+    // Function to read flip icons from file
+    function automatic logic [1024-1:0] [`NUM_SPIN-1:0] load_flip_icons();
+        int icon_file;
+        string line;
+        int line_num;
+        int icon_idx;
+        logic [1:0] [512-1:0] [`NUM_SPIN-1:0] flip_icons_in_mem_txt;
+        logic [1024-1:0] [`NUM_SPIN-1:0] flip_icons_in_mem;
+
+        for (int i = 0; i < 2; i = i + 1) begin
+            icon_idx = 0;
+            line_num = 0;
+            // Open the appropriate file
+            if (i == 0)
+                icon_file = $fopen(`FLIP_ICON_FILE_1, "r");
+            else
+                icon_file = $fopen(`FLIP_ICON_FILE_2, "r");
+            if (icon_file == 0) begin
+                $display("Error: Could not open cluster file %s", `FLIP_ICON_FILE_1);
+                $finish;
+            end
+
+            // Read the file line by line
+            while (!$feof(icon_file)) begin
+                if ($fgets(line, icon_file) != 0) begin
+                    line_num = line_num + 1;
+                    // Skip comment lines and header lines
+                    if (line[0] == "#" || line[0] == "\n") begin
+                        continue;
+                    end
+                    flip_icons_in_mem_txt[i][icon_idx] = parse_bit_string(line)[`NUM_SPIN*`BIT_J-1 -: `NUM_SPIN];
+                    icon_idx = icon_idx + 1;
+                end
+            end
+            $fclose(icon_file);
+        end
+        // shuffle two sets of icons into one memory
+        for (int j = 0; j < 512; j = j + 1) begin
+            flip_icons_in_mem[j*2] = flip_icons_in_mem_txt[0][j];
+            flip_icons_in_mem[j*2+1] = flip_icons_in_mem_txt[1][j];
+        end
+        $display("[Time: %t] Flip icon file %s and %s are loaded successfully.", $time, `FLIP_ICON_FILE_1, `FLIP_ICON_FILE_2);
+        return flip_icons_in_mem;
+    endfunction
+
+    // Function to load initial spin states from file
+    function automatic logic [1:0] [`NUM_SPIN-1:0] load_initial_states();
+        int state_file;
+        string line;
+        int line_num;
+        logic [1:0] [`NUM_SPIN-1:0] states_in_txt;
+
+        for (int i = 0; i < 2; i = i + 1) begin
+            line_num = 0;
+            // Open the appropriate file
+            if (i == 0)
+                state_file = $fopen(`STATE_IN_FILE_1, "r");
+            else
+                state_file = $fopen(`STATE_IN_FILE_2, "r");
+            if (state_file == 0) begin
+                $display("Error: Could not open state input file %s", `STATE_IN_FILE_1);
+                $finish;
+            end
+
+            // Read the file line by line
+            while (line_num == 0) begin
+                if ($fgets(line, state_file) != 0) begin
+                    // Skip comment lines and header lines
+                    if (line[0] == "#" || line[0] == "\n") begin
+                        continue;
+                    end
+                    line_num = line_num + 1;
+                    states_in_txt[i] = parse_bit_string(line)[`NUM_SPIN*`BIT_J-1 -: `NUM_SPIN];
+                end
+            end
+            $fclose(state_file);
+        end
+        $display("[Time: %t] Initial state file %s and %s are loaded successfully.", $time, `STATE_IN_FILE_1, `STATE_IN_FILE_2);
+        return states_in_txt;
+    endfunction
+
+    // ========================================================================
+    // AXI Test
+    // ========================================================================
+
+    function automatic lagd_axi_slv_req_t axi_write_slv (
+        input logic [`CVA6_ADDR_WIDTH-1:0] addr,
+        input logic [`LAGD_AXI_DATA_WIDTH-1:0] data
+    );
+        lagd_axi_slv_req_t axi_ext_slv_req_tmp;
+        axi_ext_slv_req_tmp.aw_valid = 1'b1;
+        axi_ext_slv_req_tmp.aw.id = 6'h0;
+        axi_ext_slv_req_tmp.aw.addr = addr;
+        axi_ext_slv_req_tmp.aw.len = 8'h0; // single beat
+        axi_ext_slv_req_tmp.aw.size = 3'h3; // 8 bytes
+        axi_ext_slv_req_tmp.aw.burst = 2'b01;
+        axi_ext_slv_req_tmp.aw.lock = 1'b0;
+        axi_ext_slv_req_tmp.aw.cache = 4'b0000;
+        axi_ext_slv_req_tmp.aw.prot = 3'b000;
+        axi_ext_slv_req_tmp.aw.qos = 4'b0000;
+        axi_ext_slv_req_tmp.aw.region = 4'b0000;
+        axi_ext_slv_req_tmp.aw.user = 2'b00;
+        axi_ext_slv_req_tmp.aw.atop = 6'h00;
+        axi_ext_slv_req_tmp.w_valid = 1'b1;
+        axi_ext_slv_req_tmp.w.data = data;
+        axi_ext_slv_req_tmp.w.strb = 8'hFF; // All byte lanes enabled (for 64-bit = 8 bytes)
+        axi_ext_slv_req_tmp.w.last = 1'b1; // Last beat (since len=0, single beat)
+        axi_ext_slv_req_tmp.w.user = 2'b00;
+        axi_ext_slv_req_tmp.b_ready = 1'b0; // Initially not ready to accept response
+        axi_ext_slv_req_tmp.r_ready = 1'b0; // Not a read request
+        axi_ext_slv_req_tmp.ar_valid = 1'b0; // Not a read request
+        axi_ext_slv_req_tmp.ar.id = 6'h0;
+        axi_ext_slv_req_tmp.ar.addr = 'd0;
+        axi_ext_slv_req_tmp.ar.len = 8'h0;
+        axi_ext_slv_req_tmp.ar.size = 3'h0;
+        axi_ext_slv_req_tmp.ar.burst = 2'b00;
+        axi_ext_slv_req_tmp.ar.lock = 1'b0;
+        axi_ext_slv_req_tmp.ar.cache = 4'b0000;
+        axi_ext_slv_req_tmp.ar.prot = 3'b000;
+        axi_ext_slv_req_tmp.ar.qos = 4'b0000;
+        axi_ext_slv_req_tmp.ar.region = 4'b0000;
+        axi_ext_slv_req_tmp.ar.user = 2'b00;
+        return axi_ext_slv_req_tmp;
+    endfunction
+
+    initial begin
+        axi_test_done = 1'b0;
+        model = load_model();
+        flip_icon = load_flip_icons();
+        wait (rst_ni == 1);
+        @(posedge clk_i);
+        $display("Starting AXI test...");
+        // axi0 test
+        for (int i = 0; i < `NUM_SPIN; i++) begin
+            for (int j = 0; j < `NUM_SPIN*`BIT_J/`LAGD_AXI_DATA_WIDTH; j++) begin
+                axi_write_addr = (i*(`NUM_SPIN*`BIT_J/`LAGD_AXI_DATA_WIDTH) + j)*8; // byte address
+                axi_write_data = model.weights[i][j*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+                @ (posedge clk_i);
+                axi_ext_slv_req_0 = axi_write_slv(axi_write_addr, axi_write_data);
+                wait(axi_ext_slv_rsp_0.b_valid);
+                axi_ext_slv_req_0.b_ready = 1'b1;
+                if (axi_ext_slv_rsp_0.b.resp != 2'b00) // Check for OKAY response
+                    $error("Write failed with response: %0d", axi_ext_slv_rsp_0.b.resp);
+            end
+        end
+
+        // axi1 test
+        for (int i = 0; i < 1024; i++) begin
+            for (int j = 0; j < `NUM_SPIN / `LAGD_AXI_DATA_WIDTH; j++) begin
+                axi_write_addr = (i*(`NUM_SPIN/`LAGD_AXI_DATA_WIDTH) + j)*8; // byte address
+                axi_write_data = flip_icon[i][j*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
+                @ (posedge clk_i);
+                axi_ext_slv_req_1 = axi_write_slv(axi_write_addr, axi_write_data);
+                wait(axi_ext_slv_rsp_1.b_valid);
+                axi_ext_slv_req_1.b_ready = 1'b1;
+                if (axi_ext_slv_rsp_1.b.resp != 2'b00) // Check for OKAY response
+                    $error("Write failed with response: %0d", axi_ext_slv_rsp_1.b.resp);
+            end
+        end
+        $display("AXI test completed successfully.");
+        axi_test_done = 1'b1;
+    end
+
+    // ========================================================================
+    // Register Test
+    // ========================================================================
+
     // Reg configuration process
     initial begin
         reg_config_done = 0;
         reg_ext_req = gen_reg_req('h0, 1'b0, 'd0, 1'b0);
         wait (rst_ni == 1);
+        wait (axi_test_done == 1);
         // Initialize reg interfaces
         reg_config();
-        reg_config_done = 1;
-        #(10 * CLKCYCLE);
-        $display("Configuration done. Ending simulation.");
-        $finish;
-    end
-
-    // Run tests
-    initial begin
-        if (`DBG) begin
-            $display("Debug mode enabled. Running with detailed output.");
-            $dumpfile(`VCD_FILE);
-            $dumpvars(2, tb_ising_core_wrap); // Dump all variables in testbench module
-            $timeformat(-9, 1, " ns", 9);
-            #(200 * CLKCYCLE); // To avoid generating huge VCD files
-            $display("Testbench timeout reached. Ending simulation.");
-            $finish;
-        end
-        else begin
-            $timeformat(-9, 1, " ns", 9);
-            #(200 * CLKCYCLE);
-            $display("Testbench timeout reached. Ending simulation.");
-            $finish;
-        end
     end
 
 function automatic lagd_reg_req_t gen_reg_req(
@@ -213,12 +508,12 @@ task automatic reg_config();
     config_valid_fm = 1'b0;
     debug_dt_configure_enable = 1'b0;
     debug_spin_configure_enable = 1'b0;
-    en_perf_counter = 1'b0;
+    en_perf_counter = 1'b1;
     bypass_data_conversion = 1'b0;
     dt_cfg_enable = 1'b0;
     host_readout = 1'b0;
     flip_disable = 1'b0;
-    enable_flip_detection = 1'b1;
+    enable_flip_detection = 1'b0;
     debug_j_write_en = 1'b0;
     debug_j_read_en = 1'b0;
     debug_spin_write_en = 1'b0;
@@ -227,8 +522,8 @@ task automatic reg_config();
     config_counter = `NUM_SPIN-1;
     wwl_vdd_cfg_256 = 1'b1;
     wwl_vread_cfg_256 = 1'b0;
-    synchronizer_pipe_num = 'd2;
-    synchronizer_wbl_pipe_num = 'd2;
+    synchronizer_pipe_num = 'd3;
+    synchronizer_wbl_pipe_num = 'd3;
     debug_h_wwl = 1'b0;
     dgt_addr_upper_bound = `NUM_SPIN/`PARALLELISM-1;
     ctnus_fifo_read = 1'b0;
@@ -240,19 +535,18 @@ task automatic reg_config();
 
     cmpt_max_num = 'hffffffff; // set to max
 
-    config_spin_initial_0 = {`NUM_SPIN{1'b0}}; // all zeros
-    config_spin_initial_1 = {`NUM_SPIN{1'b1}}; // all ones
+    {config_spin_initial_1, config_spin_initial_0} = load_initial_states;
 
-    cycle_per_spin_write = 'd5;
-    cycle_per_wwl_low = 'd5;
-    cycle_per_wwl_high = 'd15;
-    cfg_trans_num = 'd64;
+    cycle_per_spin_write = 'd1;
+    cycle_per_wwl_low = 'd1;
+    cycle_per_wwl_high = 'd1;
+    cfg_trans_num = `NUM_SPIN/`PARALLELISM;
 
-    dgt_hscaling = HSCALING;
+    dgt_hscaling = model.scaling_factor;
     icon_last_raddr_plus_one = `FLIP_ICON_DEPTH;
     debug_spin_read_num = `FLIP_ICON_DEPTH;
-    debug_cycle_per_spin_read = 'd10;
-    cycle_per_spin_compute = 'd10;
+    debug_cycle_per_spin_read = 'd2;
+    cycle_per_spin_compute = 'd2;
 
     wwl_vdd_cfg     = {`NUM_SPIN{1'b1}}; // all high
     wwl_vread_cfg   = {`NUM_SPIN{1'b0}}; // all low
@@ -364,6 +658,33 @@ task automatic reg_config();
     // Deassert write valid signals
     reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b0);
     @ (posedge clk_i);
+    // Start dt config
+    dt_cfg_enable = 1'b1;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
+    dt_cfg_enable = 1'b0;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b0);
+    // switch to output regsiter
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_OUTPUT_STATUS_OFFSET, 1'b0, 'd0, 1'b1);
+    repeat (5) @ (posedge clk_i);
+    wait (reg_ext_rsp.rdata[0] == 1'b1); // wait for dt configuration done
+    // Start computation
+    cmpt_en = 1'b1;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b1);
+    cmpt_en = 1'b0;
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b0);
+    // switch to output register
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_OUTPUT_STATUS_OFFSET, 1'b0, 'd0, 1'b1);
+     repeat (5) @ (posedge clk_i);
+    wait (dut.debug_fm_downstream_handshake == 1'b1); // wait for the first handshake indicating the first output is ready
+    $display("Ending simulation.");
+    @ (posedge clk_i);
+    $finish;
 endtask
 
 endmodule
