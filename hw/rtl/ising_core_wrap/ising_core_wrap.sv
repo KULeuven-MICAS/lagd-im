@@ -38,10 +38,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     input logic rst_ni,
 
     // AXI slave interface
-    input  axi_slv_req_t axi_s_req_0_i,
-    output axi_slv_rsp_t axi_s_rsp_0_o,
-    input  axi_slv_req_t axi_s_req_1_i,
-    output axi_slv_rsp_t axi_s_rsp_1_o,
+    input  axi_slv_req_t axi_s_req_j_i,
+    output axi_slv_rsp_t axi_s_rsp_j_o,
+    input  axi_slv_req_t axi_s_req_f_i,
+    output axi_slv_rsp_t axi_s_rsp_f_o,
 
     // Register slave interface
     input reg_req_t reg_s_req_i,
