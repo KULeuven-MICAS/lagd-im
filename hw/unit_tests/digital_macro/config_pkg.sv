@@ -14,7 +14,7 @@ package config_pkg;
     // design-time parameters
     parameter int NUM_SPIN = 256;
     parameter int BITDATA = 4;
-    parameter int SCALING_BIT = 5;
+    parameter int SCALING_BIT = 20;
     parameter int LITTLE_ENDIAN = `False; // True: little endian, False: big endian
     parameter int PIPESINTF = 1;
     parameter int PIPESMID = 1;
@@ -34,7 +34,7 @@ package config_pkg;
     // run-time parameters (related to algorithm, others are defined at the beginning of the testbench)
     parameter int IconLastAddrPlusOne = FLIP_ICON_DEPTH;
     logic INFINITE_ICON_LOOP_EN = `False; // set to 1 to enable infinite icon loop for measurement (this mode is not supported in testbench)
-    parameter int CmptMaxNum = 10;
+    parameter int CmptMaxNum = 5; // a small number for fast simulation
 
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;
