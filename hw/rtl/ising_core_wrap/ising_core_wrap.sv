@@ -576,7 +576,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_flip.q.addr          = flip_raddr << $clog2(`IC_L1_FLIP_MEM_DATA_WIDTH/8); // word address to byte address
                 drt_s_req_flip.q.write         = 1'b0; // read
                 drt_s_req_flip.q.data          = {`IC_L1_FLIP_MEM_DATA_WIDTH{1'b0}}; // not used for read
-                drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_flip.q.strb          = {(`IC_L1_FLIP_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_flip.q.user          = 'd0; // not used
                 drt_s_req_flip.q_valid         = flip_ren;
             end
@@ -598,7 +598,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.addr         = dgt_weight_raddr << $clog2(`IC_L1_J_MEM_DATA_WIDTH/8); // word address to byte address
                 drt_s_req_j.q.write        = 1'b0; // read
                 drt_s_req_j.q.data         = {`IC_L1_J_MEM_DATA_WIDTH{1'b0}}; // not used for read
-                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q.user         = 'd0; // not used
                 drt_s_req_j.q_valid        = dgt_weight_ren;
             end
@@ -606,7 +606,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
                 drt_s_req_j.q.addr         = j_raddr_load << $clog2(`IC_L1_J_MEM_DATA_WIDTH/8); // word address to byte address
                 drt_s_req_j.q.write        = 1'b0; // read
                 drt_s_req_j.q.data         = {`IC_L1_J_MEM_DATA_WIDTH{1'b0}}; // not used for read
-                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b0}}; // not used for read
+                drt_s_req_j.q.strb         = {(`IC_L1_J_MEM_DATA_WIDTH/8){1'b1}};
                 drt_s_req_j.q.user         = 'd0; // not used
                 drt_s_req_j.q_valid        = j_mem_ren_load;
             end
