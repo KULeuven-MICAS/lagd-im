@@ -31,7 +31,8 @@ module tb_memory_island import lagd_pkg::*; #(
 
     // Debug setup
     `SETUP_DEBUG(dbg, vcd_file, tb_memory_island)
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, CheshireCfg)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, CheshireCfg)
+
 
     // ========================================================================
     // SIGNALS AND INTERFACES
@@ -52,9 +53,9 @@ module tb_memory_island import lagd_pkg::*; #(
     lagd_mem_narr_req_t [NumDirectNarrowReqSafe-1:0] mem_narrow_req_i;
     lagd_mem_narr_rsp_t [NumDirectNarrowReqSafe-1:0] mem_narrow_rsp_o;
 
-    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_r, mem_wide_req_i_w;
-    lagd_mem_wide_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_ar, mem_wide_req_i, mem_wide_req_test;
-    lagd_mem_wide_rsp_t [NumDirectWideReqSafe-1:0] mem_wide_rsp_o;
+    lagd_mem_j_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_r, mem_wide_req_i_w;
+    lagd_mem_j_req_t [NumDirectWideReqSafe-1:0] mem_wide_req_i_ar, mem_wide_req_i, mem_wide_req_test;
+    lagd_mem_j_rsp_t [NumDirectWideReqSafe-1:0] mem_wide_rsp_o;
     // AXI bus for stimulus generation
     AXI_BUS_DV #(
         .AXI_ADDR_WIDTH(Cfg.AddrWidth),
@@ -93,8 +94,8 @@ module tb_memory_island import lagd_pkg::*; #(
         .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t(lagd_mem_narr_req_t),
         .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
-        .mem_wide_req_t(lagd_mem_wide_req_t),
-        .mem_wide_rsp_t(lagd_mem_wide_rsp_t)
+        .mem_wide_req_t(lagd_mem_j_req_t),
+        .mem_wide_rsp_t(lagd_mem_j_rsp_t)
     ) dut (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
@@ -163,8 +164,8 @@ module tb_memory_island import lagd_pkg::*; #(
                     .TestRegionStart(0),
                     .TestRegionEnd(MemorySizeBytes),
                     .TA(TA),
-                    .mem_req_t(lagd_mem_wide_req_t),
-                    .mem_rsp_t(lagd_mem_wide_rsp_t)
+                    .mem_req_t(lagd_mem_j_req_t),
+                    .mem_rsp_t(lagd_mem_j_rsp_t)
                 ) i_mem_seq_stimulus (
                     .clk_i(clk_i),
                     .rst_ni(rst_ni),
@@ -194,8 +195,8 @@ module tb_memory_island import lagd_pkg::*; #(
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
                 .TA(TA),
-                .mem_req_t(lagd_mem_wide_req_t),
-                .mem_rsp_t(lagd_mem_wide_rsp_t)
+                .mem_req_t(lagd_mem_j_req_t),
+                .mem_rsp_t(lagd_mem_j_rsp_t)
             ) i_mem_seq_stimulus_wr (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
@@ -215,8 +216,8 @@ module tb_memory_island import lagd_pkg::*; #(
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
                 .TA(TA),
-                .mem_req_t(lagd_mem_wide_req_t),
-                .mem_rsp_t(lagd_mem_wide_rsp_t)
+                .mem_req_t(lagd_mem_j_req_t),
+                .mem_rsp_t(lagd_mem_j_rsp_t)
             ) i_mem_seq_stimulus_rd (
                 .clk_i(clk_i),
                 .rst_ni(rst_ni),
