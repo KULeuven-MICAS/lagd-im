@@ -541,7 +541,7 @@ task automatic reg_config();
 
     cmpt_max_num = 'hffffffff; // set to max
 
-    {config_spin_initial_1, config_spin_initial_0} = load_initial_states;
+    {config_spin_initial_1, config_spin_initial_0} = load_initial_states();
 
     cycle_per_spin_write = 'd1;
     cycle_per_wwl_low = 'd1;
