@@ -73,7 +73,9 @@ def fetch_scoreboard_in_log(log_file: str) -> tuple[int, int, int]:
                     tests_failed = 0
                 return tests_passed, total_tests, tests_failed, error_case
     if (start_search is False):
-        raise ValueError(f"start_search is False for logfile {log_file}.")
+        raise ValueError(f"start_search is False for logfile {log_file}."
+        f" Please ensure the .vcd file is not opened in VSCode or other software,"
+        f" which can cause the simulation to fail")
     else:
         raise ValueError(f"Scoreboard information not found in logfile {log_file}.")
 
