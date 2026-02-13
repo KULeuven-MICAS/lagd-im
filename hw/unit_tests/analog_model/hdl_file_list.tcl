@@ -6,8 +6,8 @@ set PROJECT_ROOT ../../..
 set HDL_PATH ../../rtl
 
 set HDL_FILES [ list \
-    "${HDL_PATH}/analog_model/galena_pkg.sv" \
-    "${HDL_PATH}/analog_model/galena.sv" \
+    "${PROJECT_ROOT}/hw/tb/models/galena/galena_pkg.sv" \
+    "${PROJECT_ROOT}/hw/tb/models/galena/galena.sv" \
     "./tb_analog_model.sv" \
 ]
 
