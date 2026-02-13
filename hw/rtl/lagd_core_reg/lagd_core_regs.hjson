@@ -64,6 +64,7 @@
         { bits: "17",    resval: "0",  name: "multi_cmpt_mode_en",          desc: "Whether to repeat the computation multiple times with the same configuration  (for power measurement purpose)"}
         { bits: "18",    resval: "0",  name: "config_spin_initial_skip_0",  desc: "Whether to skip current spin initial value, set 0"      }
         { bits: "19",    resval: "0",  name: "config_spin_initial_skip_1",  desc: "Whether to skip current spin initial value, set 1"      }
+        { bits: "25:20", resval: "1",  name: "dgt_hscaling",                desc: "Scaling factor for dgt"                                 }
       ]
     }
 
@@ -139,7 +140,6 @@
       fields: [
         { bits: "15:0",  resval: "1023", name: "debug_spin_read_num",       desc: "Cycle per debug spin read number"                       }
         { bits: "26:16", resval: "1024", name: "icon_last_raddr_plus_one",  desc: "Flip icon last address plus one"                        }
-        { bits: "31:27", resval: "4",    name: "dgt_hscaling",              desc: "Scaling factor for dgt"                                 }
       ]
     }
 

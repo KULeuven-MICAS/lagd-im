@@ -57,7 +57,7 @@
     `define NUM_SPIN 256
     `define BIT_J 4
     `define BIT_H 4
-    `define SCALING_BIT 5
+    `define SCALING_BIT 6
     `define PARALLELISM 4
     `define ENERGY_TOTAL_BIT 32
     `define FLIP_ICON_DEPTH `L1_FLIP_MEM_SIZE_B*8/(`NUM_SPIN)

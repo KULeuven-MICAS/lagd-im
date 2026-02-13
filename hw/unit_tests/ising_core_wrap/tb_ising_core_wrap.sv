@@ -82,6 +82,16 @@ module tb_ising_core_wrap;
     logic [`LAGD_AXI_DATA_WIDTH-1:0] axi_write_data;
     logic [1024-1:0] [`NUM_SPIN-1:0] flip_icon;
 
+    logic [`NUM_SPIN-1:0] config_spin_initial_0, config_spin_initial_1;
+    logic [`COUNTER_BITWIDTH-1:0] cycle_per_spin_write, cycle_per_wwl_low, cycle_per_wwl_high, cfg_trans_num;
+    logic [`SCALING_BIT-1:0] dgt_hscaling;
+    logic [$clog2(`FLIP_ICON_DEPTH):0] icon_last_raddr_plus_one;
+    logic [`COUNTER_BITWIDTH-1:0] debug_spin_read_num, debug_cycle_per_spin_read, cycle_per_spin_compute;
+    logic [`NUM_SPIN-1:0] wwl_vdd_cfg, wwl_vread_cfg, spin_wwl_strobe, spin_feedback, debug_j_one_hot_wwl;
+
+    integer i;
+    logic [`LAGD_REG_DATA_WIDTH-1:0] reg_data;
+
     // External AXI interconnect
     lagd_axi_slv_req_t axi_ext_slv_req_0 = 'd0;
     lagd_axi_slv_rsp_t axi_ext_slv_rsp_0;
@@ -111,7 +121,7 @@ module tb_ising_core_wrap;
                             debug_dt_configure_enable, en_comparison, en_analog_loop,
                             en_ef, en_ff, en_fm, en_em, en_aw, flush_en};
 
-    assign global_cfg_reg_2 = {12'd0, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
+    assign global_cfg_reg_2 = {6'd0, dgt_hscaling, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
                             debug_h_wwl, synchronizer_pipe_num,
                             dt_cfg_enable, config_valid_fm, config_valid_em,
                             config_valid_aw, cmpt_en};
@@ -489,16 +499,6 @@ function automatic lagd_reg_req_t gen_reg_req(
 endfunction
 
 task automatic reg_config();
-    integer i;
-    logic [`LAGD_REG_DATA_WIDTH-1:0] reg_data;
-
-    logic [`NUM_SPIN-1:0] config_spin_initial_0, config_spin_initial_1;
-    logic [`COUNTER_BITWIDTH-1:0] cycle_per_spin_write, cycle_per_wwl_low, cycle_per_wwl_high, cfg_trans_num;
-    logic [`SCALING_BIT-1:0] dgt_hscaling;
-    logic [$clog2(`FLIP_ICON_DEPTH):0] icon_last_raddr_plus_one;
-    logic [`COUNTER_BITWIDTH-1:0] debug_spin_read_num, debug_cycle_per_spin_read, cycle_per_spin_compute;
-    logic [`NUM_SPIN-1:0] wwl_vdd_cfg, wwl_vread_cfg, spin_wwl_strobe, spin_feedback, debug_j_one_hot_wwl;
-
     // Prepare configuration values
     flush_en = 1'b0;
     en_aw = 1'b1;
@@ -596,7 +596,7 @@ task automatic reg_config();
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_3_OFFSET, 1'b1, reg_data, 1'b1);
     // Counters, set 4
-    reg_data = {dgt_hscaling, icon_last_raddr_plus_one, debug_spin_read_num};
+    reg_data = {5'd0, icon_last_raddr_plus_one, debug_spin_read_num};
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_4_OFFSET, 1'b1, reg_data, 1'b1);
     // WWL VDD

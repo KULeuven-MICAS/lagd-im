@@ -277,6 +277,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign multi_cmpt_mode_en               = reg2hw.global_cfg_2.multi_cmpt_mode_en.q;
     assign config_spin_initial_skip[0]      = reg2hw.global_cfg_2.config_spin_initial_skip_0.q;
     assign config_spin_initial_skip[1]      = reg2hw.global_cfg_2.config_spin_initial_skip_1.q;
+    assign dgt_hscaling                     = reg2hw.global_cfg_2.dgt_hscaling.q;
 
     assign cmpt_max_num                     = reg2hw.cmpt_max_num.q;
 
@@ -288,7 +289,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign debug_cycle_per_spin_read        = reg2hw.counter_cfg_3.debug_cycle_per_spin_read.q;
     assign debug_spin_read_num              = reg2hw.counter_cfg_4.debug_spin_read_num.q;
     assign icon_last_raddr_plus_one         = reg2hw.counter_cfg_4.icon_last_raddr_plus_one.q;
-    assign dgt_hscaling                     = reg2hw.counter_cfg_4.dgt_hscaling.q;
 
     assign dgt_hbias = h_rdata;
 
