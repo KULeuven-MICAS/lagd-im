@@ -6,6 +6,8 @@
 
 // Behavior model for galena
 
+`timescale 1ns / 1ps
+
 `ifndef STATE_OUT_FILE_1
 `define STATE_OUT_FILE_1 "../../unit_tests/digital_macro/data/states_out_1"
 `endif
@@ -44,9 +46,6 @@ module galena #(
     output logic [WBL_WIDTH-1:0] wblb_read_o,
     output logic [NUM_SPIN-1:0] bct_read_o
 );
-    timeunit 1ns;
-    timeprecision 1ps;
-
     // Internal signals
     logic [WWL_WIDTH-1:0] [WBL_WIDTH-1:0] data_array;
     logic [NUM_SPIN-1:0] spin_cache;
