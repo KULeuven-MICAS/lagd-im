@@ -18,6 +18,8 @@
 
 import galena_pkg::*;
 
+`include "lagd_platform.svh"
+
 module galena #(
 ) (
 
@@ -111,44 +113,28 @@ module galena #(
     // ========================================================================
     // CHECKS
     // ========================================================================
-    // one-hot check on wwl_i
     always_comb begin
-        if (!$onehot0(wwl_i)) begin
-            $fatal(1, "Error: wwl_i is not one-hot: 'h%h", wwl_i);
-        end
+        // one-hot check on wwl_i (no check at time 0 since the check happens before the initial block that initializes wwl_i)
+        `ASSERT($time == 0 || $onehot0(wwl_i), $sformatf("wwl_i is not one-hot: 'h%h", wwl_i));
     end
 
     // all-zero/one check on wbl_floating_i, wwl_vdd_i, wwl_vread_i, write_spin_i, feedback_i
     always_comb begin
-        if (wbl_floating_i != 0 && wbl_floating_i != {WBL_WIDTH{1'b1}}) begin
-            $fatal(1, "Error: wbl_floating_i is not all-zero or all-one: 'h%h", wbl_floating_i);
-        end
-        if (wwl_vdd_i != 0 && wwl_vdd_i != {WWL_WIDTH{1'b1}}) begin
-            $fatal(1, "Error: wwl_vdd_i is not all-zero or all-one: 'h%h", wwl_vdd_i);
-        end
-        if (wwl_vread_i != 0 && wwl_vread_i != {WWL_WIDTH{1'b1}}) begin
-            $fatal(1, "Error: wwl_vread_i is not all-zero or all-one: 'h%h", wwl_vread_i);
-        end
-        if (write_spin_i != 0 && write_spin_i != {NUM_SPIN{1'b1}}) begin
-            $fatal(1, "Error: write_spin_i is not all-zero or all-one: 'h%h", write_spin_i);
-        end
-        if (feedback_i != 0 && feedback_i != {NUM_SPIN{1'b1}}) begin
-            $fatal(1, "Error: feedback_i is not all-zero or all-one: 'h%h", feedback_i);
-        end
+        `ASSERT($time == 0 || wbl_floating_i == 0 || wbl_floating_i == {WBL_WIDTH{1'b1}}, $sformatf("wbl_floating_i is not all-zero or all-one: 'h%h", wbl_floating_i));
+        `ASSERT($time == 0 || wwl_vdd_i      == 0 || wwl_vdd_i      == {WWL_WIDTH{1'b1}}, $sformatf("wwl_vdd_i is not all-zero or all-one: 'h%h",           wwl_vdd_i));
+        `ASSERT($time == 0 || wwl_vread_i    == 0 || wwl_vread_i    == {WWL_WIDTH{1'b1}}, $sformatf("wwl_vread_i is not all-zero or all-one: 'h%h",       wwl_vread_i));
+        `ASSERT($time == 0 || write_spin_i   == 0 || write_spin_i   == {NUM_SPIN {1'b1}}, $sformatf("write_spin_i is not all-zero or all-one: 'h%h",     write_spin_i));
+        `ASSERT($time == 0 || feedback_i     == 0 || feedback_i     == {NUM_SPIN {1'b1}}, $sformatf("feedback_i is not all-zero or all-one: 'h%h",         feedback_i));
     end
 
     // check: wwl_vdd_i and wwl_vread_i cannot be both 1
     always_comb begin
-        if ($countones(wwl_vdd_i & wwl_vread_i) > 0) begin
-            $fatal(1, "Error: wwl_vdd_i and wwl_vread_i cannot be both 1: 'h%h", wwl_vdd_i & wwl_vread_i);
-        end
+        `ASSERT($time == 0 || (wwl_vdd_i & wwl_vread_i) == 0, $sformatf("wwl_vdd_i and wwl_vread_i cannot be both 1: wwl_vdd_i: 'h%h, wwl_vread_i: 'h%h", wwl_vdd_i, wwl_vread_i));
     end
 
     // check: wwl_i and write_spin_i cannot be both 1
     always_comb begin
-        if ($countones(wwl_i) > 0 && $countones(write_spin_i) > 0) begin
-            $fatal(1, "Error: wwl_i and write_spin_i cannot be both 1: wwl_i: 'h%h, write_spin_i: 'h%h", wwl_i, write_spin_i);
-        end
+        `ASSERT($time == 0 || ($countones(wwl_i) == 0) || ($countones(write_spin_i) == 0), $sformatf("wwl_i and write_spin_i cannot be both 1: wwl_i: 'h%h, write_spin_i: 'h%h", wwl_i, write_spin_i));
     end
 
 endmodule
