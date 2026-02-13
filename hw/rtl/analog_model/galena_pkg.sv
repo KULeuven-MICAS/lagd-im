@@ -14,8 +14,8 @@
 `define NUM_SPIN 256
 `endif
 
-`ifndef BIT_DATA
-`define BIT_DATA 4
+`ifndef BIT_J
+`define BIT_J 4
 `endif
 
 `ifndef SPIN_IDX
@@ -34,7 +34,7 @@ package galena_pkg;
 
     // Derived parameters
     parameter NUM_SPIN = `NUM_SPIN;
-    parameter BIT_DATA = `BIT_DATA;
+    parameter BIT_DATA = `BIT_J;
     parameter SPIN_IDX = `SPIN_IDX;
     parameter SPIN_ICON_DEPTH = `SPIN_ICON_DEPTH;
     parameter DATA_FROM_FILE = `DATA_FROM_FILE;
