@@ -62,8 +62,8 @@ module dgt_raddr_manager #(
                      (NUM_REQ/PARALLELISM - 1 - idx_comb);
 
     // sequential logic
-    `FFLARNC(req_valid_reg, 1'b1, req_valid_en_cond, idx_counter_reset, 1'b0, clk_i, rst_ni);
-    `FFLARNC(req_q, req_n, req_valid_en_cond | (req_valid_reg & idx_valid_o & idx_ready_i), flush_i, 1'b0, clk_i, rst_ni);
+    `FFLARNC(req_valid_reg, 1'b1, req_valid_en_cond, idx_counter_reset, 1'b0, clk_i, rst_ni)
+    `FFLARNC(req_q, req_n, req_valid_en_cond | (req_valid_reg & idx_valid_o & idx_ready_i), flush_i, {NUM_REQ/PARALLELISM{1'b1}}, clk_i, rst_ni)
 
     // rely on popcount from pulp/common_cells
     popcount #(

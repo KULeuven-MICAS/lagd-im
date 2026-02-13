@@ -51,8 +51,8 @@ module customized_arbiter #(
     generate
         if (PIPES > 0) begin : gen_pipes
             for (i = 1; i < PIPES; i++) begin
-                `FFLARNC(req_pipe[i], req_pipe[i-1], en_i, flush_i, 1'b0, clk_i, rst_ni);
-                `FFLARNC(req_valid_pipe[i], req_valid_pipe[i-1], en_i, flush_i, 1'b0, clk_i, rst_ni);
+                `FFLARNC(req_pipe[i], req_pipe[i-1], en_i, flush_i, {NUM_REQ{1'b1}}, clk_i, rst_ni)
+                `FFLARNC(req_valid_pipe[i], req_valid_pipe[i-1], en_i, flush_i, 1'b0, clk_i, rst_ni)
             end
         end
     endgenerate

@@ -124,6 +124,7 @@ package data_read_pkg;
     function automatic logic [1024-1:0] [NUM_SPIN-1:0] load_flip_icons();
         int icon_file;
         string line;
+        string file_name;
         int line_num;
         int icon_idx;
         logic [1:0] [512-1:0] [NUM_SPIN-1:0] flip_icons_in_mem_txt;
@@ -134,11 +135,12 @@ package data_read_pkg;
             line_num = 0;
             // Open the appropriate file
             if (i == 0)
-                icon_file = $fopen(`FLIP_ICON_FILE_1, "r");
+                file_name = `FLIP_ICON_FILE_1;
             else
-                icon_file = $fopen(`FLIP_ICON_FILE_2, "r");
+                file_name = `FLIP_ICON_FILE_2;
+            icon_file = $fopen(file_name, "r");
             if (icon_file == 0) begin
-                $display("Error: Could not open cluster file %s", `FLIP_ICON_FILE_1);
+                $display("Error: Could not open cluster file %s", file_name);
                 $finish;
             end
 
@@ -169,6 +171,7 @@ package data_read_pkg;
     function automatic logic [1:0] [NUM_SPIN-1:0] load_initial_states();
         int state_file;
         string line;
+        string file_name;
         int line_num;
         logic [1:0] [NUM_SPIN-1:0] states_in_txt;
 
@@ -176,11 +179,12 @@ package data_read_pkg;
             line_num = 0;
             // Open the appropriate file
             if (i == 0)
-                state_file = $fopen(`STATE_IN_FILE_1, "r");
+                file_name = `STATE_IN_FILE_1;
             else
-                state_file = $fopen(`STATE_IN_FILE_2, "r");
+                file_name = `STATE_IN_FILE_2;
+            state_file = $fopen(file_name, "r");
             if (state_file == 0) begin
-                $display("Error: Could not open state input file %s", `STATE_IN_FILE_1);
+                $display("Error: Could not open state input file %s", file_name);
                 $finish;
             end
 
@@ -206,6 +210,7 @@ package data_read_pkg;
     function automatic logic [1023:0] [NUM_SPIN-1:0] load_state_out_ref();
         int state_file;
         string line;
+        string file_name;
         int line_num;
         int state_idx;
         logic [1:0] [1024-1:0] [NUM_SPIN-1:0] states_out_in_txt;
@@ -216,11 +221,12 @@ package data_read_pkg;
             line_num = 0;
             // Open the appropriate file
             if (i == 0)
-                state_file = $fopen(`STATE_OUT_FILE_1, "r");
+                file_name = `STATE_OUT_FILE_1;
             else
-                state_file = $fopen(`STATE_OUT_FILE_2, "r");
+                file_name = `STATE_OUT_FILE_2;
+            state_file = $fopen(file_name, "r");
             if (state_file == 0) begin
-                $display("Error: Could not open state output file %s", `STATE_OUT_FILE_1);
+                $display("Error: Could not open state output file %s", file_name);
                 $finish;
             end
 
