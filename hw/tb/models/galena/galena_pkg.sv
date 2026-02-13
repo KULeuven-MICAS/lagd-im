@@ -7,7 +7,7 @@
 // Package for galena behavior model
 
 `ifndef SPIN_ICON_DEPTH
-`define SPIN_ICON_DEPTH 2
+`define SPIN_ICON_DEPTH 1024
 `endif
 
 `ifndef NUM_SPIN
