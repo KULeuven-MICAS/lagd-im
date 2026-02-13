@@ -17,6 +17,14 @@
 `define DATA_FROM_FILE 0
 `endif
 
+`ifndef STATE_OUT_FILE_1
+`define STATE_OUT_FILE_1 "../../unit_tests/digital_macro/data/states_out_1"
+`endif
+
+`ifndef STATE_OUT_FILE_2
+`define STATE_OUT_FILE_2 "../../unit_tests/digital_macro/data/states_out_2"
+`endif
+
 import galena_pkg::*;
 
 module tb_analog_model;
@@ -45,6 +53,7 @@ module tb_analog_model;
     logic [NUM_SPIN-1:0] bct_read_o;
     logic [WBL_WIDTH-1:0] data_array_word_0;
     logic clk;
+    logic [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] state_out_ref;
 
     assign data_array_word_0 = dut.data_array[0];
 
@@ -105,6 +114,9 @@ module tb_analog_model;
         wwl_vread_i = 'd0;
         write_spin_i = 'd0;
         feedback_i = 'd0;
+        if (DATA_FROM_FILE) begin
+            state_out_ref = load_state_out_ref(`STATE_OUT_FILE_1, `STATE_OUT_FILE_2);
+        end
         #(10 * CLKCYCLE);
         wwl_i[0] = 1'b1; // Write to the first wordline
         wbl_i = {WBL_WIDTH/8{8'h5A}}; // Write data

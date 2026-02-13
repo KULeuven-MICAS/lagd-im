@@ -48,10 +48,10 @@ module galena #(
     timeprecision 1ps;
 
     // Internal signals
-    logic [WWL_WIDTH-1:0] data_array [0:WBL_WIDTH-1];
+    logic [WWL_WIDTH-1:0] [WBL_WIDTH-1:0] data_array;
     logic [NUM_SPIN-1:0] spin_cache;
     logic [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] state_out;
-    integer j = 0;
+    logic [$clog2(SPIN_ICON_DEPTH)-1:0] j = 0;
     real spin_delay = 0;
 
     // ========================================================================
@@ -98,11 +98,11 @@ module galena #(
         for (genvar i = 0; i < NUM_SPIN; i++) begin: spin_readout
             initial begin
                 forever begin
-                    wait(feedback_i[i]); // Wait for rising edge of feedback_i[i]
+                    @(posedge feedback_i[i]); // Wait for rising edge of feedback_i[i]
                     spin_delay = $urandom_range(SPIN_DELAY_MIN*1000, SPIN_DELAY_MAX*1000) / 1000.0; // random delay
                     #spin_delay;
                     bct_read_o[i] = spin_cache[i];
-                    wait(!feedback_i[i]); // Wait for falling edge of feedback_i[i]
+                    @(negedge feedback_i[i]); // Wait for falling edge of feedback_i[i]
                     bct_read_o[i] = 1'bx;
                 end
             end
