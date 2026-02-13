@@ -47,7 +47,7 @@ package galena_pkg;
         int bit_idx = 0;
         int i = 0;
         while (i < line.len() && bit_idx < NUM_SPIN*BIT_DATA) begin
-            if (line[i] == "0" || line[i] == "1") begin
+            if (line[i] >= "0" && line[i] <= "1") begin
                 result[NUM_SPIN*BIT_DATA-1-bit_idx] = $unsigned(line[i]);
                 bit_idx = bit_idx + 1;
             end
@@ -69,6 +69,11 @@ package galena_pkg;
         logic [1:0] [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] states_out_in_txt;
         logic [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] states_out_ref;
 
+        assert (SPIN_ICON_DEPTH % 2 == 0) else begin
+            $display("Error: SPIN_ICON_DEPTH must be even to load two sets of states: SPIN_ICON_DEPTH=%0d", SPIN_ICON_DEPTH);
+            $finish;
+        end
+
         for (int i = 0; i < 2; i = i + 1) begin
             state_idx = 0;
             line_num = 0;
@@ -86,8 +91,8 @@ package galena_pkg;
             // Read the file line by line
             while (!$feof(state_file)) begin
                 if ($fgets(line, state_file) != 0) begin
-                    // Skip comment lines and header lines
-                    if (line[0] == "#" || line[0] == "\n") begin
+                    // Skip comment lines and empty lines
+                    if (line.len() == 0 || line[0] == "#") begin
                         continue;
                     end
                     if (line_num == 0) begin

@@ -81,12 +81,12 @@ module galena #(
             initial begin
                 state_out = load_state_out_ref(`STATE_OUT_FILE_1, `STATE_OUT_FILE_2);
             end
-            always_ff @(posedge write_spin_i[0]) begin // the behavior model assumes write_spin_i is all-one or all-zero
+            always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
                 spin_cache <= state_out[j];
                 j <= (j + 1) % SPIN_ICON_DEPTH;
             end
         end else begin
-            always_ff @(posedge write_spin_i[0]) begin
+            always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
                 for (int i = 0; i < NUM_SPIN; i++) begin
                     spin_cache[i] <= wbl_i[BIT_DATA*i + SPIN_WBL_OFFSET];
                 end
