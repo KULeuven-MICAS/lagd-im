@@ -49,7 +49,7 @@ sources:
       - hw/tb/models/galena/galena_pkg.sv
     target: any(test)
   - files:
-      - hw/rtl/lib/counter.sv
+      - hw/rtl/lib/lib_counter.sv
       - hw/rtl/memory_island/axi_to_mem_adapter.sv
       - hw/rtl/memory_island/mem_req_multicut.sv
       - hw/rtl/memory_island/mem_rsp_multicut.sv
