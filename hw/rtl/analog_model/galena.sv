@@ -20,17 +20,17 @@ module galena #(
 ) (
 
     // --- Analog pins ----
-    inout j_iref_aio,
-    inout j_vup_aio, 
-    inout j_vdn_aio, 
-    inout h_iref_aio,
-    inout h_vup_aio, 
-    inout h_vdn_aio, 
-    inout vread_aio,
+    inout j_iref_aio ,  // not used in the behavior model, but included for completeness
+    inout j_vup_aio  ,  // not used in the behavior model, but included for completeness
+    inout j_vdn_aio  ,  // not used in the behavior model, but included for completeness
+    inout h_iref_aio ,  // not used in the behavior model, but included for completeness
+    inout h_vup_aio  ,  // not used in the behavior model, but included for completeness
+    inout h_vdn_aio  ,  // not used in the behavior model, but included for completeness
+    inout vread_aio  ,  // not used in the behavior model, but included for completeness
 
     // --- Digital pins ---
     input [WBL_WIDTH-1:0] wbl_i,
-    input [WBL_WIDTH-1:0] wblb_i,
+    input [WBL_WIDTH-1:0] wblb_i, // not used in the behavior model, but included for completeness
     input [WBL_WIDTH-1:0] wbl_floating_i,
 
     input [WWL_WIDTH-1:0] wwl_i,

@@ -98,6 +98,9 @@ package galena_pkg;
                         break;
                     end
                     line_num = line_num + 1;
+                    if (state_idx >= SPIN_ICON_DEPTH/2+1) begin
+                        break;
+                    end
                     states_out_in_txt[i][state_idx] = parse_bit_string(line)[NUM_SPIN*BIT_DATA-1 -: NUM_SPIN];
                     state_idx = state_idx + 1;
                 end
