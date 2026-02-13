@@ -29,7 +29,7 @@
 `endif
 
 `ifndef FlipDisable
-`define FlipDisable `True
+`define FlipDisable `False
 `endif
 
 `ifndef EnableAnalogLoop
