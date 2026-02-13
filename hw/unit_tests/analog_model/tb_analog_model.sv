@@ -44,6 +44,7 @@ module tb_analog_model;
     logic [WBL_WIDTH-1:0] wblb_read_o;
     logic [NUM_SPIN-1:0] bct_read_o;
     logic [WBL_WIDTH-1:0] data_array_word_0;
+    logic clk;
 
     assign data_array_word_0 = dut.data_array[0];
 
@@ -87,6 +88,12 @@ module tb_analog_model;
             $display("[Time: %t] testbench timeout reached. Ending simulation.", $time);
             $finish;
         end
+    end
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #(CLKCYCLE/2) clk = ~clk;
     end
 
     initial begin
