@@ -45,6 +45,10 @@ sources:
       - hw/rtl/analog_macro_wrap/synchronizer.sv
     target: all(not(mixed_signal_exclude_generic_synchronizer))
   - files:
+      - hw/tb/models/galena/galena.sv
+      - hw/tb/models/galena/galena_pkg.sv
+    target: any(test)
+  - files:
       - hw/rtl/memory_island/axi_to_mem_adapter.sv
       - hw/rtl/memory_island/mem_req_multicut.sv
       - hw/rtl/memory_island/mem_rsp_multicut.sv
