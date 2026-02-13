@@ -18,8 +18,8 @@
 `define BIT_J 4
 `endif
 
-`ifndef SPIN_IDX
-`define SPIN_IDX 0
+`ifndef SPIN_WBL_OFFSET
+`define SPIN_WBL_OFFSET 0
 `endif
 
 `ifndef DATA_FROM_FILE
@@ -35,7 +35,7 @@ package galena_pkg;
     // Derived parameters
     parameter NUM_SPIN = `NUM_SPIN;
     parameter BIT_DATA = `BIT_J;
-    parameter SPIN_IDX = `SPIN_IDX;
+    parameter SPIN_IDX = `SPIN_WBL_OFFSET;
     parameter SPIN_ICON_DEPTH = `SPIN_ICON_DEPTH;
     parameter DATA_FROM_FILE = `DATA_FROM_FILE;
     parameter WWL_WIDTH = NUM_SPIN+1; // +1 for h

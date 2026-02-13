@@ -88,7 +88,7 @@ module galena #(
         end else begin
             always_ff @(posedge write_spin_i[0]) begin
                 for (int i = 0; i < NUM_SPIN; i++) begin
-                    spin_cache[i] <= wbl_i[BIT_DATA*i + SPIN_IDX];
+                    spin_cache[i] <= wbl_i[BIT_DATA*i + SPIN_WBL_OFFSET];
                 end
             end
         end
