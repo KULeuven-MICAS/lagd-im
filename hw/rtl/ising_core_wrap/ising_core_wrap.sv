@@ -327,8 +327,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // hw2reg
     assign hw2reg.output_status.dt_cfg_idle                  .de = en_aw;
     assign hw2reg.output_status.cmpt_idle                    .de = en_fm;
-    assign hw2reg.output_status.energy_fifo_update           .de = en_fm & ctnus_fifo_read;
-    assign hw2reg.output_status.spin_fifo_update             .de = en_fm & ctnus_fifo_read;
+    assign hw2reg.output_status.energy_fifo_update           .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
+    assign hw2reg.output_status.spin_fifo_update             .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
     assign hw2reg.output_status.debug_j_read_data_valid      .de = en_aw;
     assign hw2reg.output_status.debug_analog_dt_w_idle       .de = en_aw;
     assign hw2reg.output_status.debug_analog_dt_r_idle       .de = en_aw;
