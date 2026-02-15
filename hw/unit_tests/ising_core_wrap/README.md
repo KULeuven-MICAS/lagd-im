@@ -1,4 +1,4 @@
-# Digital Macro Testbench
+# Ising Core Wrap Testbench
 
 This folder is for function verification of the ising_core_wrap module.
 

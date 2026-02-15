@@ -795,7 +795,7 @@ task automatic print_results_read();
     $display("--------- Print Results By Register Read ---------");
     forever begin
         @ (posedge clk_i);
-        $display("[Time: %t] reg_txt_rsp.rdata: 'h%h", $time, reg_ext_rsp.rdata);
+        $display("[Time: %t] reg_ext_rsp.rdata: 'h%h", $time, reg_ext_rsp.rdata);
     end
 endtask
 
