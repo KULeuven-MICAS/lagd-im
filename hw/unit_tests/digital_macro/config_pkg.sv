@@ -14,7 +14,7 @@ package config_pkg;
     // design-time parameters
     parameter int NUM_SPIN = 256;
     parameter int BITDATA = 4;
-    parameter int SCALING_BIT = 5;
+    parameter int SCALING_BIT = 6;
     parameter int LITTLE_ENDIAN = `False; // True: little endian, False: big endian
     parameter int PIPESINTF = 1;
     parameter int PIPESMID = 1;

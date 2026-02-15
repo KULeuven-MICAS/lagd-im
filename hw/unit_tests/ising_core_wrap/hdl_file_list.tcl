@@ -11,7 +11,8 @@ set HDL_FILES [ list \
     "./tb_ising_core_wrap.sv" \
     "${HDL_PATH}/lagd_mem_cfg_pkg.sv" \
     "${HDL_PATH}/lagd_pkg.sv" \
-    "${PROJECT_ROOT}/target/syn/tech/tsmc7ff/IPs/galena/galena.v" \
+    "${PROJECT_ROOT}/hw/tb/models/galena/galena_pkg.sv" \
+    "${PROJECT_ROOT}/hw/tb/models/galena/galena.sv" \
     "${HDL_PATH}/ising_core_wrap/ising_core_wrap.sv" \
     "${HDL_PATH}/memory_island/axi_to_mem_adapter.sv" \
     "${HDL_PATH}/memory_island/mem_multicut.sv" \
