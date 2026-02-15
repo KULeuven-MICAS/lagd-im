@@ -699,7 +699,7 @@ module digital_macro #(
         .en_i         (en_perf_counter_i                                                        ),
         .load_i       (1'b0                                                                     ),
         .d_i          ({(CC_COUNTER_BITWIDTH){1'b0}}                                            ),
-        .recount_en_i (flush_i | cmpt_en_fm                                                     ),
+        .recount_en_i (flush_i | cmpt_en_fm | (infinite_icon_loop_en_i & flip_raddr_o == 'd0 & fm_upstream_handshake)),
         .step_en_i    (~cmpt_idle_o                                                             ),
         .q_o          (cycle_per_cmpt_o                                                         ),
         .maxed_o      (                                                                         ),
@@ -730,9 +730,9 @@ module digital_macro #(
         .rst_ni       (rst_ni                                                                   ),
         .en_i         (en_perf_counter_i                                                        ),
         .load_i       (config_valid_fm_posedge                                                  ),
-        .d_i          (cmpt_max_num_i                                                           ),
+        .d_i          (cmpt_max_num_i                                                           ), // counter stop when reaching cmpt_max_num_i
         .recount_en_i (flush_i | cmpt_en_pos_trigger                                            ),
-        .step_en_i    (((~multi_cmpt_mode_idle_o) | infinite_icon_loop_en_i) & cmpt_idle_posedge),
+        .step_en_i    (((~multi_cmpt_mode_idle_o) & cmpt_idle_posedge) | (infinite_icon_loop_en_i & flip_raddr_o == 'd0 & fm_upstream_handshake)),
         .q_o          (cmpt_idx_o                                                               ),
         .maxed_o      (multi_cmpt_idx_maxed                                                     ),
         .overflow_o   (                                                                         )

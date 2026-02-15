@@ -74,13 +74,26 @@ module tb_ising_core_wrap;
     logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound;
     logic ctnus_fifo_read, ctnus_dgt_debug, infinite_icon_loop_en, multi_cmpt_mode_en;
     logic [`LAGD_REG_DATA_WIDTH-1:0] global_cfg_reg_1, global_cfg_reg_2;
-    logic [(`NUM_SPIN*`BIT_J)-1:0] h_rdata, wbl_floating;
+    logic [(`NUM_SPIN*`BIT_H)-1:0] h_rdata, wbl_floating;
     logic [`CC_COUNTER_BITWIDTH-1:0] cmpt_max_num;
     logic axi_test_done;
     model_t model;
     logic [`CVA6_ADDR_WIDTH-1:0] axi_write_addr;
     logic [`LAGD_AXI_DATA_WIDTH-1:0] axi_write_data;
     logic [1024-1:0] [`NUM_SPIN-1:0] flip_icon;
+    logic [1:0] [`NUM_SPIN-1:0] spin_fifo_reg_data;
+    logic [1:0] [`ENERGY_TOTAL_BIT-1:0] energy_fifo_reg_data;
+    logic results_read_start;
+
+    logic [`NUM_SPIN-1:0] config_spin_initial_0, config_spin_initial_1;
+    logic [`COUNTER_BITWIDTH-1:0] cycle_per_spin_write, cycle_per_wwl_low, cycle_per_wwl_high, cfg_trans_num;
+    logic [`SCALING_BIT-1:0] dgt_hscaling;
+    logic [$clog2(`FLIP_ICON_DEPTH):0] icon_last_raddr_plus_one;
+    logic [`COUNTER_BITWIDTH-1:0] debug_spin_read_num, debug_cycle_per_spin_read, cycle_per_spin_compute;
+    logic [`NUM_SPIN-1:0] wwl_vdd_cfg, wwl_vread_cfg, spin_wwl_strobe, spin_feedback, debug_j_one_hot_wwl;
+
+    integer i;
+    logic [`LAGD_REG_DATA_WIDTH-1:0] reg_data;
 
     // External AXI interconnect
     lagd_axi_slv_req_t axi_ext_slv_req_0 = 'd0;
@@ -111,13 +124,45 @@ module tb_ising_core_wrap;
                             debug_dt_configure_enable, en_comparison, en_analog_loop,
                             en_ef, en_ff, en_fm, en_em, en_aw, flush_en};
 
-    assign global_cfg_reg_2 = {12'd0, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
+    assign global_cfg_reg_2 = {6'd0, dgt_hscaling, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
                             debug_h_wwl, synchronizer_pipe_num,
                             dt_cfg_enable, config_valid_fm, config_valid_em,
                             config_valid_aw, cmpt_en};
 
     assign reg_rsp_ready = reg_ext_rsp.ready;
     assign reg_rsp_rdata = reg_ext_rsp.rdata;
+
+    assign energy_fifo_reg_data[0] = dut.u_lagd_core_reg_top.energy_fifo_data_0_qs;
+    assign energy_fifo_reg_data[1] = dut.u_lagd_core_reg_top.energy_fifo_data_1_qs;
+    generate
+        for (genvar i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i=i+1) begin : spin_fifo_qs_gen_0
+            case(i)
+                0: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_0_qs;
+                1: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_1_qs;
+                2: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_2_qs;
+                3: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_3_qs;
+                4: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_4_qs;
+                5: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_5_qs;
+                6: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_6_qs;
+                7: assign spin_fifo_reg_data[0][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_0_7_qs;
+            endcase
+        end
+    endgenerate
+
+    generate
+        for (genvar i = 0; i < `NUM_SPIN/`LAGD_REG_DATA_WIDTH; i=i+1) begin : spin_fifo_qs_gen_1
+            case(i)
+                0: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_0_qs;
+                1: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_1_qs;
+                2: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_2_qs;
+                3: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_3_qs;
+                4: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_4_qs;
+                5: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_5_qs;
+                6: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_6_qs;
+                7: assign spin_fifo_reg_data[1][i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = dut.u_lagd_core_reg_top.spin_fifo_data_1_7_qs;
+            endcase
+        end
+    endgenerate
 
     // Module instantiation
     ising_core_wrap #(
@@ -439,6 +484,7 @@ module tb_ising_core_wrap;
                     $error("Write failed with response: %0d", axi_ext_slv_rsp_0.b.resp);
             end
         end
+        @ (posedge clk_i);
         axi_ext_slv_req_0 = 'd0; // Deassert after use
 
         // axi1 test
@@ -455,6 +501,7 @@ module tb_ising_core_wrap;
             end
         end
         axi_ext_slv_req_1 = 'd0; // Deassert after use
+        @ (posedge clk_i);
         $display("AXI test completed successfully.");
         axi_test_done = 1'b1;
     end
@@ -471,6 +518,10 @@ module tb_ising_core_wrap;
         wait (axi_test_done == 1);
         // Initialize reg interfaces
         reg_config();
+        fork
+            results_read();
+            print_results_read();
+        join_none
     end
 
 function automatic lagd_reg_req_t gen_reg_req(
@@ -489,16 +540,6 @@ function automatic lagd_reg_req_t gen_reg_req(
 endfunction
 
 task automatic reg_config();
-    integer i;
-    logic [`LAGD_REG_DATA_WIDTH-1:0] reg_data;
-
-    logic [`NUM_SPIN-1:0] config_spin_initial_0, config_spin_initial_1;
-    logic [`COUNTER_BITWIDTH-1:0] cycle_per_spin_write, cycle_per_wwl_low, cycle_per_wwl_high, cfg_trans_num;
-    logic [`SCALING_BIT-1:0] dgt_hscaling;
-    logic [$clog2(`FLIP_ICON_DEPTH):0] icon_last_raddr_plus_one;
-    logic [`COUNTER_BITWIDTH-1:0] debug_spin_read_num, debug_cycle_per_spin_read, cycle_per_spin_compute;
-    logic [`NUM_SPIN-1:0] wwl_vdd_cfg, wwl_vread_cfg, spin_wwl_strobe, spin_feedback, debug_j_one_hot_wwl;
-
     // Prepare configuration values
     flush_en = 1'b0;
     en_aw = 1'b1;
@@ -552,14 +593,14 @@ task automatic reg_config();
     icon_last_raddr_plus_one = `FLIP_ICON_DEPTH;
     debug_spin_read_num = `FLIP_ICON_DEPTH;
     debug_cycle_per_spin_read = 'd2;
-    cycle_per_spin_compute = 'd2;
+    cycle_per_spin_compute = 'd5;
 
     wwl_vdd_cfg     = {`NUM_SPIN{1'b1}}; // all high
     wwl_vread_cfg   = {`NUM_SPIN{1'b0}}; // all low
     spin_wwl_strobe = {`NUM_SPIN{1'b1}}; // all high
     spin_feedback   = {`NUM_SPIN{1'b1}}; // all high
 
-    h_rdata = {`NUM_SPIN{4'b1010}}; // alternating 1010
+    h_rdata = model.hbias;
     wbl_floating = {`NUM_SPIN{4'b0000}};
     debug_j_one_hot_wwl = 'd0;
 
@@ -596,7 +637,7 @@ task automatic reg_config();
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_3_OFFSET, 1'b1, reg_data, 1'b1);
     // Counters, set 4
-    reg_data = {dgt_hscaling, icon_last_raddr_plus_one, debug_spin_read_num};
+    reg_data = {5'd0, icon_last_raddr_plus_one, debug_spin_read_num};
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_COUNTER_CFG_4_OFFSET, 1'b1, reg_data, 1'b1);
     // WWL VDD
@@ -676,6 +717,9 @@ task automatic reg_config();
     reg_ext_req = gen_reg_req(LAGD_CORE_OUTPUT_STATUS_OFFSET, 1'b0, 'd0, 1'b1);
     repeat (5) @ (posedge clk_i);
     wait (reg_ext_rsp.rdata[0] == 1'b1); // wait for dt configuration done
+    // Check initial spin value
+    $display("[Time: %t] Initial energy0 is: 'h%h, spin0 is: 'h%h", $time, dut.energy_fifo_data[0], dut.spin_fifo_data[0]);
+    $display("[Time: %t] Initial energy1 is: 'h%h, spin1 is: 'h%h", $time, dut.energy_fifo_data[1], dut.spin_fifo_data[1]);
     // Start computation
     en_ef = 1'b1;
     @ (posedge clk_i);
@@ -686,14 +730,73 @@ task automatic reg_config();
     cmpt_en = 1'b0;
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_GLOBAL_CFG_2_OFFSET, 1'b1, global_cfg_reg_2, 1'b0);
+
     // switch to output register
     @ (posedge clk_i);
     reg_ext_req = gen_reg_req(LAGD_CORE_OUTPUT_STATUS_OFFSET, 1'b0, 'd0, 1'b1);
     repeat (2) @ (posedge clk_i);
-    wait (dut.debug_fm_downstream_handshake == 1'b1); // wait for the first handshake indicating the first output is ready
-    $display("Ending simulation.");
+    wait (reg_ext_rsp.rdata[1] == 1'b1); // wait for computation done
+    $display("------------------------------------------------");
     @ (posedge clk_i);
+    $display("[Time: %t] cmpt_idle: 'h%h, ctnus_fifo_read: 'h%h", $time, dut.cmpt_idle, dut.ctnus_fifo_read);
+    $display("[Time: %t] Final energy0 is: 'h%h, spin0 is: 'h%h", $time, energy_fifo_reg_data[0], spin_fifo_reg_data[0]);
+    $display("[Time: %t] Final energy1 is: 'h%h, spin1 is: 'h%h", $time, energy_fifo_reg_data[1], spin_fifo_reg_data[1]);
+    results_read_start = 1'b1;
+endtask
+
+task automatic results_read();
+    // read energy and spin values from output registers
+    wait (results_read_start == 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_ENERGY_FIFO_DATA_0_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_ENERGY_FIFO_DATA_1_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_0_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_1_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_2_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_3_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_4_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_5_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_6_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_0_7_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_0_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_1_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_2_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_3_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_4_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_5_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_6_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_7_OFFSET, 1'b0, 'd0, 1'b1);
+    @ (posedge clk_i);
+    reg_ext_req = gen_reg_req(LAGD_CORE_SPIN_FIFO_DATA_1_7_OFFSET, 1'b0, 'd0, 1'b0);
+    results_read_start = 1'b0;
     $finish;
+endtask
+
+task automatic print_results_read();
+    wait (results_read_start == 1'b1);
+    @ (posedge clk_i);
+    $display("--------- Print Results By Register Read ---------");
+    forever begin
+        @ (posedge clk_i);
+        $display("[Time: %t] reg_ext_rsp.rdata: 'h%h", $time, reg_ext_rsp.rdata);
+    end
 endtask
 
 endmodule

@@ -57,7 +57,7 @@ module tb_energy_monitor;
     localparam int BITJ = 4; // J precision, min: 2 (including sign bit)
     localparam int BITH = 4; // bias precision, min: 2 (including sign bit)
     localparam int NUM_SPIN = 256; // number of spins
-    localparam int SCALING_BIT = 5; // bit width of scaling factor
+    localparam int SCALING_BIT = 6; // bit width of scaling factor
     localparam int PARALLELISM = 4; // number of parallel energy calculation units, min: 1
     localparam int LOCAL_ENERGY_BIT = $clog2(NUM_SPIN) + BITH + SCALING_BIT - 1 + 1; // bit width of local energy
     localparam int ENERGY_TOTAL_BIT = 32; // bit width of total energy
