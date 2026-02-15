@@ -56,7 +56,8 @@ module lib_counter #(
             count_d = count_q; // Hold the current value
         end
     end
-    `FFLARNC(count_q, count_d, en_i, clear_i, init_i, clk_i, rst_ni)
+    //       output,  input,   enable,  clear,   rst_val,   clk,   rst
+    `FFLARNC(count_q, count_d, en_i,    clear_i, init_i,    clk_i, rst_ni)
 
     // Terminal count logic
     assign tc = (count_q == max_i) ? 1'b1 : 1'b0;
