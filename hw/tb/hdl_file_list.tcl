@@ -9,8 +9,8 @@ set HDL_PATH ./
 set HDL_FILES [ list \
     ${HDL_PATH}/tb_lagd_chip.sv \
     ${HDL_PATH}/models/pomelo_pll/pomelo_pll.sv \
-    ${HDL_PATH}/models/galena/galena.sv \
     ${HDL_PATH}/models/galena/galena_pkg.sv \
+    ${HDL_PATH}/models/galena/galena.sv \
 ]
 
 set PROJECT_ROOT [exec realpath ../..]
