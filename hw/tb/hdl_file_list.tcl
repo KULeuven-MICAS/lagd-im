@@ -25,7 +25,15 @@ if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
     }
 }
 
-set TECH_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_flist.tcl
+if { [info exists ::env(CHIP_LEVEL_TEST)] && $::env(CHIP_LEVEL_TEST) == "1" } {
+    set TECH_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_flist.tcl
+    if { [file exists $TECH_FLIST] } {
+        source $TECH_FLIST
+    } else {
+        puts "ERROR: CHIP_LEVEL_TEST is set but tech_flist.tcl not found at ${TECH_FLIST}"
+        exit 1
+    }
+}
 
 set INCLUDE_DIRS [ list \
     ${PROJECT_ROOT}/hw/rtl/include \

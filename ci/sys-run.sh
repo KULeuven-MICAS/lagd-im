@@ -115,7 +115,7 @@ echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 
-if [ "CHIP_LEVEL_TEST" -eq 1 ]; then
+if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
     USE_TECH_MODELS=1
     echo "Chip-level test selected, enabling technology models."
 fi
