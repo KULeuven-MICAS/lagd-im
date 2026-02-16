@@ -24,3 +24,7 @@ if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
         exit 1
     }
 }
+
+set INCLUDE_DIRS [ list \
+    ${PROJECT_ROOT}/hw/rtl/include \
+]
