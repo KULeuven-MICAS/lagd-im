@@ -4,7 +4,6 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-
 PROJECT_ROOT := $(shell realpath ../../)
 include $(PROJECT_ROOT)/common.mk
 

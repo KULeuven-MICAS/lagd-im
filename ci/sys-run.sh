@@ -119,7 +119,7 @@ if [ "${PIXI}" -eq 1 ]; then
     USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" clean flist
 else
     echo "[WARNING] Pixi not found, assuming running on cygni. Skipping flist generation."
-    sleep 5
+    sleep 2
 fi
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \

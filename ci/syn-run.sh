@@ -132,6 +132,6 @@ OUTPUT_PATH=$(get_ci_var "${CI_LOG}" "OUTPUT_PATH")
 cp "${CI_LOG}" "${OUTPUT_PATH}/ci_syn_run.log"
 
 # Make soft link to the latest run
-ln -sf "${OUTPUT_PATH}" "${PROJECT_ROOT}/runs/latest"
+ln -sfn "${OUTPUT_PATH}" "${PROJECT_ROOT}/runs/latest"
 
 echo "[INFO] ./ci/syn-run.sh: Synthesis completed."

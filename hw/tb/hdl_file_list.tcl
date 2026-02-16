@@ -8,13 +8,15 @@ set HDL_PATH ./
 
 set HDL_FILES [ list \
     ${HDL_PATH}/tb_lagd_chip.sv \
+    ${HDL_PATH}/models/pomelo_pll/pomelo_pll.sv \
+    ${HDL_PATH}/models/galena/galena_pkg.sv \
+    ${HDL_PATH}/models/galena/galena.sv \
 ]
 
 set PROJECT_ROOT [exec realpath ../..]
 
-set TECH_SIM_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/IPs/tech_sim_flist.tcl
-
 if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
+    set TECH_SIM_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_sim_flist.tcl
     if { [file exists $TECH_SIM_FLIST] } {
         source $TECH_SIM_FLIST
     } else {
@@ -22,3 +24,7 @@ if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
         exit 1
     }
 }
+
+set INCLUDE_DIRS [ list \
+    ${PROJECT_ROOT}/hw/rtl/include \
+]

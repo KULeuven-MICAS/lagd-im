@@ -7,8 +7,6 @@
 // Ising core wrapper
 
 `include "lagd_define.svh"
-`include "lagd_config.svh"
-`include "lagd_typedef.svh"
 
 `include "common_cells/registers.svh"
 
@@ -16,8 +14,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter mem_cfg_t l1_mem_cfg_j = '0,
     parameter mem_cfg_t l1_mem_cfg_flip = '0,
     parameter ising_logic_cfg_t logic_cfg = '0,
-    parameter type axi_slv_req_t = logic,
-    parameter type axi_slv_rsp_t = logic,
     parameter type axi_narrow_req_t = logic,
     parameter type axi_narrow_rsp_t = logic,
     parameter type axi_wide_req_t = logic,
@@ -40,10 +36,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     input logic rst_ni,
 
     // AXI slave interface
-    input  axi_slv_req_t axi_s_req_0_i,
-    output axi_slv_rsp_t axi_s_rsp_0_o,
-    input  axi_slv_req_t axi_s_req_1_i,
-    output axi_slv_rsp_t axi_s_rsp_1_o,
+    input  axi_narrow_req_t axi_s_req_j_i,
+    output axi_narrow_rsp_t axi_s_rsp_j_o,
+    input  axi_narrow_req_t axi_s_req_f_i,
+    output axi_narrow_rsp_t axi_s_rsp_f_o,
 
     // Register slave interface
     input reg_req_t reg_s_req_i,
@@ -197,8 +193,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     ) i_l1_mem_j (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_0_i         ),
-        .axi_narrow_rsp_o       (axi_s_rsp_0_o         ),
+        .axi_narrow_req_i       (axi_s_req_j_i         ),
+        .axi_narrow_rsp_o       (axi_s_rsp_j_o         ),
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
         .mem_narrow_req_i       ('0                    ),
@@ -220,8 +216,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     ) i_l1_mem_flip (
         .clk_i                  (clk_i                 ),
         .rst_ni                 (rst_ni                ),
-        .axi_narrow_req_i       (axi_s_req_1_i         ),
-        .axi_narrow_rsp_o       (axi_s_rsp_1_o         ),
+        .axi_narrow_req_i       (axi_s_req_f_i         ),
+        .axi_narrow_rsp_o       (axi_s_rsp_f_o         ),
         .axi_wide_req_i         ('0                    ),
         .axi_wide_rsp_o         (                      ),
         .mem_narrow_req_i       ('0                    ),
