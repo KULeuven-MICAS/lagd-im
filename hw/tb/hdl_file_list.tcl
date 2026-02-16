@@ -25,6 +25,8 @@ if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
     }
 }
 
+set TECH_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_flist.tcl
+
 set INCLUDE_DIRS [ list \
     ${PROJECT_ROOT}/hw/rtl/include \
 ]
