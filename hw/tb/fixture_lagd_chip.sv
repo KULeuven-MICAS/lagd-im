@@ -32,6 +32,8 @@ module fixture_lagd_chip #(
   if (ChipTest == 1) begin : gen_dut_lagd_chip
     $info("Instantiating lagd_chip as DUT");
     logic pad_clk_i;
+    logic pad_clk_o;
+    logic pad_rtc_i; assign pad_rtc_i = rtc;
     logic pad_rst_ni;
     logic pad_boot_mode_0_i; assign pad_boot_mode_0_i = boot_mode[0];
     logic pad_boot_mode_1_i; assign pad_boot_mode_1_i = boot_mode[1];
@@ -40,7 +42,6 @@ module fixture_lagd_chip #(
     logic pad_jtag_tms_i; assign pad_jtag_tms_i = jtag_tms;
     logic pad_jtag_tdi_i; assign pad_jtag_tdi_i = jtag_tdi;
     logic pad_jtag_tdo_o; assign jtag_tdo = pad_jtag_tdo_o;
-    logic pad_jtag_tdo_oe_o; assign jtag_tdo_oe = pad_jtag_tdo_oe_o;
     logic pad_uart_tx_o; assign uart_tx = pad_uart_tx_o;
     logic pad_uart_rx_i; assign pad_uart_rx_i = uart_rx;
     logic pad_uart_rts_no;
@@ -57,22 +58,25 @@ module fixture_lagd_chip #(
     logic pad_pll_data_o;
     logic pad_pll_cfg_vld_strb_i;
     logic pad_pll_fb_clk_io;
+    logic pad_pll_lock_o;
     logic pll_vdda_i;
     logic pll_iref_i;
     logic pll_vco_vctrl_io;
     logic galena_vdd_i;
-    logic galena_cu_iref_0_i;
-    logic galena_cu_vup_0_i;
-    logic galena_cu_vdn_0_i;
+    logic galena_j_iref_0_i;
+    logic galena_j_vup_0_i;
+    logic galena_j_vdn_0_i;
     logic galena_h_iref_0_i;
     logic galena_h_vup_0_i;
     logic galena_h_vdn_0_i;
-    logic galena_cu_iref_1_i;
-    logic galena_cu_vup_1_i;
-    logic galena_cu_vdn_1_i;
+    logic galena_vread_0_i;
+    logic galena_j_iref_1_i;
+    logic galena_j_vup_1_i;
+    logic galena_j_vdn_1_i;
     logic galena_h_iref_1_i;
     logic galena_h_vup_1_i;
     logic galena_h_vdn_1_i;
+    logic galena_vread_1_i;
 
     lagd_chip dut (.*);
   end else begin : gen_dut_soc
