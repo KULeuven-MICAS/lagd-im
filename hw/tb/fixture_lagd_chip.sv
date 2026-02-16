@@ -8,7 +8,7 @@
 `include "lagd_define.svh"
 
 module fixture_lagd_chip #(
-  localparam int unsigned ChipTest = 0
+  parameter int unsigned ChipTest = 0
 ) ();
 
   logic [1:0] boot_mode;
