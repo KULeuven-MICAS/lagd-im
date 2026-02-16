@@ -7,13 +7,10 @@
 `include "lagd_typedef.svh"
 `include "lagd_define.svh"
 
-`ifndef CHIP_LEVEL_TEST
-`define CHIP_LEVEL_TEST 0
-`endif
+module fixture_lagd_chip #(
+  localparam int unsigned ChipTest = 0
+) ();
 
-module fixture_lagd_chip ();
-
-  localparam int unsigned ChipTest = `CHIP_LEVEL_TEST;
   logic [1:0] boot_mode;
   logic clk;
   logic rst_n;

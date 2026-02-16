@@ -16,9 +16,14 @@
 `define PRELOAD_ELF ""
 `endif
 
+`ifndef CHIP_LEVEL_TEST
+`define CHIP_LEVEL_TEST 0
+`endif
+
 module tb_lagd_chip ();
 
-  fixture_lagd_chip fix ();
+  localparam int unsigned ChipTest = `CHIP_LEVEL_TEST;
+  fixture_lagd_chip #(.ChipTest(ChipTest)) fix ();
   
   string      preload_elf;
   logic [1:0] boot_mode;
