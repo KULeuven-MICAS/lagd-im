@@ -24,11 +24,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter type mem_j_rsp_t = logic,
     parameter type mem_f_req_t = logic,
     parameter type mem_f_rsp_t = logic,
-    parameter type axi_slv_aw_chan_t = logic,
-    parameter type axi_slv_w_chan_t = logic,
-    parameter type axi_slv_b_chan_t = logic,
-    parameter type axi_slv_ar_chan_t = logic,
-    parameter type axi_slv_r_chan_t = logic,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 )(

@@ -169,8 +169,6 @@ module tb_ising_core_wrap;
         .l1_mem_cfg_j      (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ    ),
         .l1_mem_cfg_flip   (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip ),
         .logic_cfg         (ising_logic_pkg::IsingLogicCfg          ),
-        .axi_slv_req_t     (lagd_axi_slv_req_t                      ),
-        .axi_slv_rsp_t     (lagd_axi_slv_rsp_t                      ),
         .axi_narrow_req_t  (lagd_axi_slv_req_t                      ),
         .axi_narrow_rsp_t  (lagd_axi_slv_rsp_t                      ),
         .axi_wide_req_t    (lagd_axi_wide_slv_req_t                 ),
@@ -181,11 +179,6 @@ module tb_ising_core_wrap;
         .mem_j_rsp_t       (lagd_mem_j_rsp_t                        ),
         .mem_f_req_t       (lagd_mem_f_req_t                        ),
         .mem_f_rsp_t       (lagd_mem_f_rsp_t                        ),
-        .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t                  ),
-        .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t                   ),
-        .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t                   ),
-        .axi_slv_ar_chan_t (lagd_axi_slv_ar_chan_t                  ),
-        .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t                   ),
         .reg_req_t         (lagd_reg_req_t                          ),
         .reg_rsp_t         (lagd_reg_rsp_t                          )
     ) dut (

@@ -244,11 +244,6 @@ module lagd_soc import lagd_pkg::*; (
                 .mem_j_rsp_t       (lagd_mem_j_rsp_t                        ),
                 .mem_f_req_t       (lagd_mem_f_req_t                        ),
                 .mem_f_rsp_t       (lagd_mem_f_rsp_t                        ),
-                .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t                  ),
-                .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t                   ),
-                .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t                   ),
-                .axi_slv_ar_chan_t (lagd_axi_slv_ar_chan_t                  ),
-                .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t                   ),
                 .reg_req_t         (lagd_reg_req_t                          ),
                 .reg_rsp_t         (lagd_reg_rsp_t                          )
             ) i_core (
