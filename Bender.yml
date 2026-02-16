@@ -35,7 +35,7 @@ sources:
     target: all(tech_cells_generic_exclude_tc_sram, synthesis)
   - files:
       - target/syn/tech/tsmc7ff/rtl/synchronizer.sv
-      - target/syn/tech/tsmc7ff/rtl/chronos_pll_wrap.sv
+      - target/syn/tech/tsmc7ff/rtl/pomelo_pll_wrap.sv
       - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
     target: all(synthesis)
   - files:
@@ -49,6 +49,7 @@ sources:
       - hw/tb/models/galena/galena_pkg.sv
     target: any(test)
   - files:
+      - hw/rtl/lib/lib_counter.sv
       - hw/rtl/memory_island/axi_to_mem_adapter.sv
       - hw/rtl/memory_island/mem_req_multicut.sv
       - hw/rtl/memory_island/mem_rsp_multicut.sv

@@ -115,7 +115,37 @@ module lagd_soc import lagd_pkg::*; (
         .slink_rcv_clk_i    (slink_rcv_clk_i),
         .slink_rcv_clk_o    (slink_rcv_clk_o),
         .slink_i            (slink_i),
-        .slink_o            (slink_o)
+        .slink_o            (slink_o),
+        // Unused ports
+        .axi_llc_mst_req_o(),
+        .axi_llc_mst_rsp_i('0),
+        .dbg_active_o(),
+        .dbg_ext_req_o(),
+        .dbg_ext_unavail_i('0),
+        .i2c_sda_o(),
+        .i2c_sda_i('0),
+        .i2c_sda_en_o(),
+        .i2c_scl_o(),
+        .i2c_scl_i('0),
+        .i2c_scl_en_o(),
+        .spih_sck_o(),
+        .spih_sck_en_o(),
+        .spih_csb_o(),
+        .spih_csb_en_o(),
+        .spih_sd_o(),
+        .spih_sd_en_o(),
+        .spih_sd_i('0),
+        .gpio_o(),
+        .gpio_i('0),
+        .gpio_en_o(),
+        .usb_clk_i('0),
+        .usb_rst_ni('0),
+        .usb_dm_i('0),
+        .usb_dm_o(),
+        .usb_dm_oe_o(),
+        .usb_dp_i('0),
+        .usb_dp_o(),
+        .usb_dp_oe_o()
     );
 
     //////////////////////////////////////////////////////////
@@ -197,12 +227,13 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     generate
         for (genvar i = 0; i < `NUM_ISING_CORES; i++) begin : gen_cores
+            localparam int unsigned IsingCoreJIdx = LagdSlvIdxEnum.ISING_CORES_BASE + 2*i;
+            localparam int unsigned IsingCoreFIdx = LagdSlvIdxEnum.ISING_CORES_BASE + 2*i + 1;
+            
             ising_core_wrap #(
                 .l1_mem_cfg_j      (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ    ),
                 .l1_mem_cfg_flip   (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip ),
                 .logic_cfg         (ising_logic_pkg::IsingLogicCfg          ),
-                .axi_slv_req_t     (lagd_axi_slv_req_t                      ),
-                .axi_slv_rsp_t     (lagd_axi_slv_rsp_t                      ),
                 .axi_narrow_req_t  (lagd_axi_slv_req_t                      ),
                 .axi_narrow_rsp_t  (lagd_axi_slv_rsp_t                      ),
                 .axi_wide_req_t    (lagd_axi_wide_slv_req_t                 ),
@@ -224,10 +255,10 @@ module lagd_soc import lagd_pkg::*; (
                 .clk_i             (clk_i                                   ),
                 .rst_ni            (rst_ni                                  ),
                 // AXI slave interface
-                .axi_s_req_0_i       (axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i    ]),
-                .axi_s_rsp_0_o       (axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i    ]),
-                .axi_s_req_1_i       (axi_ext_slv_req[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i + 1]),
-                .axi_s_rsp_1_o       (axi_ext_slv_rsp[LagdSlvIdxEnum.ISING_CORES_BASE + 2*i + 1]),
+                .axi_s_req_j_i       (axi_ext_slv_req[IsingCoreJIdx]),
+                .axi_s_rsp_j_o       (axi_ext_slv_rsp[IsingCoreJIdx]),
+                .axi_s_req_f_i       (axi_ext_slv_req[IsingCoreFIdx]),
+                .axi_s_rsp_f_o       (axi_ext_slv_rsp[IsingCoreFIdx]),
                 // Register interface
                 .reg_s_req_i       (reg_ext_req[i]                          ),
                 .reg_s_rsp_o       (reg_ext_rsp[i]                          ),

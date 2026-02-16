@@ -78,6 +78,6 @@ module accumulator #(
     `FFLARNC(data_valid_reg, data_valid, en_i, clear_i, '0, clk_i, rst_ni)
 
 // Assertions
-`RUNTIME_ASSERT(overflow_reg === 1'b0, "Accumulator overflow occurred", clk_i, rst_ni)
+`SYNC_RUNTIME_ASSERT(overflow_reg === 1'b0, "Accumulator overflow occurred", clk_i, rst_ni)
 
 endmodule

@@ -192,10 +192,10 @@ module tb_ising_core_wrap;
         .clk_i             (clk_i                                   ),
         .rst_ni            (rst_ni                                  ),
         // AXI slave interface
-        .axi_s_req_0_i       (axi_ext_slv_req_0                     ),
-        .axi_s_rsp_0_o       (axi_ext_slv_rsp_0                     ),
-        .axi_s_req_1_i       (axi_ext_slv_req_1                     ),
-        .axi_s_rsp_1_o       (axi_ext_slv_rsp_1                     ),
+        .axi_s_req_j_i       (axi_ext_slv_req_0                     ),
+        .axi_s_rsp_j_o       (axi_ext_slv_rsp_0                     ),
+        .axi_s_req_f_i       (axi_ext_slv_req_1                     ),
+        .axi_s_rsp_f_o       (axi_ext_slv_rsp_1                     ),
         // Register interface
         .reg_s_req_i       (reg_ext_req                             ),
         .reg_s_rsp_o       (reg_ext_rsp                             ),
