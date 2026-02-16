@@ -25,9 +25,9 @@
 `define ASSERT(cond, msg) \
     assert (cond) else $error("Time %0t: %s", $time, msg)
 
-`define SYNC_RUNTIME_ASSERT(cond, msg, clk, reset) \
+`define SYNC_RUNTIME_ASSERT(cond, msg, clk, rst_n) \
     always @(posedge clk) begin   \
-        if (!reset) begin         \
+        if (rst_n) begin         \
             `ASSERT(cond, msg);   \
         end                       \
     end
@@ -42,7 +42,7 @@
 `define PACKAGE_ASSERT(cond)
 `define STATIC_ASSERT(cond, msg)
 `define ASSERT(cond, msg)
-`define SYNC_RUNTIME_ASSERT(cond, msg, clk, reset)
+`define SYNC_RUNTIME_ASSERT(cond, msg, clk, rst_n)
 `define RUNTIME_ASSERT(cond, msg)
 `endif // TARGET_SYN
 
