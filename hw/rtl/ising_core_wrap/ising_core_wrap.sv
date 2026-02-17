@@ -170,9 +170,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic cmpt_idle_dly1;
     logic cmpt_idle_posedge;
 
-    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
-        logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
-
     assign cmpt_idle_posedge = cmpt_idle & ~cmpt_idle_dly1;
     `FFLARNC(cmpt_idle_dly1, cmpt_idle, en_fm, flush_en, 1'b1, clk_i, rst_ni)
 

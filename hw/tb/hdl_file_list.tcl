@@ -13,6 +13,10 @@ set HDL_FILES [ list \
     ${HDL_PATH}/models/galena/galena.sv \
 ]
 
+set INCLUDE_DIRS [ list \
+    ${PROJECT_ROOT}/hw/rtl/include \
+]
+
 set PROJECT_ROOT [exec realpath ../..]
 
 if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
@@ -34,7 +38,3 @@ if { [info exists ::env(CHIP_LEVEL_TEST)] && $::env(CHIP_LEVEL_TEST) == "1" } {
         exit 1
     }
 }
-
-set INCLUDE_DIRS [ list \
-    ${PROJECT_ROOT}/hw/rtl/include \
-]
