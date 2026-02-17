@@ -33,7 +33,7 @@ if { [ info exists HDL_FILES ] } {
     foreach file $HDL_FILES {
         puts "Compiling ${file} ..."
         if { [catch {
-            vlog -incr -sv -work ${WLIB} {*}${DEFINES} {*}${INCLUDES} ${VLOG_FLAGS} ${file}
+            vlog -incr -sv {*}${VLOG_FLAGS} -work ${WLIB} {*}${DEFINES} {*}${INCLUDES} ${file}
             } err] } {
             puts "Error compiling file ${file}:"
             puts $err
