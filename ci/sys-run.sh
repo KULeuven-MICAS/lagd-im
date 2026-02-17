@@ -46,6 +46,14 @@ CHIP_LEVEL_TEST=0
 BOOT_MODE=0
 PRELOAD_MODE=0
 USE_TECH_MODELS=0
+
+# Check if pixi is installed (if not we are probably on cygni)
+if ! command -v pixi &> /dev/null; then
+    CHS_PATH=${ROOT_DIR}  # Default dummy val
+else
+    CHS_PATH=$( pixi run bender path cheshire)
+fi
+
 PRELOAD_ELF=${CHS_PATH}/sw/tests/helloworld.spm.elf
 DBG=0
 NO_GUI=1
