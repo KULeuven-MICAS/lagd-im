@@ -4,6 +4,7 @@
 
 source ./bender_list.tcl
 
+set PROJECT_ROOT [exec realpath ../..]
 set HDL_PATH ./
 
 set HDL_FILES [ list \
@@ -16,8 +17,6 @@ set HDL_FILES [ list \
 set INCLUDE_DIRS [ list \
     ${PROJECT_ROOT}/hw/rtl/include \
 ]
-
-set PROJECT_ROOT [exec realpath ../..]
 
 if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
     set TECH_SIM_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_sim_flist.tcl
