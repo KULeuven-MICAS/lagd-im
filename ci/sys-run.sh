@@ -42,15 +42,6 @@ show_help()
 SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
-# Check if pixi is installed (if not we are probably on cygni)
-if ! command -v pixi &> /dev/null; then
-    PIXI=0
-    CHS_PATH=${ROOT_DIR}  # Default dummy val
-else
-    PIXI=1
-    CHS_PATH=$( pixi run bender path cheshire)
-fi
-
 CHIP_LEVEL_TEST=0
 BOOT_MODE=0
 PRELOAD_MODE=0
@@ -120,12 +111,6 @@ if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
     echo "Chip-level test selected, enabling technology models."
 fi
 
-if [ "${PIXI}" -eq 1 ]; then
-    USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" clean flist
-else
-    echo "[WARNING] Pixi not found, assuming running on cygni. Skipping flist generation."
-    sleep 2
-fi
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    make -C "${ROOT_DIR}/hw/tb" run
+    make run-soc
