@@ -45,8 +45,8 @@ sources:
       - hw/rtl/analog_macro_wrap/synchronizer.sv
     target: all(not(mixed_signal_exclude_generic_synchronizer))
   - files:
-      - hw/tb/models/galena/galena.sv
       - hw/tb/models/galena/galena_pkg.sv
+      - hw/tb/models/galena/galena.sv
     target: any(test)
   - files:
       - hw/rtl/lib/lib_counter.sv
