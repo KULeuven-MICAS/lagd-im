@@ -48,10 +48,10 @@ module fixture_lagd_chip #(
     wire pad_uart_cts_ni; assign pad_uart_cts_ni = 1'b1;
     wire pad_spi_sck_i; assign pad_spi_sck_i = 1'b0;
     wire pad_spi_cs_i; assign pad_spi_cs_i = 1'b0;
-    wire pad_spi_sd_0_io;
-    wire pad_spi_sd_1_io;
-    wire pad_spi_sd_2_io;
-    wire pad_spi_sd_3_io;
+    wire pad_spi_sd_0_io; assign pad_spi_sd_0_io = 1'bz;
+    wire pad_spi_sd_1_io; assign pad_spi_sd_1_io = 1'bz;
+    wire pad_spi_sd_2_io; assign pad_spi_sd_2_io = 1'bz;
+    wire pad_spi_sd_3_io; assign pad_spi_sd_3_io = 1'bz;
     wire pad_clk_sel_i; assign pad_clk_sel_i = 1'b1;
     wire pad_pll_strb_i; assign pad_pll_strb_i = 1'b0;
     wire pad_pll_data_i; assign pad_pll_data_i = 1'b0;
@@ -61,7 +61,6 @@ module fixture_lagd_chip #(
     wire pad_pll_lock_o;
     wire pll_iref_i;
     wire pll_vco_vctrl_io;
-    wire galena_vdd_i;
     wire galena_j_iref_0_i;
     wire galena_j_vup_0_i;
     wire galena_j_vdn_0_i;
