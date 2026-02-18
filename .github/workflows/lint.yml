@@ -43,6 +43,7 @@ jobs:
                         hw/rtl/flip_manager/lagd_fifo_v3.sv
                         hw/rtl/lagd_core_reg_pkg.sv
                         hw/rtl/lagd_core_reg/*
+                        sw/tests/*.c
 
     ################
     # Verible Lint #
