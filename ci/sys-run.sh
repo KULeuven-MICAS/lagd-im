@@ -101,6 +101,11 @@ for i in "$@"; do
     esac
 done
 
+PRELOAD_ELF=$(realpath "$PRELOAD_ELF")
+
+# Build SW before simulation
+make -C "${ROOT_DIR}/sw" all
+
 if [ ! -f "$PRELOAD_ELF" ]; then
     echo "Error: Binary file '$PRELOAD_ELF' does not exist."
     exit 1
@@ -116,7 +121,7 @@ echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 
 if [ "${PIXI}" -eq 1 ]; then
-    USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" clean flist
+    USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" flist
 else
     echo "[WARNING] Pixi not found, assuming running on cygni. Skipping flist generation."
     sleep 2

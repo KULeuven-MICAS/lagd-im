@@ -7,14 +7,21 @@
 PROJECT_ROOT := $(shell realpath ../)
 include $(PROJECT_ROOT)/common.mk
 
-CHS_SW_GCC_BINROOT ?= $(PROJECT_ROOT)/.opt/riscv-gnu-toolchain/bin
 CHS_SW_LD_DIR ?= ./link
 
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CHS_SW_PATH := $(CHS_ROOT)/sw
 include $(CHS_ROOT)/cheshire.mk
 
-all: chs-sw-all
+MY_TEST_SRCS = $(wildcard tests/*.spm.c)
+MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
+
+all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
+
+clean:
+	rm -f tests/*.elf tests/*.dump
+
+gen-chs: chs-sw-all
 
 clean-chs:
 	cd $(CHS_SW_PATH)/tests && rm -rf *.dump *.elf *.memh
