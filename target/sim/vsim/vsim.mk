@@ -5,8 +5,8 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
 SIM_DIR ?= $(shell basename $(CURDIR))/..
-RUN_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work/$(s).wlf)
-BUILD_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work/work_$(s))
+RUN_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/work/$(s).wlf)
+BUILD_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/work/work_$(s))
 
 VSIM_BUILD_SCRIPT = $(SIM_DIR)/vsim/build.tcl
 VSIM_SCRIPT = $(SIM_DIR)/vsim/sim-run.tcl
