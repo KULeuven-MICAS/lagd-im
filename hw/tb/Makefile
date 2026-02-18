@@ -91,8 +91,7 @@ WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 HDL_FILES ?=
 DBG ?= 1
 CXX_PATH ?= $(shell which g++)
-# VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
-VOPT_ARGS += -O5 +acc -permissive
+VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} +notimingchecks
 # VSIM_FLAGS += -sv_lib libelfloader
 
