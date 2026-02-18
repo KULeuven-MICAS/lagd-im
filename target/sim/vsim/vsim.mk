@@ -7,6 +7,7 @@
 SIM_DIR ?= $(shell basename $(CURDIR))/..
 RUN_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work/$(s).wlf)
 BUILD_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work/work_$(s))
+RUN_DEPS ?= 
 
 VSIM_BUILD_SCRIPT = $(SIM_DIR)/vsim/build.tcl
 VSIM_SCRIPT = $(SIM_DIR)/vsim/sim-run.tcl
@@ -51,7 +52,7 @@ $(RUN_TARGET): $(BUILD_TARGET) $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES) $(INCLU
 	vsim $(XLEN_FLAG) $(RUN_FLAGS) -do "source $(VSIM_SCRIPT)" \
 	&& mv ./transcript $(WORK_DIR)/transcript.run
 
-vsim-run: $(RUN_TARGET)
+vsim-run: $(RUN_TARGET) $(RUN_DEPS)
 
 vsim-build: $(BUILD_TARGET)
 
