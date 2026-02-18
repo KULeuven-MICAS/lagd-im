@@ -4,6 +4,8 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+# TODO: fix dep graph to avoid re-building RTL everytime
+
 SIM_TOOL := vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
