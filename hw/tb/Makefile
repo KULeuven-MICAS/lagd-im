@@ -13,6 +13,11 @@ PROJECT_ROOT ?= $(abspath $(CURDIR)/../..)
 include $(PROJECT_ROOT)/common.mk
 SIM_DIR := $(PROJECT_ROOT)/target/sim
 
+CHS_ROOT := $(shell $(BENDER) path cheshire)
+include $(CHS_ROOT)/cheshire.mk
+
+deps: chs-sim-all
+
 # ============================================================
 # Flist generation for system verification
 # ============================================================
