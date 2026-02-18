@@ -2,16 +2,26 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-source ./bender_list.tcl
+# Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+
+
 
 set PROJECT_ROOT [exec realpath ../..]
 set HDL_PATH ./
 
-set HDL_FILES [ list \
+if { [info exists ::env(NETLIST_PATH)] && $::env(NETLIST_PATH) ne "" } {
+    puts "INFO tb/hdl_file_list.tcl: NETLIST_PATH is set to $::env(NETLIST_PATH)"
+    set HDL_FILES [ list $::env(NETLIST_PATH) ]
+    set BENDER_SCRIPT ./pkg_bender_list.tcl
+} else {
+    set HDL_FILES [ list ]
+    set BENDER_SCRIPT ./bender_list.tcl
+}
+
+source ${BENDER_SCRIPT}
+
+lappend HDL_FILES {*}[ list \
     ${HDL_PATH}/tb_lagd_chip.sv \
-    ${HDL_PATH}/models/pomelo_pll/pomelo_pll.sv \
-    ${HDL_PATH}/models/galena/galena_pkg.sv \
-    ${HDL_PATH}/models/galena/galena.sv \
 ]
 
 set INCLUDE_DIRS [ list \

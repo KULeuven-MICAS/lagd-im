@@ -33,15 +33,32 @@ SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg=
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CXX_PATH := $(shell which g++)
 
-flist: $(TEST_PATH)/bender_list.tcl
+flist: $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl
 
 $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
 	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
 		-cpppath "$(CXX_PATH)"' >> $@
 
-clean: vsim-clean
-	rm -f $(TEST_PATH)/bender_list.tcl
+TMP_FILE := ./tmp.bender_list.tcl
+.INTERMEDIATE: $(TMP_FILE)
+# Remove non-package files from the bender list to create a package-only list
+$(TMP_FILE): $(TEST_PATH)/bender_list.tcl
+	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci)\.sv" \\$$/' $< > $@
+
+# Clean up the temporary file after generating the package-only list
+$(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
+	awk 'BEGIN {block=""; header=""; printed=0} \
+	NR<=2 {header=header $$0 "\n"; next} \
+	/^if \{/ {block=$$0; next} \
+	{block=block"\n"$$0} \
+	/\}\]\} \{return 1\}/ { \
+		if (block ~ /\.sv"/) { \
+			if (!printed) {printf "%s", header; printed=1} \
+			print block \
+		} \
+		block="" \
+	}' $< > $@
 
 # ===========================================================
 # Make DPI-C shared library
@@ -86,4 +103,8 @@ CHIP_LEVEL_TEST ?= 0
 DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
 DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST) $(TECH_MODELS_DEFINES)
 
+RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
+
+clean: vsim-clean
+	rm -f $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl

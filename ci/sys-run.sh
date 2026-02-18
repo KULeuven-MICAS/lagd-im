@@ -21,6 +21,7 @@ Usage: ./ci/sys-run.sh [[
     --dbg=#dbg_lvl
     --gui
     --use_tech_models
+    --netlist=#netlist_path
     --help]]"
 EOF
     echo "Example: $0"
@@ -36,6 +37,7 @@ show_help()
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --gui: Run simulation in GUI mode"
     echo "  --use_tech_models: Use technology models for the simulation"
+    echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
     echo "  --help: Show this help message"
 }
 
@@ -46,6 +48,7 @@ CHIP_LEVEL_TEST=0
 BOOT_MODE=0
 PRELOAD_MODE=0
 USE_TECH_MODELS=0
+NETLIST_PATH=""
 
 # Check if pixi is installed (if not we are probably on cygni)
 if ! command -v pixi &> /dev/null; then
@@ -92,6 +95,10 @@ for i in "$@"; do
             USE_TECH_MODELS=1
             shift
             ;;
+        --netlist=*)
+            NETLIST_PATH="${i#*=}"
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -101,8 +108,17 @@ for i in "$@"; do
 done
 
 if [ ! -f "$PRELOAD_ELF" ]; then
-    echo "Error: Binary file '$PRELOAD_ELF' does not exist."
+    echo "[ERROR] ./ci/sys-run.sh: Preload ELF file not found at path: ${PRELOAD_ELF}"
     exit 1
+fi
+
+if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
+    NETLIST_PATH=( ${NETLIST_PATH}/*.v )
+    if [ ! -f "$NETLIST_PATH" ]; then
+        echo "[ERROR] ./ci/sys-run.sh: Netlist file not found at path: ${NETLIST_PATH}"
+        exit 1
+    fi
+    echo "[INFO] ./ci/sys-run.sh: Autodetected netlist file(s): ${NETLIST_PATH}"
 fi
 
 echo "Running system test with the following parameters:"
@@ -113,12 +129,18 @@ echo "  PRELOAD_ELF: $PRELOAD_ELF"
 echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
+echo "  NETLIST_PATH: $NETLIST_PATH"
+
+if [ -n "$NETLIST_PATH" ]; then
+    CHIP_LEVEL_TEST=1
+    echo "[INFO] ./ci/sys-run.sh: Enabling chip-level test."
+fi
 
 if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
     USE_TECH_MODELS=1
-    echo "Chip-level test selected, enabling technology models."
+    echo "[INFO] ./ci/sys-run.sh: Enabling technology models."
 fi
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    make run-soc
+    NETLIST_PATH=${NETLIST_PATH} make run-soc
