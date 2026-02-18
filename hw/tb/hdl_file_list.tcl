@@ -4,8 +4,6 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-
-
 set PROJECT_ROOT [exec realpath ../..]
 set HDL_PATH ./
 
