@@ -47,6 +47,7 @@ sources:
   - files:
       - hw/tb/models/galena/galena_pkg.sv
       - hw/tb/models/galena/galena.sv
+      - hw/tb/models/pomelo_pll/pomelo_pll.sv
     target: any(test)
   - files:
       - hw/rtl/lib/lib_counter.sv
