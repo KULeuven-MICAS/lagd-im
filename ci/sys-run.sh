@@ -21,6 +21,7 @@ Usage: ./ci/sys-run.sh [[
     --dbg=#dbg_lvl
     --gui
     --use_tech_models
+    --ci
     --help]]"
 EOF
     echo "Example: $0"
@@ -36,6 +37,7 @@ show_help()
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --gui: Run simulation in GUI mode"
     echo "  --use_tech_models: Use technology models for the simulation"
+    echo "  --ci: Clean hw/tb before regenerating flist (default: off)"
     echo "  --help: Show this help message"
 }
 
@@ -55,6 +57,10 @@ CHIP_LEVEL_TEST=0
 BOOT_MODE=0
 PRELOAD_MODE=0
 USE_TECH_MODELS=0
+CI_MODE=0
+if [ "${CI:-}" = "true" ] || [ "${CI:-}" = "1" ]; then
+    CI_MODE=1  # auto-detect CI environment (GitHub Actions, GitLab CI, etc.)
+fi
 PRELOAD_ELF=${CHS_PATH}/sw/tests/helloworld.spm.elf
 DBG=0
 NO_GUI=1
@@ -93,6 +99,10 @@ for i in "$@"; do
             USE_TECH_MODELS=1
             shift
             ;;
+        --ci)
+            CI_MODE=1
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -121,7 +131,11 @@ echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 
 if [ "${PIXI}" -eq 1 ]; then
-    USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" flist
+    if [ "${CI_MODE}" -eq 1 ]; then
+        USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" clean flist
+    else
+        USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" flist
+    fi
 else
     echo "[WARNING] Pixi not found, assuming running on cygni. Skipping flist generation."
     sleep 2
