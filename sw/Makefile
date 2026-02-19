@@ -21,7 +21,7 @@ all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 clean:
 	rm -f tests/*.elf tests/*.dump
 
-gen-chs: chs-sw-all
+build-chs: chs-sw-all
 
 clean-chs:
 	cd $(CHS_SW_PATH)/tests && rm -rf *.dump *.elf *.memh
