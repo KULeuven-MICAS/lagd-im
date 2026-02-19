@@ -114,7 +114,9 @@ done
 PRELOAD_ELF=$(realpath "$PRELOAD_ELF")
 
 # Build SW before simulation
+echo "[$(date +%T)] Starting SW build..."
 make -C "${ROOT_DIR}/sw" all
+echo "[$(date +%T)] SW build done."
 
 if [ ! -f "$PRELOAD_ELF" ]; then
     echo "Error: Binary file '$PRELOAD_ELF' does not exist."
@@ -131,15 +133,19 @@ echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 
 if [ "${PIXI}" -eq 1 ]; then
+    echo "[$(date +%T)] Starting flist generation..."
     if [ "${CI_MODE}" -eq 1 ]; then
         USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" clean flist
     else
         USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" flist
     fi
+    echo "[$(date +%T)] flist generation done."
 else
     echo "[WARNING] Pixi not found, assuming running on cygni. Skipping flist generation."
     sleep 2
 fi
+echo "[$(date +%T)] Starting simulation..."
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     make -C "${ROOT_DIR}/hw/tb" run
+echo "[$(date +%T)] Simulation done."
