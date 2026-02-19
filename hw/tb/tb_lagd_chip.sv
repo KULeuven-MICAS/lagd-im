@@ -20,6 +20,8 @@
 `define CHIP_LEVEL_TEST 0
 `endif
 
+`include "lagd_test/tb_common.svh"
+
 module tb_lagd_chip ();
 
   localparam int unsigned ChipTest = `CHIP_LEVEL_TEST;
@@ -59,4 +61,12 @@ module tb_lagd_chip ();
     wait (fix.vip.uart_reading_byte == 0);
     $finish;
   end
+
+  //==============================================
+  // Add vcd dumping and debug setup
+  //==============================================
+  if (ChipTest == 1) begin : gen_debug_setup
+    `SETUP_DEBUG(`DBG, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut)
+  end
+
 endmodule
