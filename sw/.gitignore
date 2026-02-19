@@ -1,2 +1,4 @@
 *.dump
 *.elf
+*.o
+tests/data/*.h
