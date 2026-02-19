@@ -119,6 +119,7 @@ if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
         exit 1
     fi
     echo "[INFO] ./ci/sys-run.sh: Autodetected netlist file(s): ${NETLIST_PATH}"
+    NETLIST_PATH=$(realpath ${NETLIST_PATH})
 fi
 
 echo "Running system test with the following parameters:"
