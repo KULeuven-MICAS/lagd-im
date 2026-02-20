@@ -21,7 +21,7 @@ if { [info exists ::env(NETLIST_PATH)] && $::env(NETLIST_PATH) ne "" } {
 source ${BENDER_SCRIPT}
 
 lappend HDL_FILES {*}[ list \
-    ${HDL_PATH}/tb_lagd_chip.sv \
+    ${HDL_PATH}/src/tb_lagd_chip.sv \
 ]
 
 set INCLUDE_DIRS [ list \
