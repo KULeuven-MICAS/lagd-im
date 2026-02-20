@@ -16,6 +16,12 @@ include $(CHS_ROOT)/cheshire.mk
 # Add local sw/include path
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 
+# XOR data verification (off by default; enable with: make XOR_CHECK=1)
+XOR_CHECK ?= 0
+ifeq ($(XOR_CHECK),1)
+CHS_SW_INCLUDES += -DENABLE_XOR_CHECK
+endif
+
 # Extract IC_REGS_BASE_ADDR from lagd_define.svh and expose as linker symbol
 LAGD_IC_REGS_BASE := $(shell grep 'define IC_REGS_BASE_ADDR' \
     $(PROJECT_ROOT)/hw/rtl/include/lagd_define.svh | \
@@ -31,11 +37,15 @@ all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 include/model_1_data.h: tests/data/model_1 tests/data/gen_model_data.py
 	python3 tests/data/gen_model_data.py
 
-# Ensure header is generated before compiling the lagd program
-tests/lagd_scompute.spm.o: include/model_1_data.h
+# Auto-generate flip candidates header from cluster files
+include/model_f_data.h: tests/data/clusters_1 tests/data/clusters_2 tests/data/gen_flip_data.py
+	python3 tests/data/gen_flip_data.py
+
+# Ensure headers are generated before compiling the lagd program
+tests/lagd_scompute.spm.o: include/model_1_data.h include/model_f_data.h
 
 clean:
-	rm -f tests/*.elf tests/*.dump include/model_1_data.h
+	rm -f tests/*.elf tests/*.dump include/model_1_data.h include/model_f_data.h
 
 build-chs: chs-sw-all
 
