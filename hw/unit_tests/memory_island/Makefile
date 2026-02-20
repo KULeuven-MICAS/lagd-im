@@ -23,6 +23,9 @@ else
 endif
 HDL_FILES_LIST ?= $(CURDIR)/tests/memory_island.tcl
 
+DEFINES = TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1
+DEFINES += TSMC_INITIALIZE_MEM_USING_DEFAULT_TASKS=1 TSMC_MEM_LOAD_RANDOM=1
+
 include ../common.mk
 
 # ============================================================

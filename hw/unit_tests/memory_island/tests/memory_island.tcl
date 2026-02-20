@@ -41,6 +41,8 @@ set INCLUDE_DIRS [list \
     [exec {*}$BENDER path register_interface]/include \
 ]
 
+
+set PROJECT_ROOT [exec realpath ../../..]
 if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
     set TECH_SIM_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_sim_flist.tcl
     if { [file exists $TECH_SIM_FLIST] } {
