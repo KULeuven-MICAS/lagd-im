@@ -5,7 +5,7 @@
 source ./bender_list.tcl
 
 # Multi-word command must be stored as a list so exec gets the right argv.
-set BENDER [list pixi run $::env(HOME)/.cargo/bin/bender]
+set BENDER [list $::env(HOME)/.cargo/bin/bender]
 
 set HDL_PATH ../../rtl
 
