@@ -136,6 +136,9 @@ if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
     echo "[INFO] ./ci/sys-run.sh: Enabling technology models."
 fi
 
+# Regenerate the flist
+USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean flist
+
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     NETLIST_PATH=${NETLIST_PATH} make run-soc
