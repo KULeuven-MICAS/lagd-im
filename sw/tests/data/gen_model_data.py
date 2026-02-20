@@ -6,7 +6,7 @@
 #
 # Converts sw/tests/data/model_1 into a C header for bare-metal use.
 #
-# Output: sw/tests/data/model_1_data.h
+# Output: sw/include/model_1_data.h
 #   - model_j_data[4096]    : J coupling matrix, 256x256 J_BITS-bit signed integers
 #                             packed MSB-first into uint64_t, groups in reversed column order
 #   - model_h_data[32]      : h bias vector, 256 H_BITS-bit signed integers,
@@ -18,7 +18,7 @@ import os
 
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
 INPUT_FILE  = os.path.join(SCRIPT_DIR, "model_1")
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "model_1_data.h")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_1_data.h")
 
 # Data layout in model_1:
 #   Line 1        : "# J matrix"
