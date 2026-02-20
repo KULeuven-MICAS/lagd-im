@@ -54,6 +54,8 @@ if bender --version > /dev/null 2>&1; then
     BENDER="bender"
 elif pixi run bender --version > /dev/null 2>&1; then
     BENDER="pixi run bender"
+elif ${HOME}/.cargo/bin/bender --version > /dev/null 2>&1; then
+    BENDER="${HOME}/.cargo/bin/bender"
 else
     echo "[ERROR] ./ci/sys-run.sh: bender command not found. Please ensure bender is installed."
     exit 1
