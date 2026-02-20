@@ -2,3 +2,4 @@
 *.elf
 *.o
 include/*.h
+!include/lagd_params.h
