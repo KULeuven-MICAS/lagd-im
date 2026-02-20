@@ -37,4 +37,10 @@ SECTIONS {
     *(.bulk)
     *(.bulk.*)
   } > l2_spm
+
+  /* J coupling matrix: loaded directly into core 0's l1_j_spm by the ELF loader */
+  .l1j_data : { KEEP(*(.l1j_data)) } > l1_j_spm
+
+  /* Flip candidate vectors: loaded directly into core 0's l1_f_spm by the ELF loader */
+  .l1f_data : { KEEP(*(.l1f_data)) } > l1_f_spm
 }
