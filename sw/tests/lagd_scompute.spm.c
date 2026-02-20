@@ -12,6 +12,7 @@
 #include "printf.h"
 #include "model_1_data.h"
 #include "model_f_data.h"
+#include "lagd_reg_cfg.h"
 
 // Number of Ising cores (matches NUM_ISING_CORES in lagd_config.svh)
 #define NUM_ISING_CORES    1
@@ -91,6 +92,8 @@ int main(void) {
         uint64_t t9 = clint_get_mtime();
         printf("DMA F l1c0->l1c%u   : %llu us\r\n", core, (t9 - t8) * 1000000ULL / rtc_freq);
     }
+
+    lagd_configure_regs();
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);

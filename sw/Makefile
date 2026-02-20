@@ -41,11 +41,15 @@ include/model_1_data.h: tests/data/model_1 tests/data/gen_model_data.py
 include/model_f_data.h: tests/data/clusters_1 tests/data/clusters_2 tests/data/gen_flip_data.py
 	python3 tests/data/gen_flip_data.py
 
+# Auto-generate spin initial/reference header from state files
+include/spin_data.h: tests/data/states_in_1 tests/data/states_in_2 tests/data/gen_spin_data.py
+	python3 tests/data/gen_spin_data.py
+
 # Ensure headers are generated before compiling the lagd program
-tests/lagd_scompute.spm.o: include/model_1_data.h include/model_f_data.h
+tests/lagd_scompute.spm.o: include/model_1_data.h include/model_f_data.h include/spin_data.h
 
 clean:
-	rm -f tests/*.elf tests/*.dump include/model_1_data.h include/model_f_data.h
+	rm -f tests/*.elf tests/*.dump include/model_1_data.h include/model_f_data.h include/spin_data.h
 
 build-chs: chs-sw-all
 
