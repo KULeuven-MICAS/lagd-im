@@ -50,7 +50,16 @@ PRELOAD_MODE=0
 USE_TECH_MODELS=0
 NETLIST_PATH=""
 
-CHS_PATH=$( pixi run bender path cheshire)
+if bender --version > /dev/null 2>&1; then
+    BENDER="bender"
+else if pixi run bender --version > /dev/null 2>&1; then
+    BENDER="pixi run bender"
+else
+    echo "[ERROR] ./ci/sys-run.sh: bender command not found. Please ensure bender is installed."
+    exit 1
+fi
+
+CHS_PATH=$( ${BENDER} path cheshire)
 PRELOAD_ELF=${CHS_PATH}/sw/tests/helloworld.spm.elf
 DBG=0
 NO_GUI=1
