@@ -23,7 +23,7 @@
         { bits: "2",     resval: "1",  name: "en_em",                       desc: "Whether to enable the energy monitor"                   }
         { bits: "3",     resval: "1",  name: "en_fm",                       desc: "Whether to enable the flip manager"                     }
         { bits: "4",     resval: "1",  name: "en_ff",                       desc: "Whether to enable the flip filter"                      }
-        { bits: "5",     resval: "1",  name: "en_ef",                       desc: "Whether to enable the energy monitor fifo"              }
+        { bits: "5",     resval: "0",  name: "en_ef",                       desc: "Whether to enable the energy monitor fifo"              }
         { bits: "6",     resval: "1",  name: "en_analog_loop",              desc: "Whether to include analog in the loop"                  }
         { bits: "7",     resval: "1",  name: "en_comparison",               desc: "Whether to enable energy comparison"                    }
         { bits: "8",     resval: "0",  name: "debug_dt_configure_enable",   desc: "Whether to enable configuration for debug dt module"    }
