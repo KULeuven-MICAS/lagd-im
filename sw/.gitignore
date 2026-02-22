@@ -1,7 +1,5 @@
 *.dump
 *.elf
 *.o
-include/lagd_core_reg.h
-include/model_1_data.h
-include/model_f_data.h
-include/spin_data.h
+include/*.h
+!include/lagd_reg_cfg.h

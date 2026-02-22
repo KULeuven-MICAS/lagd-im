@@ -7,6 +7,8 @@
 PROJECT_ROOT := $(shell realpath ../)
 include $(PROJECT_ROOT)/common.mk
 
+RTL_ROOT := $(PROJECT_ROOT)/hw/rtl
+
 CHS_SW_LD_DIR ?= ./link
 
 CHS_ROOT := $(shell $(BENDER) path cheshire)
@@ -22,16 +24,16 @@ ifeq ($(XOR_CHECK),1)
 CHS_SW_INCLUDES += -DENABLE_XOR_CHECK
 endif
 
-# Extract IC_REGS_BASE_ADDR from lagd_define.svh and expose as linker symbol
-LAGD_IC_REGS_BASE := $(shell grep 'define IC_REGS_BASE_ADDR' \
-    $(PROJECT_ROOT)/hw/rtl/include/lagd_define.svh | \
-    sed -E "s/.*'h([0-9A-Fa-f_]+).*/0x\1/" | tr -d '_')
-CHS_SW_LDFLAGS += -Wl,--defsym=__base_lagd_regs=$(LAGD_IC_REGS_BASE)
-
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 
-all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
+all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS)
+
+# Auto-generate C headers from SVH hardware definitions (single source of truth)
+SVH2H := $(RTL_ROOT)/include/svh2h.py
+
+include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh $(RTL_ROOT)/include/lagd_define.svh $(SVH2H)
+	$(MAKE) -C $(RTL_ROOT)/include
 
 # Auto-generate data header from model file
 include/model_1_data.h: tests/data/model_1 tests/data/gen_model_data.py
@@ -45,11 +47,15 @@ include/model_f_data.h: tests/data/clusters_1 tests/data/clusters_2 tests/data/g
 include/spin_data.h: tests/data/states_in_1 tests/data/states_in_2 tests/data/gen_spin_data.py
 	python3 tests/data/gen_spin_data.py
 
-# Ensure headers are generated before compiling the lagd program
-tests/lagd_scompute.spm.o: include/model_1_data.h include/model_f_data.h include/spin_data.h
+# Ensure headers are generated before compiling tests that use them
+tests/lagd_scompute.spm.o: include/lagd_define.h include/model_1_data.h include/model_f_data.h include/spin_data.h
+tests/lagd_reg.spm.o: include/lagd_define.h
 
 clean:
-	rm -f tests/*.elf tests/*.dump include/model_1_data.h include/model_f_data.h include/spin_data.h
+	rm -f tests/*.elf tests/*.dump \
+	      include/lagd_config.h include/lagd_define.h \
+	      include/model_1_data.h include/model_f_data.h include/spin_data.h \
+	      link/lagd_mem.h link/common.ldh
 
 build-chs: chs-sw-all
 
