@@ -10,7 +10,6 @@ SW_INCLUDE_DIR := $(PROJECT_ROOT)/sw/include
 
 HEADER_OUT_CONFIG := $(SW_INCLUDE_DIR)/lagd_config.h
 HEADER_OUT_DEFINE := $(SW_INCLUDE_DIR)/lagd_define.h
-LINKER_COMMON_LD := $(SW_INCLUDE_DIR)/link/common.ld
 
 all: $(HEADER_OUT_CONFIG) $(HEADER_OUT_DEFINE)
 
