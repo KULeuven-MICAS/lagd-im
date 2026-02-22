@@ -215,6 +215,9 @@ static void lagd_enable_analog_onloading(unsigned core) {
     uint32_t cfg2 = *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
     cfg2 |= (1 << LAGD_CORE_GLOBAL_CFG_2_DT_CFG_ENABLE_BIT);
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
+    // reset the register
+    cfg2 &= ~(1 << LAGD_CORE_GLOBAL_CFG_2_DT_CFG_ENABLE_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
 }
 
 // Check and wait until analog data onloading is done by polling DT_CFG_IDLE bit in output_status register
@@ -250,6 +253,14 @@ static void lagd_enable_computation_multi_cmpt_mode(unsigned core) {
     uint32_t cfg2 = *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
     cfg2 |= (1 << LAGD_CORE_GLOBAL_CFG_2_CMPT_EN_BIT) | (1 << LAGD_CORE_GLOBAL_CFG_2_MULTI_CMPT_MODE_EN_BIT);
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
+}
+
+// Check and wait until the computation starts by polling CMPT_IDLE bit in output_status register
+static void lagd_wait_for_computation_start(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
+                          (uintptr_t)core * IC_NUM_REGS);
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_CMPT_IDLE_BIT)) != 0)
+        ;
 }
 
 // Check and wait until single computation is done by polling CMPT_IDLE bit in output_status register
@@ -335,21 +346,21 @@ static void lagd_check_spin_fifo_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
 
-    uint32_t fifo0[NUM_SPIN / 32], fifo1[NUM_SPIN / 32];
+    uint32_t spin_fifo_data_0[NUM_SPIN / 32], spin_fifo_data_1[NUM_SPIN / 32];
     for (int i = 0; i < NUM_SPIN / 32; i++) {
-        fifo0[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_0_0_REG_OFFSET + 4 * i);
-        fifo1[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_1_0_REG_OFFSET + 4 * i);
+        spin_fifo_data_0[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_0_0_REG_OFFSET + 4 * i);
+        spin_fifo_data_1[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_1_0_REG_OFFSET + 4 * i);
     }
 
     int pass0 = 1, pass1 = 1;
     for (int i = 0; i < NUM_SPIN / 32; i++) {
-        if (fifo0[i] != spin_ref_0[i]) pass0 = 0;
-        if (fifo1[i] != spin_ref_1[i]) pass1 = 0;
+        if (spin_fifo_data_0[i] != spin_ref_0[i]) pass0 = 0;
+        if (spin_fifo_data_1[i] != spin_ref_1[i]) pass1 = 0;
     }
 
     printf("spin_fifo_data_0[%u]: %08x%08x%08x%08x%08x%08x%08x%08x ",
-           core, fifo0[7], fifo0[6], fifo0[5], fifo0[4],
-                 fifo0[3], fifo0[2], fifo0[1], fifo0[0]);
+           core, spin_fifo_data_0[7], spin_fifo_data_0[6], spin_fifo_data_0[5], spin_fifo_data_0[4],
+                 spin_fifo_data_0[3], spin_fifo_data_0[2], spin_fifo_data_0[1], spin_fifo_data_0[0]);
     if (pass0) {
         printf("[PASS]\r\n");
     } else {
@@ -359,8 +370,8 @@ static void lagd_check_spin_fifo_data(unsigned core) {
     }
 
     printf("spin_fifo_data_1[%u]: %08x%08x%08x%08x%08x%08x%08x%08x ",
-           core, fifo1[7], fifo1[6], fifo1[5], fifo1[4],
-                 fifo1[3], fifo1[2], fifo1[1], fifo1[0]);
+           core, spin_fifo_data_1[7], spin_fifo_data_1[6], spin_fifo_data_1[5], spin_fifo_data_1[4],
+                 spin_fifo_data_1[3], spin_fifo_data_1[2], spin_fifo_data_1[1], spin_fifo_data_1[0]);
     if (pass1) {
         printf("[PASS]\r\n");
     } else {
