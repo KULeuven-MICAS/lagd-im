@@ -16,6 +16,7 @@
 #include "printf.h"
 #include "model_1_data.h"
 #include "model_f_data.h"
+#include "lagd_reg_params.h"
 #include "lagd_reg_cfg.h"
 
 int main(void) {
