@@ -42,7 +42,7 @@ def sv_hex_to_int(s):
 def int_to_c_literal(n, force_decimal=False):
     """Format a Python int as a C unsigned hex or decimal literal.
     Use force_decimal=True for values that are naturally decimal (e.g. $clog2
-    results such as bit widths 6, 14, 16 — not meaningful as hex)."""
+    results such as bit widths 6, 14, 16 - not meaningful as hex)."""
     if force_decimal:
         return f"{n}U"
     if n > 0xFFFF:
@@ -142,7 +142,7 @@ def _try_eval(value_str, table):
         ref = m.group(1)
         if ref in table:
             return str(table[ref])
-        return m.group(0)  # unresolved — leave as-is
+        return m.group(0)  # unresolved - leave as-is
 
     substituted = re.sub(r'`(\w+)', sub_ref, value_str)
 
@@ -186,11 +186,11 @@ def transform_value(value_str, table, name):
     # Strip inline comment from value
     value_str = re.sub(r'\s*//.*$', '', value_str).strip()
 
-    # $clog2: prefer resolved integer from symbol table (decimal — it's a bit width)
+    # $clog2: prefer resolved integer from symbol table (decimal - it's a bit width)
     if '$clog2' in value_str:
         if name in table:
             return int_to_c_literal(table[name], force_decimal=True), True
-        # Could not resolve — emit as comment
+        # Could not resolve - emit as comment
         return None, False
 
     # Pure SV hex literal
@@ -222,7 +222,7 @@ def convert(src_path, dst_path):
     out = []
 
     # File header
-    out.append(f"/* Auto-generated from {src_name} — DO NOT EDIT */\n")
+    out.append(f"/* Auto-generated from {src_name} - DO NOT EDIT */\n")
     out.append(f"/* Source: {src_path} */\n")
     out.append("#pragma once\n")
 
@@ -253,7 +253,7 @@ def convert(src_path, dst_path):
             out.append(f'#ifndef {m.group(1)}\n')
             continue
 
-        # `define GUARD (no value — include guard)
+        # `define GUARD (no value - include guard)
         m = re.match(r'^`define\s+(\w+)\s*$', stripped)
         if m:
             out.append(f'#define {m.group(1)}\n')
@@ -271,7 +271,7 @@ def convert(src_path, dst_path):
 
             c_val, was_clog2 = transform_value(raw_value_no_comment, table, name)
             if c_val is None:
-                # Cannot translate — emit as a comment
+                # Cannot translate - emit as a comment
                 out.append(f'/* Cannot translate: `define {name} {raw_value_no_comment} */\n')
             else:
                 if was_clog2:
@@ -308,7 +308,7 @@ def convert(src_path, dst_path):
 
 def int_to_ld_literal(n):
     """Format a Python int for use in GNU ld scripts.
-    No C type suffixes (UL/U) — just plain hex or decimal."""
+    No C type suffixes (UL/U) - just plain hex or decimal."""
     if n > 0xFFFF:
         return f"0x{n:X}"
     elif n > 9:
@@ -340,9 +340,9 @@ def convert_ld(src_path, dst_path):
     guard = os.path.basename(dst_path).upper().replace('.', '_').replace('-', '_')
 
     out = []
-    out.append(f"/* Auto-generated from {src_name} — DO NOT EDIT */\n")
+    out.append(f"/* Auto-generated from {src_name} - DO NOT EDIT */\n")
     out.append(f"/* Source: {src_path} */\n")
-    out.append("/* For linker-script preprocessing only — no C type suffixes. */\n")
+    out.append("/* For linker-script preprocessing only - no C type suffixes. */\n")
     out.append(f"#ifndef {guard}\n")
     out.append(f"#define {guard}\n")
     out.append("\n")
