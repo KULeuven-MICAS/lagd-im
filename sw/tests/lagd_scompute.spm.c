@@ -91,7 +91,7 @@ int main(void) {
     }
 
     printf("=== LAGD Register Configuration ===\r\n");
-    lagd_configure_regs(0);
+    lagd_configure_initial_spins(0);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);

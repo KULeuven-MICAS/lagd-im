@@ -15,7 +15,7 @@
 #include "printf.h"
 
 // Configure initial spin registers for the given core index.
-static void lagd_configure_regs(unsigned core) {
+static void lagd_configure_initial_spins(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
     // Write initial spin set 0
