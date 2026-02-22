@@ -342,7 +342,7 @@ def convert_ld(src_path, dst_path):
     out = []
     out.append(f"/* Auto-generated from {src_name} — DO NOT EDIT */\n")
     out.append(f"/* Source: {src_path} */\n")
-    out.append(f"/* For linker-script preprocessing only — no C type suffixes. */\n")
+    out.append("/* For linker-script preprocessing only — no C type suffixes. */\n")
     out.append(f"#ifndef {guard}\n")
     out.append(f"#define {guard}\n")
     out.append("\n")

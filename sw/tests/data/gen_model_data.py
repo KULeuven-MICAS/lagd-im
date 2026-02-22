@@ -16,8 +16,8 @@
 
 import os
 
-SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE  = os.path.join(SCRIPT_DIR, "model_1")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+INPUT_FILE = os.path.join(SCRIPT_DIR, "model_1")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_1_data.h")
 
 # Data layout in model_1:
@@ -31,25 +31,25 @@ OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_1_data.h")
 #   Line 518      : scaling factor value (SF_BITS-bit positive integer)
 
 # --- Global bitwidth parameters (change here to adapt all derived constants) ---
-J_BITS  = 4   # bit width of each J element
-H_BITS  = 4   # bit width of each h element
+J_BITS = 4   # bit width of each J element
+H_BITS = 4   # bit width of each h element
 SF_BITS = 6   # bit width of scaling factor
 
 # --- Derived constants ---
-J_ROWS          = 256
-J_COLS          = 256
+J_ROWS = 256
+J_COLS = 256
 J_ELEMS_PER_U64 = 64 // J_BITS                  # elements packed per uint64_t word
-U64_PER_ROW     = J_COLS // J_ELEMS_PER_U64     # uint64_t words per J row
-J_LEN           = J_ROWS * U64_PER_ROW          # total uint64_t words for J
+U64_PER_ROW = J_COLS // J_ELEMS_PER_U64     # uint64_t words per J row
+J_LEN = J_ROWS * U64_PER_ROW          # total uint64_t words for J
 
-H_LEN           = 256
+H_LEN = 256
 H_ELEMS_PER_U32 = 32 // H_BITS                  # elements packed per uint32_t word
-H_U32_LEN       = H_LEN // H_ELEMS_PER_U32      # total uint32_t words for h
+H_U32_LEN = H_LEN // H_ELEMS_PER_U32      # total uint32_t words for h
 
-SF_MAX          = (1 << SF_BITS) - 1            # max valid scaling factor value
-H_SIGN_THRESH   = 1 << (H_BITS - 1)             # sign bit threshold for h
-H_NEG_OFFSET    = 1 << H_BITS                   # subtracted to sign-extend h
-H_MASK          = (1 << H_BITS) - 1             # mask to recover H_BITS bit pattern
+SF_MAX = (1 << SF_BITS) - 1            # max valid scaling factor value
+H_SIGN_THRESH = 1 << (H_BITS - 1)             # sign bit threshold for h
+H_NEG_OFFSET = 1 << H_BITS                   # subtracted to sign-extend h
+H_MASK = (1 << H_BITS) - 1             # mask to recover H_BITS bit pattern
 
 with open(INPUT_FILE, 'r') as f:
     lines = f.readlines()
@@ -127,11 +127,13 @@ with open(OUTPUT_FILE, 'w') as f:
     # J matrix
     f.write(f"// J coupling matrix: {J_ROWS}x{J_COLS} {J_BITS}-bit signed integers,\n")
     f.write(f"// packed MSB-first into uint64_t ({J_ELEMS_PER_U64} elements per word),\n")
-    f.write(f"// groups stored in reversed column order\n")
+    f.write("// groups stored in reversed column order\n")
     f.write(f"#define MODEL_J_ROWS {J_ROWS}\n")
     f.write(f"#define MODEL_J_COLS {J_COLS}\n")
-    f.write(f"#define MODEL_J_LEN  {J_LEN}  // {J_ROWS}*{U64_PER_ROW} uint64_t = {J_LEN * 8 // 1024}KB\n")
-    f.write("static const uint64_t model_j_data[MODEL_J_LEN] __attribute__((section(\".l1j_data\"))) = {\n")
+    f.write(f"#define MODEL_J_LEN  {J_LEN}"
+            f"  // {J_ROWS}*{U64_PER_ROW} uint64_t = {J_LEN * 8 // 1024}KB\n")
+    f.write("static const uint64_t model_j_data[MODEL_J_LEN]"
+            " __attribute__((section(\".l1j_data\"))) = {\n")
     for i, v in enumerate(j_u64):
         if i % 8 == 0:
             f.write("    ")
@@ -143,10 +145,13 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write("\n};\n\n")
 
     # h vector
-    f.write(f"// h bias vector: {H_LEN} {H_BITS}-bit signed integers (range {-H_SIGN_THRESH} to {H_SIGN_THRESH - 1}),\n")
-    f.write(f"// packed with first element at LSB into uint32_t ({H_ELEMS_PER_U32} elements per word)\n")
+    f.write(f"// h bias vector: {H_LEN} {H_BITS}-bit signed integers"
+            f" (range {-H_SIGN_THRESH} to {H_SIGN_THRESH - 1}),\n")
+    f.write(f"// packed with first element at LSB into uint32_t"
+            f" ({H_ELEMS_PER_U32} elements per word)\n")
     f.write(f"#define MODEL_H_LEN     {H_LEN}      // total number of h elements\n")
-    f.write(f"#define MODEL_H_U32_LEN {H_U32_LEN:3d}      // number of uint32_t words ({H_LEN}/{H_ELEMS_PER_U32})\n")
+    f.write(f"#define MODEL_H_U32_LEN {H_U32_LEN:3d}"
+            f"      // number of uint32_t words ({H_LEN}/{H_ELEMS_PER_U32})\n")
     f.write("static const uint32_t model_h_data[MODEL_H_U32_LEN] = {\n")
     for i, v in enumerate(h_u32):
         if i % 8 == 0:
@@ -161,7 +166,8 @@ with open(OUTPUT_FILE, 'w') as f:
     # Offset parameters
     f.write("// Offset parameters\n")
     f.write(f"static const double   model_offset         = {offset};\n")
-    f.write(f"// Scaling factor: {SF_BITS}-bit positive integer (range 0-{SF_MAX}), stored as uint8_t\n")
+    f.write(f"// Scaling factor: {SF_BITS}-bit positive integer"
+            f" (range 0-{SF_MAX}), stored as uint8_t\n")
     f.write(f"static const uint8_t  model_scaling_factor = {scaling_factor};\n")
 
     # Checksums

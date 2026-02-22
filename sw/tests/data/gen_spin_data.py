@@ -18,12 +18,12 @@
 
 import os
 
-SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "states_in_1")
 INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "states_in_2")
-OUTPUT_FILE  = os.path.join(SCRIPT_DIR, "..", "..", "include", "spin_data.h")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "spin_data.h")
 
-VEC_BITS      = 256
+VEC_BITS = 256
 WORDS_PER_VEC = VEC_BITS // 32  # 8 x uint32_t per vector
 
 
@@ -36,7 +36,7 @@ def pack_256bit(line, context):
     assert len(line) == VEC_BITS, \
         f"{context}: expected {VEC_BITS} chars, got {len(line)}"
     return [
-        int(line[VEC_BITS - 32 * (k + 1) : VEC_BITS - 32 * k], 2)
+        int(line[VEC_BITS - 32 * (k + 1):VEC_BITS - 32 * k], 2)
         for k in range(WORDS_PER_VEC)
     ]
 
@@ -44,10 +44,10 @@ def pack_256bit(line, context):
 def parse_state_file(path):
     """Return (initial_words, ref_words): first and last non-empty lines packed."""
     with open(path, 'r') as f:
-        lines = [l.strip() for l in f if l.strip()]
+        lines = [line.strip() for line in f if line.strip()]
     assert len(lines) >= 1, f"{path}: file is empty"
     initial = pack_256bit(lines[0],  f"{path} line 1")
-    ref     = pack_256bit(lines[-1], f"{path} last line")
+    ref = pack_256bit(lines[-1], f"{path} last line")
     return initial, ref
 
 

@@ -14,17 +14,17 @@
 
 import os
 
-SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "clusters_1")
 INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "clusters_2")
-OUTPUT_FILE  = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
 
 # --- Constants ---
-NUM_CLUSTERS  = 512          # usable vectors per file (line 1 is skipped)
-VEC_BITS      = 256          # bits per vector
+NUM_CLUSTERS = 512          # usable vectors per file (line 1 is skipped)
+VEC_BITS = 256          # bits per vector
 WORDS_PER_VEC = VEC_BITS // 64   # uint64_t words per vector (= 4)
-TOTAL_VECS    = NUM_CLUSTERS * 2  # interleaved from 2 files (= 1024)
-F_LEN         = TOTAL_VECS * WORDS_PER_VEC  # total uint64_t words (= 4096)
+TOTAL_VECS = NUM_CLUSTERS * 2  # interleaved from 2 files (= 1024)
+F_LEN = TOTAL_VECS * WORDS_PER_VEC  # total uint64_t words (= 4096)
 
 
 def parse_clusters(path):
@@ -73,10 +73,13 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write("#include <stdint.h>\n")
     f.write("\n")
     f.write(f"// Flip candidate vectors: {TOTAL_VECS} x {VEC_BITS}-bit vectors,\n")
-    f.write(f"// interleaved from clusters_1 (even indices) and clusters_2 (odd indices).\n")
-    f.write(f"// Each vector = {WORDS_PER_VEC} x uint64_t; last bit of source line is bit 0 of word[0].\n")
-    f.write(f"#define MODEL_F_VECS {TOTAL_VECS}  // total number of vectors ({NUM_CLUSTERS} per file x 2)\n")
-    f.write(f"#define MODEL_F_LEN  {F_LEN}  // {TOTAL_VECS}*{WORDS_PER_VEC} uint64_t = {F_LEN * 8 // 1024}KB\n")
+    f.write("// interleaved from clusters_1 (even indices) and clusters_2 (odd indices).\n")
+    f.write(f"// Each vector = {WORDS_PER_VEC} x uint64_t;"
+            " last bit of source line is bit 0 of word[0].\n")
+    f.write(f"#define MODEL_F_VECS {TOTAL_VECS}"
+            f"  // total number of vectors ({NUM_CLUSTERS} per file x 2)\n")
+    f.write(f"#define MODEL_F_LEN  {F_LEN}"
+            f"  // {TOTAL_VECS}*{WORDS_PER_VEC} uint64_t = {F_LEN * 8 // 1024}KB\n")
     f.write("static const uint64_t model_f_data[MODEL_F_LEN]"
             " __attribute__((section(\".l1f_data\"))) = {\n")
     for i, v in enumerate(f_u64):
@@ -90,6 +93,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write("\n};\n")
 
 print(f"Generated {OUTPUT_FILE}")
-print(f"  Flip data : {TOTAL_VECS} vectors x {VEC_BITS} bits ({F_LEN} uint64_t = {F_LEN * 8 // 1024} KB)")
+print(f"  Flip data : {TOTAL_VECS} vectors x {VEC_BITS} bits"
+      f" ({F_LEN} uint64_t = {F_LEN * 8 // 1024} KB)")
 print(f"  clusters_1: {NUM_CLUSTERS} vectors")
 print(f"  clusters_2: {NUM_CLUSTERS} vectors")
