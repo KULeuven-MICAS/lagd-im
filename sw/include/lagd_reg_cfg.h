@@ -21,11 +21,13 @@ static void lagd_configure_initial_spins(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
     // Write initial spin set 0
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_CONFIG_SPIN_INITIAL_0_0_REG_OFFSET + 4 * i) = spin_initial_0[i];
+    }
     // Write initial spin set 1
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_CONFIG_SPIN_INITIAL_1_0_REG_OFFSET + 4 * i) = spin_initial_1[i];
+    }
 }
 
 // Configure counter registers
@@ -69,56 +71,63 @@ static void lagd_configure_cmpt_max_num(unsigned core) {
 static void lagd_configure_wwl_vdd_cfg(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_WWL_VDD_CFG_0_REG_OFFSET + 4 * i) = wwl_vdd_cfg[i];
+    }
 }
 
 // Configure wwl_vread_cfg registers
 static void lagd_configure_wwl_vread_cfg(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_WWL_VREAD_CFG_0_REG_OFFSET + 4 * i) = wwl_vread_cfg[i];
+    }
 }
 
 // Configure spin_wwl_strobe registers
 static void lagd_configure_spin_wwl_strobe(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_SPIN_WWL_STROBE_0_REG_OFFSET + 4 * i) = spin_wwl_strobe[i];
+    }
 }
 
 // Configure spin_feedback registers
 static void lagd_configure_spin_feedback(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_SPIN_FEEDBACK_CFG_0_REG_OFFSET + 4 * i) = spin_feedback[i];
+    }
 }
 
 // Configure h_rdata registers
 static void lagd_configure_h_rdata(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN*BIT_H/32; i++)
+    for (int i = 0; i < NUM_SPIN*BIT_H/32; i++) {
         *reg32(base, LAGD_CORE_H_RDATA_0_REG_OFFSET + 4 * i) = model_h_data[i];
+    }
 }
 
 // Configure wbl_floating registers
 static void lagd_configure_wbl_floating(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN*BIT_H/32; i++)
+    for (int i = 0; i < NUM_SPIN*BIT_H/32; i++) {
         *reg32(base, LAGD_CORE_WBL_FLOATING_0_REG_OFFSET + 4 * i) = wbl_floating[i];
+    }
 }
 
 // Configure debug_j_one_hot_wwl registers
 static void lagd_configure_debug_j_one_hot_wwl(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    for (int i = 0; i < NUM_SPIN/32; i++)
+    for (int i = 0; i < NUM_SPIN/32; i++) {
         *reg32(base, LAGD_CORE_DEBUG_J_ONE_HOT_WWL_0_REG_OFFSET + 4 * i) = debug_j_one_hot_wwl[i];
+    }
 }
 
 // Configure global_cfg_1 register
@@ -313,13 +322,11 @@ static void lagd_print_spin_fifo_data(unsigned core) {
 
     // Print MSB-first (word[7]=bits255:224 ... word[0]=bits31:0)
     printf("spin_fifo_data_0[%u]: ", core);
-    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--)
-        printf("%08x", spin_fifo_data_0[i]);
+    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_0[i]);
     printf("\r\n");
 
     printf("spin_fifo_data_1[%u]: ", core);
-    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--)
-        printf("%08x", spin_fifo_data_1[i]);
+    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_1[i]);
     printf("\r\n");
 }
 
