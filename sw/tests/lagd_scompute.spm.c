@@ -5,7 +5,7 @@
 
 // Override NUM_ISING_CORES before including lagd_define.h so the #ifndef guard
 // in lagd_config.h preserves this test-specific value (1 core instead of 2).
-#define NUM_ISING_CORES    1
+#define NUM_ISING_CORES 1
 
 #include "regs/cheshire.h"
 #include "dif/clint.h"
@@ -31,13 +31,13 @@ int main(void) {
     printf("UART init           : %llu us\r\n", (t1 - t0) * 1000000ULL / rtc_freq);
 
     // Print data summary
-    printf("model_j_data addr   : %p\r\n",   (void *)model_j_data);
-    printf("MODEL_J_LEN         : %u\r\n",   (unsigned)MODEL_J_LEN);
-    printf("MODEL_H_U32_LEN     : %u\r\n",   (unsigned)MODEL_H_U32_LEN);
-    printf("model_scaling_factor: %u\r\n",   (unsigned)model_scaling_factor);
-    printf("model_offset        : %f\r\n",   model_offset);
-    printf("model_f_data addr   : %p\r\n",   (void *)model_f_data);
-    printf("MODEL_F_LEN         : %u\r\n",   (unsigned)MODEL_F_LEN);
+    printf("model_j_data addr   : %p\r\n", (void *)model_j_data);
+    printf("MODEL_J_LEN         : %u\r\n", (unsigned)MODEL_J_LEN);
+    printf("MODEL_H_U32_LEN     : %u\r\n", (unsigned)MODEL_H_U32_LEN);
+    printf("model_scaling_factor: %u\r\n", (unsigned)model_scaling_factor);
+    printf("model_offset        : %f\r\n", model_offset);
+    printf("model_f_data addr   : %p\r\n", (void *)model_f_data);
+    printf("MODEL_F_LEN         : %u\r\n", (unsigned)MODEL_F_LEN);
 
 #ifdef ENABLE_XOR_CHECK
     // Compute and verify J matrix XOR checksum
@@ -93,6 +93,23 @@ int main(void) {
 
     printf("=== LAGD Register Configuration ===\r\n");
     lagd_configure_initial_spins(0);
+    lagd_configure_cmpt_max_num(0);
+    lagd_configure_counters(0);
+    lagd_configure_wwl_vdd_cfg(0);
+    lagd_configure_wwl_vread_cfg(0);
+    lagd_configure_spin_wwl_strobe(0);
+    lagd_configure_spin_feedback(0);
+    lagd_configure_h_rdata(0);
+    lagd_configure_wbl_floating(0);
+    lagd_configure_debug_j_one_hot_wwl(0);
+    lagd_configure_global_cfg_1(0);
+    lagd_configure_global_cfg_2(0);
+    // clear config valid
+    lagd_clear_config_valid(0);
+    // start analog onloading
+    lagd_enable_analog_onloading(0);
+    // wait for analog onloading to finish
+    lagd_wait_for_analog_onloading_done(0);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
