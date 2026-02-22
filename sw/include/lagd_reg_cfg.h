@@ -212,7 +212,7 @@ static void lagd_enable_analog_onloading(unsigned core) {
 static void lagd_wait_for_analog_onloading_done(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_DT_CFG_IDLE_BIT)) != 1)
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_DT_CFG_IDLE_BIT)) == 0)
         ;
 }
 
@@ -223,6 +223,15 @@ static void lagd_enable_computation(unsigned core) {
     uint32_t cfg2 = *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
     cfg2 |= (1 << LAGD_CORE_GLOBAL_CFG_2_CMPT_EN_BIT);
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
+}
+
+// Enable EN_EF to start energy monitor fifo after J memory onloading and before computation
+static void lagd_enable_energy_monitor_fifo(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
+                          (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_EN_EF_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
 }
 
 // Enable computation with multi_cmpt_mode
@@ -238,7 +247,7 @@ static void lagd_enable_computation_multi_cmpt_mode(unsigned core) {
 static void lagd_wait_for_computation_done(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_CMPT_IDLE_BIT)) != 1)
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_CMPT_IDLE_BIT)) == 0)
         ;
 }
 
@@ -246,7 +255,7 @@ static void lagd_wait_for_computation_done(unsigned core) {
 static void lagd_wait_for_computation_multi_cmpt_mode_done(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
-    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_MULTI_CMPT_MODE_IDLE_BIT)) != 1)
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) & (1 << LAGD_CORE_OUTPUT_STATUS_MULTI_CMPT_MODE_IDLE_BIT)) == 0)
         ;
 }
 
@@ -255,22 +264,22 @@ static void lagd_print_output_status(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
     uint32_t status = *reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET);
-    printf("Output status for core %u: 0x%08x\n", core, status);
-    printf("  DT_CFG_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DT_CFG_IDLE_BIT) & 0x1);
-    printf("  CMPT_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_CMPT_IDLE_BIT) & 0x1);
-    printf("  ENERGY_FIFO_UPDATE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_ENERGY_FIFO_UPDATE_BIT) & 0x1);
-    printf("  SPIN_FIFO_UPDATE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_SPIN_FIFO_UPDATE_BIT) & 0x1);
-    printf("  DEBUG_J_READ_DATA_VALID: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_J_READ_DATA_VALID_BIT) & 0x1);
-    printf("  DEBUG_ANALOG_DT_W_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT) & 0x1);
-    printf("  DEBUG_ANALOG_DT_R_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_R_IDLE_BIT) & 0x1);
-    printf("  DEBUG_SPIN_W_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_W_IDLE_BIT) & 0x1);
-    printf("  DEBUG_SPIN_R_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_R_IDLE_BIT) & 0x1);
-    printf("  DEBUG_SPIN_CMPT_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_CMPT_IDLE_BIT) & 0x1);
-    printf("  DEBUG_FM_UPSTREAM_HANDSHAKE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_FM_UPSTREAM_HANDSHAKE_BIT) & 0x1);
-    printf("  DEBUG_FM_DOWNSTREAM_HANDSHAKE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_FM_DOWNSTREAM_HANDSHAKE_BIT) & 0x1);
-    printf("  DEBUG_AW_DOWNSTREAM_HANDSHAKE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_AW_DOWNSTREAM_HANDSHAKE_BIT) & 0x1);
-    printf("  DEBUG_EM_UPSTREAM_HANDSHAKE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_EM_UPSTREAM_HANDSHAKE_BIT) & 0x1);
-    printf("  MULTI_CMPT_MODE_IDLE: %u\n", (status >> LAGD_CORE_OUTPUT_STATUS_MULTI_CMPT_MODE_IDLE_BIT) & 0x1);
+    printf("Output status for core %u: 0x%08x\r\n", core, status);
+    printf("  DT_CFG_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DT_CFG_IDLE_BIT) & 0x1);
+    printf("  CMPT_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_CMPT_IDLE_BIT) & 0x1);
+    printf("  ENERGY_FIFO_UPDATE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_ENERGY_FIFO_UPDATE_BIT) & 0x1);
+    printf("  SPIN_FIFO_UPDATE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_SPIN_FIFO_UPDATE_BIT) & 0x1);
+    printf("  DEBUG_J_READ_DATA_VALID: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_J_READ_DATA_VALID_BIT) & 0x1);
+    printf("  DEBUG_ANALOG_DT_W_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT) & 0x1);
+    printf("  DEBUG_ANALOG_DT_R_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_R_IDLE_BIT) & 0x1);
+    printf("  DEBUG_SPIN_W_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_W_IDLE_BIT) & 0x1);
+    printf("  DEBUG_SPIN_R_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_R_IDLE_BIT) & 0x1);
+    printf("  DEBUG_SPIN_CMPT_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_CMPT_IDLE_BIT) & 0x1);
+    printf("  DEBUG_FM_UPSTREAM_HANDSHAKE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_FM_UPSTREAM_HANDSHAKE_BIT) & 0x1);
+    printf("  DEBUG_FM_DOWNSTREAM_HANDSHAKE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_FM_DOWNSTREAM_HANDSHAKE_BIT) & 0x1);
+    printf("  DEBUG_AW_DOWNSTREAM_HANDSHAKE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_AW_DOWNSTREAM_HANDSHAKE_BIT) & 0x1);
+    printf("  DEBUG_EM_UPSTREAM_HANDSHAKE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_EM_UPSTREAM_HANDSHAKE_BIT) & 0x1);
+    printf("  MULTI_CMPT_MODE_IDLE: %u\r\n", (status >> LAGD_CORE_OUTPUT_STATUS_MULTI_CMPT_MODE_IDLE_BIT) & 0x1);
 }
 
 // Read out debug_fm_energy_input register and print the value
@@ -278,7 +287,7 @@ static void lagd_print_debug_fm_energy_input(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
                           (uintptr_t)core * IC_NUM_REGS);
     uint32_t energy_input = *reg32(base, LAGD_CORE_DEBUG_FM_ENERGY_INPUT_REG_OFFSET);
-    printf("Debug FM energy input for core %u: 0x%08x\n", core, energy_input);
+    printf("Debug FM energy input for core %u: 0x%08x\r\n", core, energy_input);
 }
 
 // Read out energy_fifo_data register and print the value
@@ -287,8 +296,8 @@ static void lagd_print_energy_fifo_data(unsigned core) {
                           (uintptr_t)core * IC_NUM_REGS);
     uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
     uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
-    printf("Energy FIFO data 0 for core %u: 0x%08x\n", core, energy_fifo_data_0);
-    printf("Energy FIFO data 1 for core %u: 0x%08x\n", core, energy_fifo_data_1);
+    printf("Energy FIFO data 0 for core %u: 0x%08x\r\n", core, energy_fifo_data_0);
+    printf("Energy FIFO data 1 for core %u: 0x%08x\r\n", core, energy_fifo_data_1);
 }
 
 // Read out spin_fifo_data register and print the value
