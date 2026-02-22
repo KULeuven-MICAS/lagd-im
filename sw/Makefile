@@ -27,7 +27,7 @@ endif
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 
-all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS)
+all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 
 # Auto-generate C headers from SVH hardware definitions (single source of truth)
 SVH2H := $(RTL_ROOT)/include/svh2h.py
