@@ -6,8 +6,6 @@
 // Test write-then-read of all LAGD Ising core registers.
 // For each core, writes 0xA5A5A5A5 to every register offset (0x000..0x344),
 // reads back, and prints [PASS] or [MISMATCH] per register.
-// RO/hw-driven registers (OUTPUT_STATUS, CMPT_IDX, CYCLE_*, FIFO_DATA, etc.)
-// will naturally show [MISMATCH] — this is expected.
 
 #include "regs/cheshire.h"
 #include "dif/clint.h"
@@ -15,15 +13,8 @@
 #include "params.h"
 #include "util.h"
 #include "printf.h"
+#include "lagd_define.h"
 #include "lagd_core_reg.h"
-
-// Matches IC_REGS_BASE_ADDR from lagd_define.svh (set as linker --defsym)
-extern volatile uint64_t __base_lagd_regs;
-
-// Matches IC_NUM_REGS from lagd_define.svh
-#define LAGD_IC_REG_STRIDE  0x1000U  // 4 KB per core
-// Matches NUM_ISING_CORES from lagd_config.svh
-#define NUM_ISING_CORES      2
 
 #define TEST_PATTERN  0xA5A5A5A5U
 
@@ -41,8 +32,8 @@ int main(void) {
     int total = 0, mismatches = 0;
 
     for (int core = 0; core < NUM_ISING_CORES; core++) {
-        void *base = (void *)((uintptr_t)&__base_lagd_regs +
-                              (uintptr_t)core * LAGD_IC_REG_STRIDE);
+        void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
+                              (uintptr_t)core * IC_NUM_REGS);
         printf("--- Core %d (base 0x%08x) ---\r\n", core, (unsigned)(uintptr_t)base);
 
         // Write phase: write TEST_PATTERN to every register offset
@@ -65,8 +56,8 @@ int main(void) {
 
     // Clean up: reset all registers to 0 so cores remain idle
     for (int core = 0; core < NUM_ISING_CORES; core++) {
-        void *base = (void *)((uintptr_t)&__base_lagd_regs +
-                              (uintptr_t)core * LAGD_IC_REG_STRIDE);
+        void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
+                              (uintptr_t)core * IC_NUM_REGS);
         for (uint32_t off = 0; off <= LAGD_CORE_J_MEM_REN_RADDR_REG_OFFSET; off += 4)
             *reg32(base, off) = 0;
     }

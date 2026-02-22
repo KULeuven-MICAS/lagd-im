@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 
+// Override NUM_ISING_CORES before including lagd_define.h so the #ifndef guard
+// in lagd_config.h preserves this test-specific value (1 core instead of 2).
+#define NUM_ISING_CORES    1
+
 #include "regs/cheshire.h"
 #include "dif/clint.h"
 #include "dif/uart.h"
@@ -13,13 +17,6 @@
 #include "model_1_data.h"
 #include "model_f_data.h"
 #include "lagd_reg_cfg.h"
-
-// Number of Ising cores (matches NUM_ISING_CORES in lagd_config.svh)
-#define NUM_ISING_CORES    1
-// Ising core memory address map (matches lagd_define.svh)
-#define IC_MEM_BASE_ADDR   0x90000000ULL  // IC_MEM_BASE_ADDR
-#define IC_FLIP_BASE_ADDR  0x90008000ULL  // IC_J_MEM_END_ADDR  (flip SPM offset within core = 32KB)
-#define IC_L1_MEM_LIMIT    0x00100000ULL  // IC_L1_MEM_LIMIT    (1MB stride per core)
 
 int main(void) {
     // UART init
@@ -83,17 +80,18 @@ int main(void) {
 
     // Core 0's l1_f_spm is pre-loaded by the ELF loader (no DMA needed).
     // DMA flip data from core 0's l1_f_spm to each remaining core's l1_f_spm.
-    uint64_t f_dma_src  = IC_FLIP_BASE_ADDR;
+    uint64_t f_dma_src  = IC_J_MEM_END_ADDR;
     uint64_t f_dma_size = MODEL_F_LEN * sizeof(uint64_t);
     for (unsigned core = 1; core < NUM_ISING_CORES; core++) {
-        uint64_t f_dma_dst = IC_FLIP_BASE_ADDR + (uint64_t)core * IC_L1_MEM_LIMIT;
+        uint64_t f_dma_dst = IC_J_MEM_END_ADDR + (uint64_t)core * IC_L1_MEM_LIMIT;
         uint64_t t8 = clint_get_mtime();
         sys_dma_blk_memcpy(f_dma_dst, f_dma_src, f_dma_size, DMA_CONF_DECOUPLE_ALL);
         uint64_t t9 = clint_get_mtime();
         printf("DMA F l1c0->l1c%u   : %llu us\r\n", core, (t9 - t8) * 1000000ULL / rtc_freq);
     }
 
-    lagd_configure_regs();
+    printf("=== LAGD Register Configuration ===\r\n");
+    lagd_configure_regs(0);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
