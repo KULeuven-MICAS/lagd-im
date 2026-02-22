@@ -3,3 +3,4 @@
 *.o
 include/*.h
 !include/lagd_reg_cfg.h
+!include/lagd_reg_params.h
