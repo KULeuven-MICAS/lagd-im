@@ -91,6 +91,7 @@ int main(void) {
         printf("DMA F l1c0->l1c%u   : %llu us\r\n", core, (t9 - t8) * 1000000ULL / rtc_freq);
     }
 
+    uint64_t t10 = clint_get_mtime();
     printf("=== LAGD Register Configuration ===\r\n");
     lagd_configure_initial_spins(0);
     lagd_configure_cmpt_max_num(0);
@@ -106,10 +107,30 @@ int main(void) {
     lagd_configure_global_cfg_2(0);
     // clear config valid
     lagd_clear_config_valid(0);
+    uint64_t t11 = clint_get_mtime();
+    printf("LAGD reg config: %llu us\r\n", (t11 - t10) * 1000000ULL / rtc_freq);
+    printf("=== LAGD Analog Onloading ===\r\n");
     // start analog onloading
     lagd_enable_analog_onloading(0);
     // wait for analog onloading to finish
     lagd_wait_for_analog_onloading_done(0);
+    uint64_t t12 = clint_get_mtime();
+    printf("LAGD analog onloading: %llu us\r\n", (t12 - t11) * 1000000ULL / rtc_freq);
+    printf("=== LAGD Computation Start ===\r\n");
+    // start computation
+    lagd_enable_energy_monitor_fifo(0);
+    lagd_enable_computation(0);
+    printf("=== LAGD Waiting for Computation to Finish ===\r\n");
+    // wait for computation to finish
+    lagd_wait_for_computation_done(0);
+    uint64_t t13 = clint_get_mtime();
+    printf("LAGD computation time: %llu us\r\n", (t13 - t12) * 1000000ULL / rtc_freq);
+    // print output
+    lagd_print_output_status(0);
+    lagd_print_debug_fm_energy_input(0);
+    lagd_print_spin_fifo_data(0);
+    // checks
+    lagd_check_spin_fifo_data(0);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
