@@ -43,8 +43,7 @@ int main(void) {
     // Compute and verify J matrix XOR checksum
     uint64_t t2 = clint_get_mtime();
     uint64_t j_xor = 0;
-    for (unsigned i = 0; i < MODEL_J_LEN; i++)
-        j_xor ^= model_j_data[i];
+    for (unsigned i = 0; i < MODEL_J_LEN; i++) j_xor ^= model_j_data[i];
     uint64_t t3 = clint_get_mtime();
     printf("J XOR checksum      : 0x%016llx ", (unsigned long long)j_xor);
     if (j_xor == MODEL_J_XOR_CHECKSUM)
@@ -56,8 +55,7 @@ int main(void) {
     // Compute and verify h vector XOR checksum
     uint64_t t4 = clint_get_mtime();
     uint32_t h_xor = 0;
-    for (unsigned i = 0; i < MODEL_H_U32_LEN; i++)
-        h_xor ^= model_h_data[i];
+    for (unsigned i = 0; i < MODEL_H_U32_LEN; i++) h_xor ^= model_h_data[i];
     uint64_t t5 = clint_get_mtime();
     printf("H XOR checksum      : 0x%08x ", h_xor);
     if (h_xor == MODEL_H_XOR_CHECKSUM)
@@ -69,7 +67,7 @@ int main(void) {
 
     // Core 0's l1_j_spm is pre-loaded by the ELF loader (no DMA needed).
     // DMA J matrix from core 0's l1_j_spm to each remaining core's l1_j_spm.
-    uint64_t j_dma_src  = IC_MEM_BASE_ADDR;
+    uint64_t j_dma_src = IC_MEM_BASE_ADDR;
     uint64_t j_dma_size = MODEL_J_LEN * sizeof(uint64_t);
     for (unsigned core = 1; core < NUM_ISING_CORES; core++) {
         uint64_t j_dma_dst = IC_MEM_BASE_ADDR + (uint64_t)core * IC_L1_MEM_LIMIT;
@@ -81,7 +79,7 @@ int main(void) {
 
     // Core 0's l1_f_spm is pre-loaded by the ELF loader (no DMA needed).
     // DMA flip data from core 0's l1_f_spm to each remaining core's l1_f_spm.
-    uint64_t f_dma_src  = IC_J_MEM_END_ADDR;
+    uint64_t f_dma_src = IC_J_MEM_END_ADDR;
     uint64_t f_dma_size = MODEL_F_LEN * sizeof(uint64_t);
     for (unsigned core = 1; core < NUM_ISING_CORES; core++) {
         uint64_t f_dma_dst = IC_J_MEM_END_ADDR + (uint64_t)core * IC_L1_MEM_LIMIT;
@@ -121,13 +119,15 @@ int main(void) {
     lagd_enable_energy_monitor_fifo(0);
     lagd_enable_computation(0);
     printf("=== LAGD Waiting for Computation to Finish ===\r\n");
+    // wait for computation to start
+    lagd_wait_for_computation_start(0);
     // wait for computation to finish
     lagd_wait_for_computation_done(0);
     uint64_t t13 = clint_get_mtime();
     printf("LAGD computation time: %llu us\r\n", (t13 - t12) * 1000000ULL / rtc_freq);
     // print output
     lagd_print_output_status(0);
-    lagd_print_debug_fm_energy_input(0);
+    lagd_print_energy_fifo_data(0);
     lagd_print_spin_fifo_data(0);
     // checks
     lagd_check_spin_fifo_data(0);
