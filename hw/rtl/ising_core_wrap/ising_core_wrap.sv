@@ -518,7 +518,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wbl_o                           (wbl_in_analog                    ),
         .wblb_o                          (wblb_in_analog                   ),
         .wbl_read_i                      (debug_wbl_in                     ),
-        .wblb_read_i                     (                                 ),
+        .wblb_read_i                     ('0                               ),
         .wbl_floating_o                  (wbl_floating_in_analog           ),
         .wwl_vdd_o                       (wwl_vdd_analog                   ),
         .wwl_vread_o                     (wwl_vread_analog                 ),
