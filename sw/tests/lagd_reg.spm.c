@@ -16,7 +16,7 @@
 #include "lagd_define.h"
 #include "lagd_core_reg.h"
 
-#define TEST_PATTERN  0xA5A5A5A5U
+#define TEST_PATTERN 0xA5A5A5A5U
 
 int main(void) {
     // UART init
@@ -32,8 +32,7 @@ int main(void) {
     int total = 0, mismatches = 0;
 
     for (int core = 0; core < NUM_ISING_CORES; core++) {
-        void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
-                              (uintptr_t)core * IC_NUM_REGS);
+        void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
         printf("--- Core %d (base 0x%08x) ---\r\n", core, (unsigned)(uintptr_t)base);
 
         // Write phase: write TEST_PATTERN to every register offset
@@ -47,8 +46,7 @@ int main(void) {
             if (val == TEST_PATTERN)
                 printf("  [0x%03x] 0x%08x [PASS]\r\n", off, val);
             else {
-                printf("  [0x%03x] 0x%08x [MISMATCH] expected 0x%08x\r\n",
-                       off, val, TEST_PATTERN);
+                printf("  [0x%03x] 0x%08x [MISMATCH] expected 0x%08x\r\n", off, val, TEST_PATTERN);
                 mismatches++;
             }
         }
@@ -56,14 +54,12 @@ int main(void) {
 
     // Clean up: reset all registers to 0 so cores remain idle
     for (int core = 0; core < NUM_ISING_CORES; core++) {
-        void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR +
-                              (uintptr_t)core * IC_NUM_REGS);
+        void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
         for (uint32_t off = 0; off <= LAGD_CORE_J_MEM_REN_RADDR_REG_OFFSET; off += 4)
             *reg32(base, off) = 0;
     }
 
-    printf("=== DONE: %d/%d PASS, %d MISMATCH ===\r\n",
-           total - mismatches, total, mismatches);
+    printf("=== DONE: %d/%d PASS, %d MISMATCH ===\r\n", total - mismatches, total, mismatches);
     uart_write_flush(&__base_uart);
     return mismatches;
 }
