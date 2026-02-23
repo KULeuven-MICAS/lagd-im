@@ -313,6 +313,8 @@ module memory_island_core import memory_island_pkg::*; #(
             .read_ready_i(1'b1),
             .read_ready_o()
         );
+        // Fixing q_ready
+        assign bank_rsp_q1[i].q_ready = bank_req_q1[i].q_valid;
     end
 
     // ------------
