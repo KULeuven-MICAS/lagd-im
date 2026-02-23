@@ -133,7 +133,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write(f"#define MODEL_J_LEN  {J_LEN}"
             f"  // {J_ROWS}*{U64_PER_ROW} uint64_t = {J_LEN * 8 // 1024}KB\n")
     f.write("static const uint64_t model_j_data[MODEL_J_LEN]"
-            " __attribute__((section(\".l1j_data\"))) = {\n")
+            " __attribute__((used, section(\".l1j_data\"))) = {\n")
     for i, v in enumerate(j_u64):
         if i % 8 == 0:
             f.write("    ")

@@ -81,7 +81,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write(f"#define MODEL_F_LEN  {F_LEN}"
             f"  // {TOTAL_VECS}*{WORDS_PER_VEC} uint64_t = {F_LEN * 8 // 1024}KB\n")
     f.write("static const uint64_t model_f_data[MODEL_F_LEN]"
-            " __attribute__((section(\".l1f_data\"))) = {\n")
+            " __attribute__((used, section(\".l1f_data\"))) = {\n")
     for i, v in enumerate(f_u64):
         if i % 8 == 0:
             f.write("    ")
