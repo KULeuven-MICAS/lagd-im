@@ -40,6 +40,7 @@ sources:
     target: all(synthesis)
   - files:
       - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
+      - target/syn/tech/tsmc7ff/rtl/ut/memory_island/memory_island_tle.sv
     target: any(synthesis, test)
   - files:
       - hw/rtl/analog_macro_wrap/synchronizer.sv
