@@ -127,16 +127,6 @@ if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
     NETLIST_PATH=$(realpath ${NETLIST_PATH})
 fi
 
-echo "Running system test with the following parameters:"
-echo "  CHIP_LEVEL_TEST: $CHIP_LEVEL_TEST"
-echo "  BOOT_MODE: $BOOT_MODE"
-echo "  PRELOAD_MODE: $PRELOAD_MODE"
-echo "  PRELOAD_ELF: $PRELOAD_ELF"
-echo "  DBG: $DBG"
-echo "  NO_GUI: $NO_GUI"
-echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
-echo "  NETLIST_PATH: $NETLIST_PATH"
-
 if [ -n "$NETLIST_PATH" ]; then
     CHIP_LEVEL_TEST=1
     echo "[INFO] ./ci/sys-run.sh: Enabling chip-level test."
@@ -147,8 +137,18 @@ if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
     echo "[INFO] ./ci/sys-run.sh: Enabling technology models."
 fi
 
-# Regenerate the flist
-USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean flist
+echo "Running system test with the following parameters:"
+echo "  CHIP_LEVEL_TEST: $CHIP_LEVEL_TEST"
+echo "  BOOT_MODE: $BOOT_MODE"
+echo "  PRELOAD_MODE: $PRELOAD_MODE"
+echo "  PRELOAD_ELF: $PRELOAD_ELF"
+echo "  DBG: $DBG"
+echo "  NO_GUI: $NO_GUI"
+echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
+echo "  NETLIST_PATH: $NETLIST_PATH"
+
+# Force clean
+USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
