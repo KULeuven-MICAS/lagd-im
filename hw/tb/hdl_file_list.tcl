@@ -40,7 +40,7 @@ if { [info exists ::env(USE_TECH_MODELS)] && $::env(USE_TECH_MODELS) == "1" } {
 }
 
 if { [info exists ::env(CHIP_LEVEL_TEST)] && $::env(CHIP_LEVEL_TEST) == "1" \
-    && $SKIP_TECH_FLIST == 0} {
+    && $SKIP_TECH_FLIST == 0 } {
     set TECH_FLIST ${PROJECT_ROOT}/target/syn/tech/tsmc7ff/lagd_tech_flist.tcl
     if { [file exists $TECH_FLIST] } {
         source $TECH_FLIST
