@@ -72,20 +72,20 @@
 #define ICON_LAST_RADDR_PLUS_ONE 0x0400 // max: 0x0400 (1024)
 
 // wwl_vdd_cfg values
-static const uint32_t wwl_vdd_cfg[8] = {0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
-                                        0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U};
+static const uint32_t wwl_vdd_cfg[8] = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+                                        0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
 
 // wwl_vread_cfg values
 static const uint32_t wwl_vread_cfg[8] = {0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
                                           0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U};
 
 // spin_wwl_strobe values
-static const uint32_t spin_wwl_strobe[8] = {0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
-                                            0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U};
+static const uint32_t spin_wwl_strobe[8] = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+                                            0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
 
 // spin_feedback values
-static const uint32_t spin_feedback[8] = {0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
-                                          0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U};
+static const uint32_t spin_feedback[8] = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
+                                          0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
 
 // wbl_floating values
 static const uint32_t wbl_floating[32] = {
