@@ -39,10 +39,6 @@ sources:
       - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
     target: all(synthesis)
   - files:
-      - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
-      - target/syn/tech/tsmc7ff/rtl/ut/memory_island/memory_island_tle.sv
-    target: any(synthesis, test)
-  - files:
       - hw/rtl/analog_macro_wrap/synchronizer.sv
     target: all(not(mixed_signal_exclude_generic_synchronizer))
   - files:
@@ -102,6 +98,10 @@ sources:
   - files:
       - hw/tb/src/fixture_lagd_chip.sv
     target: any(simulation, test)
+  - files:
+      - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
+      - target/syn/tech/tsmc7ff/rtl/ut/memory_island/memory_island_tle.sv
+    target: any(synthesis, test)
 
 #  - target: any(simulation, test)
 #    files:
