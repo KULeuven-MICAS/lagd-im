@@ -170,66 +170,35 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    // Note: only narrow AXI type is valid (no other interfaces used)
-    lagd_axi_wide_slv_req_t axi_wide_slv_req_dummy;
-    assign axi_wide_slv_req_dummy = '0;
-    lagd_mem_narr_req_t mem_narr_req_dummy;
-    assign mem_narr_req_dummy = '0;
-    memory_island_wrap #(
+    memory_island_wrap_top #(
         .Cfg(lagd_mem_cfg_pkg::CVA6StackMemCfg),
         .axi_narrow_req_t (lagd_axi_slv_req_t),
         .axi_narrow_rsp_t (lagd_axi_slv_rsp_t),
-        .axi_wide_req_t (lagd_axi_wide_slv_req_t),
-        .axi_wide_rsp_t (lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t (lagd_mem_narr_req_t),
-        .mem_narrow_rsp_t (lagd_mem_narr_rsp_t),
-        .mem_wide_req_t (lagd_mem_f_req_t),
-        .mem_wide_rsp_t (lagd_mem_f_rsp_t)
+        .mem_narrow_rsp_t (lagd_mem_narr_rsp_t)
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
         .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.STACK_MEM]),
-        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM]),
-        .axi_wide_req_i(axi_wide_slv_req_dummy),
-        .axi_wide_rsp_o(),
-        .mem_narrow_req_i(mem_narr_req_dummy),
-        .mem_narrow_rsp_o(),
-        .mem_wide_req_i('0),
-        .mem_wide_rsp_o()
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM])
     );
 
     //////////////////////////////////////////////////////////
     // L2 SPM  ///////////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    lagd_axi_wide_slv_req_t axi_wide_slv_req_dummy_l2;
-    assign axi_wide_slv_req_dummy_l2 = '0;
-    lagd_mem_narr_req_t mem_narr_req_dummy_l2;
-    assign mem_narr_req_dummy_l2 = '0;
-    lagd_mem_f_req_t mem_f_req_dummy_l2;
-    assign mem_f_req_dummy_l2 = '0;
-    memory_island_wrap #(
+    memory_island_wrap_top #(
         .Cfg(lagd_mem_cfg_pkg::L2MemCfg),
         .axi_narrow_req_t(lagd_axi_slv_req_t),
         .axi_narrow_rsp_t(lagd_axi_slv_rsp_t),
-        .axi_wide_req_t(lagd_axi_wide_slv_req_t),
-        .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t(lagd_mem_narr_req_t),
-        .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
-        .mem_wide_req_t(lagd_mem_f_req_t),
-        .mem_wide_rsp_t(lagd_mem_f_rsp_t)
+        .mem_narrow_rsp_t(lagd_mem_narr_rsp_t)
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
         .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.L2_MEM]),
-        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM]),
-        .axi_wide_req_i(axi_wide_slv_req_dummy_l2),
-        .axi_wide_rsp_o(),
-        .mem_narrow_req_i(mem_narr_req_dummy_l2),
-        .mem_narrow_rsp_o(),
-        .mem_wide_req_i(mem_f_req_dummy_l2),
-        .mem_wide_rsp_o()
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM])
     );
 
     //////////////////////////////////////////////////////////
