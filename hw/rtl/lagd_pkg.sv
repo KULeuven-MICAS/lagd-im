@@ -67,9 +67,11 @@ package lagd_pkg;
         // Ising cores
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + 2*i);
-            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (2*i)*`IC_L1_MEM_LIMIT);
+            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + i * `IC_L1_MEM_SIZE_B);
             idx = $unsigned(Idx.ISING_CORES_BASE + 2*i + 1);
-            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (2*i + 1)*`IC_L1_MEM_LIMIT);
+            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + i * `IC_L1_MEM_SIZE_B + `L1_J_MEM_SIZE_B);
+
+            $display("Core %0d: start address = 0x%0h", i, addr_map[idx]);
         end
         return addr_map;
     endfunction : gen_lagd_slv_start_addr
@@ -77,7 +79,6 @@ package lagd_pkg;
     function automatic lagd_slv_addr_map_t gen_lagd_slv_end_addr(lagd_slv_idx_e Idx);
         lagd_slv_addr_map_t addr_map;
         int unsigned idx;
-        localparam int unsigned ISING_END_ADDR_OFFSET = $unsigned(`IC_MEM_BASE_ADDR + `IC_L1_MEM_SIZE_B);
 
         // L2 memory
         addr_map[Idx.L2_MEM] = $unsigned(`L2_MEM_BASE_ADDR + `L2_MEM_SIZE_B - 1);
@@ -86,9 +87,9 @@ package lagd_pkg;
         // Ising cores
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             idx = $unsigned(Idx.ISING_CORES_BASE + 2*i);
-            addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (2*i+1)*`IC_L1_MEM_LIMIT - 1);
+            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + i * `IC_L1_MEM_SIZE_B + `L1_J_MEM_SIZE_B - 1);
             idx = $unsigned(Idx.ISING_CORES_BASE + 2*i + 1);
-            addr_map[idx] = $unsigned(ISING_END_ADDR_OFFSET + (2*i+2)*`IC_L1_MEM_LIMIT - 1);
+            addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + (i+1) * `IC_L1_MEM_SIZE_B - 1);
         end
         return addr_map;
     endfunction : gen_lagd_slv_end_addr
@@ -223,9 +224,7 @@ package lagd_pkg;
     // Check that the number of cores can be encoded in the Reg Slave ID width
     `PACKAGE_ASSERT(cheshire_pkg::MaxExtRegSlvWidth >= $clog2(`NUM_ISING_CORES))
     // Check that the memory per core is not larger than the maximum allowed
-    `PACKAGE_ASSERT(`L1_J_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
-    `PACKAGE_ASSERT(`L1_FLIP_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
-
+    `PACKAGE_ASSERT(`IC_L1_MEM_SIZE_B <= `IC_L1_MEM_LIMIT)
 
 endpackage : lagd_pkg
 
