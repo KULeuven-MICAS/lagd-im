@@ -44,7 +44,7 @@ TMP_FILE := ./tmp.bender_list.tcl
 .INTERMEDIATE: $(TMP_FILE)
 # Remove non-package files from the bender list to create a package-only list
 $(TMP_FILE): $(TEST_PATH)/bender_list.tcl
-	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc)\.sv" \\$$/' $< > $@
+	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc|jtag_test|\/serial_link|serial_link_data_link|fifo_v3|\/stream_fifo|serial_link_network|intf|clk_rst_gen|axi_id_serialize|stream_register|axi_mux|axi_demux|axi_sim_mem|axi_serializer|serial_link_physical|reg_cdc|serial_link_single_channel_reg_top|axi_demux_simple|spill_register|axi_id_prepend|rr_arb_tree|prim_subreg_ext|prim_subreg|cdc_2phase|spill_register_flushable|\/counter|prim_subreg_arb|lzc|delta_counter|cdc_fifo_gray|binary_to_gray|gray_to_binary|\/sync)\.sv" \\$$/' $< > $@
 
 # Clean up the temporary file after generating the package-only list
 $(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
@@ -59,6 +59,8 @@ $(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
 		} \
 		block="" \
 	}' $< > $@
+	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
+		-cpppath "$(CXX_PATH)"' >> $@
 
 # ===========================================================
 # Make DPI-C shared library
