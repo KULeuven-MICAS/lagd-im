@@ -9,11 +9,11 @@
 `timescale 1ns / 1ps
 
 `ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 "../../unit_tests/digital_macro/data/states_out_1"
+`define STATE_OUT_FILE_1 "/users/micas/jsun/sunjc/codes/aria_project/tapeout/lagd-im/sw/tests/data/states_out_1"
 `endif
 
 `ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 "../../unit_tests/digital_macro/data/states_out_2"
+`define STATE_OUT_FILE_2 "/users/micas/jsun/sunjc/codes/aria_project/tapeout/lagd-im/sw/tests/data/states_out_2"
 `endif
 
 import galena_pkg::*;
