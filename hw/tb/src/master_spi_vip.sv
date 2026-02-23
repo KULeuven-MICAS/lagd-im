@@ -10,14 +10,12 @@
 `define SEEK_CUR 1
 `define SEEK_END 2
 
-module master_spi_vip #(
-
-) (
+module master_spi_vip (
   output logic spi_sck_o,
   output logic spi_csb_o,
   inout tri [3:0] spi_sd_io  // Bidirectional SPI data lines
 );
-
+  localparam SPITCK = 10ns;  // SPI clock period (100 MHz)
   // Generate logic to connect to the SPI device.
   // Generate SPI Clock.
   logic spis_sck_i;
@@ -26,6 +24,9 @@ module master_spi_vip #(
   logic [3:0] spis_sd_i;  // Input data from SPI lines
   logic [3:0] spis_sd_o;  // Output data to SPI lines
   logic spis_drive_enable;  // Control to drive spis_sd_io
+  assign spi_sck_o = spis_sck_i;
+  assign spi_csb_o = spis_csb_i;
+  assign spi_sd_io = spis_sd_io;
 
   task automatic spi_init();
     reg [7:0] cmd;  // SPI command code
@@ -304,13 +305,13 @@ module master_spi_vip #(
   assign spis_sd_io = spis_drive_enable ? spis_sd_i : 4'bz; 
   assign spis_sd_o = spis_sd_io;
 
-  initial begin
-    wait(lock == 1'b1);
-    #1us;
-    spi_init();
-    #100ns;
-    // Switch the clocks on
-    spi_write_u32(32'h0000001f, 32'h0B000000);
-    #100ns;
-  end
+  // initial begin
+  //   wait(lock == 1'b1);
+  //   #1us;
+  //   spi_init();
+  //   #100ns;
+  //   // Switch the clocks on
+  //   spi_write_u32(32'h0000001f, 32'h0B000000);
+  //   #100ns;
+  // end
 endmodule

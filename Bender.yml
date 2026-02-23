@@ -98,6 +98,7 @@ sources:
     target: all(test, tech_cells_generic_exclude_tc_sram)
   # yamllint enable rule:line-length
   - files:
+      - hw/tb/src/master_spi_vip.sv
       - hw/tb/src/fixture_lagd_chip.sv
     target: any(simulation, test)
   - files:

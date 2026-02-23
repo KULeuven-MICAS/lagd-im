@@ -23,6 +23,9 @@ module fixture_lagd_chip #(
   logic jtag_tdo_oe;
   logic uart_tx;
   logic uart_rx;
+  tri [3:0] spi_sd_io;
+  logic spi_sck;
+  logic spi_cs;
 
   
   //==============================================
@@ -46,12 +49,12 @@ module fixture_lagd_chip #(
     wire pad_uart_rx_i; assign pad_uart_rx_i = uart_rx;
     wire pad_uart_rts_no;
     wire pad_uart_cts_ni; assign pad_uart_cts_ni = 1'b1;
-    wire pad_spi_sck_i; assign pad_spi_sck_i = 1'b0;
-    wire pad_spi_cs_i; assign pad_spi_cs_i = 1'b0;
-    wire pad_spi_sd_0_io; assign pad_spi_sd_0_io = 1'bz;
-    wire pad_spi_sd_1_io; assign pad_spi_sd_1_io = 1'bz;
-    wire pad_spi_sd_2_io; assign pad_spi_sd_2_io = 1'bz;
-    wire pad_spi_sd_3_io; assign pad_spi_sd_3_io = 1'bz;
+    wire pad_spi_sck_i; assign pad_spi_sck_i = spi_sck;
+    wire pad_spi_cs_i; assign pad_spi_cs_i = spi_cs;
+    wire pad_spi_sd_0_io; assign pad_spi_sd_0_io = spi_sd_io[0];
+    wire pad_spi_sd_1_io; assign pad_spi_sd_1_io = spi_sd_io[1];
+    wire pad_spi_sd_2_io; assign pad_spi_sd_2_io = spi_sd_io[2];
+    wire pad_spi_sd_3_io; assign pad_spi_sd_3_io = spi_sd_io[3];
     wire pad_clk_sel_i; assign pad_clk_sel_i = 1'b1;
     wire pad_pll_strb_i; assign pad_pll_strb_i = 1'b0;
     wire pad_pll_data_i; assign pad_pll_data_i = 1'b0;
@@ -98,11 +101,17 @@ module fixture_lagd_chip #(
     logic uart_dsr_ni; assign uart_dsr_ni = 1'b1;
     logic uart_dcd_ni; assign uart_dcd_ni = 1'b1;
     logic uart_rin_ni; assign uart_rin_ni = 1'b1;
+    
     logic spi_sck_i;
     logic spi_cs_i;
     logic [3:0] spi_oen_o;
-    logic [3:0] spi_sdi_i; assign spi_sdi_i = 4'b0;
+    logic [3:0] spi_sdi_i;
     logic [3:0] spi_sdo_o;
+    for (genvar i = 0; i < 4; i++) begin
+      assign spi_sd_io[i] = spi_oen_o[i] ? spi_sdo_o[i] : 1'bz;
+      assign spi_sdi_i[i] = spi_sd_io[i];
+    end
+
     logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_i; assign slink_rcv_clk_i = 1'b0;
     logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_o;
     logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_i; assign slink_i = 1'b0;
@@ -163,6 +172,10 @@ module fixture_lagd_chip #(
     .slink_o('0)
   );
 
-  // TODO: Add here Master SPI
+  master_spi_vip spi_vip (
+    .spi_sck_o(spi_sck),
+    .spi_csb_o(spi_cs),
+    .spi_sd_io(spi_sd_io)
+  );
 
 endmodule : fixture_lagd_chip
