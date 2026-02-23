@@ -32,8 +32,8 @@
 #define GCFG1_DEBUG_SPIN_READ_EN 0
 #define GCFG1_WWL_VDD_CFG_256 1
 #define GCFG1_WWL_VREAD_CFG_256 0
-#define GCFG1_CONFIG_COUNTER 0xFF // max: 0xFF (255)
-#define GCFG1_SYNCHRONIZER_WBL_PIPE_NUM 0x3  // max: 0x3 (3)
+#define GCFG1_CONFIG_COUNTER 0xFF           // max: 0xFF (255)
+#define GCFG1_SYNCHRONIZER_WBL_PIPE_NUM 0x3 // max: 0x3 (3)
 
 // Global configuration signals 2
 #define GCFG2_CMPT_EN 0
@@ -56,59 +56,45 @@
 #define CMPT_MAX_NUM 0xFFFFFFFF // max: 0xFFFFFFFF
 
 // Registers for counter configuration 1
-#define CFG_TRANS_NUM 0x0040 // max: 0xFFFF
+#define CFG_TRANS_NUM 0x0040      // max: 0xFFFF
 #define CYCLE_PER_WWL_HIGH 0x0005 // max: 0xFFFF
 
 // Registers for counter configuration 2
-#define CYCLE_PER_WWL_LOW 0x0005 // max: 0xFFFF
+#define CYCLE_PER_WWL_LOW 0x0005    // max: 0xFFFF
 #define CYCLE_PER_SPIN_WRITE 0x0005 // max: 0xFFFF
 
 // Registers for counter configuration 3
-#define CYCLE_PER_SPIN_COMPUTE 0x0005 // max: 0xFFFF
+#define CYCLE_PER_SPIN_COMPUTE 0x0005    // max: 0xFFFF
 #define DEBUG_CYCLE_PER_SPIN_READ 0x0005 // max: 0xFFFF
 
 // Registers for counter configuration 4
-#define DEBUG_SPIN_READ_NUM 0x0005 // max: 0xFFFF
+#define DEBUG_SPIN_READ_NUM 0x0005      // max: 0xFFFF
 #define ICON_LAST_RADDR_PLUS_ONE 0x0400 // max: 0x0400 (1024)
 
 // wwl_vdd_cfg values
-static const uint32_t wwl_vdd_cfg[8]     = {
-    0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
-    0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U
-};
+static const uint32_t wwl_vdd_cfg[8] = {0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
+                                        0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U};
 
 // wwl_vread_cfg values
-static const uint32_t wwl_vread_cfg[8]   = {
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U
-};
+static const uint32_t wwl_vread_cfg[8] = {0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
+                                          0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U};
 
 // spin_wwl_strobe values
-static const uint32_t spin_wwl_strobe[8] = {
-    0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
-    0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U
-};
+static const uint32_t spin_wwl_strobe[8] = {0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
+                                            0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U};
 
 // spin_feedback values
-static const uint32_t spin_feedback[8]   = {
-    0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
-    0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U
-};
+static const uint32_t spin_feedback[8] = {0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U,
+                                          0x11111111U, 0x11111111U, 0x11111111U, 0x11111111U};
 
 // wbl_floating values
-static const uint32_t wbl_floating[32]   = {
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U
-};
+static const uint32_t wbl_floating[32] = {
+    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
+    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
+    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
+    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
+    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U};
 
 // debug_j_one_hot_wwl values
-static const uint32_t debug_j_one_hot_wwl[8] = {
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-    0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U
-};
+static const uint32_t debug_j_one_hot_wwl[8] = {0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
+                                                0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U};
