@@ -44,7 +44,7 @@ TMP_FILE := ./tmp.bender_list.tcl
 .INTERMEDIATE: $(TMP_FILE)
 # Remove non-package files from the bender list to create a package-only list
 $(TMP_FILE): $(TEST_PATH)/bender_list.tcl
-	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci)\.sv" \\$$/' $< > $@
+	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc)\.sv" \\$$/' $< > $@
 
 # Clean up the temporary file after generating the package-only list
 $(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
