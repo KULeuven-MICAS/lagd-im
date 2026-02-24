@@ -183,7 +183,7 @@ package lagd_pkg;
         cfg.SpiHost = 0;
         cfg.Gpio = 0;
         cfg.Dma = 1;
-        cfg.SerialLink = 1;
+        cfg.SerialLink = 0;
         cfg.Vga = 0;
         cfg.Usb = 0;
         cfg.AxiRt = 0;
