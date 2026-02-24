@@ -63,7 +63,7 @@ module memory_island_wrap_ic import memory_island_pkg::*; #(
     // =============================================================================================
     // Memory island core
     // =============================================================================================
-    memory_island_core #(
+    memory_island_core_ic #(
         .mem_narrow_req_t(mem_narrow_req_t),
         .mem_narrow_rsp_t(mem_narrow_rsp_t),
         .mem_wide_req_t(mem_wide_req_t),
