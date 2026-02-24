@@ -252,7 +252,7 @@ module fixture_lagd_chip #(
   assign spis_sd_o = spis_sd_io;
   `include "lagd_test/spi_test_lib.sv"
   initial begin
-    #1us;
+    #10ns;
     spi_init();
     #100ns;
     // Switch the clocks on

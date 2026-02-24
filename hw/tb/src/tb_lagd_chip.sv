@@ -53,6 +53,7 @@ module tb_lagd_chip ();
         //  fix.spi_vip.spi_init();
         //  fix.spi_vip.spi_write_u32(32'h0000001f, 32'h8000_0000);
         //  fix.spi_vip.spi_read(32'h00000004, 32'h8000_0000);
+          repeat (1000) @(posedge fix.vip.clk);  // Wait for some time to let the SPI transaction complete
         end default: begin
           $fatal(1, "Unsupported preload mode %d (reserved)!", preload_mode);
         end
