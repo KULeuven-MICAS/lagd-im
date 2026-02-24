@@ -50,9 +50,9 @@ module tb_lagd_chip ();
         end 1: begin  // UART
           fix.vip.uart_debug_elf_run_and_wait(preload_elf, exit_code);
         end 2: begin  // SPI
-          fix.spi_vip.spi_init();
-          fix.spi_vip.spi_write_u32(32'h0000001f, 32'h8000_0000);
-          fix.spi_vip.spi_read(32'h00000004, 32'h8000_0000);
+        //  fix.spi_vip.spi_init();
+        //  fix.spi_vip.spi_write_u32(32'h0000001f, 32'h8000_0000);
+        //  fix.spi_vip.spi_read(32'h00000004, 32'h8000_0000);
         end default: begin
           $fatal(1, "Unsupported preload mode %d (reserved)!", preload_mode);
         end
