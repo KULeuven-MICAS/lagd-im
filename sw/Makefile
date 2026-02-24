@@ -54,8 +54,7 @@ tests/lagd_reg.spm.o: include/lagd_define.h
 clean:
 	rm -f tests/*.elf tests/*.dump \
 	      include/lagd_config.h include/lagd_define.h \
-	      include/model_1_data.h include/model_f_data.h include/spin_data.h \
-	      link/lagd_mem.h link/common.ldh
+	      include/model_1_data.h include/model_f_data.h include/spin_data.h
 
 build-chs: chs-sw-all
 
