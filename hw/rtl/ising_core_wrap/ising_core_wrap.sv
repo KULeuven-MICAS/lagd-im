@@ -172,12 +172,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // L1 memory, with narrow and direct access //////////////
     //////////////////////////////////////////////////////////
     // L1 memory instances
-    memory_island_wrap #(
+    memory_island_wrap_ic #(
         .Cfg                   (l1_mem_cfg_j           ),
         .axi_narrow_req_t      (axi_narrow_req_t       ),
         .axi_narrow_rsp_t      (axi_narrow_rsp_t       ),
-        .axi_wide_req_t        (axi_wide_req_t         ),
-        .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
         .mem_wide_req_t        (mem_j_req_t            ),
@@ -187,20 +185,14 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .rst_ni                 (rst_ni                ),
         .axi_narrow_req_i       (axi_s_req_j_i         ),
         .axi_narrow_rsp_o       (axi_s_rsp_j_o         ),
-        .axi_wide_req_i         ('0                    ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       ('0                    ),
-        .mem_narrow_rsp_o       (                      ),
         .mem_wide_req_i         (drt_s_req_j           ),
         .mem_wide_rsp_o         (drt_s_rsp_j           )
     );
 
-    memory_island_wrap #(
+    memory_island_wrap_ic #(
         .Cfg                   (l1_mem_cfg_flip        ),
         .axi_narrow_req_t      (axi_narrow_req_t       ),
         .axi_narrow_rsp_t      (axi_narrow_rsp_t       ),
-        .axi_wide_req_t        (axi_wide_req_t         ),
-        .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
         .mem_wide_req_t        (mem_f_req_t            ),
@@ -210,10 +202,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .rst_ni                 (rst_ni                ),
         .axi_narrow_req_i       (axi_s_req_f_i         ),
         .axi_narrow_rsp_o       (axi_s_rsp_f_o         ),
-        .axi_wide_req_i         ('0                    ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       ('0                    ),
-        .mem_narrow_rsp_o       (                      ),
         .mem_wide_req_i         (drt_s_req_flip        ),
         .mem_wide_rsp_o         (drt_s_rsp_flip        )
     );

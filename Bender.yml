@@ -60,6 +60,7 @@ sources:
       - hw/rtl/memory_island/memory_island_wrap.sv
       - hw/rtl/memory_island_top/memory_island_core_top.sv
       - hw/rtl/memory_island_top/memory_island_wrap_top.sv
+      - hw/rtl/memory_island_ic/memory_island_wrap_ic.sv
       - hw/rtl/lagd_pkg.sv
       - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
