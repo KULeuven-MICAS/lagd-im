@@ -169,8 +169,6 @@ module tb_ising_core_wrap;
         .l1_mem_cfg_j      (lagd_mem_cfg_pkg::IsingCoreL1MemCfgJ    ),
         .l1_mem_cfg_flip   (lagd_mem_cfg_pkg::IsingCoreL1MemCfgFlip ),
         .logic_cfg         (ising_logic_pkg::IsingLogicCfg          ),
-        .axi_slv_req_t     (lagd_axi_slv_req_t                      ),
-        .axi_slv_rsp_t     (lagd_axi_slv_rsp_t                      ),
         .axi_narrow_req_t  (lagd_axi_slv_req_t                      ),
         .axi_narrow_rsp_t  (lagd_axi_slv_rsp_t                      ),
         .axi_wide_req_t    (lagd_axi_wide_slv_req_t                 ),
@@ -181,11 +179,6 @@ module tb_ising_core_wrap;
         .mem_j_rsp_t       (lagd_mem_j_rsp_t                        ),
         .mem_f_req_t       (lagd_mem_f_req_t                        ),
         .mem_f_rsp_t       (lagd_mem_f_rsp_t                        ),
-        .axi_slv_aw_chan_t (lagd_axi_slv_aw_chan_t                  ),
-        .axi_slv_w_chan_t  (lagd_axi_slv_w_chan_t                   ),
-        .axi_slv_b_chan_t  (lagd_axi_slv_b_chan_t                   ),
-        .axi_slv_ar_chan_t (lagd_axi_slv_ar_chan_t                  ),
-        .axi_slv_r_chan_t  (lagd_axi_slv_r_chan_t                   ),
         .reg_req_t         (lagd_reg_req_t                          ),
         .reg_rsp_t         (lagd_reg_rsp_t                          )
     ) dut (
@@ -213,10 +206,12 @@ module tb_ising_core_wrap;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
+            // #(35_000 * CLKCYCLE); // Let the simulation run for a while to capture initial behavior
             $dumpfile(`VCD_FILE);
-            $dumpvars(2, tb_ising_core_wrap); // Dump all variables in testbench module
+            // $dumpvars(2, tb_ising_core_wrap); // Dump all variables in testbench module
+            $dumpvars(2, tb_ising_core_wrap.dut.u_digital_macro); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(10_000 * CLKCYCLE); // To avoid generating huge VCD files
+            #(1000_000_000 * CLKCYCLE); // To avoid generating huge VCD files
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -492,12 +487,13 @@ module tb_ising_core_wrap;
             for (int j = 0; j < `NUM_SPIN / `LAGD_AXI_DATA_WIDTH; j++) begin
                 axi_write_addr = (i*(`NUM_SPIN/`LAGD_AXI_DATA_WIDTH) + j)*8; // byte address
                 axi_write_data = flip_icon[i][j*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
-                @ (posedge clk_i);
+                #1;
                 axi_ext_slv_req_1 = axi_write_slv(axi_write_addr, axi_write_data);
                 wait(axi_ext_slv_rsp_1.b_valid);
                 axi_ext_slv_req_1.b_ready = 1'b1;
                 if (axi_ext_slv_rsp_1.b.resp != 2'b00) // Check for OKAY response
                     $error("Write failed with response: %0d", axi_ext_slv_rsp_1.b.resp);
+                @ (posedge clk_i);
             end
         end
         axi_ext_slv_req_1 = 'd0; // Deassert after use
