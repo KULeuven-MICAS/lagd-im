@@ -172,10 +172,13 @@ module fixture_lagd_chip #(
     .slink_o('0)
   );
 
+  logic [3:0] spi_sd_i_ext, spi_sd_o_ext;
   master_spi_vip spi_vip (
     .spi_sck_o(spi_sck),
     .spi_csb_o(spi_cs),
-    .spi_sd_io(spi_sd_io)
+    .spi_sd_io(spi_sd_io),
+    .spi_sd_i_ext(spi_sd_i_ext),
+    .spi_sd_o_ext(spi_sd_o_ext)
   );
 
 endmodule : fixture_lagd_chip

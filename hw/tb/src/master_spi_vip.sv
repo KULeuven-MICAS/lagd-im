@@ -13,7 +13,9 @@
 module master_spi_vip (
   output logic spi_sck_o,
   output logic spi_csb_o,
-  inout tri [3:0] spi_sd_io  // Bidirectional SPI data lines
+  inout tri [3:0] spi_sd_io,
+  input logic [3:0] spi_sd_i_ext,
+  output logic [3:0] spi_sd_o_ext
 );
   localparam SPITCK = 10ns;  // SPI clock period (100 MHz)
   // Generate logic to connect to the SPI device.
@@ -24,9 +26,13 @@ module master_spi_vip (
   logic [3:0] spis_sd_i;  // Input data from SPI lines
   logic [3:0] spis_sd_o;  // Output data to SPI lines
   logic spis_drive_enable;  // Control to drive spis_sd_io
+
+  // Assign bidirectional behavior to spis_sd_io
+  assign spis_sd_io = spis_drive_enable ? spis_sd_i : 4'bz; 
+  assign spis_sd_o = spis_sd_io;
   assign spi_sck_o = spis_sck_i;
   assign spi_csb_o = spis_csb_i;
-  assign spi_sd_io = spis_sd_io;
+  assign spi_sd_o_ext = spis_sd_i;
 
   task automatic spi_init();
     reg [7:0] cmd;  // SPI command code
@@ -301,9 +307,7 @@ module master_spi_vip (
       spis_sck_i = ~spis_sck_i;
     end
   end
-  // Assign bidirectional behavior to spis_sd_io
-  assign spis_sd_io = spis_drive_enable ? spis_sd_i : 4'bz; 
-  assign spis_sd_o = spis_sd_io;
+
 
   // initial begin
   //   wait(lock == 1'b1);
