@@ -89,10 +89,10 @@ module fixture_lagd_chip #(
     wire pad_uart_cts_ni; assign pad_uart_cts_ni = 1'b1;
     wire pad_spi_sck_i; assign pad_spi_sck_i = spis_sck_i;
     wire pad_spi_cs_i; assign pad_spi_cs_i = spis_csb_i;
-    wire pad_spi_sd_0_io; assign pad_spi_sd_0_io = spis_sd_io[0];
-    wire pad_spi_sd_1_io; assign pad_spi_sd_1_io = spis_sd_io[1];
-    wire pad_spi_sd_2_io; assign pad_spi_sd_2_io = spis_sd_io[2];
-    wire pad_spi_sd_3_io; assign pad_spi_sd_3_io = spis_sd_io[3];
+    tri pad_spi_sd_0_io; assign pad_spi_sd_0_io = spis_sd_io[0]; assign spis_sd_o[0] = pad_spi_sd_0_io;
+    tri pad_spi_sd_1_io; assign pad_spi_sd_1_io = spis_sd_io[1]; assign spis_sd_o[1] = pad_spi_sd_1_io;
+    tri pad_spi_sd_2_io; assign pad_spi_sd_2_io = spis_sd_io[2]; assign spis_sd_o[2] = pad_spi_sd_2_io;
+    tri pad_spi_sd_3_io; assign pad_spi_sd_3_io = spis_sd_io[3]; assign spis_sd_o[3] = pad_spi_sd_3_io;
     wire pad_clk_sel_i; assign pad_clk_sel_i = 1'b1;
     wire pad_pll_strb_i; assign pad_pll_strb_i = 1'b0;
     wire pad_pll_data_i; assign pad_pll_data_i = 1'b0;
@@ -140,10 +140,6 @@ module fixture_lagd_chip #(
     logic uart_dcd_ni; assign uart_dcd_ni = 1'b1;
     logic uart_rin_ni; assign uart_rin_ni = 1'b1;
     
-    logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_i; assign slink_rcv_clk_i = 1'b0;
-    logic [lagd_pkg::SlinkNumChan-1:0] slink_rcv_clk_o;
-    logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_i; assign slink_i = 1'b0;
-    logic [lagd_pkg::SlinkNumChan-1:0][lagd_pkg::SlinkNumLanes-1:0] slink_o;
     wire [`NUM_ISING_CORES-1:0] galena_j_iref_i;
     wire [`NUM_ISING_CORES-1:0] galena_j_vup_i;
     wire [`NUM_ISING_CORES-1:0] galena_j_vdn_i;
@@ -177,10 +173,6 @@ module fixture_lagd_chip #(
       .spi_oen_o(spi_oen_o),
       .spi_sdi_i(spi_sdi_i),
       .spi_sdo_o(spi_sdo_o),
-      .slink_rcv_clk_i(slink_rcv_clk_i),
-      .slink_rcv_clk_o(slink_rcv_clk_o),
-      .slink_i(slink_i),
-      .slink_o(slink_o),
       .galena_j_iref_i(galena_j_iref_i),
       .galena_j_vup_i(galena_j_vup_i),
       .galena_j_vdn_i(galena_j_vdn_i),
@@ -189,6 +181,7 @@ module fixture_lagd_chip #(
       .galena_h_vdn_i(galena_h_vdn_i),
       .galena_vread_i(galena_vread_i)
     );
+  assign spis_sd_o = spis_sd_io;
   end
   endgenerate
 
@@ -249,7 +242,6 @@ module fixture_lagd_chip #(
   end
   // Assign bidirectional behavior to spis_sd_io
   assign spis_sd_io = spis_drive_enable ? spis_sd_i : 4'bz; 
-  assign spis_sd_o = spis_sd_io;
   `include "lagd_test/spi_test_lib.sv"
   initial begin
     #10ns;
@@ -265,16 +257,18 @@ module fixture_lagd_chip #(
   assign spi_csb_i = spis_csb_i;
   // For multi-bit SPI IO
   generate
-    for ( genvar i = 0; i < 4; i = i + 1) begin: gen_pad_spis_io
-      tc_digital_io i_pad_spis_io (
-        .data_i(spi_sdo_o[i]), // Data from core to pad
-        .data_o(spi_sdi_i[i]),
-        .io_direction_oe_ni(spi_oen_o[i]),
-        .io_driving_strength_i(4'b0),
-        .io_pullup_en_i(1'b0),
-        .io_pulldown_en_i(1'b0),
-        .io(spis_sd_io[i])
-      );
+    if (ChipTest == 0) begin : gen_pad_spis_io
+      for ( genvar i = 0; i < 4; i = i + 1) begin: i_pad_spis_io_gen
+        tc_digital_io i_pad_spis_io (
+          .data_i(spi_sdo_o[i]), // Data from core to pad
+          .data_o(spi_sdi_i[i]),
+          .io_direction_oe_ni(spi_oen_o[i]),
+          .io_driving_strength_i(4'b0),
+          .io_pullup_en_i(1'b0),
+          .io_pulldown_en_i(1'b0),
+          .io(spis_sd_io[i])
+        );
+      end
     end
   endgenerate  
 
