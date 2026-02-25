@@ -87,9 +87,9 @@ for i in range(H_LEN):
 assert len(h_vals) == H_LEN
 
 h_u32 = []
-for i in range(0, H_LEN, H_ELEMS_PER_U32):
+for i in range(H_LEN-H_ELEMS_PER_U32, -1, -H_ELEMS_PER_U32):
     word = 0
-    for v in reversed(h_vals[i:i + H_ELEMS_PER_U32]):
+    for v in (h_vals[i:i + H_ELEMS_PER_U32]):
         word = (word << H_BITS) | (v & H_MASK)   # mask recovers original bit pattern
     h_u32.append(word)
 
