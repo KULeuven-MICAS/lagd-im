@@ -124,6 +124,9 @@ if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
         exit 1
     fi
     echo "[INFO] ./ci/sys-run.sh: Autodetected netlist file(s): ${NETLIST_PATH}"
+fi
+
+if [ -n "$NETLIST_PATH" ]; then
     NETLIST_PATH=$(realpath ${NETLIST_PATH})
 fi
 
