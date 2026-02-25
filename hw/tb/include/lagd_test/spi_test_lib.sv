@@ -1,3 +1,10 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Authors: 
+//  Fanchen Kong <fanchen.kong@kuleuven.be>
+
 `define SEEK_SET 0
 `define SEEK_CUR 1
 `define SEEK_END 2

@@ -89,7 +89,12 @@ libelfloader: $(DPI_LIB)
 TEST_PATH ?= $(CURDIR)
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 SIM_NAME ?= lagd_chip
-WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
+RUN_ID ?= 
+ifneq ($(RUN_ID),)
+	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)-$(RUN_ID)
+else
+	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
+endif
 HDL_FILES ?=
 DBG ?= 1
 CXX_PATH ?= $(shell which g++)

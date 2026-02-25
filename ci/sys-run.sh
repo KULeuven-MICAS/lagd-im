@@ -38,6 +38,7 @@ show_help()
     echo "  --gui: Run simulation in GUI mode"
     echo "  --use_tech_models: Use technology models for the simulation"
     echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
+    echo "  --RUN_ID=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
     echo "  --help: Show this help message"
 }
 
@@ -49,6 +50,7 @@ BOOT_MODE=0
 PRELOAD_MODE=0
 USE_TECH_MODELS=0
 NETLIST_PATH=""
+RUN_ID="1"
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -104,6 +106,10 @@ for i in "$@"; do
             NETLIST_PATH="${i#*=}"
             shift
             ;;
+        --RUN_ID=*)
+            RUN_ID="${i#*=}"
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -149,10 +155,11 @@ echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 echo "  NETLIST_PATH: $NETLIST_PATH"
+echo "  RUN_ID: $RUN_ID"
 
 # Force clean
 USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    NETLIST_PATH=${NETLIST_PATH} make run-soc
+    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} make run-soc
