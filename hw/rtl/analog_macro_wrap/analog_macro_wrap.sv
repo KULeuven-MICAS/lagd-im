@@ -185,7 +185,7 @@ module analog_macro_wrap #(
 
     assign analog_macro_cmpt_finish = debug_spin_read_addr_busy ? debug_spin_sync_en : analog_macro_cmpt_finish_rx_out;
 
-    `FFL(wbl_floating_reg, wbl_floating_i, (en_i & debug_dt_configure_enable_i), 'b0, clk_i, rst_ni)
+    `FFL(wbl_floating_reg, wbl_floating_i, (en_i & debug_dt_configure_enable_i), {NUM_SPIN*BITDATA{1'b1}}, clk_i, rst_ni)
     `FFLARNC(debug_spin_read_addr_busy, 1'b1, debug_spin_read_en_posedge, debug_syn_num_cnt_overflow, 1'b0, clk_i, rst_ni)
 
     // regular control logic
