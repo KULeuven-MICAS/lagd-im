@@ -262,8 +262,7 @@ package data_read_pkg;
 
     // Function to output energies to files
     function automatic void output_energies_to_file(
-        input logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_values,
-        input int constant
+        input logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_values
     );
         int energy_file;
         string file_name_with_depth;
@@ -281,11 +280,11 @@ package data_read_pkg;
             for (int j = 0; j <= IconLastAddrPlusOne; j = j + 1) begin
                 if (j == 0) begin
                     updating_idx = - 1;
-                    $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]));
+                    $fwrite(energy_file, "%h\n", $signed(energy_values[j][i]));
                 end
                 if (updating_idx == i)
                     begin
-                        $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]) + constant);
+                        $fwrite(energy_file, "%h\n", $signed(energy_values[j][i])); // without offset (model.constant)
                     end
                 updating_idx = (updating_idx + 1) % SPIN_DEPTH;
             end

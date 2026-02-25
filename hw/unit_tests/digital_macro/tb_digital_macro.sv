@@ -524,7 +524,7 @@ module tb_digital_macro;
         if (`DataFromFile == `True) begin
             $display("[Time: %t] Reference energy and spin fifo loaded from file.", $time);
             // output energies and states to files
-            output_energies_to_file(energy_fifo_ref, model_data.constant);
+            output_energies_to_file(energy_fifo_ref);
             output_spins_to_file(spin_fifo_ref);
             $display("[Time: %t] Reference energy and spin fifo output to files.", $time);
         end else begin
