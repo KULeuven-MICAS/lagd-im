@@ -7,6 +7,8 @@ source ./bender_list.tcl
 set PROJECT_ROOT ../../..
 set HDL_PATH ../../rtl
 
+set BENDER ~/.cargo/bin/bender
+
 set HDL_FILES [ list \
     "./tb_ising_core_wrap.sv" \
     "${HDL_PATH}/lagd_mem_cfg_pkg.sv" \
@@ -24,8 +26,8 @@ set HDL_FILES [ list \
     "${HDL_PATH}/memory_island/tcdm_interconnect_wrap.sv" \
     "${HDL_PATH}/memory_island/wide_narrow_arbiter.sv" \
     "${HDL_PATH}/memory_island/wide_to_narrow_splitter.sv" \
-    "[exec bender path common_cells]/src/onehot_to_bin.sv" \
-    "[exec bender path common_cells]/src/popcount.sv" \
+    "[exec ${BENDER} path common_cells]/src/onehot_to_bin.sv" \
+    "[exec ${BENDER} path common_cells]/src/popcount.sv" \
     "${HDL_PATH}/digital_macro/digital_macro.sv" \
     "${HDL_PATH}/digital_macro/config_spin_ctrl.sv" \
     "${HDL_PATH}/digital_macro/mem_to_handshake_fifo.sv" \
@@ -55,11 +57,11 @@ set HDL_FILES [ list \
 ]
 
 set INCLUDE_DIRS [list \
-    "[exec bender path common_cells]/include" \
-    "[exec bender path axi]/include" \
-    "[exec bender path common_verification]/include" \
-    "[exec bender path register_interface]/include" \
-    "[exec bender path cluster_interconnect]/include" \
+    "[exec ${BENDER} path common_cells]/include" \
+    "[exec ${BENDER} path axi]/include" \
+    "[exec ${BENDER} path common_verification]/include" \
+    "[exec ${BENDER} path register_interface]/include" \
+    "[exec ${BENDER} path cluster_interconnect]/include" \
     "${HDL_PATH}/memory_island/include" \
     "${HDL_PATH}/include" \
 ]

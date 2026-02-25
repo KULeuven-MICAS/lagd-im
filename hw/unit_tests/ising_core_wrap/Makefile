@@ -4,4 +4,6 @@
 
 # Note: bender_list.tcl is generated from hw/Makefile
 
+HDL_FILES := 
+
 include ../common.mk
