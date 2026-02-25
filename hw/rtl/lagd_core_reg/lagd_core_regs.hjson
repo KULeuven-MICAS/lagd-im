@@ -216,7 +216,7 @@
         count:    "32"
         cname:    "wbl_floating"
         fields: [
-          { bits: "31:0", resval: "0", name: "wbl_floating", desc: "wbl_floating values" }
+          { bits: "31:0", resval: "1", name: "wbl_floating", desc: "wbl_floating values" }
         ]
       }
     }

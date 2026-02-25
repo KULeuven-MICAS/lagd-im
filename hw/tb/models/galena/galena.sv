@@ -8,12 +8,16 @@
 
 `timescale 1ns / 1ps
 
+ifndef PROJECT_ROOT
+`define PROJECT_ROOT ../../
+`endif
+
 `ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 "../../sw/tests/data/states_out_1" // relative to hw/tb/
+`define STATE_OUT_FILE_1 {`PROJECT_ROOT, "sw/tests/data/states_out_1"} // relative to hw/tb/
 `endif
 
 `ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 "../../sw/tests/data/states_out_2" // relative to hw/tb/
+`define STATE_OUT_FILE_2 {`PROJECT_ROOT, "sw/tests/data/states_out_2"} // relative to hw/tb/
 `endif
 
 import galena_pkg::*;
