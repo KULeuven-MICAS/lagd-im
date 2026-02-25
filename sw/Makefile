@@ -24,6 +24,9 @@ ifeq ($(XOR_CHECK),1)
 CHS_SW_INCLUDES += -DENABLE_XOR_CHECK
 endif
 
+# Tested core
+CORE_TESTED ?= 1
+
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 
@@ -37,11 +40,11 @@ include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh
 
 # Auto-generate data header from model file
 include/model_1_data.h: tests/data/model_1 tests/data/gen_model_data.py
-	python3 tests/data/gen_model_data.py
+	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED)
 
 # Auto-generate flip candidates header from cluster files
 include/model_f_data.h: tests/data/clusters_1 tests/data/clusters_2 tests/data/gen_flip_data.py
-	python3 tests/data/gen_flip_data.py
+	python3 tests/data/gen_flip_data.py --core-onload $(CORE_TESTED)
 
 # Auto-generate spin initial/reference header from state files
 include/spin_data.h: tests/data/states_in_1 tests/data/states_in_2 tests/data/gen_spin_data.py

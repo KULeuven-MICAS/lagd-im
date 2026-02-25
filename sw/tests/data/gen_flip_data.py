@@ -12,12 +12,30 @@
 #                            each packed as 4 x uint64_t.
 #                            Last bit of source line -> bit 0 of word[0] (lowest address).
 
+import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "clusters_1")
 INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "clusters_2")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate sw/include/model_f_data.h from sw/tests/data/clusters_1 and clusters_2."
+    )
+    parser.add_argument(
+        "--core-onload",
+        type=int,
+        default=1,
+        help="Core index for the J data section name (default: 1).",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+core_onload = args.core_onload
 
 # --- Constants ---
 NUM_CLUSTERS = 512          # usable vectors per file (line 1 is skipped)
@@ -81,7 +99,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write(f"#define MODEL_F_LEN  {F_LEN}"
             f"  // {TOTAL_VECS}*{WORDS_PER_VEC} uint64_t = {F_LEN * 8 // 1024}KB\n")
     f.write("static const uint64_t model_f_data[MODEL_F_LEN]"
-            " __attribute__((used, section(\".l1f_data\"))) = {\n")
+            f" __attribute__((used, section(\".l1f_data_c{core_onload}\"))) = {{\n")
     for i, v in enumerate(f_u64):
         if i % 8 == 0:
             f.write("    ")

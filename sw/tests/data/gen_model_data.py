@@ -14,6 +14,7 @@
 #   - model_offset          : offset (double)
 #   - model_scaling_factor  : SF_BITS-bit positive integer, stored as uint8_t
 
+import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +35,23 @@ OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_1_data.h")
 J_BITS = 4   # bit width of each J element
 H_BITS = 4   # bit width of each h element
 SF_BITS = 6   # bit width of scaling factor
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate sw/include/model_1_data.h from sw/tests/data/model_1."
+    )
+    parser.add_argument(
+        "--core-onload",
+        type=int,
+        default=1,
+        help="Core index for the J data section name (default: 1).",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+core_onload = args.core_onload
 
 # --- Derived constants ---
 J_ROWS = 256
@@ -133,7 +151,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write(f"#define MODEL_J_LEN  {J_LEN}"
             f"  // {J_ROWS}*{U64_PER_ROW} uint64_t = {J_LEN * 8 // 1024}KB\n")
     f.write("static const uint64_t model_j_data[MODEL_J_LEN]"
-            " __attribute__((used, section(\".l1j_data\"))) = {\n")
+            f" __attribute__((used, section(\".l1j_data_c{core_onload}\"))) = {{\n")
     for i, v in enumerate(j_u64):
         if i % 8 == 0:
             f.write("    ")
