@@ -8,8 +8,8 @@
 
 `timescale 1ns / 1ps
 
-ifndef PROJECT_ROOT
-`define PROJECT_ROOT ../../
+`ifndef PROJECT_ROOT
+`define PROJECT_ROOT "../../"
 `endif
 
 `ifndef STATE_OUT_FILE_1
