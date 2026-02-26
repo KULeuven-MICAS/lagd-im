@@ -105,7 +105,7 @@ PRELOAD_ELF=$(realpath "$PRELOAD_ELF")
 
 # Build SW before simulation
 echo "[$(date +%T)] Starting SW build..."
-make -C "${ROOT_DIR}/sw" all
+make -C "${ROOT_DIR}/sw" clean all
 echo "[$(date +%T)] SW build done."
 
 if [ ! -f "$PRELOAD_ELF" ]; then
