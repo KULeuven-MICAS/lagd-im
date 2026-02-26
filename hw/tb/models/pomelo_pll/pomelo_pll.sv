@@ -19,8 +19,8 @@ module pomelo_pll (
     input logic PLL_IN,
     output logic PLL_OUT,
     output logic LOCKED,
-    inout logic IO_FB_PAD_TO_IP,
-    inout logic IO_FB_IP_TO_PAD,
+    input logic IO_FB_PAD_TO_IP,
+    output logic IO_FB_IP_TO_PAD,
     input logic CLK_EXT,
 
     input logic pdown_PD,
