@@ -435,8 +435,8 @@ static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_sam
     while (loop_en) {
         uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
         if (log_idx < max_samples) {
-            if (((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) == 0 &&
-            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1) == 0 &&
+            if ((((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) == 0 ||
+            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1) == 0) &&
             ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
             LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK) != prev_cycle_per_iter) {
                 prev_cycle_per_iter = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
