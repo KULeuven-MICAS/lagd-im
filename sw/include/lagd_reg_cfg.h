@@ -179,8 +179,8 @@ static void lagd_configure_global_cfg_2(unsigned core) {
          ((GCFG2_DGT_HSCALING & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
           << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
-    printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2,
-           (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
+    // printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2,
+    //        (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
 }
 
 // Switch off config valid signals
@@ -194,13 +194,13 @@ static void lagd_clear_config_valid(unsigned core) {
               (1 << LAGD_CORE_GLOBAL_CFG_2_CONFIG_VALID_EM_BIT) |
               (1 << LAGD_CORE_GLOBAL_CFG_2_CONFIG_VALID_FM_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
-    printf("Core %u global_cfg_2 after clearing config valid: 0x%08x\r\n", core, cfg2);
+    // printf("Core %u global_cfg_2 after clearing config valid: 0x%08x\r\n", core, cfg2);
 
     uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
     cfg1 &= ~((1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_DT_CONFIGURE_ENABLE_BIT) |
               (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_CONFIGURE_ENABLE_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
-    printf("Core %u global_cfg_1 after clearing debug configure enable: 0x%08x\r\n", core, cfg1);
+    // printf("Core %u global_cfg_1 after clearing debug configure enable: 0x%08x\r\n", core, cfg1);
 }
 
 // Enable analog data onloading by setting DT_CFG_ENABLE bit in global_cfg_2 register
@@ -398,33 +398,23 @@ static void lagd_print_cmpt_idx(unsigned core) {
     printf("Computation index for core %u: %u\r\n", core, cmpt_idx);
 }
 
-// Structure to hold cycle per iteration idle status
-typedef struct {
-    uint32_t cmpt_idle;
-    uint32_t multi_cmpt_mode_idle;
-} lagd_cycle_per_iteration_idle_t;
+// Printf cycle/iteration and cycle/cmpt performance counters
+static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count, uint32_t *log_buf) {
+    uint32_t cycle_per_cmpt_status;
+    for (unsigned i = 0; i < sample_count; i++) {
+        cycle_per_cmpt_status = log_buf[i];
+        printf("idx/cmpt_idle/multi_cmpt_idle/recount/cc_iter/cc_cmpt for core %u: %u %u %u %u %u %u\r\n",
+            core,
+            i,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITER_RECOUNT_EN_BIT) & 0x1,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
+            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
+            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
+        }
 
-// Read out cycle/iteration and cycle/cmpt performance counters and return idle status
-static lagd_cycle_per_iteration_idle_t lagd_print_cycle_per_iteration(unsigned core) {
-    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    uint32_t cycle_per_cmpt_status = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
-
-    lagd_cycle_per_iteration_idle_t idle_status = {
-        .cmpt_idle = (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
-        .multi_cmpt_mode_idle = (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1
-    };
-
-    printf("cmpt_idle/multi_cmpt_idle/recount/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n",
-           core,
-           idle_status.cmpt_idle,
-           idle_status.multi_cmpt_mode_idle,
-           (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITER_RECOUNT_EN_BIT) & 0x1,
-           (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
-           LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
-           (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
-           LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
-
-    return idle_status;
 }
 
 // Read out cycle_per_cmpt performance counter and print the value
@@ -437,15 +427,24 @@ static void lagd_print_cycle_per_cmpt(unsigned core) {
 }
 
 // Continuously read out cycle_per_iteration until the computation is done
-static void lagd_monitor_cycle_per_iteration(unsigned core) {
+static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_samples, uint32_t *log_buf) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     uint8_t loop_en = 1;
+    unsigned log_idx = 0;
     while (loop_en) {
-        lagd_cycle_per_iteration_idle_t idle_status = lagd_print_cycle_per_iteration(core);
-        if (idle_status.cmpt_idle && idle_status.multi_cmpt_mode_idle) {
+        uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
+        if (log_idx < max_samples) {
+            if (((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) == 0 &&
+            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1)) {
+            log_buf[log_idx++] = val;
+            }
+        }
+        if (((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) &&
+            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1)) {
             loop_en = 0;
         }
     }
+    return log_idx;
 }
 
 // Read out cycle_all_cmpt performance counters and print the values
@@ -454,5 +453,5 @@ static void lagd_print_cycle_all_cmpt(unsigned core) {
     uint32_t cycle_all_cmpt_lsb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_LSB_REG_OFFSET);
     uint32_t cycle_all_cmpt_msb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_MSB_REG_OFFSET);
     uint64_t cycle_all_cmpt = ((uint64_t)cycle_all_cmpt_msb << 32) | cycle_all_cmpt_lsb;
-    printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
+    // printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
 }
