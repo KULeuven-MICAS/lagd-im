@@ -53,7 +53,7 @@
 #define GCFG2_DGT_HSCALING model_scaling_factor // max: 0x3F (63)
 
 // Computation max number configuration under multi_cmpt_mode
-#define CMPT_MAX_NUM 0x00000002 // max: 0xFFFFFFFF
+#define CMPT_MAX_NUM 0x00000001 // max: 0xFFFFFFFF (1 means 2 computation)
 
 // Registers for counter configuration 1
 #define CFG_TRANS_NUM 0x0040      // max: 0xFFFF
