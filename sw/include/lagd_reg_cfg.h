@@ -179,6 +179,7 @@ static void lagd_configure_global_cfg_2(unsigned core) {
          ((GCFG2_DGT_HSCALING & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
           << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
+    printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2, (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
 }
 
 // Switch off config valid signals
@@ -192,10 +193,13 @@ static void lagd_clear_config_valid(unsigned core) {
               (1 << LAGD_CORE_GLOBAL_CFG_2_CONFIG_VALID_EM_BIT) |
               (1 << LAGD_CORE_GLOBAL_CFG_2_CONFIG_VALID_FM_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
+    printf("Core %u global_cfg_2 after clearing config valid: 0x%08x\r\n", core, cfg2);
+
     uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
     cfg1 &= ~((1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_DT_CONFIGURE_ENABLE_BIT) |
               (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_CONFIGURE_ENABLE_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+    printf("Core %u global_cfg_1 after clearing debug configure enable: 0x%08x\r\n", core, cfg1);
 }
 
 // Enable analog data onloading by setting DT_CFG_ENABLE bit in global_cfg_2 register
@@ -353,8 +357,14 @@ static void lagd_check_spin_fifo_data(unsigned core) {
 
     int pass0 = 1, pass1 = 1;
     for (int i = 0; i < NUM_SPIN / 32; i++) {
-        if (spin_fifo_data_0[i] != spin_ref_0[i]) pass0 = 0;
-        if (spin_fifo_data_1[i] != spin_ref_1[i]) pass1 = 0;
+        if (spin_fifo_data_0[i] != spin_ref_0[i]) {
+            pass0 = 0;
+            break;  // stop at the first mismatch
+        }
+        if (spin_fifo_data_1[i] != spin_ref_1[i]) {
+            pass1 = 0;
+            break;  // stop at the first mismatch
+        }
     }
 
     printf("spin_fifo_data_0[%u]: %08x%08x%08x%08x%08x%08x%08x%08x ", core, spin_fifo_data_0[7],
