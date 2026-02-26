@@ -96,9 +96,16 @@ else
 	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 endif
 HDL_FILES ?=
-DBG ?= 1
+DBG ?= 0
 CXX_PATH ?= $(shell which g++)
+
+ifneq ($(and $(filter 1,$(DBG)),$(wildcard $(NETLIST_PATH))),)
+$(info "Allowing netlist simulation with debug info")
+VOPT_ARGS += +acc -permissive
+else
 VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
+endif
+
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} +notimingchecks
 # VSIM_FLAGS += -sv_lib libelfloader
 

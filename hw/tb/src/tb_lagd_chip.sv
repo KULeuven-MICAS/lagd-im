@@ -30,6 +30,7 @@ module tb_lagd_chip ();
   string      preload_elf;
   logic [1:0] boot_mode;
   logic [1:0] preload_mode;
+  logic enable_vcd_dumping;
   bit [31:0]  exit_code;
 
   assign boot_mode = `BOOT_MODE;
@@ -37,6 +38,7 @@ module tb_lagd_chip ();
   assign preload_elf = `PRELOAD_ELF;
 
   initial begin
+    enable_vcd_dumping = 1'b0;
     $display("Boot mode: %0d, Preload mode: %0d, Preload ELF: %s", boot_mode, preload_mode, preload_elf);
     
     // Wait for reset
@@ -48,6 +50,7 @@ module tb_lagd_chip ();
         0: begin      // JTAG
           fix.vip.jtag_init();
           fix.vip.jtag_elf_run(preload_elf);
+          enable_vcd_dumping = 1'b1;
           fix.vip.jtag_wait_for_eoc(exit_code);
         end 1: begin  // UART
           fix.vip.uart_debug_elf_run_and_wait(preload_elf, exit_code);
@@ -73,7 +76,7 @@ module tb_lagd_chip ();
   // Add vcd dumping and debug setup
   //==============================================
   if (ChipTest == 1) begin : gen_debug_setup
-    `SETUP_DEBUG(`DBG, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut)
+    `EN_SETUP_DEBUG(`DBG, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut, enable_vcd_dumping)
   end
 
 endmodule

@@ -24,4 +24,21 @@
         end \
     end
 
+`define EN_SETUP_DEBUG(__dbg, __vcd_file, __scope, __enable) \
+    initial begin \
+        if (__dbg) begin \
+            $display("Debug mode enabled. Running with detailed output."); \
+            $dumpfile(__vcd_file); \
+            $dumpvars(0, __scope); \
+            $dumpoff; \
+        end \
+    end \
+    initial begin \
+        if (__dbg) begin \
+            wait(__enable); \
+            $display("Enabling VCD dumping at time %0t", $time); \
+            $dumpon; \
+        end \
+    end
+
 `endif
