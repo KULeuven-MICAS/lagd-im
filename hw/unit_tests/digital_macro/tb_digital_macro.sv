@@ -1103,7 +1103,7 @@ module tb_digital_macro;
             $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
                 $time, total_cycles, total_time, transaction_cycles, transaction_time);
             $display("Timer [Time %0d ns]: MultiCmptModeEn: %d, multi_cmpt_timer_idx: %0d/%0d",
-                $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum);
+                $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum-1);
             $display("---------------------------------------- Timer per Computation ----------------------------------------");
             multi_cmpt_timer_idx = multi_cmpt_timer_idx + 1;
         end while (`MultiCmptModeEn && multi_cmpt_timer_idx < CmptMaxNum);
