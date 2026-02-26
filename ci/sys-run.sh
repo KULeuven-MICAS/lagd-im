@@ -22,6 +22,7 @@ Usage: ./ci/sys-run.sh [[
     --gui
     --use_tech_models
     --netlist=#netlist_path
+    --post-syn
     --help]]"
 EOF
     echo "Example: $0"
@@ -38,7 +39,8 @@ show_help()
     echo "  --gui: Run simulation in GUI mode"
     echo "  --use_tech_models: Use technology models for the simulation"
     echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
-    echo "  --RUN_ID=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
+    echo "  --run_id=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
+    echo "  --post-syn: Run post-synthesis simulation"
     echo "  --help: Show this help message"
 }
 
@@ -51,6 +53,7 @@ PRELOAD_MODE=0
 USE_TECH_MODELS=0
 NETLIST_PATH=""
 RUN_ID="1"
+POST_SYN=0
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -106,8 +109,12 @@ for i in "$@"; do
             NETLIST_PATH="${i#*=}"
             shift
             ;;
-        --RUN_ID=*)
+        --run_id=*)
             RUN_ID="${i#*=}"
+            shift
+            ;;
+        --post-syn)
+            POST_SYN=1
             shift
             ;;
         *)
@@ -121,6 +128,10 @@ done
 if [ ! -f "$PRELOAD_ELF" ]; then
     echo "[ERROR] ./ci/sys-run.sh: Preload ELF file not found at path: ${PRELOAD_ELF}"
     exit 1
+fi
+
+if [ "${POST_SYN}" -eq 1 ] && [ ! -n "$NETLIST_PATH" ]; then
+    NETLIST_PATH=/users/micas/shares/project_lagd/netlists/latest/
 fi
 
 if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
