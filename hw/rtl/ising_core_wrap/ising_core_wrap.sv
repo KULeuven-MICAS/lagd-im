@@ -316,6 +316,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_REG_DATA_WIDTH; i=i+1) begin
             h_rdata            [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.h_rdata[i].q;
             wbl_floating       [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wbl_floating[i].q;
+            debug_wbl_config   [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.debug_wbl_config[i].q;
         end
     end
 
