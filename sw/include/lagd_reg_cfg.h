@@ -180,7 +180,7 @@ static void lagd_configure_global_cfg_2(unsigned core) {
           << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
     printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2,
-            (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
+           (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
 }
 
 // Switch off config valid signals
