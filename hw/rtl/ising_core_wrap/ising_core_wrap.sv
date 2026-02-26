@@ -58,7 +58,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Register interface signals
     lagd_core_reg_pkg::lagd_core_reg2hw_t reg2hw;
     lagd_core_reg_pkg::lagd_core_hw2reg_t hw2reg;
-    
+
     // Digital macro input signals
     // registers
     logic flush_en;
@@ -108,6 +108,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic infinite_icon_loop_en;
     logic multi_cmpt_mode_en;
     logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_max_num;
+    logic energy_fifo_sel;
     // memories
     logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
     logic [logic_cfg.NumSpin-1:0] flip_rdata;
@@ -281,6 +282,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign config_spin_initial_skip[0]      = reg2hw.global_cfg_2.config_spin_initial_skip_0.q;
     assign config_spin_initial_skip[1]      = reg2hw.global_cfg_2.config_spin_initial_skip_1.q;
     assign dgt_hscaling                     = reg2hw.global_cfg_2.dgt_hscaling.q;
+    assign energy_fifo_sel                  = reg2hw.global_cfg_2.energy_fifo_sel.q;
 
     assign cmpt_max_num                     = reg2hw.cmpt_max_num.q;
 
@@ -353,6 +355,16 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.j_mem_ren_raddr.dgt_weight_ren             .de = ctnus_dgt_debug;
     assign hw2reg.j_mem_ren_raddr.j_raddr_load               .de = ctnus_dgt_debug;
     assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr           .de = ctnus_dgt_debug;
+    assign hw2reg.energy_fifo_dbg_0.cmpt_idle                .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_update       .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.flip_q_valid             .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.flip_raddr               .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_0_sel        .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.cmpt_idle                .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_update       .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.flip_q_valid             .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.flip_raddr               .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_1_sel        .de = en_perf_counter;
 
     assign hw2reg.output_status.dt_cfg_idle                   .d = dt_cfg_idle;
     assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
@@ -389,6 +401,16 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.j_mem_ren_raddr.dgt_weight_ren              .d = dgt_weight_ren;
     assign hw2reg.j_mem_ren_raddr.j_raddr_load                .d = j_raddr_load;
     assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr            .d = dgt_weight_raddr;
+    assign hw2reg.energy_fifo_dbg_0.cmpt_idle                 .d = cmpt_idle; // a copy of cmpt_idle
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_update        .d = energy_fifo_update; // a copy of energy_fifo_update
+    assign hw2reg.energy_fifo_dbg_0.flip_q_valid              .d = drt_s_req_flip.q_valid; // a copy of flip_q_valid
+    assign hw2reg.energy_fifo_dbg_0.flip_raddr                .d = flip_raddr; // a copy of flip_raddr
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_0_sel         .d = energy_fifo_sel ? energy_fifo_data[0][logic_cfg.EnergyTotalBit-1:logic_cfg.EnergyTotalBit-16] : energy_fifo_data[0][15:0];
+    assign hw2reg.energy_fifo_dbg_1.cmpt_idle                 .d = cmpt_idle; // a copy of cmpt_idle
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_update        .d = energy_fifo_update; // a copy of energy_fifo_update
+    assign hw2reg.energy_fifo_dbg_1.flip_q_valid              .d = drt_s_req_flip.q_valid; // a copy of flip_q_valid
+    assign hw2reg.energy_fifo_dbg_1.flip_raddr                .d = flip_raddr; // a copy of flip_raddr
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_1_sel         .d = energy_fifo_sel ? energy_fifo_data[1][logic_cfg.EnergyTotalBit-1:logic_cfg.EnergyTotalBit-16] : energy_fifo_data[1][15:0];
 
     always_comb begin
         for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin

@@ -65,6 +65,7 @@
         { bits: "18",    resval: "0",  name: "config_spin_initial_skip_0",  desc: "Whether to skip current spin initial value, set 0"      }
         { bits: "19",    resval: "0",  name: "config_spin_initial_skip_1",  desc: "Whether to skip current spin initial value, set 1"      }
         { bits: "25:20", resval: "1",  name: "dgt_hscaling",                desc: "Scaling factor for dgt"                                 }
+        { bits: "26",    resval: "0",  name: "energy_fifo_sel",             desc: "Whether to select energy_fifo_x_sel the MSBs"           }
       ]
     }
 
@@ -408,7 +409,7 @@
       hwaccess: "hwo"
       fields: [
         { bits: "0",     resval: "0",  name: "debug_spin_valid", desc: "Whether flip memory is used by spin debugging mode" }
-        { bits: "1",     resval: "1",  name: "flip_q_valid",     desc: "Whether flip memory is valid"                       }
+        { bits: "1",     resval: "0",  name: "flip_q_valid",     desc: "Whether flip memory is valid"                       }
         { bits: "11:2",  resval: "0",  name: "flip_raddr",       desc: "Flip memory read address from flip manager"         }
         { bits: "21:12", resval: "0",  name: "debug_spin_waddr", desc: "Flip memory write address from spin debugging mode" }
       ]
@@ -420,9 +421,35 @@
       hwaccess: "hwo"
       fields: [
         { bits: "0",     resval: "0",  name: "j_mem_ren_load",   desc: "Whether J memory is used by analog cfg module"   }
-        { bits: "1",     resval: "1",  name: "dgt_weight_ren",   desc: "Whether J memory is used by energy monitor"      }
+        { bits: "1",     resval: "0",  name: "dgt_weight_ren",   desc: "Whether J memory is used by energy monitor"      }
         { bits: "7:2",   resval: "0",  name: "j_raddr_load",     desc: "J memory read address from analog cfg module"    }
         { bits: "13:8",  resval: "0",  name: "dgt_weight_raddr", desc: "J memory write address from energy monitor"      }
+      ]
+    }
+
+    { name:     "energy_fifo_dbg_0"
+      desc:     "Registers for observing in which iteration the energy fifo becomes stable"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
+        { bits: "1",     resval: "0",  name: "energy_fifo_update",            desc: "Whether the energy fifo is being updated"             }
+        { bits: "2",     resval: "0",  name: "flip_q_valid",                  desc: "Whether flip memory is valid (flip memory ren)"       }
+        { bits: "12:3",  resval: "0",  name: "flip_raddr",                    desc: "Flip memory read address from flip manager"           }
+        { bits: "28:13", resval: "0",  name: "energy_fifo_0_sel",             desc: "Energy FIFO 0 selection"                              }
+      ]
+    }
+
+    { name:     "energy_fifo_dbg_1"
+      desc:     "Registers for observing in which iteration the energy fifo becomes stable"
+      swaccess: "rw"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
+        { bits: "1",     resval: "0",  name: "energy_fifo_update",            desc: "Whether the energy fifo is being updated"             }
+        { bits: "2",     resval: "0",  name: "flip_q_valid",                  desc: "Whether flip memory is valid (flip memory ren)"       }
+        { bits: "12:3",  resval: "0",  name: "flip_raddr",                    desc: "Flip memory read address from flip manager"           }
+        { bits: "28:13", resval: "0",  name: "energy_fifo_1_sel",             desc: "Energy FIFO 1 selection"                              }
       ]
     }
 

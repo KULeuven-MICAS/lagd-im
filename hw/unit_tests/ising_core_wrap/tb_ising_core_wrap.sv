@@ -73,6 +73,7 @@ module tb_ising_core_wrap;
     logic debug_h_wwl;
     logic [`IC_L1_J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound;
     logic ctnus_fifo_read, ctnus_dgt_debug, infinite_icon_loop_en, multi_cmpt_mode_en;
+    logic energy_fifo_sel;
     logic [`LAGD_REG_DATA_WIDTH-1:0] global_cfg_reg_1, global_cfg_reg_2;
     logic [(`NUM_SPIN*`BIT_H)-1:0] h_rdata, wbl_floating;
     logic [`CC_COUNTER_BITWIDTH-1:0] cmpt_max_num;
@@ -124,7 +125,7 @@ module tb_ising_core_wrap;
                             debug_dt_configure_enable, en_comparison, en_analog_loop,
                             en_ef, en_ff, en_fm, en_em, en_aw, flush_en};
 
-    assign global_cfg_reg_2 = {6'd0, dgt_hscaling, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
+    assign global_cfg_reg_2 = {5'd0, energy_fifo_sel, dgt_hscaling, config_spin_initial_skip_1, config_spin_initial_skip_0, multi_cmpt_mode_en, infinite_icon_loop_en, ctnus_dgt_debug, ctnus_fifo_read, dgt_addr_upper_bound,
                             debug_h_wwl, synchronizer_pipe_num,
                             dt_cfg_enable, config_valid_fm, config_valid_em,
                             config_valid_aw, cmpt_en};
@@ -572,6 +573,7 @@ task automatic reg_config();
     multi_cmpt_mode_en = 1'b0;
     config_spin_initial_skip_0 = 1'b0;
     config_spin_initial_skip_1 = 1'b0;
+    energy_fifo_sel = 1'b0;
 
     cmpt_max_num = 'hffffffff; // set to max
 
