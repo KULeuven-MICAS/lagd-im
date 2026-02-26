@@ -41,7 +41,7 @@ module pomelo_pll (
     // PLL implementation goes here
     // For the purpose of this example, we will just tie outputs to inputs
     assign PLL_OUT = PLL_IN;
-    assign IO_FB_IP_TO_PAD = IO_FB_PAD_TO_IP;
+    assign IO_FB_IP_TO_PAD = !IO_FB_PAD_TO_IP;
     assign LOCKED = 1'b1; // Assume PLL is always locked for this example
 
     logic enable_dbg_trigger, sim_rst_n;
