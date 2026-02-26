@@ -398,18 +398,54 @@ static void lagd_print_cmpt_idx(unsigned core) {
     printf("Computation index for core %u: %u\r\n", core, cmpt_idx);
 }
 
-// Read out cycle/iteration performance counters and print the values
-static void lagd_print_cycle_per_iteration(unsigned core) {
+// Structure to hold cycle per iteration idle status
+typedef struct {
+    uint32_t cmpt_idle;
+    uint32_t multi_cmpt_mode_idle;
+} lagd_cycle_per_iteration_idle_t;
+
+// Read out cycle/iteration and cycle/cmpt performance counters and return idle status
+static lagd_cycle_per_iteration_idle_t lagd_print_cycle_per_iteration(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    uint32_t cycle_per_iteration = *reg32(base, LAGD_CORE_CYCLE_PER_ITERATION_REG_OFFSET);
-    printf("Cycle per iteration for core %u: %u\r\n", core, cycle_per_iteration);
+    uint32_t cycle_per_cmpt_status = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
+
+    lagd_cycle_per_iteration_idle_t idle_status = {
+        .cmpt_idle = (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
+        .multi_cmpt_mode_idle = (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1
+    };
+
+    printf("cmpt_idle/multi_cmpt_idle/recount/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n",
+           core,
+           idle_status.cmpt_idle,
+           idle_status.multi_cmpt_mode_idle,
+           (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITER_RECOUNT_EN_BIT) & 0x1,
+           (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
+           LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
+           (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
+           LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
+
+    return idle_status;
 }
 
-// Read out cycle/cmpt performance counters and print the values
+// Read out cycle_per_cmpt performance counter and print the value
 static void lagd_print_cycle_per_cmpt(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    uint32_t cycle_per_cmpt = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_REG_OFFSET);
+    uint32_t cycle_per_cmpt_status = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
+    uint32_t cycle_per_cmpt = (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
+                              LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK;
     printf("Cycle per computation for core %u: %u\r\n", core, cycle_per_cmpt);
+}
+
+// Continuously read out cycle_per_iteration until the computation is done
+static void lagd_monitor_cycle_per_iteration(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint8_t loop_en = 1;
+    while (loop_en) {
+        lagd_cycle_per_iteration_idle_t idle_status = lagd_print_cycle_per_iteration(core);
+        if (idle_status.cmpt_idle && idle_status.multi_cmpt_mode_idle) {
+            loop_en = 0;
+        }
+    }
 }
 
 // Read out cycle_all_cmpt performance counters and print the values

@@ -84,8 +84,7 @@ int main(void) {
     // start computation
     lagd_enable_energy_monitor_fifo(CORE_TESTED);
     lagd_enable_computation(CORE_TESTED);
-    printf("=== LAGD Waiting for Computation to Finish ===\r\n");
-    uart_write_flush(&__base_uart);
+    lagd_monitor_cycle_per_iteration(CORE_TESTED);
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
     uint64_t t13 = clint_get_mtime();
@@ -98,8 +97,6 @@ int main(void) {
     lagd_check_spin_fifo_data(CORE_TESTED);
     // print performance counters
     lagd_print_cmpt_idx(CORE_TESTED);
-    lagd_print_cycle_per_iteration(CORE_TESTED);
-    lagd_print_cycle_per_cmpt(CORE_TESTED);
     lagd_print_cycle_all_cmpt(CORE_TESTED);
 
     printf("=== DONE ===\r\n");
