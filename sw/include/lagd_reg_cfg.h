@@ -389,3 +389,34 @@ static void lagd_check_spin_fifo_data(unsigned core) {
                spin_ref_1[0]);
     }
 }
+
+// Read out cmpt_idx performance counter and print the value
+static void lagd_print_cmpt_idx(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cmpt_idx = *reg32(base, LAGD_CORE_CMPT_IDX_REG_OFFSET);
+    printf("Computation index for core %u: %u\r\n", core, cmpt_idx);
+}
+
+// Read out cycle/iteration performance counters and print the values
+static void lagd_print_cycle_per_iteration(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cycle_per_iteration = *reg32(base, LAGD_CORE_CYCLE_PER_ITERATION_REG_OFFSET);
+    printf("Cycle per iteration for core %u: %u\r\n", core, cycle_per_iteration);
+}
+
+// Read out cycle/cmpt performance counters and print the values
+static void lagd_print_cycle_per_cmpt(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cycle_per_cmpt = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_REG_OFFSET);
+    printf("Cycle per computation for core %u: %u\r\n", core, cycle_per_cmpt);
+}
+
+// Read out cycle_all_cmpt performance counters and print the values
+static void lagd_print_cycle_all_cmpt(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cycle_all_cmpt_lsb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_LSB_REG_OFFSET);
+    uint32_t cycle_all_cmpt_msb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_MSB_REG_OFFSET);
+    uint64_t cycle_all_cmpt = ((uint64_t)cycle_all_cmpt_msb << 32) | cycle_all_cmpt_lsb;
+    printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
+}
+
