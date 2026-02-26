@@ -253,7 +253,7 @@
         { bits: "11",    resval: "0",  name: "debug_fm_downstream_handshake", desc: "Whether the fm downstream handshake is on"            }
         { bits: "12",    resval: "0",  name: "debug_aw_downstream_handshake", desc: "Whether the aw downstream handshake is on"            }
         { bits: "13",    resval: "0",  name: "debug_em_upstream_handshake",   desc: "Whether the em upstream handshake is on"              }
-        { bits: "14",    resval: "0",  name: "multi_cmpt_mode_idle",          desc: "Whether the multi computation mode is idle"           }
+        { bits: "14",    resval: "1",  name: "multi_cmpt_mode_idle",          desc: "Whether the multi computation mode is idle"           }
       ]
     }
 
@@ -371,21 +371,16 @@
       ]
     }
 
-    { name:     "cycle_per_iteration"
-      desc:     "Registers for cycle per iteration"
+    { name:     "cycle_per_cmpt_and_iter"
+      desc:     "Registers for cycle per cmpt and iteration"
       swaccess: "rw"
       hwaccess: "hwo"
       fields: [
-        { bits: "31:0", resval: "0",  name: "cycle_per_iteration", desc: "cycle per iteration" }
-      ]
-    }
-
-    { name:     "cycle_per_cmpt"
-      desc:     "Registers for cycle per cmpt"
-      swaccess: "rw"
-      hwaccess: "hwo"
-      fields: [
-        { bits: "31:0", resval: "0",  name: "cycle_per_cmpt", desc: "cycle per cmpt" }
+        { bits: "0",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
+        { bits: "1",     resval: "1",  name: "multi_cmpt_mode_idle",          desc: "Whether the multi computation mode is idle"           }
+        { bits: "2",     resval: "0",  name: "cycle_per_iter_recount_en",     desc: "Whether the iter counter receives reocunt en"         }
+        { bits: "11:3",  resval: "0",  name: "cycle_per_iteration",           desc: "cycle per iteration"                                  }
+        { bits: "31:12", resval: "0",  name: "cycle_per_cmpt",                desc: "cycle per cmpt"                                       }
       ]
     }
 

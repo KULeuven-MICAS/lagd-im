@@ -159,9 +159,12 @@ module tb_digital_macro;
     integer dt_write_cycle_cnt_j;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
     model_t model_data;
+    logic cycle_per_iter_recount_en_o;
     logic [CC_COUNTER_BITWIDTH-1:0] cmpt_max_num_i;
     logic multi_cmpt_mode_idle_o;
-    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o, cycle_per_iteration_o, cycle_per_cmpt_o;
+    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o;
+    logic [ITER_COUNTER_BITWIDTH-1:0] cycle_per_iteration_o;
+    logic [SC_COUNTER_BITWIDTH-1:0] cycle_per_cmpt_o;
     logic [2*CC_COUNTER_BITWIDTH-1:0] cycle_all_cmpt_o;
     logic [COUNTER_BITWIDTH-1:0] multi_cmpt_idx;
 
@@ -206,7 +209,9 @@ module tb_digital_macro;
         .SPIN_WBL_OFFSET                 (SPIN_WBL_OFFSET               ),
         .H_IS_NEGATIVE                   (H_IS_NEGATIVE                 ),
         .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION         ),
-        .CC_COUNTER_BITWIDTH             (CC_COUNTER_BITWIDTH           )
+        .CC_COUNTER_BITWIDTH             (CC_COUNTER_BITWIDTH           ),
+        .SC_COUNTER_BITWIDTH             (SC_COUNTER_BITWIDTH           ),
+        .ITER_COUNTER_BITWIDTH           (ITER_COUNTER_BITWIDTH         )
     ) dut (
         .clk_i                           (clk_i                         ),
         .rst_ni                          (rst_ni                        ),
@@ -310,6 +315,7 @@ module tb_digital_macro;
         // measurement purposes
         .infinite_icon_loop_en_i         (infinite_icon_loop_en_i       ),
         .multi_cmpt_mode_en_i            (multi_cmpt_mode_en_i          ),
+        .cycle_per_iter_recount_en_o     (cycle_per_iter_recount_en_o   ),
         .cmpt_max_num_i                  (cmpt_max_num_i                ),
         .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle_o        ),
         .cmpt_idx_o                      (cmpt_idx_o                    ),
@@ -1129,7 +1135,17 @@ module tb_digital_macro;
             idx = idx + 1;
         end
         output_timing_record_to_file(cycle_cnt);
+    endtask
 
+    // print out cycle_per_iteration when recount enabled
+    task automatic iter_cc_counter();
+        wait (en_i == 1 & cmpt_en_i == 1);
+        forever begin
+            @(posedge clk_i);
+            if (cycle_per_iter_recount_en_o) begin
+                $display("[Time: %t] cycle_per_iteration: %d", $time, cycle_per_iteration_o);
+            end
+        end
     endtask
 
     // ========================================================================
@@ -1156,6 +1172,7 @@ module tb_digital_macro;
             // timer
             cmpt_enable_and_timer();
             timing_record();
+            iter_cc_counter();
             // debug
             debug_model_wr(); // inactive
             debug_model_spin_wr(); // inactive

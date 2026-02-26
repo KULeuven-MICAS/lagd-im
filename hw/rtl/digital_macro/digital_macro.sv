@@ -34,6 +34,8 @@ module digital_macro #(
     parameter integer H_IS_NEGATIVE = `False,
     parameter integer ENABLE_FLIP_DETECTION = `False,
     parameter integer CC_COUNTER_BITWIDTH = 32,
+    parameter integer SC_COUNTER_BITWIDTH = 20,
+    parameter integer ITER_COUNTER_BITWIDTH = 9,
     // derived parameters
     parameter integer BITH = BITJ,
     parameter integer SPIN_IDX_BIT = $clog2(NUM_SPIN),
@@ -163,9 +165,10 @@ module digital_macro #(
     input  logic multi_cmpt_mode_en_i,
     input  logic [CC_COUNTER_BITWIDTH-1:0] cmpt_max_num_i,
     output logic multi_cmpt_mode_idle_o,
+    output logic cycle_per_iter_recount_en_o,
     output logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o,
-    output logic [CC_COUNTER_BITWIDTH-1:0] cycle_per_iteration_o,
-    output logic [CC_COUNTER_BITWIDTH-1:0] cycle_per_cmpt_o,
+    output logic [ITER_COUNTER_BITWIDTH-1:0] cycle_per_iteration_o,
+    output logic [SC_COUNTER_BITWIDTH-1:0] cycle_per_cmpt_o,
     output logic [2*CC_COUNTER_BITWIDTH-1:0] cycle_all_cmpt_o
 );
     // Internal signals
@@ -233,6 +236,7 @@ module digital_macro #(
     logic config_spin_initial_skip_fm;
     logic config_spin_ctrl_idle;
     logic multi_cmpt_idx_maxed;
+    logic multi_cmpt_idx_overflow;
     logic multi_cmpt_en;
     logic cmpt_en_fm;
     logic flush_comb;
@@ -250,6 +254,8 @@ module digital_macro #(
     assign flush_comb = flush_i | fm_pre_config_flush;
     assign em_fifo_flush_comb = flush_comb | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
+    assign cycle_per_iter_recount_en_o = flush_i | cmpt_en_fm | fm_upstream_handshake;
+
     // The config_valid_*_i inputs originate from a register / CSR interface, which cannot
     // reliably control signal levels on a cycle-accurate basis. If these inputs were used
     // as level-sensitive enables, software could inadvertently keep them asserted for
@@ -263,7 +269,7 @@ module digital_macro #(
     assign dt_cfg_enable_posedge   = dt_cfg_enable_i & ~dt_cfg_enable_dly1;
     assign cmpt_idle_posedge = cmpt_idle_o & ~cmpt_idle_dly1;
     assign multi_cmpt_mode_idle_en_cond = multi_cmpt_mode_en_i & cmpt_en_pos_trigger;
-    assign multi_cmpt_mode_idle_reset_cond = (multi_cmpt_idx_maxed | (~multi_cmpt_mode_en_i)) & cmpt_idle_o;
+    assign multi_cmpt_mode_idle_reset_cond = (multi_cmpt_idx_maxed | (~multi_cmpt_mode_en_i)) & cmpt_idle_posedge;
 
     assign debug_fm_downstream_handshake_o = fm_downstream_handshake;
     assign debug_aw_downstream_handshake_o = aw_downstream_ready & aw_mst_valid;
@@ -545,7 +551,7 @@ module digital_macro #(
         .en_i                          (en_fm_i                              ),
         .flush_i                       (flush_i                              ),
         .multi_cmpt_start_i            (~multi_cmpt_mode_idle_o              ),
-        .config_start_i                (config_valid_fm_posedge | ((~multi_cmpt_mode_idle_o) & cmpt_idle_o & (~cmpt_idle_dly1)) ),
+        .config_start_i                (config_valid_fm_posedge | ((~multi_cmpt_mode_idle_o) & ((~multi_cmpt_idx_maxed)) & cmpt_idle_posedge) ),
         .config_spin_initial_i         (config_spin_initial_i                ),
         .config_spin_initial_skip_i    (config_spin_initial_skip_i           ),
         .fm_flush_o                    (fm_pre_config_flush                  ),
@@ -675,15 +681,15 @@ module digital_macro #(
 
     // cmpt cycle counter for measurement purposes
     step_counter #(
-        .COUNTER_BITWIDTH (CC_COUNTER_BITWIDTH),
+        .COUNTER_BITWIDTH (ITER_COUNTER_BITWIDTH),
         .PARALLELISM (1)
     ) iteration_cycle_counter (
         .clk_i        (clk_i                                                                    ),
         .rst_ni       (rst_ni                                                                   ),
         .en_i         (en_perf_counter_i                                                        ),
         .load_i       (1'b0                                                                     ),
-        .d_i          ({(CC_COUNTER_BITWIDTH){1'b0}}                                            ),
-        .recount_en_i (flush_i | cmpt_en_fm | fm_upstream_handshake                             ),
+        .d_i          ({(ITER_COUNTER_BITWIDTH){1'b0}}                                          ),
+        .recount_en_i (cycle_per_iter_recount_en_o                                              ),
         .step_en_i    (~cmpt_idle_o                                                             ),
         .q_o          (cycle_per_iteration_o                                                    ),
         .maxed_o      (                                                                         ),
@@ -691,14 +697,14 @@ module digital_macro #(
     );
 
     step_counter #(
-        .COUNTER_BITWIDTH (CC_COUNTER_BITWIDTH),
+        .COUNTER_BITWIDTH (SC_COUNTER_BITWIDTH),
         .PARALLELISM (1)
     ) single_cmpt_cycle_counter (
         .clk_i        (clk_i                                                                    ),
         .rst_ni       (rst_ni                                                                   ),
         .en_i         (en_perf_counter_i                                                        ),
         .load_i       (1'b0                                                                     ),
-        .d_i          ({(CC_COUNTER_BITWIDTH){1'b0}}                                            ),
+        .d_i          ({(SC_COUNTER_BITWIDTH){1'b0}}                                            ),
         .recount_en_i (flush_i | cmpt_en_fm | (infinite_icon_loop_en_i & flip_raddr_o == 'd0 & fm_upstream_handshake)),
         .step_en_i    (~cmpt_idle_o                                                             ),
         .q_o          (cycle_per_cmpt_o                                                         ),
@@ -735,7 +741,7 @@ module digital_macro #(
         .step_en_i    (((~multi_cmpt_mode_idle_o) & cmpt_idle_posedge) | (infinite_icon_loop_en_i & flip_raddr_o == 'd0 & fm_upstream_handshake)),
         .q_o          (cmpt_idx_o                                                               ),
         .maxed_o      (multi_cmpt_idx_maxed                                                     ),
-        .overflow_o   (                                                                         )
+        .overflow_o   (multi_cmpt_idx_overflow                                                  )
     );
 
 endmodule

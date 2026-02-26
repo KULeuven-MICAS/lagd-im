@@ -135,7 +135,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin-1:0] debug_aw_spin_out;
     logic debug_em_upstream_handshake;
     logic [logic_cfg.NumSpin-1:0] debug_em_spin_in;
-    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_idx, cycle_per_iteration, cycle_per_cmpt;
+    logic cycle_per_iter_recount_en;
+    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_idx;
+    logic [logic_cfg.ScCounterBitwidth-1:0] cycle_per_cmpt;
+    logic [logic_cfg.IterCounterBitwidth-1:0] cycle_per_iteration;
     logic [2*logic_cfg.CcCounterBitwidth-1:0] cycle_all_cmpt;
     logic multi_cmpt_mode_idle;
     // memories
@@ -335,8 +338,11 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.energy_fifo_data_0                         .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
     assign hw2reg.energy_fifo_data_1                         .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
     assign hw2reg.cmpt_idx                                   .de = en_perf_counter;
-    assign hw2reg.cycle_per_iteration                        .de = en_perf_counter;
-    assign hw2reg.cycle_per_cmpt                             .de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle          .de = en_perf_counter; // a copy of cmpt_idle
+    assign hw2reg.cycle_per_cmpt_and_iter.multi_cmpt_mode_idle.de= en_perf_counter; // a copy of multi_cmpt_mode_idle
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iter_recount_en.de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration.de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt     .de = en_perf_counter;
     assign hw2reg.cycle_all_cmpt_lsb                         .de = en_perf_counter;
     assign hw2reg.cycle_all_cmpt_msb                         .de = en_perf_counter;
     assign hw2reg.flip_mem_ren_raddr.debug_spin_valid        .de = ctnus_dgt_debug;
@@ -367,8 +373,11 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.energy_fifo_data_0                          .d = energy_fifo_data[0];
     assign hw2reg.energy_fifo_data_1                          .d = energy_fifo_data[1];
     assign hw2reg.cmpt_idx                                    .d = cmpt_idx;
-    assign hw2reg.cycle_per_iteration                         .d = cycle_per_iteration;
-    assign hw2reg.cycle_per_cmpt                              .d = cycle_per_cmpt;
+    assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle           .d = cmpt_idle;
+    assign hw2reg.cycle_per_cmpt_and_iter.multi_cmpt_mode_idle.d = multi_cmpt_mode_idle;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iter_recount_en.d = cycle_per_iter_recount_en;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration .d = cycle_per_iteration;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt      .d = cycle_per_cmpt;
     assign hw2reg.cycle_all_cmpt_lsb                          .d = cycle_all_cmpt[logic_cfg.CcCounterBitwidth-1:0];
     assign hw2reg.cycle_all_cmpt_msb                          .d = cycle_all_cmpt[2*logic_cfg.CcCounterBitwidth-1:logic_cfg.CcCounterBitwidth];
 
@@ -455,7 +464,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .SPIN_WBL_OFFSET                 (logic_cfg.SpinWblOffset          ),
         .H_IS_NEGATIVE                   (logic_cfg.HIsNegative            ),
         .ENABLE_FLIP_DETECTION           (logic_cfg.EnableFlipDetection    ),
-        .CC_COUNTER_BITWIDTH             (logic_cfg.CcCounterBitwidth      )
+        .CC_COUNTER_BITWIDTH             (logic_cfg.CcCounterBitwidth      ),
+        .SC_COUNTER_BITWIDTH             (logic_cfg.ScCounterBitwidth      ),
+        .ITER_COUNTER_BITWIDTH           (logic_cfg.IterCounterBitwidth    )
     ) u_digital_macro (
         .clk_i                           (clk_i                            ),
         .rst_ni                          (rst_ni                           ),
@@ -560,11 +571,30 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .multi_cmpt_mode_en_i            (multi_cmpt_mode_en               ),
         .cmpt_max_num_i                  (cmpt_max_num                     ),
         .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle             ),
+        .cycle_per_iter_recount_en_o     (cycle_per_iter_recount_en        ),
         .cmpt_idx_o                      (cmpt_idx                         ),
         .cycle_per_iteration_o           (cycle_per_iteration              ),
         .cycle_per_cmpt_o                (cycle_per_cmpt                   ),
         .cycle_all_cmpt_o                (cycle_all_cmpt                   )
     );
+
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+        end else begin
+            if (cmpt_idle == 0 && flip_ren) begin
+                $info("flip_raddr: 'h%h", flip_raddr);
+            end
+        end
+    end
+
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+        end else begin
+            if (cmpt_idle_posedge) begin
+                $info("cmpt_idle_posedge: 'h%h", cmpt_idle_posedge);
+            end
+        end
+    end
 
     //////////////////////////////////////////////////////////
     // Memory MUX ////////////////////////////////////////////
