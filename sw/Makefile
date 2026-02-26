@@ -27,6 +27,9 @@ endif
 # Tested core
 CORE_TESTED ?= 0
 
+# Define CORE_TESTED for C code
+CHS_SW_INCLUDES += -DCORE_TESTED=$(CORE_TESTED)
+
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 
