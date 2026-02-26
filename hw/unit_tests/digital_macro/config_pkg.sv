@@ -41,9 +41,9 @@ package config_pkg;
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;
     parameter int CyclePerWwlLow = 2;
-    parameter int CyclePerSpinWrite = 2; // cannot be 1 since the real value set is CyclePerSpinWrite - 1
+    parameter int CyclePerSpinWrite = 6; // cannot be 1 since the real value set in tb is CyclePerSpinWrite - 1
     parameter int CyclePerSpinCompute = 2;
-    parameter int SynchronizerPipeNum = 1;
+    parameter int SynchronizerPipeNum = SYNCHRONIZER_PIPEDEPTH;
     parameter int SpinWwlStrobe = {NUM_SPIN{1'b1}};
     parameter int SpinFeedback = {NUM_SPIN{1'b1}}; // all spins in feedback mode
     parameter int Flush = `False;
