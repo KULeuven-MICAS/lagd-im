@@ -18,12 +18,6 @@ include $(CHS_ROOT)/cheshire.mk
 # Add local sw/include path
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 
-# XOR data verification (off by default; enable with: make XOR_CHECK=1)
-XOR_CHECK ?= 0
-ifeq ($(XOR_CHECK),1)
-CHS_SW_INCLUDES += -DENABLE_XOR_CHECK
-endif
-
 # Tested core
 CORE_TESTED ?= 0
 
