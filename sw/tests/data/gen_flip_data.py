@@ -23,7 +23,8 @@ OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate sw/include/model_f_data.h from sw/tests/data/clusters_1 and clusters_2."
+        description="Generate sw/include/model_f_data.h from "
+        "sw/tests/data/clusters_1 and clusters_2."
     )
     parser.add_argument(
         "--core-onload",

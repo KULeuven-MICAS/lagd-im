@@ -179,7 +179,8 @@ static void lagd_configure_global_cfg_2(unsigned core) {
          ((GCFG2_DGT_HSCALING & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
           << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
-    printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2, (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
+    printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2,
+            (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
 }
 
 // Switch off config valid signals
@@ -359,11 +360,11 @@ static void lagd_check_spin_fifo_data(unsigned core) {
     for (int i = 0; i < NUM_SPIN / 32; i++) {
         if (spin_fifo_data_0[i] != spin_ref_0[i]) {
             pass0 = 0;
-            break;  // stop at the first mismatch
+            break; // stop at the first mismatch
         }
         if (spin_fifo_data_1[i] != spin_ref_1[i]) {
             pass1 = 0;
-            break;  // stop at the first mismatch
+            break; // stop at the first mismatch
         }
     }
 
