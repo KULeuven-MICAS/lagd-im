@@ -4,7 +4,7 @@
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 
 #ifndef CORE_TESTED
-#define CORE_TESTED 1
+#define CORE_TESTED 0
 #endif
 
 #include "regs/cheshire.h"
@@ -72,28 +72,35 @@ int main(void) {
     lagd_clear_config_valid(CORE_TESTED);
     uint64_t t11 = clint_get_mtime();
     printf("LAGD reg config: %llu us\r\n", (t11 - t10) * 1000000ULL / rtc_freq);
-    printf("=== LAGD Analog Onloading ===\r\n");
+    // printf("=== LAGD Analog Onloading ===\r\n");
     // start analog onloading
-    lagd_enable_analog_onloading(CORE_TESTED);
+    // lagd_enable_analog_onloading(CORE_TESTED);
     // wait for analog onloading to finish
-    lagd_wait_for_analog_onloading_done(CORE_TESTED);
-    uint64_t t12 = clint_get_mtime();
-    printf("LAGD analog onloading: %llu us\r\n", (t12 - t11) * 1000000ULL / rtc_freq);
+    // lagd_wait_for_analog_onloading_done(CORE_TESTED);
+    // uint64_t t12 = clint_get_mtime();
+    // printf("LAGD analog onloading: %llu us\r\n", (t12 - t11) * 1000000ULL / rtc_freq);
     printf("=== LAGD Computation Start ===\r\n");
+    uart_write_flush(&__base_uart);
     // start computation
     lagd_enable_energy_monitor_fifo(CORE_TESTED);
     lagd_enable_computation(CORE_TESTED);
     printf("=== LAGD Waiting for Computation to Finish ===\r\n");
+    uart_write_flush(&__base_uart);
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
     uint64_t t13 = clint_get_mtime();
-    printf("LAGD computation time: %llu us\r\n", (t13 - t12) * 1000000ULL / rtc_freq);
+    printf("LAGD computation time: %llu us\r\n", (t13 - t11) * 1000000ULL / rtc_freq);
     // print output
-    // lagd_print_output_status(CORE_TESTED);
+    lagd_print_output_status(CORE_TESTED);
     lagd_print_energy_fifo_data(CORE_TESTED);
     // lagd_print_spin_fifo_data(CORE_TESTED);
     // checks
     lagd_check_spin_fifo_data(CORE_TESTED);
+    // print performance counters
+    lagd_print_cmpt_idx(CORE_TESTED);
+    lagd_print_cycle_per_iteration(CORE_TESTED);
+    lagd_print_cycle_per_cmpt(CORE_TESTED);
+    lagd_print_cycle_all_cmpt(CORE_TESTED);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
