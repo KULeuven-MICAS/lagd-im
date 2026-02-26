@@ -431,12 +431,17 @@ static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_sam
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     uint8_t loop_en = 1;
     unsigned log_idx = 0;
+    uint16_t prev_cycle_per_iter = 0;
     while (loop_en) {
         uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
         if (log_idx < max_samples) {
             if (((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) == 0 &&
-            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1)) {
-            log_buf[log_idx++] = val;
+            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1) == 0 &&
+            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
+            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK) != prev_cycle_per_iter) {
+                prev_cycle_per_iter = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
+                                      LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK;
+                log_buf[log_idx++] = val;
             }
         }
         if (((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) &&
