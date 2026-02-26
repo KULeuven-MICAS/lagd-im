@@ -66,12 +66,21 @@ module fixture_lagd_chip #(
   tri [3:0] spis_sd_io;  // Bidirectional SPI data lines
   logic [3:0] spis_sd_i;
   logic [3:0] spis_sd_o;
+
+  logic pll_test_done;
+
   //==============================================
   // DUT
   //==============================================
   generate 
   if (ChipTest == 1) begin : gen_dut_lagd_chip
     $info("Instantiating lagd_chip as DUT");
+  
+    // PLL Control Signals
+    logic pll_strb;
+    logic pll_data;
+    logic pll_cfg_vld_strb;
+
     wire pad_clk_i; assign pad_clk_i = clk;
     wire pad_clk_o;
     wire pad_rtc_i; assign pad_rtc_i = rtc;
@@ -94,10 +103,10 @@ module fixture_lagd_chip #(
     tri pad_spi_sd_2_io; assign pad_spi_sd_2_io = spis_sd_io[2]; assign spis_sd_o[2] = pad_spi_sd_2_io;
     tri pad_spi_sd_3_io; assign pad_spi_sd_3_io = spis_sd_io[3]; assign spis_sd_o[3] = pad_spi_sd_3_io;
     wire pad_clk_sel_i; assign pad_clk_sel_i = 1'b1;
-    wire pad_pll_strb_i; assign pad_pll_strb_i = 1'b0;
-    wire pad_pll_data_i; assign pad_pll_data_i = 1'b0;
+    wire pad_pll_strb_i; assign pad_pll_strb_i = pll_strb;
+    wire pad_pll_data_i; assign pad_pll_data_i = pll_data;
     wire pad_pll_data_o;
-    wire pad_pll_cfg_vld_strb_i; assign pad_pll_cfg_vld_strb_i = 1'b0;
+    wire pad_pll_cfg_vld_strb_i; assign pad_pll_cfg_vld_strb_i = pll_cfg_vld_strb;
     wire pad_pll_fb_clk_io;
     wire pad_pll_lock_o;
     wire pll_iref_i;
@@ -118,6 +127,14 @@ module fixture_lagd_chip #(
     wire galena_vread_1_i;
 
     lagd_chip dut (.*);
+    pll_tester i_pll_tester (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .data_strb_o(pll_strb),
+      .data_o(pll_data),
+      .cfg_vld_strb_o(pll_cfg_vld_strb),
+      .test_done(pll_test_done)
+    );
   end else begin : gen_dut_soc
     $info("Instantiating lagd_soc as DUT");
     logic clk_i; assign clk_i = clk;
@@ -139,6 +156,7 @@ module fixture_lagd_chip #(
     logic uart_dsr_ni; assign uart_dsr_ni = 1'b1;
     logic uart_dcd_ni; assign uart_dcd_ni = 1'b1;
     logic uart_rin_ni; assign uart_rin_ni = 1'b1;
+    assign pll_test_done = 1'b1; // Not testing PLL in SoC test, so tie this to done
     
     wire [`NUM_ISING_CORES-1:0] galena_j_iref_i;
     wire [`NUM_ISING_CORES-1:0] galena_j_vup_i;

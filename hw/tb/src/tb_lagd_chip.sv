@@ -38,6 +38,7 @@ module tb_lagd_chip ();
 
   initial begin
     $display("Boot mode: %0d, Preload mode: %0d, Preload ELF: %s", boot_mode, preload_mode, preload_elf);
+    wait(fix.pll_test_done == 1);
     // Wait for reset
     fix.vip.wait_for_reset();
     
