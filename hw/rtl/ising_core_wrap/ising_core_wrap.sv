@@ -143,7 +143,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.IterCounterBitwidth-1:0] cycle_per_iteration;
     logic [2*logic_cfg.CcCounterBitwidth-1:0] cycle_all_cmpt;
     logic multi_cmpt_mode_idle;
-    logic [logic_cfg.NumSpin-1:0] debug_wbl_config;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_config;
     // memories
     logic j_mem_ren_load;
     logic dgt_weight_ren;
