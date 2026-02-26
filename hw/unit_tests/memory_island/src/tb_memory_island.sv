@@ -23,6 +23,7 @@ module tb_memory_island import lagd_pkg::*; #(
     parameter int unsigned RandTest = 1,
     // Derived parameters - Do not override
     parameter int unsigned MemorySizeBytes = Cfg.WordsPerBank * (Cfg.NarrowDataWidth/8) * Cfg.NumNarrowBanks,
+    parameter int unsigned NumWideWords = MemorySizeBytes / (Cfg.WideDataWidth/8),
     parameter int unsigned NumAxiNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiNarrowReq),
     parameter int unsigned NumAxiWideReqSafe = `ZWIDTH_SAFE(Cfg.NumAxiWideReq),
     parameter int unsigned NumDirectNarrowReqSafe = `ZWIDTH_SAFE(Cfg.NumDirectNarrowReq),
@@ -191,7 +192,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .Write(1),
                 .DataRandom(0),
                 .RandMaster(1),
-                .NumTransactions(10),
+                .NumTransactions(NumWideWords),
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
                 .TA(TA),
@@ -212,7 +213,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .Write(0),
                 .DataRandom(0),
                 .RandMaster(1),
-                .NumTransactions(10),
+                .NumTransactions(NumWideWords),
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
                 .TA(TA),
@@ -233,7 +234,7 @@ module tb_memory_island import lagd_pkg::*; #(
                 .UserWidth(2),
                 .TestRegionStart(0),
                 .TestRegionEnd(MemorySizeBytes),
-                .NumTransactions(100),
+                .NumTransactions(100000),
                 .RandInterval(0),
                 .RandBurst(0)
             ) i_mem_rand_test (

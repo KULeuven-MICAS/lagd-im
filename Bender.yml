@@ -35,18 +35,19 @@ sources:
     target: all(tech_cells_generic_exclude_tc_sram, synthesis)
   - files:
       - target/syn/tech/tsmc7ff/rtl/synchronizer.sv
-      - target/syn/tech/tsmc7ff/rtl/pomelo_pll_wrap.sv
       - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
     target: all(synthesis)
   - files:
-      - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
+      - target/syn/tech/tsmc7ff/rtl/pomelo_pll_wrap.sv
     target: any(synthesis, test)
+
   - files:
       - hw/rtl/analog_macro_wrap/synchronizer.sv
     target: all(not(mixed_signal_exclude_generic_synchronizer))
   - files:
-      - hw/tb/models/galena/galena.sv
       - hw/tb/models/galena/galena_pkg.sv
+      - hw/tb/models/galena/galena.sv
+      - hw/tb/models/pomelo_pll/pomelo_pll.sv
     target: any(test)
   - files:
       - hw/rtl/lib/lib_counter.sv
@@ -60,6 +61,10 @@ sources:
       - hw/rtl/memory_island/memory_island_pkg.sv
       - hw/rtl/memory_island/memory_island_core.sv
       - hw/rtl/memory_island/memory_island_wrap.sv
+      - hw/rtl/memory_island_top/memory_island_core_top.sv
+      - hw/rtl/memory_island_top/memory_island_wrap_top.sv
+      - hw/rtl/memory_island_ic/memory_island_core_ic.sv
+      - hw/rtl/memory_island_ic/memory_island_wrap_ic.sv
       - hw/rtl/lagd_pkg.sv
       - hw/rtl/lagd_mem_cfg_pkg.sv
       - hw/rtl/lagd_soc.sv
@@ -98,8 +103,14 @@ sources:
     target: all(test, tech_cells_generic_exclude_tc_sram)
   # yamllint enable rule:line-length
   - files:
-      - hw/tb/fixture_lagd_chip.sv
+      - hw/tb/src/master_spi_vip.sv
+      - hw/tb/src/pll_tester.sv
+      - hw/tb/src/fixture_lagd_chip.sv
     target: any(simulation, test)
+  - files:
+      - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
+      - target/syn/tech/tsmc7ff/rtl/ut/memory_island/memory_island_tle.sv
+    target: any(synthesis, test)
 
 #  - target: any(simulation, test)
 #    files:

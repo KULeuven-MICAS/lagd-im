@@ -24,11 +24,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     parameter type mem_j_rsp_t = logic,
     parameter type mem_f_req_t = logic,
     parameter type mem_f_rsp_t = logic,
-    parameter type axi_slv_aw_chan_t = logic,
-    parameter type axi_slv_w_chan_t = logic,
-    parameter type axi_slv_b_chan_t = logic,
-    parameter type axi_slv_ar_chan_t = logic,
-    parameter type axi_slv_r_chan_t = logic,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 )(
@@ -170,9 +165,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic cmpt_idle_dly1;
     logic cmpt_idle_posedge;
 
-    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
-        logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
-
     assign cmpt_idle_posedge = cmpt_idle & ~cmpt_idle_dly1;
     `FFLARNC(cmpt_idle_dly1, cmpt_idle, en_fm, flush_en, 1'b1, clk_i, rst_ni)
 
@@ -180,12 +172,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // L1 memory, with narrow and direct access //////////////
     //////////////////////////////////////////////////////////
     // L1 memory instances
-    memory_island_wrap #(
+    memory_island_wrap_ic #(
         .Cfg                   (l1_mem_cfg_j           ),
         .axi_narrow_req_t      (axi_narrow_req_t       ),
         .axi_narrow_rsp_t      (axi_narrow_rsp_t       ),
-        .axi_wide_req_t        (axi_wide_req_t         ),
-        .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
         .mem_wide_req_t        (mem_j_req_t            ),
@@ -195,20 +185,14 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .rst_ni                 (rst_ni                ),
         .axi_narrow_req_i       (axi_s_req_j_i         ),
         .axi_narrow_rsp_o       (axi_s_rsp_j_o         ),
-        .axi_wide_req_i         ('0                    ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       ('0                    ),
-        .mem_narrow_rsp_o       (                      ),
         .mem_wide_req_i         (drt_s_req_j           ),
         .mem_wide_rsp_o         (drt_s_rsp_j           )
     );
 
-    memory_island_wrap #(
+    memory_island_wrap_ic #(
         .Cfg                   (l1_mem_cfg_flip        ),
         .axi_narrow_req_t      (axi_narrow_req_t       ),
         .axi_narrow_rsp_t      (axi_narrow_rsp_t       ),
-        .axi_wide_req_t        (axi_wide_req_t         ),
-        .axi_wide_rsp_t        (axi_wide_rsp_t         ),
         .mem_narrow_req_t      (mem_narrow_req_t       ),
         .mem_narrow_rsp_t      (mem_narrow_rsp_t       ),
         .mem_wide_req_t        (mem_f_req_t            ),
@@ -218,10 +202,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .rst_ni                 (rst_ni                ),
         .axi_narrow_req_i       (axi_s_req_f_i         ),
         .axi_narrow_rsp_o       (axi_s_rsp_f_o         ),
-        .axi_wide_req_i         ('0                    ),
-        .axi_wide_rsp_o         (                      ),
-        .mem_narrow_req_i       ('0                    ),
-        .mem_narrow_rsp_o       (                      ),
         .mem_wide_req_i         (drt_s_req_flip        ),
         .mem_wide_rsp_o         (drt_s_rsp_flip        )
     );
@@ -521,7 +501,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wbl_o                           (wbl_in_analog                    ),
         .wblb_o                          (wblb_in_analog                   ),
         .wbl_read_i                      (debug_wbl_in                     ),
-        .wblb_read_i                     (                                 ),
+        .wblb_read_i                     ('0                               ),
         .wbl_floating_o                  (wbl_floating_in_analog           ),
         .wwl_vdd_o                       (wwl_vdd_analog                   ),
         .wwl_vread_o                     (wwl_vread_analog                 ),
