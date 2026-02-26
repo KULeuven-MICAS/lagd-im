@@ -603,14 +603,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .cycle_all_cmpt_o                (cycle_all_cmpt                   )
     );
 
-    always_ff @ (posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-        end else begin
-            if (cycle_per_iter_recount_en == 1) begin
-                $info("[Time %0t] cmpt_idle/culti_cmpt_idle/recount/cc_iter/cc_cmpt: 'h%h/'h%h/%0d/%0d/%0d", $time, cmpt_idle, multi_cmpt_mode_idle, cycle_per_iter_recount_en, cycle_per_iteration, cycle_per_cmpt);
-            end
-        end
-    end
 
     //////////////////////////////////////////////////////////
     // Memory MUX ////////////////////////////////////////////
