@@ -453,5 +453,5 @@ static void lagd_print_cycle_all_cmpt(unsigned core) {
     uint32_t cycle_all_cmpt_lsb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_LSB_REG_OFFSET);
     uint32_t cycle_all_cmpt_msb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_MSB_REG_OFFSET);
     uint64_t cycle_all_cmpt = ((uint64_t)cycle_all_cmpt_msb << 32) | cycle_all_cmpt_lsb;
-    // printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
+    printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
 }
