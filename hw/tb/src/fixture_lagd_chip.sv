@@ -129,7 +129,6 @@ module fixture_lagd_chip #(
     lagd_chip dut (.*);
     pll_tester i_pll_tester (
       .clk_i(clk),
-      .rst_ni(rst_n),
       .data_strb_o(pll_strb),
       .data_o(pll_data),
       .cfg_vld_strb_o(pll_cfg_vld_strb),
