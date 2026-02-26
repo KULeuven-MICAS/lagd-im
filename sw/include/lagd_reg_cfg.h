@@ -285,8 +285,8 @@ static void lagd_print_output_status(unsigned core) {
            (status >> LAGD_CORE_OUTPUT_STATUS_ENERGY_FIFO_UPDATE_BIT) & 0x1);
     printf("  SPIN_FIFO_UPDATE: %u\r\n",
            (status >> LAGD_CORE_OUTPUT_STATUS_SPIN_FIFO_UPDATE_BIT) & 0x1);
-    printf("  DEBUG_J_READ_DATA_VALID: %u\r\n",
-           (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_J_READ_DATA_VALID_BIT) & 0x1);
+    printf("  DEBUG_WBL_READ_DATA_VALID: %u\r\n",
+           (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_WBL_READ_DATA_VALID_BIT) & 0x1);
     printf("  DEBUG_ANALOG_DT_W_IDLE: %u\r\n",
            (status >> LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT) & 0x1);
     printf("  DEBUG_ANALOG_DT_R_IDLE: %u\r\n",
