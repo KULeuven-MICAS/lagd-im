@@ -129,8 +129,8 @@ module tb_digital_macro;
     logic debug_spin_valid_o;
     logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o;
     logic [NUM_SPIN-1:0] debug_spin_o;
-    logic debug_j_read_data_valid_o;
-    logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
+    logic debug_wbl_read_data_valid_o;
+    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_read_data_o, debug_wblb_read_data_o;
     logic [NUM_SPIN*BITDATA-1:0] wbl_read_i, wblb_read_i;
 
     // testbench signals
@@ -290,8 +290,9 @@ module tb_digital_macro;
         .debug_j_one_hot_wwl_i           (debug_j_one_hot_wwl_i         ),
         .debug_h_wwl_i                   (debug_h_wwl_i                 ),
         .debug_wbl_i                     (debug_wbl_i                   ),
-        .debug_j_read_data_o             (debug_j_read_data_o           ),
-        .debug_j_read_data_valid_o       (debug_j_read_data_valid_o     ),
+        .debug_wbl_read_data_o           (debug_wbl_read_data_o         ),
+        .debug_wblb_read_data_o          (debug_wblb_read_data_o        ),
+        .debug_wbl_read_data_valid_o     (debug_wbl_read_data_valid_o   ),
         .debug_spin_write_en_i           (debug_spin_write_en_i         ),
         .wbl_floating_i                  (wbl_floating_i                ),
         .debug_spin_compute_en_i         (debug_spin_compute_en_i       ),

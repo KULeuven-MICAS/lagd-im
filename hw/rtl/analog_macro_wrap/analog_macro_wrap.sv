@@ -52,6 +52,7 @@ module analog_macro_wrap #(
     output logic [NUM_SPIN-1:0] j_one_hot_wwl_o,
     output logic h_wwl_o,
     input  logic [NUM_SPIN*BITDATA-1:0] wbl_read_i,
+    input  logic [NUM_SPIN*BITDATA-1:0] wblb_read_i,
     output logic [NUM_SPIN*BITDATA-1:0] wbl_o,
     output logic [NUM_SPIN*BITDATA-1:0] wblb_o,
     output logic [NUM_SPIN*BITDATA-1:0] wbl_floating_o,
@@ -77,8 +78,9 @@ module analog_macro_wrap #(
     input  logic debug_h_wwl_i,
     input  logic [NUM_SPIN*BITDATA-1:0] debug_wbl_i,
     input  logic [NUM_SPIN*BITDATA-1:0] wbl_floating_i,
-    output logic debug_j_read_data_valid_o,
-    output logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o,
+    output logic debug_wbl_read_data_valid_o,
+    output logic [NUM_SPIN*BITDATA-1:0] debug_wbl_read_data_o,
+    output logic [NUM_SPIN*BITDATA-1:0] debug_wblb_read_data_o,
     // debug interface: spin writing
     input  logic debug_spin_write_en_i,
     // debug interface: spin computing
@@ -124,7 +126,6 @@ module analog_macro_wrap #(
     logic spin_valid_tx;
     logic spin_ready_tx;
     logic [COUNTER_BITWIDTH-1:0] debug_syn_num_cnt_q;
-    logic [$clog2(SYNCHRONIZER_PIPEDEPTH)-1:0] synchronizer_pipe_num_tx_reg;
     logic debug_spin_read_en_posedge;
     logic debug_j_write_en_dly1, debug_j_read_en_dly1, debug_spin_write_en_dly1;
     logic debug_spin_compute_en_dly1;
@@ -191,7 +192,7 @@ module analog_macro_wrap #(
     // regular control logic
     assign spin_tx_handshake = spin_valid_o & spin_ready_i;
     assign wbl_write_output = dt_cfg_idle_o ? wbl_spin_expanded : wbl_dt;
-    assign wblb_write_output = dt_cfg_idle_o ? '0 : ~wbl_write_output;
+    assign wblb_write_output = ~wbl_write_output;
     assign wwl_vdd_o = wwl_vdd_reg;
     assign wwl_vread_o = wwl_vread_reg;
 
@@ -294,7 +295,7 @@ module analog_macro_wrap #(
         // config interface
         .tx_configure_enable_i    (analog_wrap_configure_enable_i            ),
         .synchronizer_pipe_num_i  (synchronizer_pipe_num_i                   ),
-        .synchronizer_pipe_num_reg_o (synchronizer_pipe_num_tx_reg           ),
+        .synchronizer_pipe_num_reg_o (                                       ),
         // spin interface: tx <- analog macro
         .spin_i                   (spin_analog_i                             ),
         // spin interface: rx -> tx
@@ -312,7 +313,7 @@ module analog_macro_wrap #(
     // ========================================================================
     // debug wbl synchronization module: j/h read
     analog_tx #(
-        .NUM_SPIN (NUM_SPIN*BITDATA),
+        .NUM_SPIN (2*NUM_SPIN*BITDATA),
         .SYNCHRONIZER_PIPEDEPTH (SYNCHRONIZER_PIPEDEPTH)
     ) u_analog_tx_wbl (
         .clk_i                    (clk_i                                     ),
@@ -323,13 +324,13 @@ module analog_macro_wrap #(
         .synchronizer_pipe_num_i  (synchronizer_wbl_pipe_num_i               ),
         .synchronizer_pipe_num_reg_o (                                       ),
         // input interface: tx <- analog macro
-        .spin_i                      (wbl_read_i                             ),
+        .spin_i                   ({wblb_read_i, wbl_read_i}                 ),
         // spin interface: rx -> tx
         .analog_macro_cmpt_finish_i  (debug_dt_sync_en                       ),
         // spin interface: tx <-> digital
-        .spin_valid_o             (debug_j_read_data_valid_o                 ),
+        .spin_valid_o             (debug_wbl_read_data_valid_o               ),
         .spin_ready_i             (1'b1                                      ),
-        .spin_o                   (debug_j_read_data_o                       ),
+        .spin_o                   ({debug_wblb_read_data_o, debug_wbl_read_data_o}     ),
         // status
         .analog_tx_idle_o         (                                          )
     );

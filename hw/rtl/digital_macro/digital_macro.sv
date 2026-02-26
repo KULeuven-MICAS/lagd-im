@@ -123,7 +123,7 @@ module digital_macro #(
     output logic [NUM_SPIN-1:0] spin_feedback_o,
     input  logic [NUM_SPIN-1:0] spin_analog_i,
     input  logic [NUM_SPIN*BITJ-1:0] wbl_read_i,
-    input  logic [NUM_SPIN*BITJ-1:0] wblb_read_i, // not used
+    input  logic [NUM_SPIN*BITJ-1:0] wblb_read_i,
     // runtime interface: energy fifo
     input  logic [J_MEM_ADDR_WIDTH-1:0] dgt_addr_upper_bound_i,
     // interface when ENABLE_FLIP_DETECTION = True
@@ -134,8 +134,9 @@ module digital_macro #(
     input  logic [NUM_SPIN-1:0] debug_j_one_hot_wwl_i,
     input  logic debug_h_wwl_i,
     input  logic [NUM_SPIN*BITJ-1:0] debug_wbl_i,
-    output logic debug_j_read_data_valid_o,
-    output logic [NUM_SPIN*BITJ-1:0] debug_j_read_data_o,
+    output logic debug_wbl_read_data_valid_o,
+    output logic [NUM_SPIN*BITJ-1:0] debug_wbl_read_data_o,
+    output logic [NUM_SPIN*BITJ-1:0] debug_wblb_read_data_o,
     // debugging interface: analog spin write/compute/read
     input  logic debug_spin_write_en_i,
     input  logic debug_spin_compute_en_i,
@@ -641,6 +642,7 @@ module digital_macro #(
         .wbl_o                          (wbl_o                               ),
         .wblb_o                         (wblb_o                              ),
         .wbl_read_i                     (wbl_read_i                          ),
+        .wblb_read_i                    (wblb_read_i                         ),
         .wbl_floating_o                 (wbl_floating_o                      ),
         .wwl_vdd_o                      (wwl_vdd_o                           ),
         .wwl_vread_o                    (wwl_vread_o                         ),
@@ -659,8 +661,9 @@ module digital_macro #(
         .debug_j_one_hot_wwl_i          (debug_j_one_hot_wwl_i               ),
         .debug_h_wwl_i                  (debug_h_wwl_i                       ),
         .debug_wbl_i                    (debug_wbl_i                         ),
-        .debug_j_read_data_valid_o      (debug_j_read_data_valid_o           ),
-        .debug_j_read_data_o            (debug_j_read_data_o                 ),
+        .debug_wbl_read_data_valid_o    (debug_wbl_read_data_valid_o         ),
+        .debug_wbl_read_data_o          (debug_wbl_read_data_o               ),
+        .debug_wblb_read_data_o         (debug_wblb_read_data_o              ),
         .debug_spin_write_en_i          (debug_spin_write_en_i               ),
         .wbl_floating_i                 (wbl_floating_i                      ),
         .debug_spin_compute_en_i        (debug_spin_compute_en_i             ),

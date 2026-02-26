@@ -223,6 +223,19 @@
     }
 
     { multireg:
+      { name:     "debug_wbl_config"
+        desc:     "debug_wbl_config values"
+        swaccess: "rw"
+        hwaccess: "hro"
+        count:    "32"
+        cname:    "debug_wbl_config"
+        fields: [
+          { bits: "31:0", resval: "1", name: "debug_wbl_config", desc: "debug_wbl_config values" }
+        ]
+      }
+    }
+
+    { multireg:
       { name:     "debug_j_one_hot_wwl"
         desc:     "debug_j_one_hot_wwl values"
         swaccess: "rw"
@@ -244,7 +257,7 @@
         { bits: "1",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
         { bits: "2",     resval: "0",  name: "energy_fifo_update",            desc: "Whether the energy fifo is being updated"             }
         { bits: "3",     resval: "0",  name: "spin_fifo_update",              desc: "Whether the spin fifo is being updated"               }
-        { bits: "4",     resval: "0",  name: "debug_j_read_data_valid",       desc: "Whether the debug J read data is valid"               }
+        { bits: "4",     resval: "0",  name: "debug_wbl_read_data_valid",     desc: "Whether the debug WBL read data is valid"             }
         { bits: "5",     resval: "1",  name: "debug_analog_dt_w_idle",        desc: "Whether the debug analog dt w is idle"                }
         { bits: "6",     resval: "1",  name: "debug_analog_dt_r_idle",        desc: "Whether the debug analog dt r is idle"                }
         { bits: "7",     resval: "1",  name: "debug_spin_w_idle",             desc: "Whether the debug spin w is idle"                     }
@@ -312,14 +325,27 @@
     }
 
     { multireg:
-      { name:     "debug_j_read_data"
-        desc:     "debug_j_read_data values"
+      { name:     "debug_wbl_read_data"
+        desc:     "debug_wbl_read_data values"
         swaccess: "rw"
         hwaccess: "hwo"
         count:    "32"
-        cname:    "debug_j_read_data"
+        cname:    "debug_wbl_read_data"
         fields: [
-          { bits: "31:0", resval: "0", name: "debug_j_read_data", desc: "debug_j_read_data values" }
+          { bits: "31:0", resval: "0", name: "debug_wbl_read_data", desc: "debug_wbl_read_data values" }
+        ]
+      }
+    }
+
+    { multireg:
+      { name:     "debug_wblb_read_data"
+        desc:     "debug_wblb_read_data values"
+        swaccess: "rw"
+        hwaccess: "hwo"
+        count:    "32"
+        cname:    "debug_wblb_read_data"
+        fields: [
+          { bits: "31:0", resval: "0", name: "debug_wblb_read_data", desc: "debug_wblb_read_data values" }
         ]
       }
     }

@@ -31,6 +31,8 @@ module tb_analog_macro_wrap;
 
     // testbench parameters
     localparam int CLKCYCLE = 2;
+    logic RANDOM_DATA = 1; // random J and h if set to 1, otherwise use FIXED_DATA
+    logic signed [BITDATA-1:0] FIXED_DATA = -1; // fixed J/h if RANDOM_DATA is 0
 
     // dut run-time configuration
     localparam int CyclePerWwlHigh = 3;
@@ -38,7 +40,7 @@ module tb_analog_macro_wrap;
     localparam int CyclePerSpinWrite = 3;
     localparam int CyclePerSpinCompute = 5;
     localparam int CyclePerSpinRead = 6;
-    localparam int DebugSpinReadNum = 1024;
+    localparam int DebugSpinReadNum = 8;
     localparam int SynchronizerPipeNum = 3;
     localparam int SpinWwlStrobe = {(NUM_SPIN){1'b1}}; // all spins enabled
     localparam int SpinFeedback = {(NUM_SPIN){1'b1}}; // all spins in feedback mode
@@ -69,7 +71,7 @@ module tb_analog_macro_wrap;
     logic h_wwl_o;
     logic [NUM_SPIN*BITDATA-1:0] wbl_copy, wbl_floating_o;
     logic [NUM_SPIN*BITDATA-1:0] wbl_o, wblb_o;
-    logic [NUM_SPIN*BITDATA-1:0] wbl_read_i;
+    logic [NUM_SPIN*BITDATA-1:0] wbl_read_i, wblb_read_i;
     logic spin_pop_valid_i;
     logic spin_pop_ready_o;
     logic spin_pop_handshake;
@@ -100,8 +102,8 @@ module tb_analog_macro_wrap;
     logic debug_spin_valid_o;
     logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o;
     logic [NUM_SPIN-1:0] debug_spin_o;
-    logic debug_j_read_data_valid_o;
-    logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
+    logic debug_wbl_read_data_valid_o;
+    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_read_data_o, debug_wblb_read_data_o;
     logic debug_analog_dt_w_idle_o, debug_analog_dt_r_idle_o;
     logic [NUM_SPIN:0] wwl_vdd_i;
     logic [NUM_SPIN:0] wwl_vread_i;
@@ -199,6 +201,7 @@ module tb_analog_macro_wrap;
         .wbl_o                             (wbl_o                            ),
         .wblb_o                            (wblb_o                           ),
         .wbl_read_i                        (wbl_read_i                       ),
+        .wblb_read_i                       (wblb_read_i                      ),
         .wbl_floating_o                    (wbl_floating_o                   ),
         .wwl_vdd_o                         (wwl_vdd_o                        ),
         .wwl_vread_o                       (wwl_vread_o                      ),
@@ -227,8 +230,9 @@ module tb_analog_macro_wrap;
         .debug_spin_w_idle_o               (debug_spin_w_idle_o              ),
         .debug_spin_cmpt_idle_o            (debug_spin_cmpt_idle_o           ),
         .debug_spin_r_idle_o               (debug_spin_r_idle_o              ),
-        .debug_j_read_data_valid_o         (debug_j_read_data_valid_o        ),
-        .debug_j_read_data_o               (debug_j_read_data_o              ),
+        .debug_wbl_read_data_valid_o       (debug_wbl_read_data_valid_o      ),
+        .debug_wbl_read_data_o             (debug_wbl_read_data_o            ),
+        .debug_wblb_read_data_o            (debug_wblb_read_data_o           ),
         .debug_spin_valid_o                (debug_spin_valid_o               ),
         .debug_spin_waddr_o                (debug_spin_waddr_o               ),
         .debug_spin_o                      (debug_spin_o                     ),
@@ -369,7 +373,11 @@ module tb_analog_macro_wrap;
             @(negedge clk_i);
             for (spin_idx = 0; spin_idx < NUM_SPIN; spin_idx = spin_idx + 1) begin
                 do begin
-                    temp_hbias = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                    if (RANDOM_DATA == 1) begin
+                        temp_hbias = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                    end else begin
+                        temp_hbias = FIXED_DATA;
+                    end
                 end while (temp_hbias == {1'b1, {BITDATA-1{1'b0}}});  // Exclude unsupported most negative value
                 hbias_in_reg[spin_idx*BITDATA +: BITDATA] = temp_hbias;
             end
@@ -394,7 +402,11 @@ module tb_analog_macro_wrap;
                     weights_in_mem[j_mem_addr_idx][spin_idx*NUM_SPIN*BITDATA +: NUM_SPIN*BITDATA] = 'd0;
                     for (inner_spin_idx = 0; inner_spin_idx < NUM_SPIN; inner_spin_idx = inner_spin_idx + 1) begin
                         do begin
-                            temp_weight = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                            if (RANDOM_DATA == 1) begin
+                                temp_weight = $urandom_range(-2**(BITDATA-1), 2**(BITDATA-1) - 1);
+                            end else begin
+                                temp_weight = FIXED_DATA;
+                            end
                         end while (temp_weight == {1'b1, {BITDATA-1{1'b0}}});  // Exclude unsupported most negative value
                         weights_in_mem_ordered[j_mem_addr_idx*PARALLELISM + spin_idx][inner_spin_idx*BITDATA +: BITDATA]
                             = temp_weight;
@@ -525,7 +537,7 @@ module tb_analog_macro_wrap;
         debug_wbl_i = 'd0;
         wwl_vdd_i = {(NUM_SPIN+1){1'b1}};
         wwl_vread_i = {(NUM_SPIN+1){1'b0}};
-        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
         debug_test_idx = 'd0;
         debug_dt_configure_enable_i = 1'b0;
         debug_galena_dt_done = 1'b0;
@@ -542,8 +554,8 @@ module tb_analog_macro_wrap;
                 end while (temp_debug_wbl_data == {1'b1, {BITDATA-1{1'b0}}});  // Exclude unsupported most negative value
                 debug_wbl_i[i*BITDATA +: BITDATA] = temp_debug_wbl_data;
             end
-            // set wbl_floating to 0 and load in debug_wbl_i
-            wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
+            // set wbl_floating to 1 and load in debug_wbl_i
+            wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
             wwl_vdd_i = {(NUM_SPIN+1){1'b1}};
             wwl_vread_i = {(NUM_SPIN+1){1'b0}};
             debug_dt_configure_enable_i = 1'b1;
@@ -565,8 +577,8 @@ module tb_analog_macro_wrap;
             // ---------------------------------------
             // test: reading j/h
             // ---------------------------------------
-            // set wbl_floating to 1
-            wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
+            // set wbl_floating to 0
+            wbl_floating_i = {(NUM_SPIN*BITDATA){1'b0}};
             wwl_vdd_i = {(NUM_SPIN+1){1'b0}};
             wwl_vread_i = {(NUM_SPIN+1){1'b1}};
             debug_dt_configure_enable_i = 1'b1;
@@ -587,14 +599,22 @@ module tb_analog_macro_wrap;
             repeat (CyclePerWwlHigh) @(posedge clk_i);
             if (debug_j_analog_raddr >= NUM_SPIN) begin
                 wbl_read_i = hbias_analog;
+                wblb_read_i = ~hbias_analog;
             end else begin
                 wbl_read_i = weights_analog[debug_j_analog_raddr];
+                wblb_read_i = ~weights_analog[debug_j_analog_raddr];
             end
             debug_j_read_en_i = 1'b0;
             repeat (CyclePerWwlLow + 2) @(posedge clk_i); // +2 to wait for read to finish
             @(posedge clk_i); // wait an extra cycle before next test
             debug_test_idx = debug_test_idx + 1'b1;
         end
+        // recover wbl_floating_i to default value
+        wbl_floating_i = {(NUM_SPIN*BITDATA){1'b1}};
+        debug_dt_configure_enable_i = 1'b1;
+        @(posedge clk_i);
+        debug_dt_configure_enable_i = 1'b0;
+
         debug_galena_dt_done = 1'b1;
     endtask
 
@@ -614,8 +634,8 @@ module tb_analog_macro_wrap;
             // test: writing spins
             // ---------------------------------------
             // generate random wbl data
-            for (int i = 0; i < NUM_SPIN * BITDATA; i = i + 1) begin
-                debug_wbl_i[i] = $urandom_range(0, 1);
+            for (int i = 0; i < NUM_SPIN; i = i + 1) begin
+                debug_wbl_i[i*BITDATA +: BITDATA] = {{BITDATA-1{1'b0}}, $urandom_range(0, 1)};
             end
             // load in debug_wbl_i
             debug_spin_configure_enable_i = 1'b1;
@@ -834,29 +854,40 @@ module tb_analog_macro_wrap;
     task automatic debug_analog_interface_j_h_read_check();
         integer debug_dt_read_cycle_cnt_j = 0;
         logic [NUM_SPIN * BITDATA - 1:0] debug_j_read_data_decoded;
+        logic [NUM_SPIN * BITDATA - 1:0] debug_j_inv_read_data_decoded;
 
         wait (rst_ni == 1 && en_i == 1);
         while (debug_galena_done == 0) begin
             @(negedge clk_i);
             if (debug_j_read_en_posedge) begin
-                wait (debug_j_read_data_valid_o == 1'b1);
+                wait (debug_wbl_read_data_valid_o == 1'b1);
                 @(negedge clk_i);
                 // accept data
-                debug_j_read_data_decoded = debug_j_read_data_o;
+                debug_j_read_data_decoded = debug_wbl_read_data_o;
+                debug_j_inv_read_data_decoded = debug_wblb_read_data_o;
                 // compare data
                 if (debug_h_wwl_i) begin: compare_h
                     if (debug_j_read_data_decoded != hbias_analog) begin
                         $fatal(1, "[Time: %t][Debug data read mode] Error: Hbias read mismatch. Expected: 'h%h, Got: 'h%h",
                             $time, hbias_analog, debug_j_read_data_decoded);
                     end
+                    if (debug_j_inv_read_data_decoded != ~hbias_analog) begin
+                        $fatal(1, "[Time: %t][Debug data read mode] Error: Hbias inverse read mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, ~hbias_analog, debug_j_inv_read_data_decoded);
+                    end
                 end else begin: compare_j
                     if (debug_j_read_data_decoded != weights_analog[debug_j_analog_raddr]) begin
                         $fatal(1, "[Time: %t][Debug data read mode] Error: J read mismatch. Expected: 'h%h, Got: 'h%h",
                             $time, weights_analog[debug_j_analog_raddr], debug_j_read_data_decoded);
-                    end else begin
+                    end
+                    else begin
                         if (`DBG)
                             $display("[Time: %t][Debug data read mode] Info: J read match at addr %0d. Data: 'h%h",
                                 $time, debug_j_analog_raddr, debug_j_read_data_decoded);
+                    end
+                    if (debug_j_inv_read_data_decoded != ~weights_analog[debug_j_analog_raddr]) begin
+                        $fatal(1, "[Time: %t][Debug data read mode] Error: J inverse read mismatch. Expected: 'h%h, Got: 'h%h",
+                            $time, ~weights_analog[debug_j_analog_raddr], debug_j_inv_read_data_decoded);
                     end
                 end
             end

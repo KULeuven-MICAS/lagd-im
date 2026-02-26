@@ -121,8 +121,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.SpinDepth-1:0] [logic_cfg.NumSpin-1:0] spin_fifo_data;
     logic energy_fifo_update;
     logic spin_fifo_update;
-    logic debug_j_read_data_valid;
-    logic [logic_cfg.HRegDataBitwidth-1:0] debug_j_read_data;
+    logic debug_wbl_read_data_valid;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_read_data;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wblb_read_data;
     logic debug_analog_dt_w_idle;
     logic debug_analog_dt_r_idle;
     logic debug_spin_w_idle;
@@ -142,6 +143,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.IterCounterBitwidth-1:0] cycle_per_iteration;
     logic [2*logic_cfg.CcCounterBitwidth-1:0] cycle_all_cmpt;
     logic multi_cmpt_mode_idle;
+    logic [logic_cfg.NumSpin-1:0] debug_wbl_config;
     // memories
     logic j_mem_ren_load;
     logic dgt_weight_ren;
@@ -162,15 +164,12 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin:0] wwl_vread_analog;
     logic [logic_cfg.NumSpin-1:0] spin_wwl;
     logic [logic_cfg.NumSpin-1:0] spin_feedback_in_analog;
-    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_in;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_out_analog, wblb_out_analog;
     logic [logic_cfg.NumSpin-1:0] spin_out_analog;
 
     // internal signals
     logic cmpt_idle_dly1;
     logic cmpt_idle_posedge;
-
-    $info("Instantiating ising digital macro with parameters: NumSpin=%d, BitJ=%d, BitH=%d",
-        logic_cfg.NumSpin, logic_cfg.BitJ,  logic_cfg.BitH);
 
     assign cmpt_idle_posedge = cmpt_idle & ~cmpt_idle_dly1;
     `FFLARNC(cmpt_idle_dly1, cmpt_idle, en_fm, flush_en, 1'b1, clk_i, rst_ni)
@@ -325,7 +324,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.cmpt_idle                    .de = en_fm;
     assign hw2reg.output_status.energy_fifo_update           .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
     assign hw2reg.output_status.spin_fifo_update             .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
-    assign hw2reg.output_status.debug_j_read_data_valid      .de = en_aw;
+    assign hw2reg.output_status.debug_wbl_read_data_valid    .de = en_aw;
     assign hw2reg.output_status.debug_analog_dt_w_idle       .de = en_aw;
     assign hw2reg.output_status.debug_analog_dt_r_idle       .de = en_aw;
     assign hw2reg.output_status.debug_spin_w_idle            .de = en_aw;
@@ -370,7 +369,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
     assign hw2reg.output_status.energy_fifo_update            .d = energy_fifo_update;
     assign hw2reg.output_status.spin_fifo_update              .d = spin_fifo_update;
-    assign hw2reg.output_status.debug_j_read_data_valid       .d = debug_j_read_data_valid;
+    assign hw2reg.output_status.debug_wbl_read_data_valid     .d = debug_wbl_read_data_valid;
     assign hw2reg.output_status.debug_analog_dt_w_idle        .d = debug_analog_dt_w_idle;
     assign hw2reg.output_status.debug_analog_dt_r_idle        .d = debug_analog_dt_r_idle;
     assign hw2reg.output_status.debug_spin_w_idle             .d = debug_spin_w_idle;
@@ -430,8 +429,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     always_comb begin
         for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_REG_DATA_WIDTH; i=i+1) begin
-            hw2reg.debug_j_read_data[i].de = debug_j_read_data_valid;
-            hw2reg.debug_j_read_data[i].d  = debug_j_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_wbl_read_data[i] .de = debug_wbl_read_data_valid;
+            hw2reg.debug_wblb_read_data[i].de = debug_wbl_read_data_valid;
+            hw2reg.debug_wbl_read_data[i] .d  = debug_wbl_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_wblb_read_data[i].d  = debug_wblb_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         end
     end
 
@@ -447,8 +448,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wwl_vread_i             (wwl_vread_analog      ),
         .write_spin_i            (spin_wwl              ),
         .feedback_i              (spin_feedback_in_analog),
-        .wbl_read_o              (debug_wbl_in          ),
-        .wblb_read_o             (                      ),
+        .wbl_read_o              (wbl_out_analog        ),
+        .wblb_read_o             (wblb_out_analog       ),
         .bct_read_o              (spin_out_analog       ),
         // Galena wires
         .j_iref_aio              (galena_j_iref_i       ),
@@ -548,8 +549,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .h_wwl_o                         (h_wwl                            ),
         .wbl_o                           (wbl_in_analog                    ),
         .wblb_o                          (wblb_in_analog                   ),
-        .wbl_read_i                      (debug_wbl_in                     ),
-        .wblb_read_i                     (                                 ),
+        .wbl_read_i                      (wbl_out_analog                   ),
+        .wblb_read_i                     (wblb_out_analog                  ),
         .wbl_floating_o                  (wbl_floating_in_analog           ),
         .wwl_vdd_o                       (wwl_vdd_analog                   ),
         .wwl_vread_o                     (wwl_vread_analog                 ),
@@ -566,9 +567,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .debug_j_read_en_i               (debug_j_read_en                  ),
         .debug_j_one_hot_wwl_i           (debug_j_one_hot_wwl              ),
         .debug_h_wwl_i                   (debug_h_wwl                      ),
-        .debug_wbl_i                     (debug_wbl_in                     ),
-        .debug_j_read_data_o             (debug_j_read_data                ),
-        .debug_j_read_data_valid_o       (debug_j_read_data_valid          ),
+        .debug_wbl_i                     (debug_wbl_config                 ),
+        .debug_wbl_read_data_o           (debug_wbl_read_data              ),
+        .debug_wblb_read_data_o          (debug_wblb_read_data             ),
+        .debug_wbl_read_data_valid_o     (debug_wbl_read_data_valid        ),
         .debug_spin_write_en_i           (debug_spin_write_en              ),
         .wbl_floating_i                  (wbl_floating                     ),
         .debug_spin_compute_en_i         (debug_spin_compute_en            ),
@@ -603,17 +605,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     always_ff @ (posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
         end else begin
-            if (cmpt_idle == 0 && flip_ren) begin
-                $info("flip_raddr: 'h%h", flip_raddr);
-            end
-        end
-    end
-
-    always_ff @ (posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-        end else begin
-            if (cmpt_idle_posedge) begin
-                $info("cmpt_idle_posedge: 'h%h", cmpt_idle_posedge);
+            if (cycle_per_iter_recount_en == 1) begin
+                $info("[Time %0t] cmpt_idle/culti_cmpt_idle/recount/cc_iter/cc_cmpt: 'h%h/'h%h/%0d/%0d/%0d", $time, cmpt_idle, multi_cmpt_mode_idle, cycle_per_iter_recount_en, cycle_per_iteration, cycle_per_cmpt);
             end
         end
     end
