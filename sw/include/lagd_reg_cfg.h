@@ -420,4 +420,3 @@ static void lagd_print_cycle_all_cmpt(unsigned core) {
     uint64_t cycle_all_cmpt = ((uint64_t)cycle_all_cmpt_msb << 32) | cycle_all_cmpt_lsb;
     printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
 }
-
