@@ -25,7 +25,7 @@ CHS_SW_INCLUDES += -DENABLE_XOR_CHECK
 endif
 
 # Tested core
-CORE_TESTED ?= 1
+CORE_TESTED ?= 0
 
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
