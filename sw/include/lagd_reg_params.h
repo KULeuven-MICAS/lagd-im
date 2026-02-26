@@ -57,15 +57,15 @@
 
 // Registers for counter configuration 1
 #define CFG_TRANS_NUM 0x0040      // max: 0xFFFF
-#define CYCLE_PER_WWL_HIGH 0x0005 // max: 0xFFFF
+#define CYCLE_PER_WWL_HIGH 0x0005 // max: 0xFFFF (1 means 2 cycles)
 
 // Registers for counter configuration 2
-#define CYCLE_PER_WWL_LOW 0x0005    // max: 0xFFFF
-#define CYCLE_PER_SPIN_WRITE 0x0005 // max: 0xFFFF
+#define CYCLE_PER_WWL_LOW 0x0005    // max: 0xFFFF (1 means 2 cycles)
+#define CYCLE_PER_SPIN_WRITE 0x0005 // max: 0xFFFF (1 means 2 cycles)
 
 // Registers for counter configuration 3
-#define CYCLE_PER_SPIN_COMPUTE 0x0005    // max: 0xFFFF
-#define DEBUG_CYCLE_PER_SPIN_READ 0x0005 // max: 0xFFFF
+#define CYCLE_PER_SPIN_COMPUTE 0x0005    // max: 0xFFFF (1 means 2 cycles)
+#define DEBUG_CYCLE_PER_SPIN_READ 0x0005 // max: 0xFFFF (1 means 2 cycles)
 
 // Registers for counter configuration 4
 #define DEBUG_SPIN_READ_NUM 0x0005      // max: 0xFFFF
