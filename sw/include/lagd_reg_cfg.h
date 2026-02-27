@@ -110,6 +110,14 @@ static void lagd_configure_wbl_floating(unsigned core) {
     }
 }
 
+// Configure debug_wbl_config registers
+static void lagd_configure_debug_wbl_config(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    for (int i = 0; i < NUM_SPIN * BIT_H / 32; i++) {
+        *reg32(base, LAGD_CORE_DEBUG_WBL_CONFIG_0_REG_OFFSET + 4 * i) = debug_wbl_config[i];
+    }
+}
+
 // Configure debug_j_one_hot_wwl registers
 static void lagd_configure_debug_j_one_hot_wwl(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -439,8 +447,8 @@ static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_sam
             ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_MULTI_CMPT_MODE_IDLE_BIT) & 0x1) == 0) &&
             ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
             LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK) != prev_cycle_per_iter) {
-                prev_cycle_per_iter = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
-                                      LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK;
+                // prev_cycle_per_iter = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
+                //                       LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK;
                 log_buf[log_idx++] = val;
             }
         }
