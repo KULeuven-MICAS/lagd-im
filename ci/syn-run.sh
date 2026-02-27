@@ -133,6 +133,7 @@ cp "${TMP_DIR}/syn_run.log" "${LOG_PATH}/syn_run.log"
 OUTPUT_PATH=$(get_ci_var "${CI_LOG}" "OUTPUT_PATH")
 cp "${CI_LOG}" "${OUTPUT_PATH}/ci_syn_run.log"
 
+# TODO: add more checks on the log file to determine if synthesis was successful or if there were errors/warnings
 # Make soft link to the latest run
 ln -sfn "${OUTPUT_PATH}" "${PROJECT_ROOT}/runs/latest"
 
