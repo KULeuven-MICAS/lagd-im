@@ -343,7 +343,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle                .de = en_perf_counter; // a copy of cmpt_idle
     assign hw2reg.cycle_per_cmpt_and_iter.multi_cmpt_mode_idle     .de = en_perf_counter; // a copy of multi_cmpt_mode_idle
     assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iter_recount_en.de = en_perf_counter;
-    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration      .de = en_perf_counter & cycle_per_iter_recount_en;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration      .de = en_perf_counter & (cycle_per_iter_recount_en | ctnus_dgt_debug);
     assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt           .de = en_perf_counter;
     assign hw2reg.cycle_all_cmpt_lsb                               .de = en_perf_counter;
     assign hw2reg.cycle_all_cmpt_msb                               .de = en_perf_counter;
