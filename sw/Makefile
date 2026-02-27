@@ -36,20 +36,19 @@ include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh
 	$(MAKE) -C $(RTL_ROOT)/include
 
 # Auto-generate data header from model file
-include/model_1_data.h: tests/data/model_1 tests/data/gen_model_data.py
+include/model_1_data.h: tests/data/default/model_1 tests/data/gen_model_data.py
 	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED)
 
 # Auto-generate flip candidates header from cluster files
-include/model_f_data.h: tests/data/clusters_1 tests/data/clusters_2 tests/data/gen_flip_data.py
+include/model_f_data.h: tests/data/default/clusters_1 tests/data/default/clusters_2 tests/data/gen_flip_data.py
 	python3 tests/data/gen_flip_data.py --core-onload $(CORE_TESTED)
 
 # Auto-generate spin initial/reference header from state files
-include/spin_data.h: tests/data/states_in_1 tests/data/states_in_2 tests/data/gen_spin_data.py
+include/spin_data.h: tests/data/default/states_in_1 tests/data/default/states_in_2 tests/data/gen_spin_data.py
 	python3 tests/data/gen_spin_data.py
 
 # Ensure headers are generated before compiling tests that use them
-tests/lagd_scompute.spm.o: include/lagd_define.h include/model_1_data.h include/model_f_data.h include/spin_data.h
-tests/lagd_reg.spm.o: include/lagd_define.h
+$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/model_1_data.h include/model_f_data.h include/spin_data.h
 
 clean:
 	rm -f tests/*.elf tests/*.dump \

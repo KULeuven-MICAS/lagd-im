@@ -19,8 +19,8 @@
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "states_in_1")
-INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "states_in_2")
+INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "default", "states_in_1")
+INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "default", "states_in_2")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "spin_data.h")
 
 VEC_BITS = 256

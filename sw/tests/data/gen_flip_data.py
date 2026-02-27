@@ -16,8 +16,8 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "clusters_1")
-INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "clusters_2")
+INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "default", "clusters_1")
+INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "default", "clusters_2")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
 
 

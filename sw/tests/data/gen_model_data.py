@@ -18,7 +18,7 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE = os.path.join(SCRIPT_DIR, "model_1")
+INPUT_FILE = os.path.join(SCRIPT_DIR, "default", "model_1")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_1_data.h")
 
 # Data layout in model_1:
