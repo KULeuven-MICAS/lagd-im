@@ -8,9 +8,10 @@
 #endif
 
 #ifndef MAX_SAMPLES
-#define MAX_SAMPLES 5
+#define MAX_SAMPLES 2048
 #endif
 
+// cheshire headers
 #include "regs/cheshire.h"
 #include "dif/clint.h"
 #include "dif/uart.h"
@@ -18,6 +19,7 @@
 #include "params.h"
 #include "util.h"
 #include "printf.h"
+// lagd headers
 #include "model_1_data.h"
 #include "model_f_data.h"
 #include "lagd_reg_params.h"
@@ -62,6 +64,7 @@ int main(void) {
     // print performance counter log
     lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
 
+	printf("MAX_SAMPLES: %u\r\n", MAX_SAMPLES);
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
     return 0;
