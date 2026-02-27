@@ -26,8 +26,8 @@ package config_pkg;
     parameter int FLIP_ICON_DEPTH = 1024;
     parameter int COUNTER_BITWIDTH = 16;
     parameter int CC_COUNTER_BITWIDTH = 32; // bit width of the cmpt cycle counter for measurement purposes
-    parameter int SC_COUNTER_BITWIDTH = 20;
-    parameter int ITER_COUNTER_BITWIDTH = 9;
+    parameter int SC_COUNTER_BITWIDTH = 17;
+    parameter int ITER_COUNTER_BITWIDTH = 7;
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
     parameter int H_IS_NEGATIVE = `True;
