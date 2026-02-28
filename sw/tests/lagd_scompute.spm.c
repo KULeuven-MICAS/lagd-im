@@ -24,6 +24,7 @@
 #include "model_f_data.h"
 #include "lagd_reg_params.h"
 #include "lagd_common.h"
+#include "lagd_scompute.h"
 
 int main(void) {
     static uint32_t log_buf[MAX_SAMPLES];

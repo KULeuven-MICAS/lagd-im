@@ -39,7 +39,7 @@ include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh
 	$(MAKE) -C $(RTL_ROOT)/include
 
 # Auto-generate data header from model file
-include/model_j_data.h: tests/data/$(DATA_FOLDER)/model_1 tests/data/gen_model_data.py
+include/model_j_data.h: tests/data/$(DATA_FOLDER)/model tests/data/gen_model_data.py
 	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
 
 # Auto-generate flip candidates header from cluster files

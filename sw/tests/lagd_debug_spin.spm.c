@@ -7,6 +7,8 @@
 #define CORE_TESTED 0
 #endif
 
+#include <stdint.h>
+
 static const uint8_t  model_scaling_factor = 4;
 
 // cheshire headers
@@ -29,14 +31,12 @@ int main(void) {
     uart_init(&__base_uart, reset_freq, __BOOT_BAUDRATE);
 
     // register configuration
-    lagd_configure_initial_spins(CORE_TESTED);
     lagd_configure_cmpt_max_num(CORE_TESTED);
     lagd_configure_counters(CORE_TESTED);
     lagd_configure_wwl_vdd_cfg(CORE_TESTED);
     lagd_configure_wwl_vread_cfg(CORE_TESTED);
     lagd_configure_spin_wwl_strobe(CORE_TESTED);
     lagd_configure_spin_feedback(CORE_TESTED);
-    lagd_configure_h_rdata(CORE_TESTED);
     lagd_configure_wbl_floating(CORE_TESTED);
     lagd_configure_debug_j_one_hot_wwl(CORE_TESTED);
     lagd_configure_global_cfg_1(CORE_TESTED);

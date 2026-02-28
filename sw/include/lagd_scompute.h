@@ -10,7 +10,7 @@
 
 #include "lagd_define.h"
 #include "lagd_core_reg.h"
-#include "model_data.h"
+#include "model_j_data.h"
 #include "spin_data.h"
 #include "lagd_reg_params.h"
 #include "util.h"
