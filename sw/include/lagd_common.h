@@ -330,52 +330,6 @@ static void lagd_print_spin_fifo_data(unsigned core) {
     printf("\r\n");
 }
 
-// Compare the values in spin_fifo_data registers with the expected values and print the mismatch if
-// any
-static void lagd_check_spin_fifo_data(unsigned core) {
-    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-
-    uint32_t spin_fifo_data_0[NUM_SPIN / 32], spin_fifo_data_1[NUM_SPIN / 32];
-    for (int i = 0; i < NUM_SPIN / 32; i++) {
-        spin_fifo_data_0[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_0_0_REG_OFFSET + 4 * i);
-        spin_fifo_data_1[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_1_0_REG_OFFSET + 4 * i);
-    }
-
-    int pass0 = 1, pass1 = 1;
-    for (int i = 0; i < NUM_SPIN / 32; i++) {
-        if (spin_fifo_data_0[i] != spin_ref_0[i]) {
-            pass0 = 0;
-            break; // stop at the first mismatch
-        }
-        if (spin_fifo_data_1[i] != spin_ref_1[i]) {
-            pass1 = 0;
-            break; // stop at the first mismatch
-        }
-    }
-
-    printf("spin_fifo_data_0[%u]: %08x%08x%08x%08x%08x%08x%08x%08x ", core, spin_fifo_data_0[7],
-           spin_fifo_data_0[6], spin_fifo_data_0[5], spin_fifo_data_0[4], spin_fifo_data_0[3],
-           spin_fifo_data_0[2], spin_fifo_data_0[1], spin_fifo_data_0[0]);
-    if (pass0) {
-        printf("[PASS]\r\n");
-    } else {
-        printf("[FAIL] expected %08x%08x%08x%08x%08x%08x%08x%08x\r\n", spin_ref_0[7], spin_ref_0[6],
-               spin_ref_0[5], spin_ref_0[4], spin_ref_0[3], spin_ref_0[2], spin_ref_0[1],
-               spin_ref_0[0]);
-    }
-
-    printf("spin_fifo_data_1[%u]: %08x%08x%08x%08x%08x%08x%08x%08x ", core, spin_fifo_data_1[7],
-           spin_fifo_data_1[6], spin_fifo_data_1[5], spin_fifo_data_1[4], spin_fifo_data_1[3],
-           spin_fifo_data_1[2], spin_fifo_data_1[1], spin_fifo_data_1[0]);
-    if (pass1) {
-        printf("[PASS]\r\n");
-    } else {
-        printf("[FAIL] expected %08x%08x%08x%08x%08x%08x%08x%08x\r\n", spin_ref_1[7], spin_ref_1[6],
-               spin_ref_1[5], spin_ref_1[4], spin_ref_1[3], spin_ref_1[2], spin_ref_1[1],
-               spin_ref_1[0]);
-    }
-}
-
 // Read out cmpt_idx performance counter and print the value
 static void lagd_print_cmpt_idx(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -441,4 +395,134 @@ static void lagd_print_cycle_all_cmpt(unsigned core) {
     uint32_t cycle_all_cmpt_msb = *reg32(base, LAGD_CORE_CYCLE_ALL_CMPT_MSB_REG_OFFSET);
     uint64_t cycle_all_cmpt = ((uint64_t)cycle_all_cmpt_msb << 32) | cycle_all_cmpt_lsb;
     printf("Cycle for all computations for core %u: %llu\r\n", core, cycle_all_cmpt);
+}
+
+// Enable debug_dt_configure_enable in global_cfg_1 register
+static void lagd_enable_debug_dt_configure_enable(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_DT_CONFIGURE_ENABLE_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Enable debug_spin_configure_enable in global_cfg_1 register
+static void lagd_enable_debug_spin_configure_enable(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_CONFIGURE_ENABLE_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Enable debug_j_write_en
+static void lagd_enable_debug_j_write_en(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_J_WRITE_EN_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Enable debug_j_read_en
+static void lagd_enable_debug_j_read_en(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_J_READ_EN_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Enable debug_spin_write_en
+static void lagd_enable_debug_spin_write_en(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_WRITE_EN_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Enable debug_spin_compute_en
+static void lagd_enable_debug_spin_compute_en(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_COMPUTE_EN_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Enable debug_spin_read_en
+static void lagd_enable_debug_spin_read_en(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 |= (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_READ_EN_BIT);
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Disable all debug configure enable and debug output enable bits in global_cfg_1 register
+static void lagd_disable_all_debug_enable(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t cfg1 = *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET);
+    cfg1 &= ~((1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_DT_CONFIGURE_ENABLE_BIT) |
+              (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_CONFIGURE_ENABLE_BIT) |
+              (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_J_WRITE_EN_BIT) |
+              (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_J_READ_EN_BIT) |
+              (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_WRITE_EN_BIT) |
+              (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_COMPUTE_EN_BIT) |
+              (1 << LAGD_CORE_GLOBAL_CFG_1_DEBUG_SPIN_READ_EN_BIT));
+    *reg32(base, LAGD_CORE_GLOBAL_CFG_1_REG_OFFSET) = cfg1;
+}
+
+// Read out debug_wbl_read_data register and print the value
+static void lagd_print_debug_wbl_read_data(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t debug_wbl_read_data[NUM_SPIN * BIT_H / 32];
+    for (int i = 0; i < NUM_SPIN * BIT_H / 32; i++) {
+        debug_wbl_read_data[i] = *reg32(base, LAGD_CORE_DEBUG_WBL_READ_DATA_0_REG_OFFSET + 4 * i);
+    }
+
+    // Print MSB-first (word[31]=bits1023:992 ... word[0]=bits31:0)
+    printf("debug_wbl_read_data[%u]: ", core);
+    for (int i = NUM_SPIN * BIT_H / 32 - 1; i >= 0; i--) printf("%08x", debug_wbl_read_data[i]);
+    printf("\r\n");
+}
+
+// Read out debug_wblb_read_data register and print the value
+static void lagd_print_debug_wblb_read_data(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t debug_wblb_read_data[NUM_SPIN * BIT_H / 32];
+    for (int i = 0; i < NUM_SPIN * BIT_H / 32; i++) {
+        debug_wblb_read_data[i] = *reg32(base, LAGD_CORE_DEBUG_WBLB_READ_DATA_0_REG_OFFSET + 4 * i);
+    }
+
+    // Print MSB-first (word[31]=bits1023:992 ... word[0]=bits31:0)
+    printf("debug_wblb_read_data[%u]: ", core);
+    for (int i = NUM_SPIN * BIT_H / 32 - 1; i >= 0; i--) printf("%08x", debug_wblb_read_data[i]);
+    printf("\r\n");
+}
+
+// Read out core's l1_j_mem and print the value
+// Each read is 4096 bits wide, accessed as 64x64-bit (AXI width)
+static void lagd_print_l1_j_mem(unsigned core, unsigned length) {
+    volatile uint64_t *base = (volatile uint64_t *)((uintptr_t)IC_MEM_BASE_ADDR + (uintptr_t)core *
+                               ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+    for (unsigned i = 0; i < length; i++) {
+        uint64_t data[IC_L1_J_MEM_DATA_WIDTH / 64];  // 64 x 64-bit = 4096 bits
+        for (int j = 0; j < IC_L1_J_MEM_DATA_WIDTH / 64; j++) {
+            data[j] = base[i * (IC_L1_J_MEM_DATA_WIDTH / 64) + j];
+        }
+        printf("l1_j_mem[%u][%u]: ", core, i);
+        for (int j = IC_L1_J_MEM_DATA_WIDTH / 64 - 1; j >= 0; j--) printf("%016llx", data[j]);
+        printf("\r\n");
+    }
+}
+
+// Read out core's l1_f_mem and print the value
+// Each read is IC_L1_FLIP_MEM_DATA_WIDTH (256) bits wide, accessed as 4x64-bit (AXI width)
+static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
+    volatile uint64_t *base = (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR + (uintptr_t)core *
+                               ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+    for (unsigned i = 0; i < length; i++) {
+        uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64];  // 4 x 64-bit words
+        for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
+            data[j] = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
+        }
+        printf("l1_f_mem[%u][%u]: ", core, i);
+        for (int j = IC_L1_FLIP_MEM_DATA_WIDTH / 64 - 1; j >= 0; j--) printf("%016llx", data[j]);
+        printf("\r\n");
+    }
 }
