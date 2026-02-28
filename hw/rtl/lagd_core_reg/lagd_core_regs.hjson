@@ -404,7 +404,7 @@
       hwaccess: "hwo"
       fields: [
         { bits: "0",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
-        { bits: "7:1",   resval: "0",  name: "flip_raddr_l7b",                desc: "Flip memory read address lower 7 bits"                }
+        { bits: "7:1",   resval: "0",  name: "fm_rx_cnt_l7b",                 desc: "Flip manager upstream counter lower 7 bits"           }
         { bits: "14:8",  resval: "0",  name: "cycle_per_iteration",           desc: "cycle per iteration"                                  }
         { bits: "31:15", resval: "0",  name: "cycle_per_cmpt",                desc: "cycle per cmpt"                                       }
       ]

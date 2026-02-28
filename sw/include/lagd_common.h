@@ -342,11 +342,11 @@ static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count,
     uint32_t cycle_per_cmpt_status;
     for (unsigned i = 0; i < sample_count; i++) {
         cycle_per_cmpt_status = log_buf[i];
-        printf("idx/cmpt_idle/flip_raddr_l7b/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n",
+        printf("idx/cmpt_idle/fm_rx_cnt_l7b/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n",
             core,
             i,
             (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
-            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FLIP_RADDR_L7B_OFFSET) & 0x7f,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) & 0x7f,
             (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
             LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
             (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
@@ -369,15 +369,15 @@ static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_sam
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     uint8_t loop_en = 1;
     unsigned log_idx = 0;
-    uint16_t prev_flip_raddr_l7b = 0;
+    uint16_t prev_fm_rx_cnt_l7b = 0;
     while (loop_en) {
         uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
         if (log_idx < max_samples) {
             if ((((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) == 0) &&
-            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FLIP_RADDR_L7B_OFFSET) &
-            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FLIP_RADDR_L7B_MASK) != prev_flip_raddr_l7b) {
-                prev_flip_raddr_l7b = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FLIP_RADDR_L7B_OFFSET) &
-                                      LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FLIP_RADDR_L7B_MASK;
+            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK) != prev_fm_rx_cnt_l7b) {
+                prev_fm_rx_cnt_l7b = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+                                      LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
                 log_buf[log_idx++] = val;
             }
         }

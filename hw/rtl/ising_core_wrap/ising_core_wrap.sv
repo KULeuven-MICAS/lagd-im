@@ -138,6 +138,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic debug_em_upstream_handshake;
     logic [logic_cfg.NumSpin-1:0] debug_em_spin_in;
     logic cycle_per_iter_recount_en;
+    logic [logic_cfg.FmemAddrBitwidth-1:0] fm_upstream_handshake_counter;
     logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_idx;
     logic [logic_cfg.ScCounterBitwidth-1:0] cycle_per_cmpt;
     logic [logic_cfg.IterCounterBitwidth-1:0] cycle_per_iteration;
@@ -341,9 +342,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.energy_fifo_data_1                               .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
     assign hw2reg.cmpt_idx                                         .de = en_perf_counter;
     assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle                .de = en_perf_counter; // a copy of cmpt_idle
-    assign hw2reg.cycle_per_cmpt_and_iter.flip_raddr_l7b           .de = en_perf_counter; // a copy of flip_raddr[6:0]
-    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration      .de = en_perf_counter & (cycle_per_iter_recount_en | ctnus_dgt_debug);
-    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt           .de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.fm_rx_cnt_l7b            .de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration      .de = en_perf_counter & (cycle_per_iter_recount_en | cmpt_idle_posedge | ctnus_dgt_debug);
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt           .de = en_perf_counter & (cycle_per_iter_recount_en | cmpt_idle_posedge | ctnus_dgt_debug);
     assign hw2reg.cycle_all_cmpt_lsb                               .de = en_perf_counter;
     assign hw2reg.cycle_all_cmpt_msb                               .de = en_perf_counter;
     assign hw2reg.flip_mem_ren_raddr.debug_spin_valid              .de = ctnus_dgt_debug;
@@ -385,7 +386,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.energy_fifo_data_1                                .d = energy_fifo_data[1];
     assign hw2reg.cmpt_idx                                          .d = cmpt_idx;
     assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle                 .d = cmpt_idle;
-    assign hw2reg.cycle_per_cmpt_and_iter.flip_raddr_l7b            .d = flip_raddr[6:0];
+    assign hw2reg.cycle_per_cmpt_and_iter.fm_rx_cnt_l7b             .d = fm_upstream_handshake_counter[6:0];
     assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration       .d = cycle_per_iteration;
     assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt            .d = cycle_per_cmpt;
     assign hw2reg.cycle_all_cmpt_lsb                                .d = cycle_all_cmpt[logic_cfg.CcCounterBitwidth-1:0];
@@ -595,6 +596,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .cmpt_max_num_i                  (cmpt_max_num                     ),
         .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle             ),
         .cycle_per_iter_recount_en_o     (cycle_per_iter_recount_en        ),
+        .fm_upstream_handshake_counter_o (fm_upstream_handshake_counter    ),
         .cmpt_idx_o                      (cmpt_idx                         ),
         .cycle_per_iteration_o           (cycle_per_iteration              ),
         .cycle_per_cmpt_o                (cycle_per_cmpt                   ),

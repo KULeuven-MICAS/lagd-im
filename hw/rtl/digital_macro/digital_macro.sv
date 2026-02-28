@@ -167,6 +167,7 @@ module digital_macro #(
     input  logic [CC_COUNTER_BITWIDTH-1:0] cmpt_max_num_i,
     output logic multi_cmpt_mode_idle_o,
     output logic cycle_per_iter_recount_en_o,
+    output logic [FLIP_ICON_ADDR_DEPTH-1:0] fm_upstream_handshake_counter_o,
     output logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o,
     output logic [ITER_COUNTER_BITWIDTH-1:0] cycle_per_iteration_o,
     output logic [SC_COUNTER_BITWIDTH-1:0] cycle_per_cmpt_o,
@@ -256,6 +257,15 @@ module digital_macro #(
     assign em_fifo_flush_comb = flush_comb | (enable_flip_detection_i & ~enable_flip_detection_dly1);
 
     assign cycle_per_iter_recount_en_o = flush_i | cmpt_en_fm | fm_upstream_handshake;
+
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+        end else begin
+            if (cycle_per_iter_recount_en_o) begin
+                $info("[Time: %0t] cycle_per_iteration_o: %d", $time, cycle_per_iteration_o);
+            end
+        end
+    end
 
     // The config_valid_*_i inputs originate from a register / CSR interface, which cannot
     // reliably control signal levels on a cycle-accurate basis. If these inputs were used
@@ -683,6 +693,22 @@ module digital_macro #(
     );
 
     // cmpt cycle counter for measurement purposes
+    step_counter #(
+        .COUNTER_BITWIDTH (FLIP_ICON_ADDR_DEPTH),
+        .PARALLELISM (1)
+    ) fm_upstream_handshake_counter (
+        .clk_i        (clk_i                                                                    ),
+        .rst_ni       (rst_ni                                                                   ),
+        .en_i         (en_perf_counter_i                                                        ),
+        .load_i       (1'b0                                                                     ),
+        .d_i          ({(FLIP_ICON_ADDR_DEPTH){1'b0}}                                           ),
+        .recount_en_i (flush_i | cmpt_en_pos_trigger                                            ),
+        .step_en_i    (fm_upstream_handshake                                                    ),
+        .q_o          (fm_upstream_handshake_counter_o                                          ),
+        .maxed_o      (                                                                         ),
+        .overflow_o   (                                                                         )
+    );
+
     step_counter #(
         .COUNTER_BITWIDTH (ITER_COUNTER_BITWIDTH),
         .PARALLELISM (1)
