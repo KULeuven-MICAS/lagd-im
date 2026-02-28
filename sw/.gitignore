@@ -2,5 +2,6 @@
 *.elf
 *.o
 include/*.h
-!include/lagd_reg_cfg.h
+!include/lagd_common.h
 !include/lagd_reg_params.h
+!include/lagd_scompute.h

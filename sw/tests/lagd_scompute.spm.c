@@ -20,10 +20,10 @@
 #include "util.h"
 #include "printf.h"
 // lagd headers
-#include "model_data.h"
+#include "model_j_data.h"
 #include "model_f_data.h"
 #include "lagd_reg_params.h"
-#include "lagd_reg_cfg.h"
+#include "lagd_common.h"
 
 int main(void) {
     static uint32_t log_buf[MAX_SAMPLES];

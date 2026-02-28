@@ -39,7 +39,7 @@ include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh
 	$(MAKE) -C $(RTL_ROOT)/include
 
 # Auto-generate data header from model file
-include/model_data.h: tests/data/$(DATA_FOLDER)/model_1 tests/data/gen_model_data.py
+include/model_j_data.h: tests/data/$(DATA_FOLDER)/model_1 tests/data/gen_model_data.py
 	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
 
 # Auto-generate flip candidates header from cluster files
@@ -51,12 +51,12 @@ include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOL
 	python3 tests/data/gen_spin_data.py --folder $(DATA_FOLDER)
 
 # Ensure headers are generated before compiling tests that use them
-$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/model_data.h include/model_f_data.h include/spin_data.h
+$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/model_j_data.h include/model_f_data.h include/spin_data.h
 
 clean:
 	rm -f tests/*.elf tests/*.dump \
 	      include/lagd_config.h include/lagd_define.h \
-	      include/model_data.h include/model_f_data.h include/spin_data.h
+	      include/model_j_data.h include/model_f_data.h include/spin_data.h
 
 build-chs: chs-sw-all
 
