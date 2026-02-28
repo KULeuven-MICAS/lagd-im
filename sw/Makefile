@@ -21,6 +21,9 @@ CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 # Tested core
 CORE_TESTED ?= 0
 
+# Data folder name
+DATA_FOLDER ?= default
+
 # Define CORE_TESTED for C code
 CHS_SW_INCLUDES += -DCORE_TESTED=$(CORE_TESTED)
 
@@ -36,24 +39,24 @@ include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh
 	$(MAKE) -C $(RTL_ROOT)/include
 
 # Auto-generate data header from model file
-include/model_1_data.h: tests/data/default/model_1 tests/data/gen_model_data.py
-	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED)
+include/model_data.h: tests/data/$(DATA_FOLDER)/model_1 tests/data/gen_model_data.py
+	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
 
 # Auto-generate flip candidates header from cluster files
-include/model_f_data.h: tests/data/default/clusters_1 tests/data/default/clusters_2 tests/data/gen_flip_data.py
-	python3 tests/data/gen_flip_data.py --core-onload $(CORE_TESTED)
+include/model_f_data.h: tests/data/$(DATA_FOLDER)/clusters_1 tests/data/$(DATA_FOLDER)/clusters_2 tests/data/gen_flip_data.py
+	python3 tests/data/gen_flip_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
 
 # Auto-generate spin initial/reference header from state files
-include/spin_data.h: tests/data/default/states_in_1 tests/data/default/states_in_2 tests/data/gen_spin_data.py
-	python3 tests/data/gen_spin_data.py
+include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOLDER)/states_in_2 tests/data/gen_spin_data.py
+	python3 tests/data/gen_spin_data.py --folder $(DATA_FOLDER)
 
 # Ensure headers are generated before compiling tests that use them
-$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/model_1_data.h include/model_f_data.h include/spin_data.h
+$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/model_data.h include/model_f_data.h include/spin_data.h
 
 clean:
 	rm -f tests/*.elf tests/*.dump \
 	      include/lagd_config.h include/lagd_define.h \
-	      include/model_1_data.h include/model_f_data.h include/spin_data.h
+	      include/model_data.h include/model_f_data.h include/spin_data.h
 
 build-chs: chs-sw-all
 

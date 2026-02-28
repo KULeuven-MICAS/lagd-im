@@ -16,12 +16,30 @@
 #   last char of line  -> bit 0  of word[0] -> CONFIG_SPIN_INITIAL_*_0_REG_OFFSET
 #   first char of line -> bit 31 of word[7] -> CONFIG_SPIN_INITIAL_*_7_REG_OFFSET
 
+import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "default", "states_in_1")
-INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "default", "states_in_2")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "spin_data.h")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate sw/include/spin_data.h from "
+        "states_in_1 and states_in_2."
+    )
+    parser.add_argument(
+        "--folder",
+        type=str,
+        default="default",
+        help="Folder name under sw/tests/data/ containing states_in_1 and states_in_2 (default: default).",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+INPUT_FILE_1 = os.path.join(SCRIPT_DIR, args.folder, "states_in_1")
+INPUT_FILE_2 = os.path.join(SCRIPT_DIR, args.folder, "states_in_2")
 
 VEC_BITS = 256
 WORDS_PER_VEC = VEC_BITS // 32  # 8 x uint32_t per vector

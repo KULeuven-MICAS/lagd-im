@@ -18,8 +18,7 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE = os.path.join(SCRIPT_DIR, "default", "model_1")
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_1_data.h")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_data.h")
 
 # Data layout in model_1:
 #   Line 1        : "# J matrix"
@@ -39,19 +38,26 @@ SF_BITS = 6   # bit width of scaling factor
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate sw/include/model_1_data.h from sw/tests/data/model_1."
+        description="Generate sw/include/model_data.h"
     )
     parser.add_argument(
         "--core-onload",
         type=int,
-        default=1,
-        help="Core index for the J data section name (default: 1).",
+        default=0,
+        help="Core index for the J data section name (default: 0).",
+    )
+    parser.add_argument(
+        "--folder",
+        type=str,
+        default="default",
+        help="Folder name under sw/tests/data/ containing model (default: default).",
     )
     return parser.parse_args()
 
 
 args = parse_args()
 core_onload = args.core_onload
+INPUT_FILE = os.path.join(SCRIPT_DIR, args.folder, "model")
 
 # --- Derived constants ---
 J_ROWS = 256

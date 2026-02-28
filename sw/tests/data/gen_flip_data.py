@@ -16,8 +16,6 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT_FILE_1 = os.path.join(SCRIPT_DIR, "default", "clusters_1")
-INPUT_FILE_2 = os.path.join(SCRIPT_DIR, "default", "clusters_2")
 OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
 
 
@@ -29,14 +27,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--core-onload",
         type=int,
-        default=1,
-        help="Core index for the J data section name (default: 1).",
+        default=0,
+        help="Core index for the J data section name (default: 0).",
+    )
+    parser.add_argument(
+        "--folder",
+        type=str,
+        default="default",
+        help="Folder name under sw/tests/data/ containing clusters_1 and clusters_2 (default: default).",
     )
     return parser.parse_args()
 
 
 args = parse_args()
 core_onload = args.core_onload
+INPUT_FILE_1 = os.path.join(SCRIPT_DIR, args.folder, "clusters_1")
+INPUT_FILE_2 = os.path.join(SCRIPT_DIR, args.folder, "clusters_2")
 
 # --- Constants ---
 NUM_CLUSTERS = 512          # usable vectors per file (line 1 is skipped)

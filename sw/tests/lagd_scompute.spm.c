@@ -20,7 +20,7 @@
 #include "util.h"
 #include "printf.h"
 // lagd headers
-#include "model_1_data.h"
+#include "model_data.h"
 #include "model_f_data.h"
 #include "lagd_reg_params.h"
 #include "lagd_reg_cfg.h"
