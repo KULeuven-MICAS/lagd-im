@@ -65,7 +65,7 @@ int main(void) {
     // print performance counter log
     lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
 
-	printf("MAX_SAMPLES: %u\r\n", MAX_SAMPLES);
+    printf("MAX_SAMPLES: %u\r\n", MAX_SAMPLES);
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
     return 0;
