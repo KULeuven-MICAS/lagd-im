@@ -460,7 +460,7 @@
         { bits: "0",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
         { bits: "1",     resval: "0",  name: "energy_fifo_update",            desc: "Whether the energy fifo is being updated"             }
         { bits: "2",     resval: "0",  name: "flip_q_valid",                  desc: "Whether flip memory is valid (flip memory ren)"       }
-        { bits: "12:3",  resval: "0",  name: "flip_raddr",                    desc: "Flip memory read address from flip manager"           }
+        { bits: "12:3",  resval: "0",  name: "fm_rx_cnt",                     desc: "Flip manager upstream counter"                        }
         { bits: "28:13", resval: "0",  name: "energy_fifo_0_sel",             desc: "Energy FIFO 0 selection"                              }
       ]
     }
@@ -473,7 +473,7 @@
         { bits: "0",     resval: "1",  name: "cmpt_idle",                     desc: "Whether the computation is in idle"                   }
         { bits: "1",     resval: "0",  name: "energy_fifo_update",            desc: "Whether the energy fifo is being updated"             }
         { bits: "2",     resval: "0",  name: "flip_q_valid",                  desc: "Whether flip memory is valid (flip memory ren)"       }
-        { bits: "12:3",  resval: "0",  name: "flip_raddr",                    desc: "Flip memory read address from flip manager"           }
+        { bits: "12:3",  resval: "0",  name: "fm_rx_cnt",                     desc: "Flip manager upstream counter"                        }
         { bits: "28:13", resval: "0",  name: "energy_fifo_1_sel",             desc: "Energy FIFO 1 selection"                              }
       ]
     }

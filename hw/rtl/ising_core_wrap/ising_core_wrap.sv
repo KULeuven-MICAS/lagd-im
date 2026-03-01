@@ -358,12 +358,12 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.energy_fifo_dbg_0.cmpt_idle                      .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_0.energy_fifo_update             .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_0.flip_q_valid                   .de = en_perf_counter;
-    assign hw2reg.energy_fifo_dbg_0.flip_raddr                     .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.fm_rx_cnt                      .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_0.energy_fifo_0_sel              .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_1.cmpt_idle                      .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_1.energy_fifo_update             .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_1.flip_q_valid                   .de = en_perf_counter;
-    assign hw2reg.energy_fifo_dbg_1.flip_raddr                     .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.fm_rx_cnt                      .de = en_perf_counter;
     assign hw2reg.energy_fifo_dbg_1.energy_fifo_1_sel              .de = en_perf_counter;
 
     assign hw2reg.output_status.dt_cfg_idle                         .d = dt_cfg_idle;
@@ -403,12 +403,12 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign hw2reg.energy_fifo_dbg_0.cmpt_idle                       .d = cmpt_idle; // a copy of cmpt_idle
     assign hw2reg.energy_fifo_dbg_0.energy_fifo_update              .d = energy_fifo_update; // a copy of energy_fifo_update
     assign hw2reg.energy_fifo_dbg_0.flip_q_valid                    .d = drt_s_req_flip.q_valid; // a copy of flip_q_valid
-    assign hw2reg.energy_fifo_dbg_0.flip_raddr                      .d = flip_raddr; // a copy of flip_raddr
+    assign hw2reg.energy_fifo_dbg_0.fm_rx_cnt                       .d = fm_upstream_handshake_counter;
     assign hw2reg.energy_fifo_dbg_0.energy_fifo_0_sel               .d = energy_fifo_sel ? energy_fifo_data[0][logic_cfg.EnergyTotalBit-1:logic_cfg.EnergyTotalBit-16] : energy_fifo_data[0][15:0];
     assign hw2reg.energy_fifo_dbg_1.cmpt_idle                       .d = cmpt_idle; // a copy of cmpt_idle
     assign hw2reg.energy_fifo_dbg_1.energy_fifo_update              .d = energy_fifo_update; // a copy of energy_fifo_update
     assign hw2reg.energy_fifo_dbg_1.flip_q_valid                    .d = drt_s_req_flip.q_valid; // a copy of flip_q_valid
-    assign hw2reg.energy_fifo_dbg_1.flip_raddr                      .d = flip_raddr; // a copy of flip_raddr
+    assign hw2reg.energy_fifo_dbg_1.fm_rx_cnt                       .d = fm_upstream_handshake_counter;
     assign hw2reg.energy_fifo_dbg_1.energy_fifo_1_sel               .d = energy_fifo_sel ? energy_fifo_data[1][logic_cfg.EnergyTotalBit-1:logic_cfg.EnergyTotalBit-16] : energy_fifo_data[1][15:0];
 
     always_comb begin
