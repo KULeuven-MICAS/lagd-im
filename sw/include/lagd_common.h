@@ -344,13 +344,14 @@ static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count,
     for (unsigned i = 0; i < sample_count; i++) {
         cycle_per_cmpt_status = log_buf[i];
         printf("idx/cmpt_idle/fm_rx_cnt_l7b/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n", core,
-                i, (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
-                (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
-                    0x7f,
-                (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
-                    LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
-                (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
-                    LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
+               i, (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
+               (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+                   0x7f,
+               (cycle_per_cmpt_status >>
+                LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
+                   LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
+               (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
+                   LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
         }
 }
 
@@ -379,7 +380,7 @@ static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_sam
         uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
         uint8_t cmpt_idle = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1;
         uint16_t fm_rx_cnt = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
-                            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
+                             LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
         if (fm_rx_cnt != prev_fm_rx_cnt_l7b) {
             prev_fm_rx_cnt_l7b = fm_rx_cnt;
             log_buf[log_idx++] = val;
@@ -500,9 +501,9 @@ static void lagd_print_debug_wblb_read_data(unsigned core) {
 // Each read is 4096 bits wide, accessed as 64x64-bit (AXI width)
 static void lagd_print_l1_j_mem(unsigned core, unsigned length) {
     volatile uint64_t *base =
-        (volatile uint64_t *)((uintptr_t)IC_MEM_BASE_ADDR+
+        (volatile uint64_t *)((uintptr_t)IC_MEM_BASE_ADDR +
                               (uintptr_t)core *
-                                ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+                                  ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
     for (unsigned i = 0; i < length; i++) {
         uint64_t data[IC_L1_J_MEM_DATA_WIDTH / 64]; // 64 x 64-bit = 4096 bits
         for (int j = 0; j < IC_L1_J_MEM_DATA_WIDTH / 64; j++) {
@@ -520,7 +521,7 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
     volatile uint64_t *base =
         (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
                               (uintptr_t)core *
-                               ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+                                 ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
     for (unsigned i = 0; i < length; i++) {
         uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64]; // 4 x 64-bit words
         for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
