@@ -11,6 +11,10 @@
 #define MAX_SAMPLES 2048
 #endif
 
+#ifndef ENERGY_MONITOR
+#define ENERGY_MONITOR 0
+#endif
+
 // cheshire headers
 #include "regs/cheshire.h"
 #include "dif/clint.h"
@@ -57,15 +61,24 @@ int main(void) {
     // start computation
     lagd_enable_energy_monitor_fifo(CORE_TESTED);
     lagd_enable_computation(CORE_TESTED);
-    unsigned log_cnt = lagd_monitor_cycle_per_iteration(CORE_TESTED, MAX_SAMPLES, log_buf);
+    if (ENERGY_MONITOR) {
+        unsigned log_cnt = lagd_monitor_energy_fifo_dbg_0(CORE_TESTED, MAX_SAMPLES, log_buf);
+    } else {
+        unsigned log_cnt = lagd_monitor_cycle_per_iteration(CORE_TESTED, MAX_SAMPLES, log_buf);
+    }
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
-    // print output
-    lagd_print_energy_fifo_data(CORE_TESTED);
-    // print performance counter log
-    lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
+    // print final output
+    // lagd_print_energy_fifo_data(CORE_TESTED);
 
-    printf("MAX_SAMPLES: %u\r\n", MAX_SAMPLES);
+    if (ENERGY_MONITOR) {
+        // print energy monitor fifo debug register log
+        lagd_print_energy_fifo_dbg(CORE_TESTED, log_cnt, log_buf);
+    } else {
+        // print performance counter log
+        lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
+    }
+
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
     return 0;
