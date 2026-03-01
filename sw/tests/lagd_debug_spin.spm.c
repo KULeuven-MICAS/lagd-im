@@ -37,8 +37,10 @@ int main(void) {
     lagd_configure_wwl_vread_cfg(CORE_TESTED);
     lagd_configure_spin_wwl_strobe(CORE_TESTED);
     lagd_configure_spin_feedback(CORE_TESTED);
-    lagd_configure_wbl_floating(CORE_TESTED);
-    lagd_configure_debug_j_one_hot_wwl(CORE_TESTED);
+
+    // load in wbl (spin) configuration into registers
+    lagd_configure_debug_wbl_config(CORE_TESTED);
+
     lagd_configure_global_cfg_1(CORE_TESTED);
     lagd_configure_global_cfg_2(CORE_TESTED);
     // clear config valid
@@ -47,17 +49,6 @@ int main(void) {
     /////////////////////////////////////////////////////////////////
     /////////////////////// DEBUG CONFIGURATION /////////////////////
     /////////////////////////////////////////////////////////////////
-    // generate debug patterns
-    static const uint32_t debug_wbl_config[32] = {
-        0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x11111111U,
-        0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x11111111U,
-        0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x11111111U,
-        0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U, 0x11111111U,
-        0x00000000U, 0x11111111U, 0x00000000U, 0x11111111U};
-    lagd_configure_debug_wbl_config(CORE_TESTED);
-    // load debug patterns into the core
-    lagd_enable_debug_spin_configure_enable(CORE_TESTED);
-    lagd_disable_all_debug_enable(CORE_TESTED);
     // start spin debugging write
     lagd_enable_debug_spin_write_en(CORE_TESTED);
     lagd_disable_all_debug_enable(CORE_TESTED);
@@ -69,7 +60,7 @@ int main(void) {
     lagd_enable_debug_spin_read_en(CORE_TESTED);
     lagd_disable_all_debug_enable(CORE_TESTED);
     // read back debug data from l1_f_mem and print
-    lagd_print_l1_f_mem(CORE_TESTED, DEBUG_SPIN_READ_NUM);
+    lagd_print_l1_f_mem(CORE_TESTED, DEBUG_SPIN_READ_NUM + 1);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
