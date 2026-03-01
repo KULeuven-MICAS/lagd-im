@@ -258,15 +258,6 @@ module digital_macro #(
 
     assign cycle_per_iter_recount_en_o = flush_i | cmpt_en_fm | fm_upstream_handshake;
 
-    always_ff @ (posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-        end else begin
-            if (cycle_per_iter_recount_en_o) begin
-                $info("[Time: %0t] cycle_per_iteration_o: %d", $time, cycle_per_iteration_o);
-            end
-        end
-    end
-
     // The config_valid_*_i inputs originate from a register / CSR interface, which cannot
     // reliably control signal levels on a cycle-accurate basis. If these inputs were used
     // as level-sensitive enables, software could inadvertently keep them asserted for
