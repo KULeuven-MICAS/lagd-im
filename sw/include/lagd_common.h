@@ -357,8 +357,7 @@ static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count,
 }
 
 // Printf energy monitor fifo debug registers
-static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count,
-                                       uint32_t *e_log_buf) {
+static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uint32_t *e_log_buf) {
     uint32_t energy_fifo_dbg_status;
     for (unsigned i = 0; i < sample_count; i++) {
         energy_fifo_dbg_status = e_log_buf[i];
