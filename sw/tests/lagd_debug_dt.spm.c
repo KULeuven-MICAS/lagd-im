@@ -83,7 +83,7 @@ int main(void) {
     // read csr values and print
     lagd_print_debug_wbl_read_data(CORE_TESTED);
     lagd_print_debug_wblb_read_data(CORE_TESTED);
-    
+
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);
     return 0;
