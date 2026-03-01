@@ -361,13 +361,13 @@ static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uin
     uint32_t energy_fifo_dbg_status;
     for (unsigned i = 0; i < sample_count; i++) {
         energy_fifo_dbg_status = e_log_buf[i];
-        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u %d\r\n", core, i,
+        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u %x\r\n", core, i,
                (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
                (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
                    LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK,
-               (int16_t)((energy_fifo_dbg_status >>
-                          LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
-                         LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK));
+               (energy_fifo_dbg_status >>
+                LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
+                   LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK);
     }
 }
 
