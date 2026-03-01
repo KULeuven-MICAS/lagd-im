@@ -162,7 +162,8 @@ static void lagd_configure_global_cfg_2(unsigned core) {
          ((GCFG2_CONFIG_SPIN_INITIAL_SKIP_1 & 0x1)
           << LAGD_CORE_GLOBAL_CFG_2_CONFIG_SPIN_INITIAL_SKIP_1_BIT) |
          ((GCFG2_DGT_HSCALING & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
-          << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET));
+          << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET) |
+         ((GCFG2_ENERGY_FIFO_SEL & 0x1) << LAGD_CORE_GLOBAL_CFG_2_ENERGY_FIFO_SEL_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
     // printf("Core %u global_cfg_2: 0x%08x, addr 0x%08x\r\n", core, cfg2,
     //        (uintptr_t)base + LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET);
@@ -355,6 +356,21 @@ static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count,
     }
 }
 
+// Printf energy monitor fifo debug registers
+static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count,
+                                       uint32_t *e_log_buf) {
+    uint32_t energy_fifo_dbg_status;
+    for (unsigned i = 0; i < sample_count; i++) {
+        energy_fifo_dbg_status = e_log_buf[i];
+        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u %u\r\n", core, i,
+               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
+               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
+                   LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK,
+               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
+                   LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK);
+    }
+}
+
 // Read out cycle_per_cmpt performance counter and print the value
 static void lagd_print_cycle_per_cmpt(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -365,13 +381,12 @@ static void lagd_print_cycle_per_cmpt(unsigned core) {
     printf("Cycle per computation for core %u: %u\r\n", core, cycle_per_cmpt);
 }
 
-// Log cycle_per_iteration on each new iteration until buffer full or computation done.
+// Log cycle_per_iteration on each new iteration until buffer full or computation done
 // Caller is responsible for waiting on computation completion.
 static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_samples,
                                                  uint32_t *log_buf) {
-    // latency analysis
+    // latency: ~20 cycles
     // lw (csr2host): 4-5 cycles
-    // others: ~7 cycle
 
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     unsigned log_idx = 0;
@@ -384,6 +399,48 @@ static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_sam
         if (fm_rx_cnt != prev_fm_rx_cnt_l7b) {
             prev_fm_rx_cnt_l7b = fm_rx_cnt;
             log_buf[log_idx++] = val;
+        }
+        if (cmpt_idle) break;
+    }
+    return log_idx;
+}
+
+// Log energy_fifo_dbg_0 on each iteration until buffer full or computation done
+// Caller is responsible for waiting on computation completion.
+static unsigned lagd_monitor_energy_fifo_dbg_0(unsigned core, unsigned max_samples,
+                                               uint32_t *e0_log_buf) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    unsigned log_idx = 0;
+    uint16_t prev_fm_rx_cnt = 0;
+    while (log_idx < max_samples) {
+        uint32_t val = *reg32(base, LAGD_CORE_ENERGY_FIFO_DBG_0_REG_OFFSET);
+        uint8_t cmpt_idle = (val >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1;
+        uint16_t fm_rx_cnt = (val >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
+                             LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK;
+        if (fm_rx_cnt != prev_fm_rx_cnt) {
+            prev_fm_rx_cnt = fm_rx_cnt;
+            e0_log_buf[log_idx++] = val;
+        }
+        if (cmpt_idle) break;
+    }
+    return log_idx;
+}
+
+// Log energy_fifo_dbg_1 on each iteration until buffer full or computation done
+// Caller is responsible for waiting on computation completion.
+static unsigned lagd_monitor_energy_fifo_dbg_1(unsigned core, unsigned max_samples,
+                                               uint32_t *e1_log_buf) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    unsigned log_idx = 0;
+    uint16_t prev_fm_rx_cnt = 0;
+    while (log_idx < max_samples) {
+        uint32_t val = *reg32(base, LAGD_CORE_ENERGY_FIFO_DBG_1_REG_OFFSET);
+        uint8_t cmpt_idle = (val >> LAGD_CORE_ENERGY_FIFO_DBG_1_CMPT_IDLE_BIT) & 0x1;
+        uint16_t fm_rx_cnt = (val >> LAGD_CORE_ENERGY_FIFO_DBG_1_FM_RX_CNT_OFFSET) &
+                             LAGD_CORE_ENERGY_FIFO_DBG_1_FM_RX_CNT_MASK;
+        if (fm_rx_cnt != prev_fm_rx_cnt) {
+            prev_fm_rx_cnt = fm_rx_cnt;
+            e1_log_buf[log_idx++] = val;
         }
         if (cmpt_idle) break;
     }
