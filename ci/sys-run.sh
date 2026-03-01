@@ -21,6 +21,8 @@ Usage: ./ci/sys-run.sh [[
     --dbg=#dbg_lvl
     --gui
     --use_tech_models
+    --netlist=#netlist_path
+    --post-syn
     --help]]"
 EOF
     echo "Example: $0"
@@ -36,25 +38,35 @@ show_help()
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --gui: Run simulation in GUI mode"
     echo "  --use_tech_models: Use technology models for the simulation"
+    echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
+    echo "  --run_id=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
+    echo "  --post-syn: Run post-synthesis simulation"
     echo "  --help: Show this help message"
 }
 
 SCRIPT_DIR=$(dirname "$0")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
-# Check if pixi is installed (if not we are probably on cygni)
-if ! command -v pixi &> /dev/null; then
-    PIXI=0
-    CHS_PATH=${ROOT_DIR}  # Default dummy val
-else
-    PIXI=1
-    CHS_PATH=$( pixi run bender path cheshire)
-fi
-
 CHIP_LEVEL_TEST=0
 BOOT_MODE=0
 PRELOAD_MODE=0
 USE_TECH_MODELS=0
+NETLIST_PATH=""
+RUN_ID="1"
+POST_SYN=0
+
+if bender --version > /dev/null 2>&1; then
+    BENDER="bender"
+elif pixi run bender --version > /dev/null 2>&1; then
+    BENDER="pixi run bender"
+elif ${HOME}/.cargo/bin/bender --version > /dev/null 2>&1; then
+    BENDER="${HOME}/.cargo/bin/bender"
+else
+    echo "[ERROR] ./ci/sys-run.sh: bender command not found. Please ensure bender is installed."
+    exit 1
+fi
+
+CHS_PATH=$( ${BENDER} path cheshire)
 PRELOAD_ELF=${CHS_PATH}/sw/tests/helloworld.spm.elf
 DBG=0
 NO_GUI=1
@@ -93,6 +105,18 @@ for i in "$@"; do
             USE_TECH_MODELS=1
             shift
             ;;
+        --netlist=*)
+            NETLIST_PATH="${i#*=}"
+            shift
+            ;;
+        --run_id=*)
+            RUN_ID="${i#*=}"
+            shift
+            ;;
+        --post-syn)
+            POST_SYN=1
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -114,8 +138,35 @@ make -C "${ROOT_DIR}/sw" clean all
 echo "[$(date +%T)] SW build done."
 
 if [ ! -f "$PRELOAD_ELF" ]; then
-    echo "Error: Binary file '$PRELOAD_ELF' does not exist."
+    echo "[ERROR] ./ci/sys-run.sh: Preload ELF file not found at path: ${PRELOAD_ELF}"
     exit 1
+fi
+
+if [ "${POST_SYN}" -eq 1 ] && [ ! -n "$NETLIST_PATH" ]; then
+    NETLIST_PATH=/users/micas/shares/project_lagd/netlists/latest/
+fi
+
+if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
+    NETLIST_PATH=( ${NETLIST_PATH}/*.v )
+    if [ ! -f "$NETLIST_PATH" ]; then
+        echo "[ERROR] ./ci/sys-run.sh: Netlist file not found at path: ${NETLIST_PATH}"
+        exit 1
+    fi
+    echo "[INFO] ./ci/sys-run.sh: Autodetected netlist file(s): ${NETLIST_PATH}"
+fi
+
+if [ -n "$NETLIST_PATH" ]; then
+    NETLIST_PATH=$(realpath ${NETLIST_PATH})
+fi
+
+if [ -n "$NETLIST_PATH" ]; then
+    CHIP_LEVEL_TEST=1
+    echo "[INFO] ./ci/sys-run.sh: Enabling chip-level test."
+fi
+
+if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
+    USE_TECH_MODELS=1
+    echo "[INFO] ./ci/sys-run.sh: Enabling technology models."
 fi
 
 echo "Running system test with the following parameters:"
@@ -126,17 +177,13 @@ echo "  PRELOAD_ELF: $PRELOAD_ELF"
 echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
+echo "  NETLIST_PATH: $NETLIST_PATH"
+echo "  RUN_ID: $RUN_ID"
 
-if [ "${PIXI}" -eq 1 ]; then
-    echo "[$(date +%T)] Starting flist generation..."
-    USE_TECH_MODELS=${USE_TECH_MODELS} make -C "${ROOT_DIR}/hw/tb" clean flist
-    echo "[$(date +%T)] flist generation done."
-else
-    echo "[WARNING] Pixi not found, assuming running on cygni. Skipping flist generation."
-    sleep 2
-fi
-echo "[$(date +%T)] Starting simulation..."
+# Force clean
+USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
+
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    make -C "${ROOT_DIR}/hw/tb" run
+    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} make run-soc
 echo "[$(date +%T)] Simulation done."

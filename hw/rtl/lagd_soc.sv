@@ -39,11 +39,6 @@ module lagd_soc import lagd_pkg::*; (
     output logic [3:0] spi_oen_o,
     input logic [3:0] spi_sdi_i,
     output logic [3:0] spi_sdo_o,
-    // Serial link interface
-    input logic [SlinkNumChan-1:0] slink_rcv_clk_i,
-    output logic [SlinkNumChan-1:0] slink_rcv_clk_o,
-    input logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_i,
-    output logic [SlinkNumChan-1:0][SlinkNumLanes-1:0] slink_o,
     // Galena wires
     inout wire [`NUM_ISING_CORES-1:0] galena_j_iref_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_j_vup_i,
@@ -110,42 +105,7 @@ module lagd_soc import lagd_pkg::*; (
         .uart_cts_ni    (uart_cts_ni),
         .uart_dsr_ni    (uart_dsr_ni), // =1,
         .uart_dcd_ni    (uart_dcd_ni), // =1,
-        .uart_rin_ni    (uart_rin_ni), // =1,
-        // Serial link interface
-        .slink_rcv_clk_i    (slink_rcv_clk_i),
-        .slink_rcv_clk_o    (slink_rcv_clk_o),
-        .slink_i            (slink_i),
-        .slink_o            (slink_o),
-        // Unused ports
-        .axi_llc_mst_req_o(),
-        .axi_llc_mst_rsp_i('0),
-        .dbg_active_o(),
-        .dbg_ext_req_o(),
-        .dbg_ext_unavail_i('0),
-        .i2c_sda_o(),
-        .i2c_sda_i('0),
-        .i2c_sda_en_o(),
-        .i2c_scl_o(),
-        .i2c_scl_i('0),
-        .i2c_scl_en_o(),
-        .spih_sck_o(),
-        .spih_sck_en_o(),
-        .spih_csb_o(),
-        .spih_csb_en_o(),
-        .spih_sd_o(),
-        .spih_sd_en_o(),
-        .spih_sd_i('0),
-        .gpio_o(),
-        .gpio_i('0),
-        .gpio_en_o(),
-        .usb_clk_i('0),
-        .usb_rst_ni('0),
-        .usb_dm_i('0),
-        .usb_dm_o(),
-        .usb_dm_oe_o(),
-        .usb_dp_i('0),
-        .usb_dp_o(),
-        .usb_dp_oe_o()
+        .uart_rin_ni    (uart_rin_ni) // =1,
     );
 
     //////////////////////////////////////////////////////////
@@ -170,56 +130,35 @@ module lagd_soc import lagd_pkg::*; (
     //////////////////////////////////////////////////////////
     // Stack memory  /////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    // Note: only narrow AXI type is valid (no other interfaces used)
-    memory_island_wrap #(
+    memory_island_wrap_top #(
         .Cfg(lagd_mem_cfg_pkg::CVA6StackMemCfg),
         .axi_narrow_req_t (lagd_axi_slv_req_t),
         .axi_narrow_rsp_t (lagd_axi_slv_rsp_t),
-        .axi_wide_req_t (lagd_axi_wide_slv_req_t),
-        .axi_wide_rsp_t (lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t (lagd_mem_narr_req_t),
-        .mem_narrow_rsp_t (lagd_mem_narr_rsp_t),
-        .mem_wide_req_t (lagd_mem_f_req_t),
-        .mem_wide_rsp_t (lagd_mem_f_rsp_t)
+        .mem_narrow_rsp_t (lagd_mem_narr_rsp_t)
     ) i_stack_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
         .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.STACK_MEM]),
-        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM]),
-        .axi_wide_req_i('0),
-        .axi_wide_rsp_o(),
-        .mem_narrow_req_i('0),
-        .mem_narrow_rsp_o(),
-        .mem_wide_req_i('0),
-        .mem_wide_rsp_o()
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.STACK_MEM])
     );
 
     //////////////////////////////////////////////////////////
     // L2 SPM  ///////////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    memory_island_wrap #(
+    memory_island_wrap_top #(
         .Cfg(lagd_mem_cfg_pkg::L2MemCfg),
         .axi_narrow_req_t(lagd_axi_slv_req_t),
         .axi_narrow_rsp_t(lagd_axi_slv_rsp_t),
-        .axi_wide_req_t(lagd_axi_wide_slv_req_t),
-        .axi_wide_rsp_t(lagd_axi_wide_slv_rsp_t),
         .mem_narrow_req_t(lagd_mem_narr_req_t),
-        .mem_narrow_rsp_t(lagd_mem_narr_rsp_t),
-        .mem_wide_req_t(lagd_mem_f_req_t),
-        .mem_wide_rsp_t(lagd_mem_f_rsp_t)
+        .mem_narrow_rsp_t(lagd_mem_narr_rsp_t)
     ) i_l2_mem (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
         // AXI slave interface
         .axi_narrow_req_i(axi_ext_slv_req[LagdSlvIdxEnum.L2_MEM]),
-        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM]),
-        .axi_wide_req_i('0),
-        .axi_wide_rsp_o(),
-        .mem_narrow_req_i('0),
-        .mem_narrow_rsp_o(),
-        .mem_wide_req_i('0),
-        .mem_wide_rsp_o()
+        .axi_narrow_rsp_o(axi_ext_slv_rsp[LagdSlvIdxEnum.L2_MEM])
     );
 
     //////////////////////////////////////////////////////////

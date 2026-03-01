@@ -214,12 +214,15 @@ module wide_narrow_arbiter #(
                 if (mem_narrow_rsp_arb_valid[i][RspLatency-1]) begin
                     mem_narrow_rsp_o[i].p = mem_bank_rsp_i[i].p;
                     mem_wide_split_rsp[wide_idx][narrow_idx_in_wide].p = '0;
+                    mem_wide_split_rsp[wide_idx][narrow_idx_in_wide].q_ready = '0;
                 end else if (mem_wide_rsp_arb_valid[i][RspLatency-1]) begin
                     mem_narrow_rsp_o[i].p = '0;
                     mem_wide_split_rsp[wide_idx][narrow_idx_in_wide].p = mem_bank_rsp_i[i].p;
+                    mem_wide_split_rsp[wide_idx][narrow_idx_in_wide].q_ready = mem_bank_rsp_i[i].q_ready;
                 end else begin
                     mem_narrow_rsp_o[i].p = '0; // Default value when no valid response
                     mem_wide_split_rsp[wide_idx][narrow_idx_in_wide].p = '0;
+                    mem_wide_split_rsp[wide_idx][narrow_idx_in_wide].q_ready = '0;
                 end
             end
         end

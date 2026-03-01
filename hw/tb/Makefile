@@ -4,6 +4,8 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
+# TODO: fix dep graph to avoid re-building RTL everytime
+
 SIM_TOOL := vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -23,7 +25,7 @@ deps: chs-sim-all
 # ============================================================
 
 ifeq ($(USE_TECH_MODELS),1)
-$(info "TECH_MODELS is set to $(TECH_MODELS), including tech cells in the flist")
+$(info "USE_TECH_MODELS is set to $(USE_TECH_MODELS), including tech cells in the flist")
 TECH_ARGS := -t tech_cells_generic_exclude_tc_sram
 TECH_MODELS_DEFINES = TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1
 TECH_MODELS_DEFINES += TSMC_INITIALIZE_MEM_USING_DEFAULT_TASKS=1 TSMC_MEM_LOAD_RANDOM=1
@@ -36,15 +38,34 @@ SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg=
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CXX_PATH := $(shell which g++)
 
-flist: $(TEST_PATH)/bender_list.tcl
+flist: $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl
 
 $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
 	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
 		-cpppath "$(CXX_PATH)"' >> $@
 
-clean: vsim-clean
-	rm -f $(TEST_PATH)/bender_list.tcl
+TMP_FILE := ./tmp.bender_list.tcl
+.INTERMEDIATE: $(TMP_FILE)
+# Remove non-package files from the bender list to create a package-only list
+$(TMP_FILE): $(TEST_PATH)/bender_list.tcl
+	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc|jtag_test|\/serial_link|serial_link_data_link|fifo_v3|\/stream_fifo|serial_link_network|intf|clk_rst_gen|axi_id_serialize|stream_register|axi_mux|axi_demux|axi_sim_mem|axi_serializer|serial_link_physical|reg_cdc|serial_link_single_channel_reg_top|axi_demux_simple|spill_register|axi_id_prepend|rr_arb_tree|prim_subreg_ext|prim_subreg|cdc_2phase|spill_register_flushable|\/counter|prim_subreg_arb|lzc|delta_counter|cdc_fifo_gray|binary_to_gray|gray_to_binary|\/sync|master_spi_vip)\.sv" \\$$/' $< > $@
+
+# Clean up the temporary file after generating the package-only list
+$(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
+	awk 'BEGIN {block=""; header=""; printed=0} \
+	NR<=2 {header=header $$0 "\n"; next} \
+	/^if \{/ {block=$$0; next} \
+	{block=block"\n"$$0} \
+	/\}\]\} \{return 1\}/ { \
+		if (block ~ /\.sv"/) { \
+			if (!printed) {printf "%s", header; printed=1} \
+			print block \
+		} \
+		block="" \
+	}' $< > $@
+	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
+		-cpppath "$(CXX_PATH)"' >> $@
 
 # ===========================================================
 # Make DPI-C shared library
@@ -73,11 +94,23 @@ libelfloader: $(DPI_LIB)
 TEST_PATH ?= $(CURDIR)
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 SIM_NAME ?= lagd_chip
-WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
+RUN_ID ?= 
+ifneq ($(RUN_ID),)
+	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)-$(RUN_ID)
+else
+	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
+endif
 HDL_FILES ?=
-DBG ?= 1
+DBG ?= 0
 CXX_PATH ?= $(shell which g++)
+
+ifneq ($(and $(filter 1,$(DBG)),$(wildcard $(NETLIST_PATH))),)
+$(info "Allowing netlist simulation with debug info")
+VOPT_ARGS += +acc -permissive
+else
 VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
+endif
+
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} +notimingchecks
 # VSIM_FLAGS += -sv_lib libelfloader
 
@@ -90,4 +123,8 @@ DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
 DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST) $(TECH_MODELS_DEFINES)
 DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
 
+RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
+
+clean: vsim-clean
+	rm -f $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl

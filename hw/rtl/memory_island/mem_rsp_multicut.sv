@@ -42,6 +42,8 @@ module mem_rsp_multicut #(
 
     if (NumCuts == 0) begin : gen_passthrough
         assign rsp_o.p = rsp_i.p;
+        assign rsp_o.q_ready = rsp_i.q_ready;
+        assign ready_o = ready_i;
     end else begin : gen_cuts
         logic [NumCuts:0][DataWidth-1:0] data;
         logic [NumCuts:0] valid, ready;

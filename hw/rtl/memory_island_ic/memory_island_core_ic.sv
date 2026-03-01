@@ -4,64 +4,9 @@
 
 // Author: Giuseppe M. Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-// Module: memory_island_core
-
-// Description:
-//      Implements a highly parameterizable, multi-ported banked memory subsystem 
-//      ("memory island") supporting both narrow (e.g., scalar) and wide (e.g., vector/DMA) 
-//      requestors. Features configurable spill register stages, and hierarchical banking with 
-//      automatic wide-to-narrow splitting.
-//
-//      The module provides:
-//      - Separate narrow and wide request/response channels with independent data widths.
-//      - Configurable number of memory banks (must be power-of-2).
-//      - Fixed-latency TCDM interconnect.
-//      - Optional pipeline stages (spill registers) at multiple points: post-interconnect, 
-//        post-arbitration, and pre-bank.
-//      - Automatic splitting of wide requests into multiple narrow bank accesses.
-//      - Priority arbitration: narrow requests have priority; wide requests use banks when idle.
-
-// Parameters:
-//      mem_narrow_req_t / mem_narrow_rsp_t: Narrow memory request/response typedefs 
-//      mem_wide_req_t / mem_wide_rsp_t: Wide memory request/response typedefs 
-//          (must be compatible with include/typedefs.svh)
-//      Cfg: Configuration struct (type mem_cfg_t, see memory_island_pkg.sv)
-
-// Ports:
-//      clk_i: Clock.
-//      rst_ni: Active-low reset.
-//      mem_narrow_req_i[NumNarrowReq-1:0], mem_narrow_rsp_o[NumNarrowReq-1:0]: 
-//          Narrow memory request/response arrays.
-//      mem_wide_req_i[NumWideReq-1:0], mem_wide_rsp_o[NumWideReq-1:0]: 
-//          Wide memory request/response arrays.
-
-// Address Mapping:
-//      Narrow requests:
-//          [AddrTopBit : AddrWideBankBit] = in-bank word address
-//          [AddrWideBankBit-1 : AddrBankWordBit] = bank select (log2(NumNarrowBanks) bits)
-//          [AddrBankWordBit-1 : 0] = byte offset within word
-//      Wide requests:
-//          [AddrTopBit : AddrWideBankBit] = in-bank word address
-//          [AddrWideBankBit-1 : AddrWideWordBit] = wide bank select + narrow sub-bank select
-//          [AddrWideWordBit-1 : 0] = byte offset within wide word
-//      Narrow interconnect routes on [AddrTopBit:AddrBankWordBit].
-//      Wide interconnect routes on [AddrTopBit:AddrWideWordBit].
-
-// Behavior:
-//      1. **Interconnects**: Narrow and wide requests are routed to appropriate banks via 
-//         tcdm_interconnect_wrap instances (xbar).
-//      2. **Narrow-wide arbitration**: cycle-based round-robin arbiter (wide_narrow_arbiter)
-
-// Assumptions / Requirements:
-//      - NumNarrowBanks must be a power of 2 (enforced by assertion).
-//      - (NumNarrowBanks * NarrowDataWidth) must be divisible by WideDataWidth (enforced).
-
-// Testing:
-//      - Untested
-
 `include "lagd_platform.svh"
 
-module memory_island_core import memory_island_pkg::*; #(
+module memory_island_core_ic import memory_island_pkg::*; #(
     parameter type mem_narrow_req_t = logic,
     parameter type mem_narrow_rsp_t = logic,
     parameter type mem_wide_req_t = logic,
@@ -216,53 +161,6 @@ module memory_island_core import memory_island_pkg::*; #(
     endgenerate
 
     // ------------
-    // Post route spilling
-    // ------------
-    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] mem_narrow_req_to_banks_q1;
-    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] mem_narrow_rsp_from_banks_q1;
-    mem_wide_req_t [NumWideBanks-1:0] mem_wide_req_to_banks_q1;
-    mem_wide_rsp_t [NumWideBanks-1:0] mem_wide_rsp_from_banks_q1;
-    for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: spill_narrow_routed
-        mem_multicut #(
-            .AddrWidth(Cfg.AddrWidth),
-            .DataWidth(Cfg.NarrowDataWidth),
-            .NumCutsReq(Cfg.SpillNarrowReqRouted),
-            .NumCutsRsp(Cfg.SpillNarrowRspRouted),
-            .mem_req_t(mem_narrow_req_t),
-            .mem_rsp_t(mem_narrow_rsp_t)
-        ) u_spill_narrow_routed (
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .req_i(mem_narrow_req_to_banks[i]),
-            .req_o(mem_narrow_req_to_banks_q1[i]),
-            .rsp_i(mem_narrow_rsp_from_banks_q1[i]),
-            .rsp_o(mem_narrow_rsp_from_banks[i]),
-            .read_ready_i(1'b1),
-            .read_ready_o()
-        );
-    end
-
-    for (genvar i = 0; i < NumWideBanks; i++) begin: spill_wide_routed
-        mem_multicut #(
-            .AddrWidth(Cfg.AddrWidth),
-            .DataWidth(Cfg.WideDataWidth),
-            .NumCutsReq(Cfg.SpillWideReqRouted),
-            .NumCutsRsp(Cfg.SpillWideRspRouted),
-            .mem_req_t(mem_wide_req_t),
-            .mem_rsp_t(mem_wide_rsp_t)
-        ) u_spill_wide_routed (
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .req_i(mem_wide_req_to_banks[i]),
-            .req_o(mem_wide_req_to_banks_q1[i]),
-            .rsp_i(mem_wide_rsp_from_banks_q1[i]),
-            .rsp_o(mem_wide_rsp_from_banks[i]),
-            .read_ready_i(1'b1),
-            .read_ready_o()
-        );
-    end
-
-    // ------------
     // Narrow wide arbitration
     // ------------
     mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req;
@@ -282,39 +180,17 @@ module memory_island_core import memory_island_pkg::*; #(
     ) u_narrow_wide_arbiter (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        .mem_narrow_req_i(mem_narrow_req_to_banks_q1),
-        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks_q1),
-        .mem_wide_req_i(mem_wide_req_to_banks_q1),
-        .mem_wide_rsp_o(mem_wide_rsp_from_banks_q1),
+        .mem_narrow_req_i(mem_narrow_req_to_banks),
+        .mem_narrow_rsp_o(mem_narrow_rsp_from_banks),
+        .mem_wide_req_i(mem_wide_req_to_banks),
+        .mem_wide_rsp_o(mem_wide_rsp_from_banks),
         .mem_bank_req_o(bank_req),
         .mem_bank_rsp_i(bank_rsp)
     );
     
-    // ------------
-    // Banks multicut
-    // ------------
-    mem_narrow_req_t [Cfg.NumNarrowBanks-1:0] bank_req_q1;
-    mem_narrow_rsp_t [Cfg.NumNarrowBanks-1:0] bank_rsp_q1;
+
     for (genvar i = 0; i < Cfg.NumNarrowBanks; i++) begin: banks_multicut
-        mem_multicut #(
-            .AddrWidth(Cfg.AddrWidth),
-            .DataWidth(Cfg.NarrowDataWidth),
-            .NumCutsReq(Cfg.SpillReqBank),
-            .NumCutsRsp(Cfg.SpillRspBank),
-            .mem_req_t(mem_narrow_req_t),
-            .mem_rsp_t(mem_narrow_rsp_t)
-        ) u_banks_multicut (
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .req_i(bank_req[i]),
-            .req_o(bank_req_q1[i]),
-            .rsp_i(bank_rsp_q1[i]),
-            .rsp_o(bank_rsp[i]),
-            .read_ready_i(1'b1),
-            .read_ready_o()
-        );
-        // Fixing q_ready
-        assign bank_rsp_q1[i].q_ready = bank_req_q1[i].q_valid;
+        assign bank_rsp[i].q_ready = bank_req[i].q_valid;
     end
 
     // ------------
@@ -329,25 +205,24 @@ module memory_island_core import memory_island_pkg::*; #(
         ) u_bank (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
-            .req_i(bank_req_q1[i].q_valid),
-            .addr_i(bank_req_q1[i].q.addr[InBankAddrWidth-1:0]),
-            .we_i(bank_req_q1[i].q.write),
-            .wdata_i(bank_req_q1[i].q.data),
-            .be_i(bank_req_q1[i].q.strb),
-            .rdata_o(bank_rsp_q1[i].p.data)
+            .req_i(bank_req[i].q_valid),
+            .addr_i(bank_req[i].q.addr[InBankAddrWidth-1:0]),
+            .we_i(bank_req[i].q.write),
+            .wdata_i(bank_req[i].q.data),
+            .be_i(bank_req[i].q.strb),
+            .rdata_o(bank_rsp[i].p.data)
         );
         // Update valid signal for response
         always_ff @(posedge clk_i or negedge rst_ni) begin
             if (!rst_ni) begin
                 bank_req_q1_valid[i] <= 1'b0;
             end else begin
-                bank_req_q1_valid[i] <= bank_req_q1[i].q_valid;
+                bank_req_q1_valid[i] <= bank_req[i].q_valid;
             end
         end
-        assign bank_rsp_q1[i].p.valid = bank_req_q1_valid[i];
+        assign bank_rsp[i].p.valid = bank_req_q1_valid[i];
     end
     // TODO: add valid answer signal back to tc_sram and connect to rsp.p.valid
-
     // ------------
     // Asserts
     // ------------
@@ -360,4 +235,4 @@ module memory_island_core import memory_island_pkg::*; #(
         "Wide banking factor must be a multiple of narrow banking factor");
     
 
-endmodule : memory_island_core
+endmodule : memory_island_core_ic

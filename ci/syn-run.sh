@@ -26,6 +26,7 @@ Usage: ./ci/syn-run.sh [
   --corner=#corner
   --ddc=#ddc_path
   --dry_run
+  --clk_gating
   --help]
 EOF
   echo "Example: $0 --tech=sky130hd --run_id=001"
@@ -45,6 +46,7 @@ show_help()
   echo "  --corner=#corner: Process corner for synthesis (default: tt)"
   echo "  --ddc=#ddc_path: Path to DDC file *relative to \$PROJECT_ROOT*. This skips synthesis (default: no path)"
   echo "  --dry_run: Flag to indicate a dry run (no actual synthesis)"
+  echo "  --clk_gating: Flag to disable clock gating during synthesis"
   echo "  --help: Show this help message"
 }
 

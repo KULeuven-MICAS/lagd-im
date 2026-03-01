@@ -2,11 +2,13 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+# Authors: 
+#	Jiacong Sun <jiacong.sun@kuleuven.be>
+#	Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
 PROJECT_ROOT := $(shell realpath ../../../)
 
-CHS_REG_DIR := $(shell bender path register_interface)
+CHS_REG_DIR := $(shell $(BENDER) path register_interface)
 REGTOOL ?= $(CHS_REG_DIR)/vendor/lowrisc_opentitan/util/regtool.py
 
 SW_INCLUDE_DIR := $(PROJECT_ROOT)/sw/include

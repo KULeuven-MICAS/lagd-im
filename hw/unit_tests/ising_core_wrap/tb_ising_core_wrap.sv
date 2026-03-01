@@ -207,10 +207,12 @@ module tb_ising_core_wrap;
     initial begin
         if (`DBG) begin
             $display("Debug mode enabled. Running with detailed output.");
+            // #(35_000 * CLKCYCLE); // Let the simulation run for a while to capture initial behavior
             $dumpfile(`VCD_FILE);
-            $dumpvars(2, tb_ising_core_wrap); // Dump all variables in testbench module
+            // $dumpvars(2, tb_ising_core_wrap); // Dump all variables in testbench module
+            $dumpvars(2, tb_ising_core_wrap.dut.u_digital_macro); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
-            #(10_000 * CLKCYCLE); // To avoid generating huge VCD files
+            #(1000_000_000 * CLKCYCLE); // To avoid generating huge VCD files
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -486,12 +488,13 @@ module tb_ising_core_wrap;
             for (int j = 0; j < `NUM_SPIN / `LAGD_AXI_DATA_WIDTH; j++) begin
                 axi_write_addr = (i*(`NUM_SPIN/`LAGD_AXI_DATA_WIDTH) + j)*8; // byte address
                 axi_write_data = flip_icon[i][j*`LAGD_AXI_DATA_WIDTH +: `LAGD_AXI_DATA_WIDTH];
-                @ (posedge clk_i);
+                #1;
                 axi_ext_slv_req_1 = axi_write_slv(axi_write_addr, axi_write_data);
                 wait(axi_ext_slv_rsp_1.b_valid);
                 axi_ext_slv_req_1.b_ready = 1'b1;
                 if (axi_ext_slv_rsp_1.b.resp != 2'b00) // Check for OKAY response
                     $error("Write failed with response: %0d", axi_ext_slv_rsp_1.b.resp);
+                @ (posedge clk_i);
             end
         end
         axi_ext_slv_req_1 = 'd0; // Deassert after use

@@ -70,8 +70,6 @@ package lagd_pkg;
             addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + i * `IC_L1_MEM_SIZE_B);
             idx = $unsigned(Idx.ISING_CORES_BASE + 2*i + 1);
             addr_map[idx] = $unsigned(`IC_MEM_BASE_ADDR + i * `IC_L1_MEM_SIZE_B + `L1_J_MEM_SIZE_B);
-
-            $display("Core %0d: start address = 0x%0h", i, addr_map[idx]);
         end
         return addr_map;
     endfunction : gen_lagd_slv_start_addr
@@ -184,7 +182,7 @@ package lagd_pkg;
         cfg.SpiHost = 0;
         cfg.Gpio = 0;
         cfg.Dma = 1;
-        cfg.SerialLink = 1;
+        cfg.SerialLink = 0;
         cfg.Vga = 0;
         cfg.Usb = 0;
         cfg.AxiRt = 0;
