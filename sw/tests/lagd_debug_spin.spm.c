@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-static const uint8_t  model_scaling_factor = 4;
+static const uint8_t model_scaling_factor = 4;
 
 // cheshire headers
 #include "regs/cheshire.h"

@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-static const uint8_t  model_scaling_factor = 4;
+static const uint8_t model_scaling_factor = 4;
 
 // cheshire headers
 #include "regs/cheshire.h"
@@ -46,8 +46,9 @@ int main(void) {
     /////////////////////// DEBUG CONFIGURATION /////////////////////
     /////////////////////////////////////////////////////////////////
     // generate debug patterns
-    static const uint32_t debug_j_one_hot_wwl[8] = {0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U,
-                                                    0x00000000U, 0x00000000U, 0x00000000U, 0x00000001U};
+    static const uint32_t debug_j_one_hot_wwl[8] = {0x00000000U, 0x00000000U, 0x00000000U,
+                                                    0x00000000U, 0x00000000U, 0x00000000U,
+                                                    0x00000000U, 0x00000001U};
     static const uint32_t debug_wbl_config[32] = {
         0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0xFFFFFFFFU,
         0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0xFFFFFFFFU,

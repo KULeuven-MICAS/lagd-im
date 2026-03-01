@@ -338,21 +338,20 @@ static void lagd_print_cmpt_idx(unsigned core) {
 }
 
 // Printf cycle/iteration and cycle/cmpt performance counters
-static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count, uint32_t *log_buf) {
+static void lagd_print_cycle_per_iteration(unsigned core, unsigned sample_count,
+                                           uint32_t *log_buf) {
     uint32_t cycle_per_cmpt_status;
     for (unsigned i = 0; i < sample_count; i++) {
         cycle_per_cmpt_status = log_buf[i];
-        printf("idx/cmpt_idle/fm_rx_cnt_l7b/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n",
-            core,
-            i,
-            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
-            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) & 0x7f,
+        printf("idx/cmpt_idle/fm_rx_cnt_l7b/cc_iter/cc_cmpt for core %u: %u %u %u %u %u\r\n", core,
+            i, (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1,
+            (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+                0x7f,
             (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_OFFSET) &
-            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
+                LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_ITERATION_MASK,
             (cycle_per_cmpt_status >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_OFFSET) &
-            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
+                LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CYCLE_PER_CMPT_MASK);
         }
-
 }
 
 // Read out cycle_per_cmpt performance counter and print the value
@@ -364,26 +363,27 @@ static void lagd_print_cycle_per_cmpt(unsigned core) {
     printf("Cycle per computation for core %u: %u\r\n", core, cycle_per_cmpt);
 }
 
-// Continuously read out cycle_per_iteration until the computation is done
-static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_samples, uint32_t *log_buf) {
+// Log cycle_per_iteration on each new iteration until buffer full or computation done.
+// Caller is responsible for waiting on computation completion.
+static unsigned lagd_monitor_cycle_per_iteration(unsigned core, unsigned max_samples,
+                                                 uint32_t *log_buf) {
+    // latency analysis
+    // lw (csr2host): 4-5 cycles
+    // others: ~7 cycle
+
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    uint8_t loop_en = 1;
     unsigned log_idx = 0;
     uint16_t prev_fm_rx_cnt_l7b = 0;
-    while (loop_en) {
+    while (log_idx < max_samples) {
         uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
-        if (log_idx < max_samples) {
-            if ((((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1) == 0) &&
-            ((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
-            LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK) != prev_fm_rx_cnt_l7b) {
-                prev_fm_rx_cnt_l7b = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
-                                      LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
-                log_buf[log_idx++] = val;
-            }
+        uint8_t  cmpt_idle = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1;
+        uint16_t fm_rx_cnt = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+                              LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
+        if (fm_rx_cnt != prev_fm_rx_cnt_l7b) {
+            prev_fm_rx_cnt_l7b = fm_rx_cnt;
+            log_buf[log_idx++] = val;
         }
-        if (((val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1)) {
-            loop_en = 0;
-        }
+        if (cmpt_idle) break;
     }
     return log_idx;
 }
