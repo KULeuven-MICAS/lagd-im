@@ -69,7 +69,7 @@ module galena #(
             always_ff @(posedge wwl_i[i]) begin
                 if (wbl_floating_i == {WBL_WIDTH{1'b1}}) begin
                     data_array[i] <= wbl_i;
-                    $info("[Time: %0t ] Data written to data_array[%0d]: 'h%h", $time, i, wbl_i);
+                    $info("[Time: %0t] Data written to data_array[%0d]: 'h%h", $time, i, wbl_i);
                 end
             end
         end
