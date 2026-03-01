@@ -129,7 +129,7 @@ PRELOAD_ELF=$(realpath "$PRELOAD_ELF")
 
 # Build CSR before simulation
 echo "[$(date +%T)] Starting CSR build..."
-make -C "${ROOT_DIR}/hw/rtl/lagd_core_reg/" clean all
+make -C "${ROOT_DIR}/hw/rtl/lagd_core_reg/" clean all BENDER="${BENDER}"
 echo "[$(date +%T)] CSR build done."
 
 # Build SW before simulation
