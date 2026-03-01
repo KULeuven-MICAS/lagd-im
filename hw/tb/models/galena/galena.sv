@@ -99,7 +99,6 @@ module galena #(
             end
             always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
                 spin_cache <= state_out[j];
-                $info("[Time: %0t] Spin initial cache is updated from state_out[%0d]: 'h%h", $time, j, state_out[j]);
                 j <= (j + 1) % SPIN_ICON_DEPTH;
             end
         end else begin
@@ -107,7 +106,6 @@ module galena #(
                 for (int i = 0; i < NUM_SPIN; i++) begin
                     spin_cache[i] <= wbl_i[BIT_DATA*i + SPIN_WBL_OFFSET];
                 end
-                $info("[Time: %0t] Spin internal cache is updated from wbl_i: 'h%h", $time, wbl_i);
             end
         end
     endgenerate
