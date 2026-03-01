@@ -47,8 +47,6 @@ int main(void) {
     lagd_configure_spin_wwl_strobe(CORE_TESTED);
     lagd_configure_spin_feedback(CORE_TESTED);
     lagd_configure_h_rdata(CORE_TESTED);
-    lagd_configure_wbl_floating(CORE_TESTED);
-    lagd_configure_debug_j_one_hot_wwl(CORE_TESTED);
     lagd_configure_global_cfg_1(CORE_TESTED);
     lagd_configure_global_cfg_2(CORE_TESTED);
     // clear config valid
