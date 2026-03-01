@@ -365,8 +365,9 @@ static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uin
                (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
                (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
                    LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK,
-               (int16_t)((energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
-                   LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK));
+               (int16_t)((energy_fifo_dbg_status >>
+                          LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
+                        LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK));
     }
 }
 
