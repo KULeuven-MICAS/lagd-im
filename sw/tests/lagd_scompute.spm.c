@@ -61,10 +61,11 @@ int main(void) {
     // start computation
     lagd_enable_energy_monitor_fifo(CORE_TESTED);
     lagd_enable_computation(CORE_TESTED);
+    unsigned log_cnt;
     if (ENERGY_MONITOR) {
-        unsigned log_cnt = lagd_monitor_energy_fifo_dbg_0(CORE_TESTED, MAX_SAMPLES, log_buf);
+        log_cnt = lagd_monitor_energy_fifo_dbg_0(CORE_TESTED, MAX_SAMPLES, log_buf);
     } else {
-        unsigned log_cnt = lagd_monitor_cycle_per_iteration(CORE_TESTED, MAX_SAMPLES, log_buf);
+        log_cnt = lagd_monitor_cycle_per_iteration(CORE_TESTED, MAX_SAMPLES, log_buf);
     }
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
