@@ -503,7 +503,7 @@ static void lagd_print_l1_j_mem(unsigned core, unsigned length) {
     volatile uint64_t *base =
         (volatile uint64_t *)((uintptr_t)IC_MEM_BASE_ADDR +
                               (uintptr_t)core *
-                                   ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+                                  ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
     for (unsigned i = 0; i < length; i++) {
         uint64_t data[IC_L1_J_MEM_DATA_WIDTH / 64]; // 64 x 64-bit = 4096 bits
         for (int j = 0; j < IC_L1_J_MEM_DATA_WIDTH / 64; j++) {
@@ -521,7 +521,7 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
     volatile uint64_t *base =
         (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
                               (uintptr_t)core *
-                                 ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+                                  ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
     for (unsigned i = 0; i < length; i++) {
         uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64]; // 4 x 64-bit words
         for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
