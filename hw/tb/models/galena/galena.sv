@@ -67,7 +67,10 @@ module galena #(
     generate
         for (genvar i = 0; i < WWL_WIDTH; i++) begin: data_writing
             always_ff @(posedge wwl_i[i]) begin
-                data_array[i] <= wbl_i;
+                if (wbl_floating_i == {WBL_WIDTH{1'b1}}) begin
+                    data_array[i] <= wbl_i;
+                    $info("[Time: %0t ] Data written to data_array[%0d]: 'h%h", $time, i, wbl_i);
+                end
             end
         end
     endgenerate
