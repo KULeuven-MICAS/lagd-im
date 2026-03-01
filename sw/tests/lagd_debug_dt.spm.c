@@ -37,6 +37,11 @@ int main(void) {
     lagd_configure_wwl_vread_cfg(CORE_TESTED);
     lagd_configure_spin_wwl_strobe(CORE_TESTED);
     lagd_configure_spin_feedback(CORE_TESTED);
+
+    // load in debug patterns
+    lagd_configure_debug_j_one_hot_wwl(CORE_TESTED);
+    lagd_configure_debug_wbl_config(CORE_TESTED);
+
     lagd_configure_global_cfg_1(CORE_TESTED);
     lagd_configure_global_cfg_2(CORE_TESTED);
     // clear config valid
@@ -45,12 +50,6 @@ int main(void) {
     /////////////////////////////////////////////////////////////////
     /////////////////////// DEBUG CONFIGURATION /////////////////////
     /////////////////////////////////////////////////////////////////
-    // load in debug patterns
-    lagd_configure_debug_j_one_hot_wwl(CORE_TESTED);
-    lagd_configure_debug_wbl_config(CORE_TESTED);
-    // load debug patterns into the core
-    lagd_enable_debug_dt_configure_enable(CORE_TESTED);
-    lagd_disable_all_debug_enable(CORE_TESTED);
     // start dt debugging write
     lagd_enable_debug_j_write_en(CORE_TESTED);
     lagd_disable_all_debug_enable(CORE_TESTED);
