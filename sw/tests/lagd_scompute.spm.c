@@ -12,7 +12,7 @@
 #endif
 
 #ifndef ENERGY_MONITOR
-#define ENERGY_MONITOR 0
+#define ENERGY_MONITOR 1
 #endif
 
 // cheshire headers
@@ -54,9 +54,9 @@ int main(void) {
     // clear config valid
     lagd_clear_config_valid(CORE_TESTED);
     // start analog onloading
-    // lagd_enable_analog_onloading(CORE_TESTED);
+    lagd_enable_analog_onloading(CORE_TESTED);
     // wait for analog onloading to finish
-    // lagd_wait_for_analog_onloading_done(CORE_TESTED);
+    lagd_wait_for_analog_onloading_done(CORE_TESTED);
 
     // start computation
     lagd_enable_energy_monitor_fifo(CORE_TESTED);
@@ -70,7 +70,7 @@ int main(void) {
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
     // print final output
-    // lagd_print_energy_fifo_data(CORE_TESTED);
+    lagd_print_energy_fifo_data(CORE_TESTED);
 
     if (ENERGY_MONITOR) {
         // print energy monitor fifo debug register log
