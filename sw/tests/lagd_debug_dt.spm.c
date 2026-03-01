@@ -45,16 +45,7 @@ int main(void) {
     /////////////////////////////////////////////////////////////////
     /////////////////////// DEBUG CONFIGURATION /////////////////////
     /////////////////////////////////////////////////////////////////
-    // generate debug patterns
-    static const uint32_t debug_j_one_hot_wwl[8] = {0x00000000U, 0x00000000U, 0x00000000U,
-                                                    0x00000000U, 0x00000000U, 0x00000000U,
-                                                    0x00000000U, 0x00000001U};
-    static const uint32_t debug_wbl_config[32] = {
-        0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0x00000000U, 0xFFFFFFFFU, 0x00000000U, 0xFFFFFFFFU};
+    // load in debug patterns
     lagd_configure_debug_j_one_hot_wwl(CORE_TESTED);
     lagd_configure_debug_wbl_config(CORE_TESTED);
     // load debug patterns into the core
@@ -66,13 +57,7 @@ int main(void) {
     /////////////////////////////////////////////////////////////////
     /////////////////////// DEBUG READING ///////////////////////////
     /////////////////////////////////////////////////////////////////
-    // generate wbl_floating pattern
-    static const uint32_t wbl_floating[32] = {
-        0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
-        0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
+    // load in wbl_floating pattern
     lagd_configure_wbl_floating(CORE_TESTED);
     // load debug patterns into the core
     lagd_enable_debug_dt_configure_enable(CORE_TESTED);
