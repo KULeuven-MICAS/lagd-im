@@ -61,7 +61,7 @@ int main(void) {
     }
     for (i = 0; i < NUM_ISING_CORES; i++) {
         // print final output
-        lagd_print_energy_fifo_data(CORE_TESTED);
+        lagd_print_energy_fifo_data(i);
     }
 
     printf("=== DONE ===\r\n");
