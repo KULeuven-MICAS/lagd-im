@@ -41,7 +41,7 @@
     `define IC_MEM_BASE_ADDR 'h9000_0000
     `define IC_J_MEM_END_ADDR 'h9000_8000    // J Mem Addr Space    32KB
     `define IC_FLIP_MEM_END_ADDR 'h9001_0000 // Flip Mem Addr Space 32KB
-    `define IC_REGS_BASE_ADDR 'h3000_0000 // NonCIE address space for Cheshire is [h3000_0000, h7fff_ffff]
+    `define IC_REGS_BASE_ADDR 'h3000_0000 // Non-cacheable address space for Cheshire is [h3000_0000, h7fff_ffff]
     // L1 memory per core
     `define IC_L1_MEM_SIZE_B (`L1_J_MEM_SIZE_B + `L1_FLIP_MEM_SIZE_B)
     `define IC_L1_MEM_LIMIT 'h10_0000 // 1 MB per core
