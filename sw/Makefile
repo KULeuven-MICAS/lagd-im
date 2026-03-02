@@ -38,6 +38,9 @@ SVH2H := $(RTL_ROOT)/include/svh2h.py
 include/lagd_config.h include/lagd_define.h: $(RTL_ROOT)/include/lagd_config.svh $(RTL_ROOT)/include/lagd_define.svh $(SVH2H)
 	$(MAKE) -C $(RTL_ROOT)/include
 
+include/lagd_core_reg.h: $(RTL_ROOT)/lagd_core_reg/lagd_core_regs.hjson
+	$(MAKE) -C $(RTL_ROOT)/include/lagd_core_reg
+
 # Auto-generate data header from model file
 include/model_j_data.h: tests/data/$(DATA_FOLDER)/model tests/data/gen_model_data.py
 	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
@@ -51,7 +54,7 @@ include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOL
 	python3 tests/data/gen_spin_data.py --folder $(DATA_FOLDER)
 
 # Ensure headers are generated before compiling tests that use them
-$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/model_j_data.h include/model_f_data.h include/spin_data.h
+$(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/lagd_core_reg.h include/model_j_data.h include/model_f_data.h include/spin_data.h
 
 clean:
 	rm -f tests/*.elf tests/*.dump \

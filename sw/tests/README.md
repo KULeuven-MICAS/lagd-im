@@ -50,7 +50,7 @@ CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/lagd_debug_dt.spm.elf
 
 ## Galena spin W/R test (for debugging)
 
-File [lagd_debug_spin.spm.c](./lagd_debug_spin.spm.c) tests the spin writing and continusous spin reading of a single Galena macro.
+File [lagd_debug_spin.spm.c](./lagd_debug_spin.spm.c) tests the spin writing and continuous spin reading of a single Galena macro.
 
 Command:
 

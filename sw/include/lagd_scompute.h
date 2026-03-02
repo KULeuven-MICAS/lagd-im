@@ -54,6 +54,8 @@ static void lagd_check_spin_fifo_data(unsigned core) {
             pass0 = 0;
             break; // stop at the first mismatch
         }
+    }
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
         if (spin_fifo_data_1[i] != spin_ref_1[i]) {
             pass1 = 0;
             break; // stop at the first mismatch

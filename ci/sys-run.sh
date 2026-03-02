@@ -125,17 +125,12 @@ for i in "$@"; do
     esac
 done
 
-PRELOAD_ELF=$(realpath "$PRELOAD_ELF")
-
-# Build CSR before simulation
-echo "[$(date +%T)] Starting CSR build..."
-make -C "${ROOT_DIR}/hw/rtl/lagd_core_reg/" clean all BENDER="${BENDER}"
-echo "[$(date +%T)] CSR build done."
-
 # Build SW before simulation
 echo "[$(date +%T)] Starting SW build..."
-make -C "${ROOT_DIR}/sw" clean all
+make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}"
 echo "[$(date +%T)] SW build done."
+
+PRELOAD_ELF=$(realpath "$PRELOAD_ELF") # Cheshire requires an absolute path for ELF
 
 if [ ! -f "$PRELOAD_ELF" ]; then
     echo "[ERROR] ./ci/sys-run.sh: Preload ELF file not found at path: ${PRELOAD_ELF}"
@@ -156,7 +151,7 @@ if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
 fi
 
 if [ -n "$NETLIST_PATH" ]; then
-    NETLIST_PATH=$(realpath ${NETLIST_PATH})
+    NETLIST_PATH=$(realpath "${NETLIST_PATH}")
 fi
 
 if [ -n "$NETLIST_PATH" ]; then
@@ -181,9 +176,9 @@ echo "  NETLIST_PATH: $NETLIST_PATH"
 echo "  RUN_ID: $RUN_ID"
 
 # Force clean
-USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
+USE_TECH_MODELS="${USE_TECH_MODELS}" make -C "${ROOT_DIR}/hw/tb/" clean
 
-CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
-    PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} make run-soc
+CHIP_LEVEL_TEST="${CHIP_LEVEL_TEST}" BOOT_MODE="${BOOT_MODE}" PRELOAD_MODE="${PRELOAD_MODE}" \
+    PRELOAD_ELF="${PRELOAD_ELF}" DBG="${DBG}" NO_GUI="${NO_GUI}" USE_TECH_MODELS="${USE_TECH_MODELS}" \
+    NETLIST_PATH="${NETLIST_PATH}" RUN_ID="${RUN_ID}" make run-soc
 echo "[$(date +%T)] Simulation done."

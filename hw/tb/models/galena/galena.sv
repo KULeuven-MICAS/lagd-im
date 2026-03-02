@@ -83,7 +83,6 @@ module galena #(
             if (wwl_i[i]) begin
                 if (wbl_floating_i == {WBL_WIDTH{1'b0}}) begin
                     wbl_read_o = data_array[i];
-                    $info("[Time: %0t] Data is being read from data_array[%0d]: 'h%h", $time, i, data_array[i]);
                 end else begin
                     wbl_read_o = {WBL_WIDTH{1'bx}};
                 end
