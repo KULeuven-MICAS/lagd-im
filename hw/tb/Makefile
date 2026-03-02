@@ -99,6 +99,9 @@ HDL_FILES ?=
 DBG ?= 0
 CXX_PATH ?= $(shell which g++)
 
+# VOPT_ARGS definition
+VOPT_ARGS ?=
+
 ifneq ($(and $(filter 1,$(DBG)),$(wildcard $(NETLIST_PATH))),)
 $(info "Allowing netlist simulation with debug info")
 VOPT_ARGS += +acc -permissive
