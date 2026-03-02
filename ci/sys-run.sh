@@ -151,7 +151,7 @@ if [ -n "$NETLIST_PATH" ] && [ ! -f "$NETLIST_PATH" ]; then
 fi
 
 if [ -n "$NETLIST_PATH" ]; then
-    NETLIST_PATH=$(realpath "${NETLIST_PATH}")
+    NETLIST_PATH=$(realpath ${NETLIST_PATH})
 fi
 
 if [ -n "$NETLIST_PATH" ]; then
@@ -176,7 +176,7 @@ echo "  NETLIST_PATH: $NETLIST_PATH"
 echo "  RUN_ID: $RUN_ID"
 
 # Force clean
-USE_TECH_MODELS="${USE_TECH_MODELS}" make -C "${ROOT_DIR}/hw/tb/" clean
+USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
