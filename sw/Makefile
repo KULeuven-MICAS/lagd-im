@@ -68,7 +68,7 @@ include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOL
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/lagd_core_reg.h include/model_j_data.h include/model_f_data.h include/spin_data.h
 
-tests/lagd_mcompute.spm.o: include/model_f_data_sec.h include/model_j_data_sec.h
+tests/lagd_dcompute.spm.o: include/model_f_data_sec.h include/model_j_data_sec.h
 
 all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 
