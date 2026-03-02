@@ -18,6 +18,7 @@ import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SW_DIR = os.path.join(SCRIPT_DIR, "..")
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate sw/include/model_f_data.h from "
