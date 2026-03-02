@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+#
+# Converts sw/tests/data/default/model into a C header for bare-metal use.
+#
+# Output: sw/include/model_j_data{args.suffix}.h
+#   - model_j_data{args.suffix}[4096]    : J coupling matrix, 256x256 J_BITS-bit signed integers
+#                             packed MSB-first into uint64_t, groups in reversed column order
+#   - model_h_data{args.suffix}[32]      : h bias vector, 256 H_BITS-bit signed integers,
+#                             packed MSB-first into uint32_t
+#   - model_offset{args.suffix}          : offset (double)
+#   - model_scaling_factor{args.suffix}  : SF_BITS-bit positive integer, stored as uint8_t
+
+import argparse
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SW_DIR = os.path.join(SCRIPT_DIR, "..")
+
+# Data layout in model:
+#   Line 1        : "# J matrix"
+#   Lines 2-257   : 256 rows of J matrix, 256 space-separated J_BITS-bit binary values each
+#   Line 258      : "# h vector"
+#   Lines 259-514 : 256 rows of h vector, one H_BITS-bit binary value per line
+#   Line 515      : "# offset"
+#   Line 516      : offset value (decimal float)
+#   Line 517      : "# scaling_factor"
+#   Line 518      : scaling factor value (SF_BITS-bit positive integer)
+
+# --- Global bitwidth parameters (change here to adapt all derived constants) ---
+J_BITS = 4   # bit width of each J element
+H_BITS = 4   # bit width of each h element
+SF_BITS = 6   # bit width of scaling factor
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate sw/include/model_j_data.h"
+    )
+    parser.add_argument(
+        "--core-onload",
+        type=int,
+        default=0,
+        help="Core index for the J data section (default: 0).",
+    )
+    parser.add_argument(
+        "--folder",
+        type=str,
+        default="default",
+        help="Folder name under sw/tests/data/ containing model (default: default).",
+    )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help="Output name suffix (default: "").",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+core_onload = args.core_onload
+INPUT_FILE = os.path.join(SW_DIR, "tests/data", args.folder, "model")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", f"model_j_data{args.suffix}.h")
+
+# --- Derived constants ---
+J_ROWS = 256
+J_COLS = 256
+J_ELEMS_PER_U64 = 64 // J_BITS                  # elements packed per uint64_t word
+U64_PER_ROW = J_COLS // J_ELEMS_PER_U64     # uint64_t words per J row
+J_LEN = J_ROWS * U64_PER_ROW          # total uint64_t words for J
+
+H_LEN = 256
+H_ELEMS_PER_U32 = 32 // H_BITS                  # elements packed per uint32_t word
+H_U32_LEN = H_LEN // H_ELEMS_PER_U32      # total uint32_t words for h
+
+SF_MAX = (1 << SF_BITS) - 1            # max valid scaling factor value
+H_SIGN_THRESH = 1 << (H_BITS - 1)             # sign bit threshold for h
+H_NEG_OFFSET = 1 << H_BITS                   # subtracted to sign-extend h
+H_MASK = (1 << H_BITS) - 1             # mask to recover H_BITS bit pattern
+
+with open(INPUT_FILE, 'r') as f:
+    lines = f.readlines()
+
+# --- Parse J matrix (lines 2-257, 0-indexed 1-256) ---
+# Groups within each row are stored in reversed column order:
+# the last J_ELEMS_PER_U64 elements become word[0], the second-to-last become word[1], etc.
+# Within each group the MSB-first packing is preserved.
+j_u64 = []
+for row_idx in range(J_ROWS):
+    line = lines[1 + row_idx]
+    elems = [int(tok, 2) for tok in line.split()]
+    assert len(elems) == J_COLS, \
+        f"J row {row_idx}: expected {J_COLS} elements, got {len(elems)}"
+    groups = [elems[i:i + J_ELEMS_PER_U64]
+              for i in range(0, J_COLS, J_ELEMS_PER_U64)]
+    groups = groups[::-1]   # reverse group order
+    for group in groups:
+        word = 0
+        for n in group:
+            word = (word << J_BITS) | n
+        j_u64.append(word)
+
+assert len(j_u64) == J_LEN, f"Expected {J_LEN} uint64_t, got {len(j_u64)}"
+
+# --- Parse h vector (lines 259-514, 0-indexed 258-513) ---
+# Sign-extend H_BITS-bit values, then pack H_ELEMS_PER_U32 per uint32_t, MSB-first.
+h_vals = []
+for i in range(H_LEN):
+    line = lines[258 + i]
+    raw = int(line.strip(), 2)
+    signed = raw if raw < H_SIGN_THRESH else raw - H_NEG_OFFSET
+    h_vals.append(signed)
+
+assert len(h_vals) == H_LEN
+
+h_u32 = []
+for i in range(H_LEN-H_ELEMS_PER_U32, -1, -H_ELEMS_PER_U32):
+    word = 0
+    for v in (h_vals[i:i + H_ELEMS_PER_U32]):
+        word = (word << H_BITS) | (v & H_MASK)   # mask recovers original bit pattern
+    h_u32.append(word)
+
+assert len(h_u32) == H_U32_LEN
+
+# --- Parse offset (line 516, 0-indexed 515) ---
+offset = float(lines[515].strip())
+
+# --- Parse scaling factor (line 518, 0-indexed 517) ---
+scaling_factor = int(lines[517].strip())
+assert 0 <= scaling_factor <= SF_MAX, \
+    f"Scaling factor {scaling_factor} out of {SF_BITS}-bit range (0-{SF_MAX})"
+
+# --- Compute XOR checksums ---
+j_xor = 0
+for v in j_u64:
+    j_xor ^= v
+
+h_xor = 0
+for v in h_u32:
+    h_xor ^= v
+
+# --- Write header ---
+with open(OUTPUT_FILE, 'w') as f:
+    f.write("// Auto-generated by gen_model_data.py - do not edit\n")
+    f.write(f"// Source: sw/tests/data/{args.folder}/model\n")
+    f.write("// Copyright 2025 KU Leuven.\n")
+    f.write("// Licensed under the Apache License, Version 2.0, see LICENSE for details.\n")
+    f.write("// SPDX-License-Identifier: Apache-2.0\n")
+    f.write("\n")
+    f.write("#pragma once\n")
+    f.write("#include <stdint.h>\n")
+    f.write("\n")
+
+    # J matrix
+    f.write(f"// J coupling matrix: {J_ROWS}x{J_COLS} {J_BITS}-bit signed integers,\n")
+    f.write(f"// packed MSB-first into uint64_t ({J_ELEMS_PER_U64} elements per word),\n")
+    f.write("// groups stored in reversed column order\n")
+    f.write(f"#define MODEL_J_ROWS {J_ROWS}\n")
+    f.write(f"#define MODEL_J_COLS {J_COLS}\n")
+    f.write(f"#define MODEL_J_LEN  {J_LEN}"
+            f"  // {J_ROWS}*{U64_PER_ROW} uint64_t = {J_LEN * 8 // 1024}KB\n")
+    f.write(f"static const uint64_t model_j_data{args.suffix}[MODEL_J_LEN]"
+            f" __attribute__((used, section(\".l1j_data_c{core_onload}\"))) = {{\n")
+    for i, v in enumerate(j_u64):
+        if i % 8 == 0:
+            f.write("    ")
+        f.write(f"0x{v:016x}")
+        if i < J_LEN - 1:
+            f.write(", ")
+        if i % 8 == 7:
+            f.write("\n")
+    f.write("\n};\n\n")
+
+    # h vector
+    f.write(f"// h bias vector: {H_LEN} {H_BITS}-bit signed integers"
+            f" (range {-H_SIGN_THRESH} to {H_SIGN_THRESH - 1}),\n")
+    f.write(f"// packed with first element at LSB into uint32_t"
+            f" ({H_ELEMS_PER_U32} elements per word)\n")
+    f.write(f"#define MODEL_H_LEN     {H_LEN}      // total number of h elements\n")
+    f.write(f"#define MODEL_H_U32_LEN {H_U32_LEN:3d}"
+            f"      // number of uint32_t words ({H_LEN}/{H_ELEMS_PER_U32})\n")
+    f.write(f"static const uint32_t model_h_data{args.suffix}[MODEL_H_U32_LEN] = {{\n")
+    for i, v in enumerate(h_u32):
+        if i % 8 == 0:
+            f.write("    ")
+        f.write(f"0x{v:08x}")
+        if i < H_U32_LEN - 1:
+            f.write(", ")
+        if i % 8 == 7:
+            f.write("\n")
+    f.write("\n};\n\n")
+
+    # Offset parameters
+    f.write("// Offset parameters\n")
+    f.write(f"static const double   model_offset{args.suffix}         = {offset};\n")
+    f.write(f"// Scaling factor: {SF_BITS}-bit positive integer"
+            f" (range 0-{SF_MAX}), stored as uint8_t\n")
+    f.write(f"static const uint8_t  model_scaling_factor{args.suffix} = {scaling_factor};\n")
+
+print(f"Generated {OUTPUT_FILE}")
+print(f"  J matrix : {J_LEN} uint64_t ({J_LEN * 8} bytes = {J_LEN * 8 // 1024} KB)")
+print(f"  h vector : {H_U32_LEN} uint32_t ({H_LEN} x {H_BITS}-bit elements)")
+print(f"  offset   : {offset}")
+print(f"  scaling  : {scaling_factor}")
+print(f"  J XOR    : 0x{j_xor:016x}")
+print(f"  h XOR    : 0x{h_xor:08x}")

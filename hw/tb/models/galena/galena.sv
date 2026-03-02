@@ -8,12 +8,20 @@
 
 `timescale 1ns / 1ps
 
+`ifndef PROJECT_ROOT
+`define PROJECT_ROOT "../../"
+`endif
+
 `ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 "../../unit_tests/digital_macro/data/states_out_1"
+`define STATE_OUT_FILE_1 {`PROJECT_ROOT, "sw/tests/data/default/states_out_1"} // relative to hw/tb/
 `endif
 
 `ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 "../../unit_tests/digital_macro/data/states_out_2"
+`define STATE_OUT_FILE_2 {`PROJECT_ROOT, "sw/tests/data/default/states_out_2"} // relative to hw/tb/
+`endif
+
+`ifndef VERBOSE
+`define VERBOSE 0
 `endif
 
 import galena_pkg::*;
@@ -60,23 +68,35 @@ module galena #(
     // ========================================================================
     assign wblb_read_o = ~wbl_read_o;
 
+    // Data writing
     generate
         for (genvar i = 0; i < WWL_WIDTH; i++) begin: data_writing
             always_ff @(posedge wwl_i[i]) begin
-                data_array[i] <= wbl_i;
+                if (wbl_floating_i == {WBL_WIDTH{1'b1}}) begin
+                    data_array[i] <= wbl_i;
+                    if (`VERBOSE) begin
+                        $info("[Time: %0t] Data is written to data_array[%0d]: 'h%h", $time, i, wbl_i);
+                    end
+                end
             end
         end
     endgenerate
 
+    // Data reading
     always_comb begin
         wbl_read_o = {WBL_WIDTH{1'bx}};
         for (int i = 0; i < WWL_WIDTH; i++) begin
-            if (wwl_i[i] && wbl_floating_i == {WBL_WIDTH{1'b1}}) begin
-                wbl_read_o = data_array[i];
+            if (wwl_i[i]) begin
+                if (wbl_floating_i == {WBL_WIDTH{1'b0}}) begin
+                    wbl_read_o = data_array[i];
+                end else begin
+                    wbl_read_o = {WBL_WIDTH{1'bx}};
+                end
             end
         end
     end
 
+    // Spin intenal cache behavior
     generate
         if (DATA_FROM_FILE) begin
             initial begin
@@ -84,6 +104,9 @@ module galena #(
             end
             always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
                 spin_cache <= state_out[j];
+                if (`VERBOSE) begin
+                    $info("[Time: %0t] Spin initial cache is updated from state_out[%0d]: 'h%h", $time, j, state_out[j]);
+                end
                 j <= (j + 1) % SPIN_ICON_DEPTH;
             end
         end else begin
@@ -91,10 +114,14 @@ module galena #(
                 for (int i = 0; i < NUM_SPIN; i++) begin
                     spin_cache[i] <= wbl_i[BIT_DATA*i + SPIN_WBL_OFFSET];
                 end
+                if (`VERBOSE) begin
+                    $info("[Time: %0t] Spin internal cache is updated from wbl_i: 'h%h", $time, wbl_i);
+                end
             end
         end
     endgenerate
 
+    // Spin readout behavior
     generate
         for (genvar i = 0; i < NUM_SPIN; i++) begin: spin_readout
             initial begin

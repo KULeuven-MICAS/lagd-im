@@ -15,6 +15,16 @@ PROJECT_ROOT ?= $(abspath $(CURDIR)/../..)
 include $(PROJECT_ROOT)/common.mk
 SIM_DIR := $(PROJECT_ROOT)/target/sim
 
+CHS_ROOT := $(shell $(BENDER) path cheshire)
+include $(CHS_ROOT)/cheshire.mk
+
+# patch prevents address overflow in elf loading through jtag
+.patch: $(CHS_ROOT)/target/sim/src/vip_cheshire_soc.sv
+	@sed -i '340s/i <= sec_len/i < sec_len/' $<
+	touch $@
+
+deps: chs-sim-all .patch
+
 # ============================================================
 # Flist generation for system verification
 # ============================================================
@@ -119,6 +129,7 @@ PRELOAD_ELF ?= ""
 CHIP_LEVEL_TEST ?= 0
 DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
 DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST) $(TECH_MODELS_DEFINES)
+DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
 
 RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
