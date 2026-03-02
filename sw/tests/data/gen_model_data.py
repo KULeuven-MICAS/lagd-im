@@ -6,19 +6,18 @@
 #
 # Converts sw/tests/data/default/model into a C header for bare-metal use.
 #
-# Output: sw/include/model_j_data.h
-#   - model_j_data[4096]    : J coupling matrix, 256x256 J_BITS-bit signed integers
+# Output: sw/include/model_j_data{args.suffix}.h
+#   - model_j_data{args.suffix}[4096]    : J coupling matrix, 256x256 J_BITS-bit signed integers
 #                             packed MSB-first into uint64_t, groups in reversed column order
-#   - model_h_data[32]      : h bias vector, 256 H_BITS-bit signed integers,
+#   - model_h_data{args.suffix}[32]      : h bias vector, 256 H_BITS-bit signed integers,
 #                             packed MSB-first into uint32_t
-#   - model_offset          : offset (double)
-#   - model_scaling_factor  : SF_BITS-bit positive integer, stored as uint8_t
+#   - model_offset{args.suffix}          : offset (double)
+#   - model_scaling_factor{args.suffix}  : SF_BITS-bit positive integer, stored as uint8_t
 
 import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_j_data.h")
 
 # Data layout in model:
 #   Line 1        : "# J matrix"
@@ -52,12 +51,19 @@ def parse_args() -> argparse.Namespace:
         default="default",
         help="Folder name under sw/tests/data/ containing model (default: default).",
     )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help="Output name suffix (default: "").",
+    )
     return parser.parse_args()
 
 
 args = parse_args()
 core_onload = args.core_onload
 INPUT_FILE = os.path.join(SCRIPT_DIR, args.folder, "model")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", f"model_j_data{args.suffix}.h")
 
 # --- Derived constants ---
 J_ROWS = 256
@@ -156,7 +162,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write(f"#define MODEL_J_COLS {J_COLS}\n")
     f.write(f"#define MODEL_J_LEN  {J_LEN}"
             f"  // {J_ROWS}*{U64_PER_ROW} uint64_t = {J_LEN * 8 // 1024}KB\n")
-    f.write("static const uint64_t model_j_data[MODEL_J_LEN]"
+    f.write(f"static const uint64_t model_j_data{args.suffix}[MODEL_J_LEN]"
             f" __attribute__((used, section(\".l1j_data_c{core_onload}\"))) = {{\n")
     for i, v in enumerate(j_u64):
         if i % 8 == 0:
@@ -176,7 +182,7 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write(f"#define MODEL_H_LEN     {H_LEN}      // total number of h elements\n")
     f.write(f"#define MODEL_H_U32_LEN {H_U32_LEN:3d}"
             f"      // number of uint32_t words ({H_LEN}/{H_ELEMS_PER_U32})\n")
-    f.write("static const uint32_t model_h_data[MODEL_H_U32_LEN] = {\n")
+    f.write(f"static const uint32_t model_h_data{args.suffix}[MODEL_H_U32_LEN] = {{\n")
     for i, v in enumerate(h_u32):
         if i % 8 == 0:
             f.write("    ")
@@ -189,15 +195,10 @@ with open(OUTPUT_FILE, 'w') as f:
 
     # Offset parameters
     f.write("// Offset parameters\n")
-    f.write(f"static const double   model_offset         = {offset};\n")
+    f.write(f"static const double   model_offset{args.suffix}         = {offset};\n")
     f.write(f"// Scaling factor: {SF_BITS}-bit positive integer"
             f" (range 0-{SF_MAX}), stored as uint8_t\n")
-    f.write(f"static const uint8_t  model_scaling_factor = {scaling_factor};\n")
-
-    # Checksums
-    f.write("\n// XOR checksums for bare-metal verification\n")
-    f.write(f"#define MODEL_J_XOR_CHECKSUM 0x{j_xor:016x}ULL\n")
-    f.write(f"#define MODEL_H_XOR_CHECKSUM 0x{h_xor:08x}U\n")
+    f.write(f"static const uint8_t  model_scaling_factor{args.suffix} = {scaling_factor};\n")
 
 print(f"Generated {OUTPUT_FILE}")
 print(f"  J matrix : {J_LEN} uint64_t ({J_LEN * 8} bytes = {J_LEN * 8 // 1024} KB)")

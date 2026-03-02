@@ -22,7 +22,7 @@ Command:
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/lagd_reg.spm.elf
 ```
 
-## Normal computation test
+## Normal computation test (single core)
 
 File [lagd_scompute.spm.c](./lagd_scompute.spm.c) tests the Ising computation on selected single core. It loads necessary data under the folder [./data/default/](./data/default/) to start the computation, and outputs the final energy results.
 
@@ -36,6 +36,22 @@ To test the extreme case (with maximal toggle rate) for power analysis, run:
 
 ```
 CORE_TESTED=0 DATA_FOLDER=extreme ./ci/sys-run.sh --binary=sw/tests/lagd_scompute.spm.elf
+```
+
+## Normal computation test (dual core)
+
+File [lagd_mcompute.spm.c](./lagd_mcompute.spm.c) tests the Ising computation on two cores. Similarly, it loads necessary data under the folder [./data/default/](./data/default/) to start the computation, and outputs the final energy results.
+
+Command:
+
+```
+./ci/sys-run.sh --binary=sw/tests/lagd_dcompute.spm.elf
+```
+
+To test the extreme case (with maximal toggle rate) for power analysis, run:
+
+```
+DATA_FOLDER=extreme ./ci/sys-run.sh --binary=sw/tests/lagd_dcompute.spm.elf
 ```
 
 ## Galena Data W/R test (for debugging)

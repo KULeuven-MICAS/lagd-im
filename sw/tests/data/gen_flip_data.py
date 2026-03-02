@@ -16,7 +16,6 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "model_f_data.h")
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,6 +35,12 @@ def parse_args() -> argparse.Namespace:
         default="default",
         help="Folder name under sw/tests/data/ containing clusters_1 and clusters_2",
     )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help="Output name suffix (default: "").",
+    )
     return parser.parse_args()
 
 
@@ -43,6 +48,7 @@ args = parse_args()
 core_onload = args.core_onload
 INPUT_FILE_1 = os.path.join(SCRIPT_DIR, args.folder, "clusters_1")
 INPUT_FILE_2 = os.path.join(SCRIPT_DIR, args.folder, "clusters_2")
+OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", f"model_f_data{args.suffix}.h")
 
 # --- Constants ---
 NUM_CLUSTERS = 512          # usable vectors per file (line 1 is skipped)
@@ -105,7 +111,7 @@ with open(OUTPUT_FILE, 'w') as f:
             f"  // total number of vectors ({NUM_CLUSTERS} per file x 2)\n")
     f.write(f"#define MODEL_F_LEN  {F_LEN}"
             f"  // {TOTAL_VECS}*{WORDS_PER_VEC} uint64_t = {F_LEN * 8 // 1024}KB\n")
-    f.write("static const uint64_t model_f_data[MODEL_F_LEN]"
+    f.write(f"static const uint64_t model_f_data{args.suffix}[MODEL_F_LEN]"
             f" __attribute__((used, section(\".l1f_data_c{core_onload}\"))) = {{\n")
     for i, v in enumerate(f_u64):
         if i % 8 == 0:

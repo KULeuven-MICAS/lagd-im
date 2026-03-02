@@ -20,6 +20,7 @@ CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 
 # Tested core
 CORE_TESTED ?= 0
+CORE_OTHER := $(if $(filter 0,$(CORE_TESTED)),1,0)
 
 # Data folder name
 DATA_FOLDER ?= default
@@ -45,9 +46,15 @@ include/lagd_core_reg.h: $(RTL_ROOT)/lagd_core_reg/lagd_core_regs.hjson
 include/model_j_data.h: tests/data/$(DATA_FOLDER)/model tests/data/gen_model_data.py
 	python3 tests/data/gen_model_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
 
+include/model_j_data_sec.h: tests/data/$(DATA_FOLDER)/model tests/data/gen_model_data.py
+	python3 tests/data/gen_model_data.py --core-onload $(CORE_OTHER) --folder $(DATA_FOLDER) --suffix _sec
+
 # Auto-generate flip candidates header from cluster files
 include/model_f_data.h: tests/data/$(DATA_FOLDER)/clusters_1 tests/data/$(DATA_FOLDER)/clusters_2 tests/data/gen_flip_data.py
 	python3 tests/data/gen_flip_data.py --core-onload $(CORE_TESTED) --folder $(DATA_FOLDER)
+
+include/model_f_data_sec.h: tests/data/$(DATA_FOLDER)/clusters_1 tests/data/$(DATA_FOLDER)/clusters_2 tests/data/gen_flip_data.py
+	python3 tests/data/gen_flip_data.py --core-onload $(CORE_OTHER) --folder $(DATA_FOLDER) --suffix _sec
 
 # Auto-generate spin initial/reference header from state files
 include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOLDER)/states_in_2 tests/data/gen_spin_data.py
@@ -56,10 +63,12 @@ include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOL
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/lagd_core_reg.h include/model_j_data.h include/model_f_data.h include/spin_data.h
 
+tests/lagd_mcompute.spm.o: include/model_f_data_sec.h include/model_j_data_sec.h
+
 clean:
 	rm -f tests/*.elf tests/*.dump \
 	      include/lagd_config.h include/lagd_define.h \
-	      include/model_j_data.h include/model_f_data.h include/spin_data.h
+	      include/model_j_data*.h include/model_f_data*.h include/spin_data.h
 
 build-chs: chs-sw-all
 
