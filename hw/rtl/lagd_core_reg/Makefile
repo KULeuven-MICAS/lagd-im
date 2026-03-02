@@ -14,8 +14,6 @@ REGTOOL ?= $(CHS_REG_DIR)/vendor/lowrisc_opentitan/util/regtool.py
 SW_INCLUDE_DIR := $(PROJECT_ROOT)/sw/include
 HEADER_OUT := $(SW_INCLUDE_DIR)/lagd_core_reg.h
 
-all: lagd_core_reg_top.sv lagd_core_reg_pkg.sv $(HEADER_OUT)
-
 lagd_core_reg_top.sv lagd_core_reg_pkg.sv: lagd_core_regs.hjson
 	$(REGTOOL) -r $< --outdir $(dir $@)
 
@@ -24,6 +22,8 @@ $(HEADER_OUT): lagd_core_regs.hjson | $(SW_INCLUDE_DIR)
 
 $(SW_INCLUDE_DIR):
 	mkdir -p $@
+
+all: lagd_core_reg_top.sv lagd_core_reg_pkg.sv $(HEADER_OUT)
 
 clean:
 	rm -f lagd_core_reg_top.sv lagd_core_reg_pkg.sv $(HEADER_OUT)
