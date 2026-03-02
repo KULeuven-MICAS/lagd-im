@@ -20,6 +20,10 @@
 `define STATE_OUT_FILE_2 {`PROJECT_ROOT, "sw/tests/data/default/states_out_2"} // relative to hw/tb/
 `endif
 
+`ifndef VERBOSE
+`define VERBOSE 0
+`endif
+
 import galena_pkg::*;
 
 `include "lagd_platform.svh"
@@ -70,7 +74,9 @@ module galena #(
             always_ff @(posedge wwl_i[i]) begin
                 if (wbl_floating_i == {WBL_WIDTH{1'b1}}) begin
                     data_array[i] <= wbl_i;
-                    $info("[Time: %0t] Data is written to data_array[%0d]: 'h%h", $time, i, wbl_i);
+                    if (`VERBOSE) begin
+                        $info("[Time: %0t] Data is written to data_array[%0d]: 'h%h", $time, i, wbl_i);
+                    end
                 end
             end
         end
@@ -98,7 +104,9 @@ module galena #(
             end
             always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
                 spin_cache <= state_out[j];
-                $info("[Time: %0t] Spin initial cache is updated from state_out[%0d]: 'h%h", $time, j, state_out[j]);
+                if (`VERBOSE) begin
+                    $info("[Time: %0t] Spin initial cache is updated from state_out[%0d]: 'h%h", $time, j, state_out[j]);
+                end
                 j <= (j + 1) % SPIN_ICON_DEPTH;
             end
         end else begin
@@ -106,7 +114,9 @@ module galena #(
                 for (int i = 0; i < NUM_SPIN; i++) begin
                     spin_cache[i] <= wbl_i[BIT_DATA*i + SPIN_WBL_OFFSET];
                 end
-                $info("[Time: %0t] Spin internal cache is updated from wbl_i: 'h%h", $time, wbl_i);
+                if (`VERBOSE) begin
+                    $info("[Time: %0t] Spin internal cache is updated from wbl_i: 'h%h", $time, wbl_i);
+                end
             end
         end
     endgenerate
