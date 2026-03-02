@@ -20,7 +20,8 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", "spin_data.h")
+SW_DIR = os.path.join(SCRIPT_DIR, "..")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", "spin_data.h")
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,8 +39,8 @@ def parse_args() -> argparse.Namespace:
 
 
 args = parse_args()
-INPUT_FILE_1 = os.path.join(SCRIPT_DIR, args.folder, "states_in_1")
-INPUT_FILE_2 = os.path.join(SCRIPT_DIR, args.folder, "states_in_2")
+INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_1")
+INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_2")
 
 VEC_BITS = 256
 WORDS_PER_VEC = VEC_BITS // 32  # 8 x uint32_t per vector

@@ -16,7 +16,7 @@ import argparse
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
+SW_DIR = os.path.join(SCRIPT_DIR, "..")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -46,9 +46,9 @@ def parse_args() -> argparse.Namespace:
 
 args = parse_args()
 core_onload = args.core_onload
-INPUT_FILE_1 = os.path.join(SCRIPT_DIR, args.folder, "clusters_1")
-INPUT_FILE_2 = os.path.join(SCRIPT_DIR, args.folder, "clusters_2")
-OUTPUT_FILE = os.path.join(SCRIPT_DIR, "..", "..", "include", f"model_f_data{args.suffix}.h")
+INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_1")
+INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_2")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", f"model_f_data{args.suffix}.h")
 
 # --- Constants ---
 NUM_CLUSTERS = 512          # usable vectors per file (line 1 is skipped)
