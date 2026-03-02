@@ -54,6 +54,7 @@ USE_TECH_MODELS=0
 NETLIST_PATH=""
 RUN_ID="1"
 POST_SYN=0
+SKIP_SW_BUILD=0
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -117,6 +118,10 @@ for i in "$@"; do
             POST_SYN=1
             shift
             ;;
+        --skip-sw-build)
+            SKIP_SW_BUILD=1
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -126,9 +131,13 @@ for i in "$@"; do
 done
 
 # Build SW before simulation
-echo "[$(date +%T)] Starting SW build..."
-make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}"
-echo "[$(date +%T)] SW build done."
+if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
+    echo "[$(date +%T)] Starting SW build..."
+    make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}"
+    echo "[$(date +%T)] SW build done."
+else
+    echo "[$(date +%T)] Skipping SW build."
+fi
 
 PRELOAD_ELF=$(realpath "$PRELOAD_ELF") # Cheshire requires an absolute path for ELF
 
