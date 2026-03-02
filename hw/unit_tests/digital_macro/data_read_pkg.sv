@@ -6,21 +6,21 @@
 
 // Package for data loading from algorithm input files, used in digital macro testbench
 
+`define MODEL_FILE "../../../sw/tests/data/default/model"
+`define FLIP_ICON_FILE_1 "../../../sw/tests/data/default/clusters_1"
+`define ENERGY_REF_FILE_1 "../../../sw/tests/data/default/energy_1"
+`define STATE_IN_FILE_1 "../../../sw/tests/data/default/states_in_1"
+`define STATE_OUT_FILE_1 "../../../sw/tests/data/default/states_out_1"
+`define FLIP_ICON_FILE_2 "../../../sw/tests/data/default/clusters_2"
+`define ENERGY_REF_FILE_2 "../../../sw/tests/data/default/energy_2"
+`define STATE_IN_FILE_2 "../../../sw/tests/data/default/states_in_2"
+`define STATE_OUT_FILE_2 "../../../sw/tests/data/default/states_out_2"
+`define ENERGY_OUTPUT_FILE "./output/ref_energy_output"
+`define STATE_OUTPUT_FILE "./output/ref_state_output"
+`define TIMING_RECORD_FILE "./output/timing_record_output"
+
 package data_read_pkg;
     import config_pkg::*;
-
-    `define MODEL_FILE "./data/model_1"
-    `define FLIP_ICON_FILE_1 "./data/clusters_1"
-    `define ENERGY_REF_FILE_1 "./data/energy_1"
-    `define STATE_IN_FILE_1 "./data/states_in_1"
-    `define STATE_OUT_FILE_1 "./data/states_out_1"
-    `define FLIP_ICON_FILE_2 "./data/clusters_2"
-    `define ENERGY_REF_FILE_2 "./data/energy_2"
-    `define STATE_IN_FILE_2 "./data/states_in_2"
-    `define STATE_OUT_FILE_2 "./data/states_out_2"
-    `define ENERGY_OUTPUT_FILE "./output/ref_energy_output"
-    `define STATE_OUTPUT_FILE "./output/ref_state_output"
-    `define TIMING_RECORD_FILE "./output/timing_record_output"
 
     // ========================================================================
     // Data Reading Package
@@ -262,8 +262,7 @@ package data_read_pkg;
 
     // Function to output energies to files
     function automatic void output_energies_to_file(
-        input logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_values,
-        input int constant
+        input logic signed [IconLastAddrPlusOne-1+1:0] [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_values
     );
         int energy_file;
         string file_name_with_depth;
@@ -281,11 +280,11 @@ package data_read_pkg;
             for (int j = 0; j <= IconLastAddrPlusOne; j = j + 1) begin
                 if (j == 0) begin
                     updating_idx = - 1;
-                    $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]));
+                    $fwrite(energy_file, "%h\n", $signed(energy_values[j][i]));
                 end
                 if (updating_idx == i)
                     begin
-                        $fwrite(energy_file, "%b\n", $signed(energy_values[j][i]) + constant);
+                        $fwrite(energy_file, "%h\n", $signed(energy_values[j][i])); // without offset (model.constant)
                     end
                 updating_idx = (updating_idx + 1) % SPIN_DEPTH;
             end

@@ -23,7 +23,7 @@
 `endif
 
 `ifndef DATA_FROM_FILE
-`define DATA_FROM_FILE 0
+`define DATA_FROM_FILE 1
 `endif
 
 package galena_pkg;

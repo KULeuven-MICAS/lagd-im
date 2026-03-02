@@ -58,7 +58,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     // Register interface signals
     lagd_core_reg_pkg::lagd_core_reg2hw_t reg2hw;
     lagd_core_reg_pkg::lagd_core_hw2reg_t hw2reg;
-    
+
     // Digital macro input signals
     // registers
     logic flush_en;
@@ -108,6 +108,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic infinite_icon_loop_en;
     logic multi_cmpt_mode_en;
     logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_max_num;
+    logic energy_fifo_sel;
     // memories
     logic [logic_cfg.JmemDataBitwidth-1:0] j_rdata, dgt_weight;
     logic [logic_cfg.NumSpin-1:0] flip_rdata;
@@ -120,8 +121,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.SpinDepth-1:0] [logic_cfg.NumSpin-1:0] spin_fifo_data;
     logic energy_fifo_update;
     logic spin_fifo_update;
-    logic debug_j_read_data_valid;
-    logic [logic_cfg.HRegDataBitwidth-1:0] debug_j_read_data;
+    logic debug_wbl_read_data_valid;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_read_data;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wblb_read_data;
     logic debug_analog_dt_w_idle;
     logic debug_analog_dt_r_idle;
     logic debug_spin_w_idle;
@@ -135,9 +137,14 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin-1:0] debug_aw_spin_out;
     logic debug_em_upstream_handshake;
     logic [logic_cfg.NumSpin-1:0] debug_em_spin_in;
-    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_idx, cycle_per_iteration, cycle_per_cmpt;
+    logic cycle_per_iter_recount_en;
+    logic [logic_cfg.FmemAddrBitwidth-1:0] fm_upstream_handshake_counter;
+    logic [logic_cfg.CcCounterBitwidth-1:0] cmpt_idx;
+    logic [logic_cfg.ScCounterBitwidth-1:0] cycle_per_cmpt;
+    logic [logic_cfg.IterCounterBitwidth-1:0] cycle_per_iteration;
     logic [2*logic_cfg.CcCounterBitwidth-1:0] cycle_all_cmpt;
     logic multi_cmpt_mode_idle;
+    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_config;
     // memories
     logic j_mem_ren_load;
     logic dgt_weight_ren;
@@ -158,7 +165,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     logic [logic_cfg.NumSpin:0] wwl_vread_analog;
     logic [logic_cfg.NumSpin-1:0] spin_wwl;
     logic [logic_cfg.NumSpin-1:0] spin_feedback_in_analog;
-    logic [logic_cfg.HRegDataBitwidth-1:0] debug_wbl_in;
+    logic [logic_cfg.HRegDataBitwidth-1:0] wbl_out_analog, wblb_out_analog;
     logic [logic_cfg.NumSpin-1:0] spin_out_analog;
 
     // internal signals
@@ -263,6 +270,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     assign config_spin_initial_skip[0]      = reg2hw.global_cfg_2.config_spin_initial_skip_0.q;
     assign config_spin_initial_skip[1]      = reg2hw.global_cfg_2.config_spin_initial_skip_1.q;
     assign dgt_hscaling                     = reg2hw.global_cfg_2.dgt_hscaling.q;
+    assign energy_fifo_sel                  = reg2hw.global_cfg_2.energy_fifo_sel.q;
 
     assign cmpt_max_num                     = reg2hw.cmpt_max_num.q;
 
@@ -297,74 +305,99 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_REG_DATA_WIDTH; i=i+1) begin
             h_rdata            [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.h_rdata[i].q;
             wbl_floating       [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.wbl_floating[i].q;
+            debug_wbl_config   [i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH] = reg2hw.debug_wbl_config[i].q;
         end
     end
 
     // hw2reg
-    assign hw2reg.output_status.dt_cfg_idle                  .de = en_aw;
-    assign hw2reg.output_status.cmpt_idle                    .de = en_fm;
-    assign hw2reg.output_status.energy_fifo_update           .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
-    assign hw2reg.output_status.spin_fifo_update             .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
-    assign hw2reg.output_status.debug_j_read_data_valid      .de = en_aw;
-    assign hw2reg.output_status.debug_analog_dt_w_idle       .de = en_aw;
-    assign hw2reg.output_status.debug_analog_dt_r_idle       .de = en_aw;
-    assign hw2reg.output_status.debug_spin_w_idle            .de = en_aw;
-    assign hw2reg.output_status.debug_spin_cmpt_idle         .de = en_aw;
-    assign hw2reg.output_status.debug_spin_r_idle            .de = en_aw;
-    assign hw2reg.output_status.debug_fm_upstream_handshake  .de = ctnus_dgt_debug;
-    assign hw2reg.output_status.debug_fm_downstream_handshake.de = ctnus_dgt_debug;
-    assign hw2reg.output_status.debug_aw_downstream_handshake.de = ctnus_dgt_debug;
-    assign hw2reg.output_status.debug_em_upstream_handshake  .de = ctnus_dgt_debug;
-    assign hw2reg.output_status.multi_cmpt_mode_idle         .de = multi_cmpt_mode_en;
-    assign hw2reg.debug_fm_energy_input                      .de = ctnus_dgt_debug;
-    assign hw2reg.energy_fifo_data_0                         .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
-    assign hw2reg.energy_fifo_data_1                         .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
-    assign hw2reg.cmpt_idx                                   .de = en_perf_counter;
-    assign hw2reg.cycle_per_iteration                        .de = en_perf_counter;
-    assign hw2reg.cycle_per_cmpt                             .de = en_perf_counter;
-    assign hw2reg.cycle_all_cmpt_lsb                         .de = en_perf_counter;
-    assign hw2reg.cycle_all_cmpt_msb                         .de = en_perf_counter;
-    assign hw2reg.flip_mem_ren_raddr.debug_spin_valid        .de = ctnus_dgt_debug;
-    assign hw2reg.flip_mem_ren_raddr.flip_q_valid            .de = ctnus_dgt_debug;
-    assign hw2reg.flip_mem_ren_raddr.flip_raddr              .de = ctnus_dgt_debug;
-    assign hw2reg.flip_mem_ren_raddr.debug_spin_waddr        .de = ctnus_dgt_debug;
-    assign hw2reg.j_mem_ren_raddr.j_mem_ren_load             .de = ctnus_dgt_debug;
-    assign hw2reg.j_mem_ren_raddr.dgt_weight_ren             .de = ctnus_dgt_debug;
-    assign hw2reg.j_mem_ren_raddr.j_raddr_load               .de = ctnus_dgt_debug;
-    assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr           .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.dt_cfg_idle                        .de = en_aw;
+    assign hw2reg.output_status.cmpt_idle                          .de = en_fm;
+    assign hw2reg.output_status.energy_fifo_update                 .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
+    assign hw2reg.output_status.spin_fifo_update                   .de = en_fm & (ctnus_fifo_read | ctnus_dgt_debug);
+    assign hw2reg.output_status.debug_wbl_read_data_valid          .de = en_aw;
+    assign hw2reg.output_status.debug_analog_dt_w_idle             .de = en_aw;
+    assign hw2reg.output_status.debug_analog_dt_r_idle             .de = en_aw;
+    assign hw2reg.output_status.debug_spin_w_idle                  .de = en_aw;
+    assign hw2reg.output_status.debug_spin_cmpt_idle               .de = en_aw;
+    assign hw2reg.output_status.debug_spin_r_idle                  .de = en_aw;
+    assign hw2reg.output_status.debug_fm_upstream_handshake        .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.debug_fm_downstream_handshake      .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.debug_aw_downstream_handshake      .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.debug_em_upstream_handshake        .de = ctnus_dgt_debug;
+    assign hw2reg.output_status.multi_cmpt_mode_idle               .de = multi_cmpt_mode_en;
+    assign hw2reg.debug_fm_energy_input                            .de = ctnus_dgt_debug;
+    assign hw2reg.energy_fifo_data_0                               .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
+    assign hw2reg.energy_fifo_data_1                               .de = cmpt_idle_posedge | (ctnus_dgt_debug & energy_fifo_update) | ctnus_fifo_read;
+    assign hw2reg.cmpt_idx                                         .de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle                .de = en_perf_counter; // a copy of cmpt_idle
+    assign hw2reg.cycle_per_cmpt_and_iter.fm_rx_cnt_l7b            .de = en_perf_counter;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration      .de = en_perf_counter & (cycle_per_iter_recount_en | cmpt_idle_posedge | ctnus_dgt_debug);
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt           .de = en_perf_counter & (cycle_per_iter_recount_en | cmpt_idle_posedge | ctnus_dgt_debug);
+    assign hw2reg.cycle_all_cmpt_lsb                               .de = en_perf_counter;
+    assign hw2reg.cycle_all_cmpt_msb                               .de = en_perf_counter;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_valid              .de = ctnus_dgt_debug;
+    assign hw2reg.flip_mem_ren_raddr.flip_q_valid                  .de = ctnus_dgt_debug;
+    assign hw2reg.flip_mem_ren_raddr.flip_raddr                    .de = ctnus_dgt_debug;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_waddr              .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.j_mem_ren_load                   .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_ren                   .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.j_raddr_load                     .de = ctnus_dgt_debug;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr                 .de = ctnus_dgt_debug;
+    assign hw2reg.energy_fifo_dbg_0.cmpt_idle                      .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_update             .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.flip_q_valid                   .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.fm_rx_cnt                      .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_0_sel              .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.cmpt_idle                      .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_update             .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.flip_q_valid                   .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.fm_rx_cnt                      .de = en_perf_counter;
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_1_sel              .de = en_perf_counter;
 
-    assign hw2reg.output_status.dt_cfg_idle                   .d = dt_cfg_idle;
-    assign hw2reg.output_status.cmpt_idle                     .d = cmpt_idle;
-    assign hw2reg.output_status.energy_fifo_update            .d = energy_fifo_update;
-    assign hw2reg.output_status.spin_fifo_update              .d = spin_fifo_update;
-    assign hw2reg.output_status.debug_j_read_data_valid       .d = debug_j_read_data_valid;
-    assign hw2reg.output_status.debug_analog_dt_w_idle        .d = debug_analog_dt_w_idle;
-    assign hw2reg.output_status.debug_analog_dt_r_idle        .d = debug_analog_dt_r_idle;
-    assign hw2reg.output_status.debug_spin_w_idle             .d = debug_spin_w_idle;
-    assign hw2reg.output_status.debug_spin_cmpt_idle          .d = debug_spin_cmpt_idle;
-    assign hw2reg.output_status.debug_spin_r_idle             .d = debug_spin_r_idle;
-    assign hw2reg.output_status.debug_fm_upstream_handshake   .d = debug_fm_upstream_handshake;
-    assign hw2reg.output_status.debug_fm_downstream_handshake .d = debug_fm_downstream_handshake;
-    assign hw2reg.output_status.debug_aw_downstream_handshake .d = debug_aw_downstream_handshake;
-    assign hw2reg.output_status.debug_em_upstream_handshake   .d = debug_em_upstream_handshake;
-    assign hw2reg.output_status.multi_cmpt_mode_idle          .d = multi_cmpt_mode_idle;
-    assign hw2reg.debug_fm_energy_input                       .d = debug_fm_energy_input;
-    assign hw2reg.energy_fifo_data_0                          .d = energy_fifo_data[0];
-    assign hw2reg.energy_fifo_data_1                          .d = energy_fifo_data[1];
-    assign hw2reg.cmpt_idx                                    .d = cmpt_idx;
-    assign hw2reg.cycle_per_iteration                         .d = cycle_per_iteration;
-    assign hw2reg.cycle_per_cmpt                              .d = cycle_per_cmpt;
-    assign hw2reg.cycle_all_cmpt_lsb                          .d = cycle_all_cmpt[logic_cfg.CcCounterBitwidth-1:0];
-    assign hw2reg.cycle_all_cmpt_msb                          .d = cycle_all_cmpt[2*logic_cfg.CcCounterBitwidth-1:logic_cfg.CcCounterBitwidth];
+    assign hw2reg.output_status.dt_cfg_idle                         .d = dt_cfg_idle;
+    assign hw2reg.output_status.cmpt_idle                           .d = cmpt_idle;
+    assign hw2reg.output_status.energy_fifo_update                  .d = energy_fifo_update;
+    assign hw2reg.output_status.spin_fifo_update                    .d = spin_fifo_update;
+    assign hw2reg.output_status.debug_wbl_read_data_valid           .d = debug_wbl_read_data_valid;
+    assign hw2reg.output_status.debug_analog_dt_w_idle              .d = debug_analog_dt_w_idle;
+    assign hw2reg.output_status.debug_analog_dt_r_idle              .d = debug_analog_dt_r_idle;
+    assign hw2reg.output_status.debug_spin_w_idle                   .d = debug_spin_w_idle;
+    assign hw2reg.output_status.debug_spin_cmpt_idle                .d = debug_spin_cmpt_idle;
+    assign hw2reg.output_status.debug_spin_r_idle                   .d = debug_spin_r_idle;
+    assign hw2reg.output_status.debug_fm_upstream_handshake         .d = debug_fm_upstream_handshake;
+    assign hw2reg.output_status.debug_fm_downstream_handshake       .d = debug_fm_downstream_handshake;
+    assign hw2reg.output_status.debug_aw_downstream_handshake       .d = debug_aw_downstream_handshake;
+    assign hw2reg.output_status.debug_em_upstream_handshake         .d = debug_em_upstream_handshake;
+    assign hw2reg.output_status.multi_cmpt_mode_idle                .d = multi_cmpt_mode_idle;
+    assign hw2reg.debug_fm_energy_input                             .d = debug_fm_energy_input;
+    assign hw2reg.energy_fifo_data_0                                .d = energy_fifo_data[0];
+    assign hw2reg.energy_fifo_data_1                                .d = energy_fifo_data[1];
+    assign hw2reg.cmpt_idx                                          .d = cmpt_idx;
+    assign hw2reg.cycle_per_cmpt_and_iter.cmpt_idle                 .d = cmpt_idle;
+    assign hw2reg.cycle_per_cmpt_and_iter.fm_rx_cnt_l7b             .d = fm_upstream_handshake_counter[6:0];
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_iteration       .d = cycle_per_iteration;
+    assign hw2reg.cycle_per_cmpt_and_iter.cycle_per_cmpt            .d = cycle_per_cmpt;
+    assign hw2reg.cycle_all_cmpt_lsb                                .d = cycle_all_cmpt[logic_cfg.CcCounterBitwidth-1:0];
+    assign hw2reg.cycle_all_cmpt_msb                                .d = cycle_all_cmpt[2*logic_cfg.CcCounterBitwidth-1:logic_cfg.CcCounterBitwidth];
 
-    assign hw2reg.flip_mem_ren_raddr.debug_spin_valid         .d = debug_spin_valid;
-    assign hw2reg.flip_mem_ren_raddr.flip_q_valid             .d = drt_s_req_flip.q_valid;
-    assign hw2reg.flip_mem_ren_raddr.flip_raddr               .d = flip_raddr;
-    assign hw2reg.flip_mem_ren_raddr.debug_spin_waddr         .d = debug_spin_waddr;
-    assign hw2reg.j_mem_ren_raddr.j_mem_ren_load              .d = j_mem_ren_load;
-    assign hw2reg.j_mem_ren_raddr.dgt_weight_ren              .d = dgt_weight_ren;
-    assign hw2reg.j_mem_ren_raddr.j_raddr_load                .d = j_raddr_load;
-    assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr            .d = dgt_weight_raddr;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_valid               .d = debug_spin_valid;
+    assign hw2reg.flip_mem_ren_raddr.flip_q_valid                   .d = drt_s_req_flip.q_valid;
+    assign hw2reg.flip_mem_ren_raddr.flip_raddr                     .d = flip_raddr;
+    assign hw2reg.flip_mem_ren_raddr.debug_spin_waddr               .d = debug_spin_waddr;
+    assign hw2reg.j_mem_ren_raddr.j_mem_ren_load                    .d = j_mem_ren_load;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_ren                    .d = dgt_weight_ren;
+    assign hw2reg.j_mem_ren_raddr.j_raddr_load                      .d = j_raddr_load;
+    assign hw2reg.j_mem_ren_raddr.dgt_weight_raddr                  .d = dgt_weight_raddr;
+    assign hw2reg.energy_fifo_dbg_0.cmpt_idle                       .d = cmpt_idle; // a copy of cmpt_idle
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_update              .d = energy_fifo_update; // a copy of energy_fifo_update
+    assign hw2reg.energy_fifo_dbg_0.flip_q_valid                    .d = drt_s_req_flip.q_valid; // a copy of flip_q_valid
+    assign hw2reg.energy_fifo_dbg_0.fm_rx_cnt                       .d = fm_upstream_handshake_counter;
+    assign hw2reg.energy_fifo_dbg_0.energy_fifo_0_sel               .d = energy_fifo_sel ? energy_fifo_data[0][logic_cfg.EnergyTotalBit-1:logic_cfg.EnergyTotalBit-16] : energy_fifo_data[0][15:0];
+    assign hw2reg.energy_fifo_dbg_1.cmpt_idle                       .d = cmpt_idle; // a copy of cmpt_idle
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_update              .d = energy_fifo_update; // a copy of energy_fifo_update
+    assign hw2reg.energy_fifo_dbg_1.flip_q_valid                    .d = drt_s_req_flip.q_valid; // a copy of flip_q_valid
+    assign hw2reg.energy_fifo_dbg_1.fm_rx_cnt                       .d = fm_upstream_handshake_counter;
+    assign hw2reg.energy_fifo_dbg_1.energy_fifo_1_sel               .d = energy_fifo_sel ? energy_fifo_data[1][logic_cfg.EnergyTotalBit-1:logic_cfg.EnergyTotalBit-16] : energy_fifo_data[1][15:0];
 
     always_comb begin
         for (int i = 0; i < logic_cfg.NumSpin/`LAGD_REG_DATA_WIDTH; i=i+1) begin
@@ -384,8 +417,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     always_comb begin
         for (int i = 0; i < logic_cfg.HRegDataBitwidth/`LAGD_REG_DATA_WIDTH; i=i+1) begin
-            hw2reg.debug_j_read_data[i].de = debug_j_read_data_valid;
-            hw2reg.debug_j_read_data[i].d  = debug_j_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_wbl_read_data[i] .de = debug_wbl_read_data_valid;
+            hw2reg.debug_wblb_read_data[i].de = debug_wbl_read_data_valid;
+            hw2reg.debug_wbl_read_data[i] .d  = debug_wbl_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
+            hw2reg.debug_wblb_read_data[i].d  = debug_wblb_read_data[i*`LAGD_REG_DATA_WIDTH +: `LAGD_REG_DATA_WIDTH];
         end
     end
 
@@ -401,8 +436,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wwl_vread_i             (wwl_vread_analog      ),
         .write_spin_i            (spin_wwl              ),
         .feedback_i              (spin_feedback_in_analog),
-        .wbl_read_o              (debug_wbl_in          ),
-        .wblb_read_o             (                      ),
+        .wbl_read_o              (wbl_out_analog        ),
+        .wblb_read_o             (wblb_out_analog       ),
         .bct_read_o              (spin_out_analog       ),
         // Galena wires
         .j_iref_aio              (galena_j_iref_i       ),
@@ -440,7 +475,9 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .SPIN_WBL_OFFSET                 (logic_cfg.SpinWblOffset          ),
         .H_IS_NEGATIVE                   (logic_cfg.HIsNegative            ),
         .ENABLE_FLIP_DETECTION           (logic_cfg.EnableFlipDetection    ),
-        .CC_COUNTER_BITWIDTH             (logic_cfg.CcCounterBitwidth      )
+        .CC_COUNTER_BITWIDTH             (logic_cfg.CcCounterBitwidth      ),
+        .SC_COUNTER_BITWIDTH             (logic_cfg.ScCounterBitwidth      ),
+        .ITER_COUNTER_BITWIDTH           (logic_cfg.IterCounterBitwidth    )
     ) u_digital_macro (
         .clk_i                           (clk_i                            ),
         .rst_ni                          (rst_ni                           ),
@@ -500,8 +537,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .h_wwl_o                         (h_wwl                            ),
         .wbl_o                           (wbl_in_analog                    ),
         .wblb_o                          (wblb_in_analog                   ),
-        .wbl_read_i                      (debug_wbl_in                     ),
-        .wblb_read_i                     ('0                               ),
+        .wbl_read_i                      (wbl_out_analog                   ),
+        .wblb_read_i                     (wblb_out_analog                  ),
         .wbl_floating_o                  (wbl_floating_in_analog           ),
         .wwl_vdd_o                       (wwl_vdd_analog                   ),
         .wwl_vread_o                     (wwl_vread_analog                 ),
@@ -518,9 +555,10 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .debug_j_read_en_i               (debug_j_read_en                  ),
         .debug_j_one_hot_wwl_i           (debug_j_one_hot_wwl              ),
         .debug_h_wwl_i                   (debug_h_wwl                      ),
-        .debug_wbl_i                     (debug_wbl_in                     ),
-        .debug_j_read_data_o             (debug_j_read_data                ),
-        .debug_j_read_data_valid_o       (debug_j_read_data_valid          ),
+        .debug_wbl_i                     (debug_wbl_config                 ),
+        .debug_wbl_read_data_o           (debug_wbl_read_data              ),
+        .debug_wblb_read_data_o          (debug_wblb_read_data             ),
+        .debug_wbl_read_data_valid_o     (debug_wbl_read_data_valid        ),
         .debug_spin_write_en_i           (debug_spin_write_en              ),
         .wbl_floating_i                  (wbl_floating                     ),
         .debug_spin_compute_en_i         (debug_spin_compute_en            ),
@@ -545,11 +583,14 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .multi_cmpt_mode_en_i            (multi_cmpt_mode_en               ),
         .cmpt_max_num_i                  (cmpt_max_num                     ),
         .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle             ),
+        .cycle_per_iter_recount_en_o     (cycle_per_iter_recount_en        ),
+        .fm_upstream_handshake_counter_o (fm_upstream_handshake_counter    ),
         .cmpt_idx_o                      (cmpt_idx                         ),
         .cycle_per_iteration_o           (cycle_per_iteration              ),
         .cycle_per_cmpt_o                (cycle_per_cmpt                   ),
         .cycle_all_cmpt_o                (cycle_all_cmpt                   )
     );
+
 
     //////////////////////////////////////////////////////////
     // Memory MUX ////////////////////////////////////////////
@@ -578,7 +619,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // j memory request mux
     always_comb begin
-        case(dt_cfg_enable)
+        case(dt_cfg_enable | (~dt_cfg_idle))
             1'b0: begin: compute_mode
                 drt_s_req_j.q.addr         = dgt_weight_raddr << $clog2(`IC_L1_J_MEM_DATA_WIDTH/8); // word address to byte address
                 drt_s_req_j.q.write        = 1'b0; // read

@@ -258,6 +258,10 @@ package ising_logic_pkg;
         int unsigned CounterBitwidth;
         // Clock cycle counter bitwidth
         int unsigned CcCounterBitwidth;
+        // Clock cycle counter bitwidth specifically for single computation
+        int unsigned ScCounterBitwidth;
+        // Clock cycle counter bitwidth specifically for single iteration
+        int unsigned IterCounterBitwidth;
         /// Synchronizer pipe depth
         int unsigned SynchronizerPipeDepth;
         /// Offset for spin WBL in analog macro
@@ -292,6 +296,8 @@ package ising_logic_pkg;
         FlipIconDepth        : `FLIP_ICON_DEPTH,
         CounterBitwidth      : `COUNTER_BITWIDTH,
         CcCounterBitwidth    : `CC_COUNTER_BITWIDTH,
+        ScCounterBitwidth    : `SC_COUNTER_BITWIDTH,
+        IterCounterBitwidth  : `ITER_COUNTER_BITWIDTH,
         SynchronizerPipeDepth: `SYNCH_PIPE_DEPTH,
         SpinWblOffset        : `SPIN_WBL_OFFSET,
         HIsNegative          : 1,

@@ -26,6 +26,8 @@ package config_pkg;
     parameter int FLIP_ICON_DEPTH = 1024;
     parameter int COUNTER_BITWIDTH = 16;
     parameter int CC_COUNTER_BITWIDTH = 32; // bit width of the cmpt cycle counter for measurement purposes
+    parameter int SC_COUNTER_BITWIDTH = 17;
+    parameter int ITER_COUNTER_BITWIDTH = 7;
     parameter int SYNCHRONIZER_PIPEDEPTH = 3;
     parameter int SPIN_WBL_OFFSET = 0;
     parameter int H_IS_NEGATIVE = `True;
@@ -39,9 +41,9 @@ package config_pkg;
     // run-time parameters (related to hardware)
     parameter int CyclePerWwlHigh = 2;
     parameter int CyclePerWwlLow = 2;
-    parameter int CyclePerSpinWrite = 2; // cannot be 1 since the real value set is CyclePerSpinWrite - 1
+    parameter int CyclePerSpinWrite = 6; // cannot be 1 since the real value set in tb is CyclePerSpinWrite - 1
     parameter int CyclePerSpinCompute = 2;
-    parameter int SynchronizerPipeNum = 1;
+    parameter int SynchronizerPipeNum = SYNCHRONIZER_PIPEDEPTH;
     parameter int SpinWwlStrobe = {NUM_SPIN{1'b1}};
     parameter int SpinFeedback = {NUM_SPIN{1'b1}}; // all spins in feedback mode
     parameter int Flush = `False;

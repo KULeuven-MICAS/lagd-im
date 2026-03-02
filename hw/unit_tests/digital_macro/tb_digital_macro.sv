@@ -88,20 +88,20 @@ module tb_digital_macro;
     logic cmpt_idle_o;
     logic host_readout_i;
     logic flip_ren_o;
-    logic [ $clog2(FLIP_ICON_DEPTH)-1 : 0 ] flip_raddr_o, flip_raddr_ref;
-    logic [ $clog2(FLIP_ICON_DEPTH)+1-1 : 0 ] icon_last_raddr_plus_one_i;
-    logic [ NUM_SPIN-1 : 0 ] flip_rdata_i;
+    logic [DEBUG_WADDR_WIDTH-1 : 0 ] flip_raddr_o, flip_raddr_ref;
+    logic [DEBUG_WADDR_WIDTH+1-1 : 0 ] icon_last_raddr_plus_one_i;
+    logic [NUM_SPIN-1 : 0 ] flip_rdata_i;
     logic flip_disable_i;
-    logic [ BITH*NUM_SPIN-1 : 0 ] dgt_hbias_i;
-    logic [ SCALING_BIT-1 : 0 ] dgt_hscaling_i;
-    logic [ NUM_SPIN-1 : 0 ] j_one_hot_wwl_o;
+    logic [BITH*NUM_SPIN-1 : 0 ] dgt_hbias_i;
+    logic [SCALING_BIT-1 : 0 ] dgt_hscaling_i;
+    logic [NUM_SPIN-1 : 0 ] j_one_hot_wwl_o;
     logic h_wwl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wblb_o;
     logic [NUM_SPIN*BITJ-1 : 0 ] wbl_floating_i, wbl_floating_o;
-    logic [ NUM_SPIN-1 : 0 ] spin_wwl_o;
+    logic [NUM_SPIN-1 : 0 ] spin_wwl_o;
     logic [NUM_SPIN-1 : 0 ] spin_feedback_o;
-    logic [ NUM_SPIN-1 : 0 ] spin_analog_i;
+    logic [NUM_SPIN-1 : 0 ] spin_analog_i;
     logic signed [SPIN_DEPTH-1:0] [ENERGY_TOTAL_BIT-1:0] energy_fifo_o;
     logic [SPIN_DEPTH-1:0] [NUM_SPIN-1:0] spin_fifo_o;
     logic dgt_weight_ren_o;
@@ -129,8 +129,8 @@ module tb_digital_macro;
     logic debug_spin_valid_o;
     logic [DEBUG_WADDR_WIDTH-1:0] debug_spin_waddr_o;
     logic [NUM_SPIN-1:0] debug_spin_o;
-    logic debug_j_read_data_valid_o;
-    logic [NUM_SPIN*BITDATA-1:0] debug_j_read_data_o;
+    logic debug_wbl_read_data_valid_o;
+    logic [NUM_SPIN*BITDATA-1:0] debug_wbl_read_data_o, debug_wblb_read_data_o;
     logic [NUM_SPIN*BITDATA-1:0] wbl_read_i, wblb_read_i;
 
     // testbench signals
@@ -159,9 +159,13 @@ module tb_digital_macro;
     integer dt_write_cycle_cnt_j;
     logic [IconLastAddrPlusOne-1:0] [NUM_SPIN-1:0] states_out_ref;
     model_t model_data;
+    logic cycle_per_iter_recount_en_o;
+    logic [DEBUG_WADDR_WIDTH-1:0] fm_upstream_handshake_counter_o;
     logic [CC_COUNTER_BITWIDTH-1:0] cmpt_max_num_i;
     logic multi_cmpt_mode_idle_o;
-    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o, cycle_per_iteration_o, cycle_per_cmpt_o;
+    logic [CC_COUNTER_BITWIDTH-1:0] cmpt_idx_o;
+    logic [ITER_COUNTER_BITWIDTH-1:0] cycle_per_iteration_o;
+    logic [SC_COUNTER_BITWIDTH-1:0] cycle_per_cmpt_o;
     logic [2*CC_COUNTER_BITWIDTH-1:0] cycle_all_cmpt_o;
     logic [COUNTER_BITWIDTH-1:0] multi_cmpt_idx;
 
@@ -189,133 +193,138 @@ module tb_digital_macro;
 
     // module instantiation
     digital_macro #(
-        .BITJ                            (BITJ                          ),
-        .BITH                            (BITH                          ),
-        .NUM_SPIN                        (NUM_SPIN                      ),
-        .SCALING_BIT                     (SCALING_BIT                   ),
-        .PARALLELISM                     (PARALLELISM                   ),
-        .ENERGY_TOTAL_BIT                (ENERGY_TOTAL_BIT              ),
-        .LITTLE_ENDIAN                   (LITTLE_ENDIAN                 ),
-        .PIPESINTF                       (PIPESINTF                     ),
-        .PIPESMID                        (PIPESMID                      ),
-        .PIPESFLIPFILTER                 (PIPESFLIPFILTER               ),
-        .SPIN_DEPTH                      (SPIN_DEPTH                    ),
-        .FLIP_ICON_DEPTH                 (FLIP_ICON_DEPTH               ),
-        .COUNTER_BITWIDTH                (COUNTER_BITWIDTH              ),
-        .SYNCHRONIZER_PIPEDEPTH          (SYNCHRONIZER_PIPEDEPTH        ),
-        .SPIN_WBL_OFFSET                 (SPIN_WBL_OFFSET               ),
-        .H_IS_NEGATIVE                   (H_IS_NEGATIVE                 ),
-        .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION         ),
-        .CC_COUNTER_BITWIDTH             (CC_COUNTER_BITWIDTH           )
+        .BITJ                            (BITJ                            ),
+        .BITH                            (BITH                            ),
+        .NUM_SPIN                        (NUM_SPIN                        ),
+        .SCALING_BIT                     (SCALING_BIT                     ),
+        .PARALLELISM                     (PARALLELISM                     ),
+        .ENERGY_TOTAL_BIT                (ENERGY_TOTAL_BIT                ),
+        .LITTLE_ENDIAN                   (LITTLE_ENDIAN                   ),
+        .PIPESINTF                       (PIPESINTF                       ),
+        .PIPESMID                        (PIPESMID                        ),
+        .PIPESFLIPFILTER                 (PIPESFLIPFILTER                 ),
+        .SPIN_DEPTH                      (SPIN_DEPTH                      ),
+        .FLIP_ICON_DEPTH                 (FLIP_ICON_DEPTH                 ),
+        .COUNTER_BITWIDTH                (COUNTER_BITWIDTH                ),
+        .SYNCHRONIZER_PIPEDEPTH          (SYNCHRONIZER_PIPEDEPTH          ),
+        .SPIN_WBL_OFFSET                 (SPIN_WBL_OFFSET                 ),
+        .H_IS_NEGATIVE                   (H_IS_NEGATIVE                   ),
+        .ENABLE_FLIP_DETECTION           (ENABLE_FLIP_DETECTION           ),
+        .CC_COUNTER_BITWIDTH             (CC_COUNTER_BITWIDTH             ),
+        .SC_COUNTER_BITWIDTH             (SC_COUNTER_BITWIDTH             ),
+        .ITER_COUNTER_BITWIDTH           (ITER_COUNTER_BITWIDTH           )
     ) dut (
-        .clk_i                           (clk_i                         ),
-        .rst_ni                          (rst_ni                        ),
-        .en_aw_i                         (en_aw_i                       ),
-        .en_em_i                         (en_em_i                       ),
-        .en_ff_i                         (en_ff_i                       ),
-        .en_fm_i                         (en_fm_i                       ),
-        .en_ef_i                         (en_ef_i                       ),
-        .en_analog_loop_i                (en_analog_loop_i              ),
-        .en_perf_counter_i               (en_perf_counter_i             ),
-        .config_valid_em_i               (config_valid_em_i             ),
-        .config_valid_fm_i               (config_valid_fm_i             ),
-        .config_valid_aw_i               (config_valid_aw_i             ),
-        .debug_dt_configure_enable_i     (debug_dt_configure_enable_i   ),
-        .debug_spin_configure_enable_i   (debug_spin_configure_enable_i ),
-        .config_counter_i                (config_counter_i              ),
-        .config_spin_initial_i           (config_spin_initial_i         ),
-        .config_spin_initial_skip_i      (config_spin_initial_skip_i    ),
-        .cfg_trans_num_i                 (cfg_trans_num_i               ),
-        .cycle_per_wwl_high_i            (cycle_per_wwl_high_i          ),
-        .cycle_per_wwl_low_i             (cycle_per_wwl_low_i           ),
-        .cycle_per_spin_write_i          (cycle_per_spin_write_i        ),
-        .cycle_per_spin_compute_i        (cycle_per_spin_compute_i      ),
-        .wwl_vdd_i                       (wwl_vdd_i                     ),
-        .wwl_vread_i                     (wwl_vread_i                   ),
-        .bypass_data_conversion_i        (bypass_data_conversion_i      ),
-        .spin_wwl_strobe_i               (spin_wwl_strobe_i             ),
-        .spin_feedback_i                 (spin_feedback_i               ),
-        .synchronizer_pipe_num_i         (synchronizer_pipe_num_i       ),
-        .synchronizer_wbl_pipe_num_i     (synchronizer_wbl_pipe_num_i   ),
-        .debug_cycle_per_spin_read_i     (debug_cycle_per_spin_read_i   ),
-        .debug_spin_read_num_i           (debug_spin_read_num_i         ),
-        .dt_cfg_enable_i                 (dt_cfg_enable_i               ),
-        .j_mem_ren_o                     (j_mem_ren_o                   ),
-        .j_raddr_o                       (j_raddr_o                     ),
-        .j_rdata_i                       (j_rdata_i                     ),
-        .h_ren_o                         (h_ren_o                       ),
-        .h_rdata_i                       (h_rdata_i                     ),
-        .dt_cfg_idle_o                   (dt_cfg_idle_o                 ),
-        .flush_i                         (flush_i                       ),
-        .en_comparison_i                 (en_comparison_i               ),
-        .cmpt_en_i                       (cmpt_en_i                     ),
-        .cmpt_idle_o                     (cmpt_idle_o                   ),
-        .host_readout_i                  (host_readout_i                ),
-        .flip_ren_o                      (flip_ren_o                    ),
-        .flip_raddr_o                    (flip_raddr_o                  ),
-        .icon_last_raddr_plus_one_i      (icon_last_raddr_plus_one_i    ),
-        .flip_rdata_i                    (flip_rdata_i                  ),
-        .flip_disable_i                  (flip_disable_i                ),
-        .dgt_weight_ren_o                (dgt_weight_ren_o              ),
-        .dgt_weight_raddr_o              (dgt_weight_raddr_o            ),
-        .dgt_addr_upper_bound_i          (dgt_addr_upper_bound_i        ),
-        .dgt_weight_i                    (dgt_weight_i                  ),
-        .dgt_hbias_i                     (dgt_hbias_i                   ),
-        .dgt_hscaling_i                  (dgt_hscaling_i                ),
-        .j_one_hot_wwl_o                 (j_one_hot_wwl_o               ),
-        .h_wwl_o                         (h_wwl_o                       ),
-        .wbl_o                           (wbl_o                         ),
-        .wblb_o                          (wblb_o                        ),
-        .wbl_read_i                      (wbl_read_i                    ),
-        .wblb_read_i                     (wblb_read_i                   ),
-        .wbl_floating_o                  (wbl_floating_o                ),
-        .wwl_vread_o                     (wwl_vread_o                   ),
-        .wwl_vdd_o                       (wwl_vdd_o                     ),
-        .spin_wwl_o                      (spin_wwl_o                    ),
-        .spin_feedback_o                 (spin_feedback_o               ),
-        .spin_analog_i                   (spin_analog_i                 ),
-        .energy_fifo_update_o            (energy_fifo_update_o          ),
-        .spin_fifo_update_o              (spin_fifo_update_o            ),
-        .energy_fifo_o                   (energy_fifo_o                 ),
-        .spin_fifo_o                     (spin_fifo_o                   ),
-        .enable_flip_detection_i         (enable_flip_detection_i       ),
+        .clk_i                           (clk_i                           ),
+        .rst_ni                          (rst_ni                          ),
+        .en_aw_i                         (en_aw_i                         ),
+        .en_em_i                         (en_em_i                         ),
+        .en_ff_i                         (en_ff_i                         ),
+        .en_fm_i                         (en_fm_i                         ),
+        .en_ef_i                         (en_ef_i                         ),
+        .en_analog_loop_i                (en_analog_loop_i                ),
+        .en_perf_counter_i               (en_perf_counter_i               ),
+        .config_valid_em_i               (config_valid_em_i               ),
+        .config_valid_fm_i               (config_valid_fm_i               ),
+        .config_valid_aw_i               (config_valid_aw_i               ),
+        .debug_dt_configure_enable_i     (debug_dt_configure_enable_i     ),
+        .debug_spin_configure_enable_i   (debug_spin_configure_enable_i   ),
+        .config_counter_i                (config_counter_i                ),
+        .config_spin_initial_i           (config_spin_initial_i           ),
+        .config_spin_initial_skip_i      (config_spin_initial_skip_i      ),
+        .cfg_trans_num_i                 (cfg_trans_num_i                 ),
+        .cycle_per_wwl_high_i            (cycle_per_wwl_high_i            ),
+        .cycle_per_wwl_low_i             (cycle_per_wwl_low_i             ),
+        .cycle_per_spin_write_i          (cycle_per_spin_write_i          ),
+        .cycle_per_spin_compute_i        (cycle_per_spin_compute_i        ),
+        .wwl_vdd_i                       (wwl_vdd_i                       ),
+        .wwl_vread_i                     (wwl_vread_i                     ),
+        .bypass_data_conversion_i        (bypass_data_conversion_i        ),
+        .spin_wwl_strobe_i               (spin_wwl_strobe_i               ),
+        .spin_feedback_i                 (spin_feedback_i                 ),
+        .synchronizer_pipe_num_i         (synchronizer_pipe_num_i         ),
+        .synchronizer_wbl_pipe_num_i     (synchronizer_wbl_pipe_num_i     ),
+        .debug_cycle_per_spin_read_i     (debug_cycle_per_spin_read_i     ),
+        .debug_spin_read_num_i           (debug_spin_read_num_i           ),
+        .dt_cfg_enable_i                 (dt_cfg_enable_i                 ),
+        .j_mem_ren_o                     (j_mem_ren_o                     ),
+        .j_raddr_o                       (j_raddr_o                       ),
+        .j_rdata_i                       (j_rdata_i                       ),
+        .h_ren_o                         (h_ren_o                         ),
+        .h_rdata_i                       (h_rdata_i                       ),
+        .dt_cfg_idle_o                   (dt_cfg_idle_o                   ),
+        .flush_i                         (flush_i                         ),
+        .en_comparison_i                 (en_comparison_i                 ),
+        .cmpt_en_i                       (cmpt_en_i                       ),
+        .cmpt_idle_o                     (cmpt_idle_o                     ),
+        .host_readout_i                  (host_readout_i                  ),
+        .flip_ren_o                      (flip_ren_o                      ),
+        .flip_raddr_o                    (flip_raddr_o                    ),
+        .icon_last_raddr_plus_one_i      (icon_last_raddr_plus_one_i      ),
+        .flip_rdata_i                    (flip_rdata_i                    ),
+        .flip_disable_i                  (flip_disable_i                  ),
+        .dgt_weight_ren_o                (dgt_weight_ren_o                ),
+        .dgt_weight_raddr_o              (dgt_weight_raddr_o              ),
+        .dgt_addr_upper_bound_i          (dgt_addr_upper_bound_i          ),
+        .dgt_weight_i                    (dgt_weight_i                    ),
+        .dgt_hbias_i                     (dgt_hbias_i                     ),
+        .dgt_hscaling_i                  (dgt_hscaling_i                  ),
+        .j_one_hot_wwl_o                 (j_one_hot_wwl_o                 ),
+        .h_wwl_o                         (h_wwl_o                         ),
+        .wbl_o                           (wbl_o                           ),
+        .wblb_o                          (wblb_o                          ),
+        .wbl_read_i                      (wbl_read_i                      ),
+        .wblb_read_i                     (wblb_read_i                     ),
+        .wbl_floating_o                  (wbl_floating_o                  ),
+        .wwl_vread_o                     (wwl_vread_o                     ),
+        .wwl_vdd_o                       (wwl_vdd_o                       ),
+        .spin_wwl_o                      (spin_wwl_o                      ),
+        .spin_feedback_o                 (spin_feedback_o                 ),
+        .spin_analog_i                   (spin_analog_i                   ),
+        .energy_fifo_update_o            (energy_fifo_update_o            ),
+        .spin_fifo_update_o              (spin_fifo_update_o              ),
+        .energy_fifo_o                   (energy_fifo_o                   ),
+        .spin_fifo_o                     (spin_fifo_o                     ),
+        .enable_flip_detection_i         (enable_flip_detection_i         ),
         // debugging interface
-        .debug_j_write_en_i              (debug_j_write_en_i            ),
-        .debug_j_read_en_i               (debug_j_read_en_i             ),
-        .debug_j_one_hot_wwl_i           (debug_j_one_hot_wwl_i         ),
-        .debug_h_wwl_i                   (debug_h_wwl_i                 ),
-        .debug_wbl_i                     (debug_wbl_i                   ),
-        .debug_j_read_data_o             (debug_j_read_data_o           ),
-        .debug_j_read_data_valid_o       (debug_j_read_data_valid_o     ),
-        .debug_spin_write_en_i           (debug_spin_write_en_i         ),
-        .wbl_floating_i                  (wbl_floating_i                ),
-        .debug_spin_compute_en_i         (debug_spin_compute_en_i       ),
-        .debug_spin_read_en_i            (debug_spin_read_en_i          ),
-        .debug_spin_valid_o              (debug_spin_valid_o            ),
-        .debug_spin_waddr_o              (debug_spin_waddr_o            ),
-        .debug_spin_o                    (debug_spin_o                  ),
-        .debug_analog_dt_w_idle_o        (                              ),
-        .debug_analog_dt_r_idle_o        (                              ),
-        .debug_spin_w_idle_o             (                              ),
-        .debug_spin_cmpt_idle_o          (                              ),
-        .debug_spin_r_idle_o             (                              ),
-        .debug_fm_upstream_handshake_o   (                              ),
-        .debug_fm_energy_input_o         (                              ),
-        .debug_fm_downstream_handshake_o (                              ),
-        .debug_fm_spin_out_o             (                              ),
-        .debug_aw_downstream_handshake_o (                              ),
-        .debug_aw_spin_out_o             (                              ),
-        .debug_em_upstream_handshake_o   (                              ),
-        .debug_em_spin_in_o              (                              ),
+        .debug_j_write_en_i              (debug_j_write_en_i              ),
+        .debug_j_read_en_i               (debug_j_read_en_i               ),
+        .debug_j_one_hot_wwl_i           (debug_j_one_hot_wwl_i           ),
+        .debug_h_wwl_i                   (debug_h_wwl_i                   ),
+        .debug_wbl_i                     (debug_wbl_i                     ),
+        .debug_wbl_read_data_o           (debug_wbl_read_data_o           ),
+        .debug_wblb_read_data_o          (debug_wblb_read_data_o          ),
+        .debug_wbl_read_data_valid_o     (debug_wbl_read_data_valid_o     ),
+        .debug_spin_write_en_i           (debug_spin_write_en_i           ),
+        .wbl_floating_i                  (wbl_floating_i                  ),
+        .debug_spin_compute_en_i         (debug_spin_compute_en_i         ),
+        .debug_spin_read_en_i            (debug_spin_read_en_i            ),
+        .debug_spin_valid_o              (debug_spin_valid_o              ),
+        .debug_spin_waddr_o              (debug_spin_waddr_o              ),
+        .debug_spin_o                    (debug_spin_o                    ),
+        .debug_analog_dt_w_idle_o        (                                ),
+        .debug_analog_dt_r_idle_o        (                                ),
+        .debug_spin_w_idle_o             (                                ),
+        .debug_spin_cmpt_idle_o          (                                ),
+        .debug_spin_r_idle_o             (                                ),
+        .debug_fm_upstream_handshake_o   (                                ),
+        .debug_fm_energy_input_o         (                                ),
+        .debug_fm_downstream_handshake_o (                                ),
+        .debug_fm_spin_out_o             (                                ),
+        .debug_aw_downstream_handshake_o (                                ),
+        .debug_aw_spin_out_o             (                                ),
+        .debug_em_upstream_handshake_o   (                                ),
+        .debug_em_spin_in_o              (                                ),
         // measurement purposes
-        .infinite_icon_loop_en_i         (infinite_icon_loop_en_i       ),
-        .multi_cmpt_mode_en_i            (multi_cmpt_mode_en_i          ),
-        .cmpt_max_num_i                  (cmpt_max_num_i                ),
-        .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle_o        ),
-        .cmpt_idx_o                      (cmpt_idx_o                    ),
-        .cycle_per_iteration_o           (cycle_per_iteration_o         ),
-        .cycle_per_cmpt_o                (cycle_per_cmpt_o              ),
-        .cycle_all_cmpt_o                (cycle_all_cmpt_o              )
+        .infinite_icon_loop_en_i         (infinite_icon_loop_en_i         ),
+        .multi_cmpt_mode_en_i            (multi_cmpt_mode_en_i            ),
+        .fm_upstream_handshake_counter_o (fm_upstream_handshake_counter_o ),
+        .cycle_per_iter_recount_en_o     (cycle_per_iter_recount_en_o     ),
+        .cmpt_max_num_i                  (cmpt_max_num_i                  ),
+        .multi_cmpt_mode_idle_o          (multi_cmpt_mode_idle_o          ),
+        .cmpt_idx_o                      (cmpt_idx_o                      ),
+        .cycle_per_iteration_o           (cycle_per_iteration_o           ),
+        .cycle_per_cmpt_o                (cycle_per_cmpt_o                ),
+        .cycle_all_cmpt_o                (cycle_all_cmpt_o                )
     );
 
     // Clock generation
@@ -524,7 +533,7 @@ module tb_digital_macro;
         if (`DataFromFile == `True) begin
             $display("[Time: %t] Reference energy and spin fifo loaded from file.", $time);
             // output energies and states to files
-            output_energies_to_file(energy_fifo_ref, model_data.constant);
+            output_energies_to_file(energy_fifo_ref);
             output_spins_to_file(spin_fifo_ref);
             $display("[Time: %t] Reference energy and spin fifo output to files.", $time);
         end else begin
@@ -1103,7 +1112,7 @@ module tb_digital_macro;
             $display("Timer [Time %0d ns]: Total cycles: %0d cc [%0d ns], Cycles/flip: %0d cc [%0d ns]",
                 $time, total_cycles, total_time, transaction_cycles, transaction_time);
             $display("Timer [Time %0d ns]: MultiCmptModeEn: %d, multi_cmpt_timer_idx: %0d/%0d",
-                $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum);
+                $time, `MultiCmptModeEn, multi_cmpt_timer_idx, CmptMaxNum-1);
             $display("---------------------------------------- Timer per Computation ----------------------------------------");
             multi_cmpt_timer_idx = multi_cmpt_timer_idx + 1;
         end while (`MultiCmptModeEn && multi_cmpt_timer_idx < CmptMaxNum);
@@ -1129,7 +1138,17 @@ module tb_digital_macro;
             idx = idx + 1;
         end
         output_timing_record_to_file(cycle_cnt);
+    endtask
 
+    // print out cycle_per_iteration when recount enabled
+    task automatic iter_cc_counter();
+        wait (en_i == 1 & cmpt_en_i == 1);
+        forever begin
+            @(posedge clk_i);
+            if (cycle_per_iter_recount_en_o) begin
+                $display("[Time: %t] cycle_per_iteration: %d", $time, cycle_per_iteration_o);
+            end
+        end
     endtask
 
     // ========================================================================
@@ -1156,6 +1175,7 @@ module tb_digital_macro;
             // timer
             cmpt_enable_and_timer();
             timing_record();
+            iter_cc_counter();
             // debug
             debug_model_wr(); // inactive
             debug_model_spin_wr(); // inactive

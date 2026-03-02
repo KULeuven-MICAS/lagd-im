@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Note: bender_list.tcl is generated from hw/Makefile
+# Note: CSR is generated from hw/rtl/lagd_core_reg/Makefile
+
+DEFINES += PROJECT_ROOT=\"../../../\"
 
 HDL_FILES := 
 
