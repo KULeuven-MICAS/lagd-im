@@ -619,7 +619,7 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
 
     // j memory request mux
     always_comb begin
-        case(dt_cfg_enable)
+        case(dt_cfg_enable | (~dt_cfg_idle))
             1'b0: begin: compute_mode
                 drt_s_req_j.q.addr         = dgt_weight_raddr << $clog2(`IC_L1_J_MEM_DATA_WIDTH/8); // word address to byte address
                 drt_s_req_j.q.write        = 1'b0; // read
