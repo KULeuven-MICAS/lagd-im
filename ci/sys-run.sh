@@ -41,6 +41,8 @@ show_help()
     echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
     echo "  --run_id=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
     echo "  --post-syn: Run post-synthesis simulation"
+    echo "  --skip-sw-build: Skip the software build step"
+    echo "  --vcd: Generate VCD waveform file (default: off)"
     echo "  --help: Show this help message"
 }
 
@@ -55,6 +57,7 @@ NETLIST_PATH=""
 RUN_ID="1"
 POST_SYN=0
 SKIP_SW_BUILD=0
+VCD=0
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -120,6 +123,10 @@ for i in "$@"; do
             ;;
         --skip-sw-build)
             SKIP_SW_BUILD=1
+            shift
+            ;;
+        --vcd)
+            VCD=1
             shift
             ;;
         *)
@@ -189,5 +196,5 @@ USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} make run-soc
+    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD=${VCD} make run-soc
 echo "[$(date +%T)] Simulation done."

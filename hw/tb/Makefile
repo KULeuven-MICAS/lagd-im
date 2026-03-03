@@ -54,7 +54,7 @@ TMP_FILE := ./tmp.bender_list.tcl
 .INTERMEDIATE: $(TMP_FILE)
 # Remove non-package files from the bender list to create a package-only list
 $(TMP_FILE): $(TEST_PATH)/bender_list.tcl
-	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc|jtag_test|\/serial_link|serial_link_data_link|fifo_v3|\/stream_fifo|serial_link_network|intf|clk_rst_gen|axi_id_serialize|stream_register|axi_mux|axi_demux|axi_sim_mem|axi_serializer|serial_link_physical|reg_cdc|serial_link_single_channel_reg_top|axi_demux_simple|spill_register|axi_id_prepend|rr_arb_tree|prim_subreg_ext|prim_subreg|cdc_2phase|spill_register_flushable|\/counter|prim_subreg_arb|lzc|delta_counter|cdc_fifo_gray|binary_to_gray|gray_to_binary|\/sync|master_spi_vip)\.sv" \\$$/' $< > $@
+	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc|jtag_test|\/serial_link|serial_link_data_link|fifo_v3|\/stream_fifo|serial_link_network|intf|clk_rst_gen|axi_id_serialize|stream_register|axi_mux|axi_demux|axi_sim_mem|axi_serializer|serial_link_physical|reg_cdc|serial_link_single_channel_reg_top|axi_demux_simple|spill_register|axi_id_prepend|rr_arb_tree|prim_subreg_ext|prim_subreg|cdc_2phase|spill_register_flushable|\/counter|prim_subreg_arb|lzc|delta_counter|cdc_fifo_gray|binary_to_gray|gray_to_binary|\/sync|master_spi_vip|pll_tester)\.sv" \\$$/' $< > $@
 
 # Clean up the temporary file after generating the package-only list
 $(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
@@ -99,6 +99,7 @@ libelfloader: $(DPI_LIB)
 TEST_PATH ?= $(CURDIR)
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 SIM_NAME ?= lagd_chip
+# TODO: move RUN_ID support in the backend script
 RUN_ID ?= 
 ifneq ($(RUN_ID),)
 	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)-$(RUN_ID)
@@ -109,15 +110,19 @@ HDL_FILES ?=
 DBG ?= 0
 CXX_PATH ?= $(shell which g++)
 
-# VOPT_ARGS definition
+# VOPT_ARGS definition =======================================
 VOPT_ARGS ?=
-
-ifneq ($(and $(filter 1,$(DBG)),$(wildcard $(NETLIST_PATH))),)
-$(info "Allowing netlist simulation with debug info")
-VOPT_ARGS += +acc -permissive
+ifeq ($(DBG),1)
+VOPT_ARGS += +acc=pr+tb_lagd_chip. +noacc=p+p+tb_lagd_chip.fix. -O5
+else ifneq ($(VCD),1)
+VOPT_ARGS += +acc
+DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\"
 else
-VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
+VOPT_ARGS += -O5
 endif
+VOPT_ARGS += -permissive
+
+# VSIM_FLAGS definition =======================================
 
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} +notimingchecks
 # VSIM_FLAGS += -sv_lib libelfloader
