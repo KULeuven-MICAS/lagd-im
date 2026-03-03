@@ -12,7 +12,6 @@
     end
 
 module pomelo_pll (
-    input wire VDDA,
     input wire IN50U_REF,
     inout wire VCO_CTRL_EXT,
 

@@ -23,6 +23,7 @@ Usage: ./ci/sys-run.sh [[
     --use_tech_models
     --netlist=#netlist_path
     --post-syn
+    --post-pnr
     --skip-sw-build
     --vcd
     --sdf-annotate
@@ -44,6 +45,7 @@ show_help()
     echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
     echo "  --run_id=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
     echo "  --post-syn: Run post-synthesis simulation"
+    echo "  --post-pnr: Run post-place-and-route simulation"
     echo "  --skip-sw-build: Skip the software build step"
     echo "  --vcd: Generate VCD waveform file (default: off)"
     echo "  --sdf-annotate: Enable SDF annotation for post-synthesis simulation (implies --post-syn or --netlist)"
@@ -60,6 +62,7 @@ USE_TECH_MODELS=0
 NETLIST_PATH=""
 RUN_ID="1"
 POST_SYN=0
+POST_PNR=0
 SKIP_SW_BUILD=0
 VCD_DUMP=0
 SDF_FILE=""
@@ -125,6 +128,10 @@ for i in "$@"; do
             ;;
         --post-syn)
             POST_SYN=1
+            shift
+            ;;
+        --post-pnr)
+            POST_PNR=1
             shift
             ;;
         --skip-sw-build)
