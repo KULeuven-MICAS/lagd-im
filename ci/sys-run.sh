@@ -61,7 +61,7 @@ NETLIST_PATH=""
 RUN_ID="1"
 POST_SYN=0
 SKIP_SW_BUILD=0
-VCD=0
+VCD_DUMP=0
 SDF_FILE=""
 SDF_ANNOTATE=0
 
@@ -132,7 +132,7 @@ for i in "$@"; do
             shift
             ;;
         --vcd)
-            VCD=1
+            VCD_DUMP=1
             shift
             ;;
         --sdf-annotate)
@@ -220,5 +220,6 @@ USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ c
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD=${VCD} SDF_FILE=${SDF_FILE} make run-soc
+    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD_DUMP=${VCD_DUMP} SDF_FILE=${SDF_FILE} \
+    make run-soc
 echo "[$(date +%T)] Simulation done."

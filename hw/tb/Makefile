@@ -114,9 +114,9 @@ CXX_PATH ?= $(shell which g++)
 VOPT_ARGS ?=
 ifeq ($(DBG),1)
 VOPT_ARGS += +acc=pr+tb_lagd_chip. +noacc=p+p+tb_lagd_chip.fix. -O5
-else ifeq ($(VCD),1)
+else ifeq ($(VCD_DUMP),1)
 VOPT_ARGS += +acc
-DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\"
+DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\" VCD_DUMP=1
 else
 VOPT_ARGS += -O5
 endif

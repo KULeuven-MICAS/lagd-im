@@ -11,6 +11,10 @@
 `define DBG 0
 `endif
 
+`ifndef VCD_DUMP
+`define VCD_DUMP 0
+`endif
+
 `ifndef VCD_FILE
 `define VCD_FILE "tb.vcd"
 `endif

@@ -76,7 +76,7 @@ module tb_lagd_chip ();
   // Add vcd dumping and debug setup
   //==============================================
   if (ChipTest == 1) begin : gen_debug_setup
-    `EN_SETUP_DEBUG(`DBG, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut, enable_vcd_dumping)
+    `EN_SETUP_DEBUG(`VCD_DUMP, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut, enable_vcd_dumping)
   end
 
 endmodule
