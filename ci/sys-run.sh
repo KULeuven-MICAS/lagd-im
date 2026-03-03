@@ -23,6 +23,9 @@ Usage: ./ci/sys-run.sh [[
     --use_tech_models
     --netlist=#netlist_path
     --post-syn
+    --skip-sw-build
+    --vcd
+    --sdf-annotate
     --help]]"
 EOF
     echo "Example: $0"
@@ -43,6 +46,7 @@ show_help()
     echo "  --post-syn: Run post-synthesis simulation"
     echo "  --skip-sw-build: Skip the software build step"
     echo "  --vcd: Generate VCD waveform file (default: off)"
+    echo "  --sdf-annotate: Enable SDF annotation for post-synthesis simulation (implies --post-syn or --netlist)"
     echo "  --help: Show this help message"
 }
 
@@ -58,6 +62,8 @@ RUN_ID="1"
 POST_SYN=0
 SKIP_SW_BUILD=0
 VCD=0
+SDF_FILE=""
+SDF_ANNOTATE=0
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -129,6 +135,10 @@ for i in "$@"; do
             VCD=1
             shift
             ;;
+        --sdf-annotate)
+            SDF_ANNOTATE=1
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -180,6 +190,20 @@ if [ "${CHIP_LEVEL_TEST}" -eq 1 ]; then
     echo "[INFO] ./ci/sys-run.sh: Enabling technology models."
 fi
 
+if [ "${SDF_ANNOTATE}" -eq 1 ]; then
+    if [ "${POST_SYN}" -eq 0 ] && [ -z "$NETLIST_PATH" ]; then
+        echo "[ERROR] ./ci/sys-run.sh: SDF annotation requires either post-syn simulation or a netlist path."
+        exit 1
+    fi
+    echo "[INFO] ./ci/sys-run.sh: Enabling SDF annotation."
+    NETLIST_ROOT=$(dirname "$NETLIST_PATH")
+    SDF_FILE=( ${NETLIST_ROOT}/*.sdf )
+    if [ ! -f "$SDF_FILE" ]; then
+        echo "[ERROR] ./ci/sys-run.sh: No SDF file found in netlist directory: ${NETLIST_ROOT}"
+        exit 1
+    fi
+fi
+
 echo "Running system test with the following parameters:"
 echo "  CHIP_LEVEL_TEST: $CHIP_LEVEL_TEST"
 echo "  BOOT_MODE: $BOOT_MODE"
@@ -196,5 +220,5 @@ USE_TECH_MODELS=${USE_TECH_MODELS} make -C ${ROOT_DIR}/hw/tb/ clean
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
-    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD=${VCD} make run-soc
+    NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD=${VCD} SDF_FILE=${SDF_FILE} make run-soc
 echo "[$(date +%T)] Simulation done."
