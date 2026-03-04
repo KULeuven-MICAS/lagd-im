@@ -44,20 +44,26 @@ File [lagd_mcompute.spm.c](./lagd_mcompute.spm.c) tests the Ising computation on
 
 Command:
 
-```
+```[bash]
 ./ci/sys-run.sh --binary=sw/tests/lagd_dcompute.spm.elf
 ```
 
 To test the extreme case (with maximal toggle rate) for power analysis, run:
 
-```
+```[bash]
 DATA_FOLDER=extreme ./ci/sys-run.sh --binary=sw/tests/lagd_dcompute.spm.elf
 ```
 
 Additionally, to start and stop at the compute phase, add:
 
+```[bash]
+--defines="VCD_START=fix.gen_dut_soc.dut.gen_cores[1].i_core.cmpt_en==1 VCD_STOP=fix.gen_dut_soc.dut.gen_cores[1].i_core.dgt_weight_raddr==10 END_SIM_AT_VCD_STOP=1"
 ```
---defines="VCD_START=fix.gen_dut_soc.dut.gen_cores[1].i_core.cmpt_en==1 VCD_STOP=fix.gen_dut_soc.dut.gen_cores[1].i_core.dgt_weight_raddr==10 END_SIM_AT_VCD_STOP=1" 
+
+Post-syn (26-03-02 netlist):
+
+```[bash]
+--defines="VCD_START=fix.gen_dut_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.cmpt_en_i==1 VCD_STOP=fix.gen_dut_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10 END_SIM_AT_VCD_STOP=1"
 ```
 
 ## Galena Data W/R test (for debugging)
