@@ -47,7 +47,8 @@ with open(LOG_FILE) as f:
                 continue
             # idx, cmpt_idle, fm_rx_cnt, energy_fifo_data_sel
             fm_rx.append(math.ceil(curr_fm_rx / 2) if args.parity else curr_fm_rx)
-            energy_fifo_data_sel.append(int(m.group(4), 16) if int(m.group(4), 16) < 0x8000 else int(m.group(4), 16) - 0x10000)
+            hex_val = int(m.group(4), 16)
+            energy_fifo_data_sel.append(hex_val if hex_val < 0x8000 else hex_val - 0x10000)
 
 if not fm_rx:
     print(f"No data found in {LOG_FILE}")
@@ -59,7 +60,14 @@ print(f"Parsed {len(fm_rx)} samples from {LOG_FILE}")
 fig, ax_left = plt.subplots(figsize=(10, 5))
 ax_right = ax_left.twinx()
 
-sc1 = ax_left.scatter(fm_rx, energy_fifo_data_sel, s=10, color="steelblue", alpha=0.7, label="Energy FIFO Data Sel")
+sc1 = ax_left.scatter(
+    fm_rx,
+    energy_fifo_data_sel,
+    s=10,
+    color="steelblue",
+    alpha=0.7,
+    label="Energy FIFO Data Sel",
+)
 
 ax_left.set_xlabel("Iteration counts", fontsize=12, fontweight="bold")
 ax_left.set_ylabel("Energy FIFO Data Sel", color="steelblue", fontsize=12, fontweight="bold")
@@ -70,7 +78,11 @@ labels = [s.get_label() for s in lines]
 ax_left.legend(lines, labels, loc="upper right", fontsize=10)
 
 parity_suffix = f" [{args.parity} fm_rx only]" if args.parity else ""
-plt.title(f"Energy FIFO Data Sel vs Iteration counts  ({LOG_FILE}){parity_suffix}", fontsize=14, fontweight="bold")
+plt.title(
+    f"Energy FIFO Data Sel vs Iteration counts  ({LOG_FILE}){parity_suffix}",
+    fontsize=14,
+    fontweight="bold",
+)
 fig.tight_layout()
 
 parity_tag = f"_{args.parity}" if args.parity else ""
