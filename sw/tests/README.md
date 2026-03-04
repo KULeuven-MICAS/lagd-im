@@ -8,7 +8,7 @@ File [helloworld.spm.c](./helloworld.spm.c) contains the most basic hello world 
 
 Command:
 
-```
+```[bash]
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/helloworld.spm.elf
 ```
 
@@ -18,7 +18,7 @@ File [lagd_reg.spm.c](./lagd_reg.spm.c) tests if all LAGD CSR can be accessed. I
 
 Command:
 
-```
+```[bash]
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/lagd_reg.spm.elf
 ```
 
@@ -28,13 +28,13 @@ File [lagd_scompute.spm.c](./lagd_scompute.spm.c) tests the Ising computation on
 
 Command:
 
-```
+```[bash]
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/lagd_scompute.spm.elf
 ```
 
 To test the extreme case (with maximal toggle rate) for power analysis, run:
 
-```
+```[bash]
 CORE_TESTED=0 DATA_FOLDER=extreme ./ci/sys-run.sh --binary=sw/tests/lagd_scompute.spm.elf
 ```
 
@@ -72,7 +72,7 @@ File [lagd_debug_dt.spm.c](./lagd_debug_dt.spm.c) tests the data writing and dat
 
 Command:
 
-```
+```[bash]
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/lagd_debug_dt.spm.elf
 ```
 
@@ -82,6 +82,6 @@ File [lagd_debug_spin.spm.c](./lagd_debug_spin.spm.c) tests the spin writing and
 
 Command:
 
-```
+```[bash]
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/lagd_debug_spin.spm.elf
 ```
