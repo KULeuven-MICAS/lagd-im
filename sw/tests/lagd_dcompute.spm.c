@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 
+#ifndef VERIFICATION_TEST
+#define VERIFICATION_TEST 1
+#endif
+
 // cheshire headers
 #include "regs/cheshire.h"
 #include "dif/clint.h"
@@ -22,6 +26,7 @@
 
 int main(void) {
     unsigned i;
+    int fail = 0;
     // UART init
     // uint64_t t0 = clint_get_mtime();
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
@@ -59,12 +64,23 @@ int main(void) {
         // wait for computation to finish
         lagd_wait_for_computation_done(i);
     }
-    for (i = 0; i < NUM_ISING_CORES; i++) {
-        // print final output
-        lagd_print_energy_fifo_data(i);
+    // check final output
+    if (VERIFICATION_TEST) {
+        for (i = 0; i < NUM_ISING_CORES; i++) {
+            fail |= lagd_check_energy_fifo_data(i);
+        }
+        if (fail==0) {
+            printf("PASS\r\n");
+        } else {
+            printf("FAIL\r\n");
+        }
+        uart_write_flush(&__base_uart);
+        return fail;
+    } else {
+        for (i = 0; i < NUM_ISING_CORES; i++) {
+            lagd_print_energy_fifo_data(i);
+        }
+        uart_write_flush(&__base_uart);
+        return 0;
     }
-
-    printf("=== DONE ===\r\n");
-    uart_write_flush(&__base_uart);
-    return 0;
 }

@@ -7,6 +7,10 @@
 #define CORE_TESTED 0
 #endif
 
+#ifndef VERIFICATION_TEST
+#define VERIFICATION_TEST 1
+#endif
+
 #include <stdint.h>
 
 static const uint8_t model_scaling_factor = 4;
@@ -24,6 +28,7 @@ static const uint8_t model_scaling_factor = 4;
 #include "lagd_common.h"
 
 int main(void) {
+    int fail = 0;
     // UART init
     // uint64_t t0 = clint_get_mtime();
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
@@ -65,10 +70,20 @@ int main(void) {
     lagd_enable_debug_j_read_en(CORE_TESTED);
     lagd_disable_all_debug_enable(CORE_TESTED);
     // read csr values and print
-    lagd_print_debug_wbl_read_data(CORE_TESTED);
-    lagd_print_debug_wblb_read_data(CORE_TESTED);
-
-    printf("=== DONE ===\r\n");
-    uart_write_flush(&__base_uart);
-    return 0;
+    if (VERIFICATION_TEST) {
+        fail |= lagd_check_debug_wbl_read_data(CORE_TESTED);
+        fail |= lagd_check_debug_wblb_read_data(CORE_TESTED);
+        if (fail==0) {
+            printf("PASS\r\n");
+        } else {
+            printf("FAIL\r\n");
+        }
+        uart_write_flush(&__base_uart);
+        return fail;
+    } else {
+        lagd_print_debug_wbl_read_data(CORE_TESTED);
+        lagd_print_debug_wblb_read_data(CORE_TESTED);
+        uart_write_flush(&__base_uart);
+        return 0;
+    }
 }
