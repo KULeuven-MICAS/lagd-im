@@ -69,7 +69,7 @@ int main(void) {
         for (i = 0; i < NUM_ISING_CORES; i++) {
             fail |= lagd_check_energy_fifo_data(i);
         }
-        if (fail==0) {
+        if (fail == 0) {
             printf("PASS\r\n");
         } else {
             printf("FAIL\r\n");

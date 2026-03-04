@@ -67,7 +67,7 @@ int main(void) {
     // read back debug data from l1_f_mem and print
     if (VERIFICATION_TEST) {
         fail |= lagd_check_l1_f_mem(CORE_TESTED, DEBUG_SPIN_READ_NUM + 1);
-        if (fail==0) {
+        if (fail == 0) {
             printf("PASS\r\n");
         } else {
             printf("FAIL\r\n");

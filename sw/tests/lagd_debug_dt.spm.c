@@ -73,7 +73,7 @@ int main(void) {
     if (VERIFICATION_TEST) {
         fail |= lagd_check_debug_wbl_read_data(CORE_TESTED);
         fail |= lagd_check_debug_wblb_read_data(CORE_TESTED);
-        if (fail==0) {
+        if (fail == 0) {
             printf("PASS\r\n");
         } else {
             printf("FAIL\r\n");
