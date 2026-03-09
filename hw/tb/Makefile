@@ -117,8 +117,8 @@ VOPT_ARGS += +acc=pr+tb_lagd_chip. +noacc=p+p+tb_lagd_chip.fix. -O5
 else ifeq ($(VCD_DUMP),1)
 VOPT_ARGS += +acc
 DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\" VCD_DUMP=1 END_SIM_AT_VCD_STOP=1
-DEFINES += VCD_START=fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.cmpt_en_i==1
-DEFINES += VCD_STOP=fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10
+DEFINES += VCD_START=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.cmpt_en_i==1
+DEFINES += VCD_STOP=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10
 else ifneq ($(SDF_FILE),)
 VOPT_ARGS += +acc
 else
