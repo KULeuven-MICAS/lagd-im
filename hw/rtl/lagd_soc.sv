@@ -40,10 +40,8 @@ module lagd_soc import lagd_pkg::*; (
     input logic [3:0] spi_sdi_i,
     output logic [3:0] spi_sdo_o,
     // Galena wires
-    inout wire [`NUM_ISING_CORES-1:0] galena_j_iref_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_j_vup_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_j_vdn_i,
-    inout wire [`NUM_ISING_CORES-1:0] galena_h_iref_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_h_vup_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_h_vdn_i,
     inout wire [`NUM_ISING_CORES-1:0] galena_vread_i
@@ -197,10 +195,8 @@ module lagd_soc import lagd_pkg::*; (
                 .reg_s_req_i       (reg_ext_req[i]                          ),
                 .reg_s_rsp_o       (reg_ext_rsp[i]                          ),
                 // Galena wires
-                .galena_j_iref_i   (galena_j_iref_i[i]                      ),
                 .galena_j_vup_i    (galena_j_vup_i[i]                       ),
                 .galena_j_vdn_i    (galena_j_vdn_i[i]                       ),
-                .galena_h_iref_i   (galena_h_iref_i[i]                      ),
                 .galena_h_vup_i    (galena_h_vup_i[i]                       ),
                 .galena_h_vdn_i    (galena_h_vdn_i[i]                       ),
                 .galena_vread_i    (galena_vread_i[i]                       )
