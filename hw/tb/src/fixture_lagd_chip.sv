@@ -217,7 +217,10 @@ module fixture_lagd_chip #(
     .axi_ext_mst_req_t(lagd_axi_mst_req_t),
     .axi_ext_mst_rsp_t(lagd_axi_mst_rsp_t),
     .axi_ext_llc_req_t(lagd_axi_slv_req_t),
-    .axi_ext_llc_rsp_t(lagd_axi_slv_rsp_t)
+    .axi_ext_llc_rsp_t(lagd_axi_slv_rsp_t),
+    .ClkPeriodSys(2ns),
+    .ClkPeriodJtag(5ns),
+    ClkPeriodRtc()
   ) vip (
     .clk(clk),
     .rst_n(rst_n),
