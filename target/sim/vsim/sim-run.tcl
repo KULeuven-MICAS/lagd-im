@@ -40,7 +40,7 @@ vmap
 # vopt_flag is redundant here because vopt is already applied in build.tcl
 
 # Run simulation
-if { ${DBG} == 1 } {
+if { ${DBG} > 0 } {
     set VSIM_OPTS [list \
         -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
         -novopt -suppress 12110 \
@@ -60,7 +60,7 @@ vsim -quiet \
     ${OBJ}
 #    -L work_lib \
 
-if { ${DBG} == 1 } {
+if { ${DBG} > 0 } {
     # Save all signals in vcd
     log -r /*
 }
