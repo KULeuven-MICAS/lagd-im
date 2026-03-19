@@ -260,14 +260,17 @@ module fixture_lagd_chip #(
   // Assign bidirectional behavior to spis_sd_io
   assign spis_sd_io = spis_drive_enable ? spis_sd_i : 4'bz; 
   `include "lagd_test/spi_test_lib.sv"
+  logic spi_test_done;
   initial begin
-    #10ns;
+    spi_test_done <= 0;
+    #400ns;
     spi_init();
     #100ns;
     // Switch the clocks on
     spi_write_u32(32'h0000001f, 32'h8000_0000);
-    #1us;
-    spi_read_u32(32'h8000_0000); 
+    #1.5us;
+    spi_read_u32(32'h8000_0000);
+    spi_test_done <= 1;
   end
   // Connect the CHIP SPI signals using the tc io cell
   assign spi_sck_i = spis_sck_i;
