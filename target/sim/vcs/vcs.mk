@@ -1,0 +1,123 @@
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# VCS simulation backend — mirrors the structure of vsim/vsim.mk
+
+SIM_DIR ?= $(shell basename $(CURDIR))/..
+
+# BUILD_TARGET: the compiled+elaborated simv binary
+# RUN_TARGET:   sentinel stamp file created after a successful simulation run
+BUILD_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/simv_$(s))
+RUN_TARGET   ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/simv_$(s).done)
+RUN_DEPS     ?=
+
+VCS ?= vcs
+
+# ============================================================
+# Compile / elaborate flags
+# ============================================================
+
+VCS_BASE_FLAGS := -sverilog -timescale=1ns/1ps -Mupdate
+
+# Set 64-bit mode (default ON, disable with XLEN32=1)
+ifndef XLEN32
+  VCS_BASE_FLAGS += -full64
+endif
+
+# Debug / waveform visibility
+ifeq ($(DBG), 1)
+  VCS_BASE_FLAGS += -debug_access+all+dmptf -kdb
+else
+  VCS_BASE_FLAGS += -debug_access+r
+endif
+
+# SDF annotation (caller sets SDF_SCOPE and SDF_FILE)
+POST_PNR ?= 0
+ifeq ($(POST_PNR), 0)
+  VCS_BASE_FLAGS += +notimingchecks
+endif
+ifneq ($(SDF_FILE),)
+  VCS_BASE_FLAGS += -sdf max:$(SDF_SCOPE):$(SDF_FILE)
+endif
+
+# Pass through additional compile-time flags from caller (keep same name as vsim flow)
+VCS_BASE_FLAGS += $(VLOG_FLAGS)
+
+# Defines  : "A B=2" → "+define+A +define+B=2"
+VCS_DEFINES  := $(foreach d,$(DEFINES),+define+$(d))
+
+# Include dirs : "dir1 dir2" → "+incdir+dir1 +incdir+dir2"
+# Caller must populate INCLUDE_DIRS with a space-separated list of directory paths.
+VCS_INCDIRS  := $(foreach d,$(INCLUDE_DIRS),+incdir+$(d))
+
+# Parameters: "A=1 B=2" → "-pvalue+tb_SIM_NAME.A=1 -pvalue+tb_SIM_NAME.B=2"
+VCS_PARAMS   := $(foreach p,$(PARAMS),-pvalue+tb_$(SIM_NAME).$(p))
+
+# Optional bender-generated filelist (passed as -f <file> to vcs).
+# When VCS_FLIST is set, HDL_FILES can contain just the top-level tb file(s).
+VCS_FLIST ?=
+VCS_FLIST_FLAG := $(if $(VCS_FLIST),-f $(VCS_FLIST),)
+
+VCS_TOP      := tb_$(SIM_NAME)
+
+# ============================================================
+# Simulation (simv) flags
+# ============================================================
+
+VCS_RUN_FLAGS ?=
+
+ifeq ($(DBG), 1)
+  ifneq ($(NO_GUI), 1)
+    VCS_RUN_FLAGS += -gui=verdi
+  endif
+endif
+
+# ============================================================
+# Build target: VCS compile + elaborate → simv binary
+# ============================================================
+
+$(BUILD_TARGET): $(HDL_FILES) $(INCLUDE_FILES) $(VCS_FLIST)
+	@mkdir -p $(dir $@)
+	$(VCS) $(VCS_BASE_FLAGS) \
+	    $(VCS_DEFINES) \
+	    $(VCS_INCDIRS) \
+	    $(VCS_SV_LIBS) \
+	    $(VCS_FLIST_FLAG) \
+	    $(HDL_FILES) \
+	    -top $(VCS_TOP) \
+	    $(VCS_PARAMS) \
+	    -o $@ \
+	    2>&1 | tee $(dir $@)/compile.log
+
+# ============================================================
+# Run target: execute the simv binary, write a stamp on success
+# ============================================================
+
+$(RUN_TARGET): $(BUILD_TARGET) $(TEST_FILES)
+	$(BUILD_TARGET) \
+	    $(VCS_RUN_FLAGS) \
+	    $(VSIM_FLAGS) \
+	    -l $(dir $@)/sim.log
+	@touch $@
+
+vcs-run: $(RUN_TARGET) $(RUN_DEPS)
+
+vcs-build: $(BUILD_TARGET)
+
+vcs-clean-sim:
+	rm -rf $(foreach s,$(SIM_NAME), \
+	    $(WORK_DIR)/$(s)/simv_$(s).done \
+	    $(WORK_DIR)/$(s)/sim.log \
+	    $(WORK_DIR)/$(s)/*.vcd \
+	    $(WORK_DIR)/$(s)/*.vpd)
+
+vcs-clean:
+	rm -rf $(WORK_DIR)
+
+# Aliases (keeps the same interface as vsim.mk so callers can use build/run/clean-all)
+build: vcs-build
+run: vcs-run
+clean-all: vcs-clean
+

@@ -10,6 +10,9 @@ PROJECT_ROOT ?= $(realpath ../../../)
 # PATHS
 SIM_DIR = $(PROJECT_ROOT)/target/sim
 
+# Simulation backend: vsim (default) or vcs
+SIM_TOOL ?= vsim
+
 ifdef LEAF
 	SIM_NAME := $(LEAF)
 else
@@ -31,5 +34,12 @@ HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) 
 $(info HDL_FILES: $(HDL_FILES))
 INCLUDE_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_DIRS)
 $(info INCLUDE_FILES: $(INCLUDE_FILES))
+
+# For VCS, also extract the raw include directory paths (needed for +incdir+ flags).
+# This uses --raw so that directory paths are returned instead of individual header files.
+ifeq ($(SIM_TOOL),vcs)
+INCLUDE_DIRS ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_DIRS --raw)
+$(info INCLUDE_DIRS: $(INCLUDE_DIRS))
+endif
 
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
