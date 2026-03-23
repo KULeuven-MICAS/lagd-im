@@ -51,16 +51,16 @@ module pll_tester (
 
         // Send packed configuration data
         for (int i=$size(packed_test_cfg)-1; i>=0; i--) begin
-            repeat (1) @(posedge clk_i);
-            data_o <= #1 packed_test_cfg[i];
-            #4;
-            data_strb_o <= #1 1;
-            @(posedge clk_i);
+            repeat (2) @(posedge clk_i);
+            data_o <= packed_test_cfg[i];
+            repeat (2) @(posedge clk_i);
+            data_strb_o <= 1;
+            repeat (2) @(posedge clk_i);
             data_strb_o <= #1 0;
         end
 
         // Do the valid strobe
-        repeat (1) @(posedge clk_i);
+        repeat (10) @(posedge clk_i);
         cfg_vld_strb_o <= #1 1;
         repeat (1) @(posedge clk_i);
         cfg_vld_strb_o <= #1 0;

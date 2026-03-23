@@ -121,6 +121,7 @@ DEFINES += VCD_START=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores
 DEFINES += VCD_STOP=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10
 else ifneq ($(SDF_FILE),)
 VOPT_ARGS += +acc
+DEFINES += TETRAMAX=1
 else
 VOPT_ARGS += -O5
 endif
@@ -135,7 +136,7 @@ VSIM_FLAGS += +notimingchecks
 endif
 # Add else here to list all tcheck_set OFF
 ifneq ($(SDF_FILE),)
-VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE)
+VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE) -t 1ps
 VSIM_FLAGS += -sdfreport=$(WORK_DIR)/sdf_report.log -sdfnoerror +permissive-off
 endif
 # VSIM_FLAGS += -sv_lib libelfloader
