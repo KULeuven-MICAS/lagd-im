@@ -220,9 +220,9 @@ module tb_energy_monitor;
             $fatal(1, "Testbench timeout reached. Ending simulation.");
         end
         else begin
-            // #(200000 * CLKCYCLE);
-            // $display("Testbench timeout reached. Ending simulation.");
-            // $finish;
+            #(200000 * CLKCYCLE);
+            $display("Testbench timeout reached. Ending simulation.");
+            $finish;
         end
     end
 
