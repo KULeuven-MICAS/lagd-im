@@ -65,7 +65,7 @@ if { ${SKIP_VOPT} == 0 } {
     puts "Skipping vopt."
 }
 
-file rename -force ./modelsim.ini ${WORK_DIR}/modelsim.ini
+file rename -force ./modelsim.ini ${WORK_DIR}/${SIM_NAME}/modelsim.ini
 
 if { $BUILD_ONLY == 1 } {
     quit
