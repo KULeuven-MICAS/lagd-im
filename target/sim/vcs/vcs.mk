@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 # VCS simulation backend — mirrors the structure of vsim/vsim.mk
 
 SIM_DIR ?= $(shell basename $(CURDIR))/..
@@ -33,6 +34,8 @@ else
   VCS_BASE_FLAGS += -debug_access+r
 endif
 
+VCD_FILE ?= ${WORK_DIR}/${SIM_NAME}/tb_${SIM_NAME}.vcd
+
 # SDF annotation (caller sets SDF_SCOPE and SDF_FILE)
 POST_PNR ?= 0
 ifeq ($(POST_PNR), 0)
@@ -46,7 +49,16 @@ endif
 VCS_BASE_FLAGS += $(VLOG_FLAGS)
 
 # Defines  : "A B=2" → "+define+A +define+B=2"
-VCS_DEFINES  := $(foreach d,$(DEFINES),+define+$(d))
+# Each define token is shell-quoted to survive values containing single quotes
+# (for example: test_mode='b000).
+dq := "
+esc_dq := \\\" 
+VCS_RTL_DEFINES := $(DEFINES)
+ifeq ($(DBG), 1)
+	VCS_RTL_DEFINES += DBG=1
+	VCS_RTL_DEFINES += VCD_FILE="$(VCD_FILE)"
+endif
+VCS_DEFINES  := $(foreach d,$(VCS_RTL_DEFINES),'+define+$(subst ','"'"',$(subst $(strip $(esc_dq)),$(dq),$(d)))')
 
 # Include dirs : "dir1 dir2" → "+incdir+dir1 +incdir+dir2"
 # Caller must populate INCLUDE_DIRS with a space-separated list of directory paths.
@@ -114,7 +126,7 @@ vcs-clean-sim:
 	    $(WORK_DIR)/$(s)/*.vpd)
 
 vcs-clean:
-	rm -rf $(WORK_DIR)
+	rm -rf $(WORK_DIR) $(CSRC_DIR)
 
 # Aliases (keeps the same interface as vsim.mk so callers can use build/run/clean-all)
 build: vcs-build
