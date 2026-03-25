@@ -26,7 +26,7 @@
 // - None
 
 `include "common_cells/registers.svh"
-`include "../include/lagd_platform.svh"
+`include "lagd_platform.svh"
 
 module accumulator #(
     parameter int IN_WIDTH = 16,

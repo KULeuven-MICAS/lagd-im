@@ -18,5 +18,6 @@ set HDL_FILES [ list \
 ]
 
 set INCLUDE_DIRS [list \
+    "${HDL_PATH}/include" \
     "[exec bender path common_cells]/include" \
 ]
