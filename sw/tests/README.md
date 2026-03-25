@@ -2,6 +2,12 @@
 
 This folder contains all tests for the LAGD chip in C program.
 
+Note: please activate pixi environment first. Otherwise, it raises errors on incorrect gcc version. To activate pixi, run:
+
+```bash
+pixi shell
+```
+
 ## HelloWorld test
 
 File [helloworld.spm.c](./helloworld.spm.c) contains the most basic hello world test. Correctly finishing this program means the L2 memory is functional.
