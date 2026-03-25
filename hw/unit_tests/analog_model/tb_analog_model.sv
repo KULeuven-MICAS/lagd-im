@@ -18,11 +18,11 @@
 `endif
 
 `ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 "../../unit_tests/digital_macro/data/states_out_1"
+`define STATE_OUT_FILE_1 "../../../sw/tests/data/default/states_out_1"
 `endif
 
 `ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 "../../unit_tests/digital_macro/data/states_out_2"
+`define STATE_OUT_FILE_2 "../../../sw/tests/data/default/states_out_2"
 `endif
 
 import galena_pkg::*;
