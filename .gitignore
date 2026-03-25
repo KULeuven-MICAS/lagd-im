@@ -228,6 +228,10 @@ alib-52/
 runs/
 .dc-tmp/
 
+# vcs generated files
+csrc/
+ucli.key
+
 # Autotest results
 results/
 
