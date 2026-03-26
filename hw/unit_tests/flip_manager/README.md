@@ -4,8 +4,16 @@
 
 This testbench is for testing the function and performance of the flip manager module. Enter the command below to run the testbench:
 
+```bash
+./ci/ut-run.sh --test=flip_manager --clean
 ```
-./ci/ut-run.sh --test=flip_manager
+
+To simulate by vcs, add the option: `--tool=vcs`
+
+To change the seed for random number generation in the testbench, use command:
+
+```bash
+VSIM_FLAGS='+SEED=12345' ./ci/ut-run.sh --test=flip_manager --clean --tool=vcs
 ```
 
 ## Testbench parameters (applied value)

@@ -67,6 +67,8 @@ module tb_flip_manager;
 
     logic configure_test_done;
     logic spin_pop_handshake;
+    integer rng_seed;
+    logic rng_seed_ready;
 
     // Task monitoring variables
     integer configure_counter;
@@ -102,6 +104,14 @@ module tb_flip_manager;
         en_i = 1;
         en_comparison_i = ENABLE_ENERGY_COMPARISON;
         icon_last_raddr_plus_one_i = FLIP_ICON_DEPTH;
+    end
+
+    initial begin
+        if (!$value$plusargs("SEED=%d", rng_seed)) begin
+            rng_seed = 1;
+        end
+        rng_seed_ready = 1'b1;
+        $display("Random seed: %0d", rng_seed);
     end
 
     // Module instantiation
@@ -182,6 +192,7 @@ module tb_flip_manager;
     // Task for spin configuration
     task automatic configure_spin();
         begin
+            process::self().srandom(rng_seed + 32'h1001);
             configure_counter = 0;
             flush_counter = 0;
             configure_test_done = 0;
@@ -352,6 +363,7 @@ module tb_flip_manager;
                 spin_pop_ready_host = 0;
                 cmpt_en_i = 1;
                 @(posedge clk_i);
+                #(0.1 * CLKCYCLE);
                 cmpt_en_i = 0;
                 // wait for completion
                 do @(posedge clk_i);
@@ -421,6 +433,7 @@ module tb_flip_manager;
     task automatic energy_monitor_interface();
         begin
             integer i = 0;
+            process::self().srandom(rng_seed + 32'h2001);
             while (!rst_ni) begin
                 energy_valid_i = 0;
                 energy_i = {1'b0, {(ENERGY_TOTAL_BIT-1){1'b1}}};
@@ -575,6 +588,7 @@ module tb_flip_manager;
     // Testbench task and timer setup
     // ========================================================================
     initial begin
+        wait (rng_seed_ready == 1'b1);
         fork
             configure_spin();
             flip_icon_rdata_interface();
