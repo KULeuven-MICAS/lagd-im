@@ -4,7 +4,7 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 # Author: Jiacong Sun <jiacong.sun@kuleuven.be>
-# VCS simulation backend — mirrors the structure of vsim/vsim.mk
+# VCS simulation backend - mirrors the structure of vsim/vsim.mk
 
 SIM_DIR ?= $(shell basename $(CURDIR))/..
 
@@ -48,7 +48,7 @@ endif
 # Pass through additional compile-time flags from caller (keep same name as vsim flow)
 VCS_BASE_FLAGS += $(VLOG_FLAGS)
 
-# Defines  : "A B=2" → "+define+A +define+B=2"
+# Defines  : "A B=2" -> "+define+A +define+B=2"
 # Each define token is shell-quoted to survive values containing single quotes
 # (for example: test_mode='b000).
 dq := "
@@ -60,11 +60,11 @@ ifeq ($(DBG), 1)
 endif
 VCS_DEFINES  := $(foreach d,$(VCS_RTL_DEFINES),'+define+$(subst ','"'"',$(subst $(strip $(esc_dq)),$(dq),$(d)))')
 
-# Include dirs : "dir1 dir2" → "+incdir+dir1 +incdir+dir2"
+# Include dirs : "dir1 dir2" -> "+incdir+dir1 +incdir+dir2"
 # Caller must populate INCLUDE_DIRS with a space-separated list of directory paths.
 VCS_INCDIRS  := $(foreach d,$(INCLUDE_DIRS),+incdir+$(d))
 
-# Parameters: "A=1 B=2" → "-pvalue+tb_SIM_NAME.A=1 -pvalue+tb_SIM_NAME.B=2"
+# Parameters: "A=1 B=2" -> "-pvalue+tb_SIM_NAME.A=1 -pvalue+tb_SIM_NAME.B=2"
 VCS_PARAMS   := $(foreach p,$(PARAMS),-pvalue+tb_$(SIM_NAME).$(p))
 
 # Optional bender-generated filelist (passed as -f <file> to vcs).
@@ -87,8 +87,10 @@ ifeq ($(DBG), 1)
 endif
 
 # ============================================================
-# Build target: VCS compile + elaborate → simv binary
+# Build target: VCS compile + elaborate -> simv binary
 # ============================================================
+
+$(info: BUILD_TARGET=$(BUILD_TARGET))
 
 $(BUILD_TARGET): $(HDL_FILES) $(INCLUDE_FILES) $(VCS_FLIST)
 	@mkdir -p $(dir $@)
