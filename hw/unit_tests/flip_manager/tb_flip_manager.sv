@@ -170,7 +170,7 @@ module tb_flip_manager;
     // Run tests
     initial begin
         if (`DBG) begin
-            $display("Debug mode enabled. Running with detailed output.");
+            $display("Debug mode enabled. Generating VCD waveform file: %s", `VCD_FILE);
             $dumpfile(`VCD_FILE);
             $dumpvars(4, tb_flip_manager); // Dump all variables in testbench module
             $timeformat(-9, 1, " ns", 9);
