@@ -41,7 +41,7 @@ vmap
 
 # Run simulation
 set VSIM_OPTS [list \
-    -wlf ${WORK_DIR}/${SIM_NAME}/work/${SIM_NAME}.wlf \
+    -wlf ${WORK_DIR}/${SIM_NAME}/work/tb_${SIM_NAME}.wlf \
 ]
 
 if { ${DBG} > 0 } {
