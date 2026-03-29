@@ -45,10 +45,10 @@ PHONY_SYN := target-syn-all target-syn-clean-all
 
 # TODO: make flist generation a dependency of the run target
 soc-tb-flist: ./Bender.yml
-	$(MAKE) -C hw/tb flist
+	$(MAKE) -C hw/tb flist SIM_TOOL=$(SIM_TOOL)
 
 run-soc: soc-tb-flist
-	$(MAKE) -C hw/tb run
+	$(MAKE) -C hw/tb run SIM_TOOL=$(SIM_TOOL)
 
 PHONY_SOC_SIM := soc-tb-flist run-soc
 

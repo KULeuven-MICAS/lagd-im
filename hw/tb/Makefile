@@ -6,7 +6,7 @@
 
 # TODO: fix dep graph to avoid re-building RTL everytime
 
-SIM_TOOL := vsim
+SIM_TOOL ?= vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -102,7 +102,7 @@ SIM_NAME ?= lagd_chip
 # TODO: move RUN_ID support in the backend script
 RUN_ID ?= 
 ifneq ($(RUN_ID),)
-	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)-$(RUN_ID)
+	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)-id$(RUN_ID)
 else
 	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 endif
@@ -153,5 +153,5 @@ DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
 RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
 
-clean: vsim-clean
+clean: $(SIM_TOOL)-clean
 	rm -f $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl
