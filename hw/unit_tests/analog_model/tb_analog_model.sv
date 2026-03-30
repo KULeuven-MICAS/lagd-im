@@ -47,10 +47,8 @@ module tb_analog_model;
     parameter CLKCYCLE = 2;
 
     // testbench internal signals
-    wire j_iref_aio;
     wire j_vup_aio;
     wire j_vdn_aio;
-    wire h_iref_aio;
     wire h_vup_aio;
     wire h_vdn_aio;
     wire vread_aio;
@@ -74,10 +72,8 @@ module tb_analog_model;
     // Module instantiation
     galena #(
     ) dut (
-        .j_iref_aio     (j_iref_aio     ),
         .j_vup_aio      (j_vup_aio      ),
         .j_vdn_aio      (j_vdn_aio      ),
-        .h_iref_aio     (h_iref_aio     ),
         .h_vup_aio      (h_vup_aio      ),
         .h_vdn_aio      (h_vdn_aio      ),
         .vread_aio      (vread_aio      ),
