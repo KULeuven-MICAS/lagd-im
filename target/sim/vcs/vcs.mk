@@ -80,13 +80,20 @@ VCS_BASE_FLAGS += $(VLOG_FLAGS)
 
 # Defines: preserve escaping from caller (for example PRELOAD_ELF=\"path\")
 # and emit each token as a +define argument for VCS.
+# Extract PROJECT_ROOT separately so it can be properly formatted
+VCS_PROJECT_ROOT := $(filter PROJECT_ROOT=%,$(DEFINES))
 VCS_RTL_DEFINES := $(filter-out PROJECT_ROOT=%,$(DEFINES))
 VCS_RTL_DEFINES += TARGET_VCS
 ifeq ($(DBG), 1)
 	VCS_RTL_DEFINES += DBG=1
 	VCS_RTL_DEFINES += VCD_FILE="$(VCD_FILE)"
 endif
-VCS_DEFINES  := $(foreach d,$(VCS_RTL_DEFINES),+define+$(d))
+# Add PROJECT_ROOT with proper path escaping for VCS
+ifdef VCS_PROJECT_ROOT
+	VCS_DEFINES := +define+$(VCS_PROJECT_ROOT) $(foreach d,$(VCS_RTL_DEFINES),+define+$(d))
+else
+	VCS_DEFINES  := $(foreach d,$(VCS_RTL_DEFINES),+define+$(d))
+endif
 
 # Include dirs : "dir1 dir2" -> "+incdir+dir1 +incdir+dir2"
 # Caller must populate INCLUDE_DIRS with a space-separated list of directory paths.

@@ -17,12 +17,26 @@
 `define DATA_FROM_FILE 0
 `endif
 
-`ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 "../../../sw/tests/data/default/states_out_1"
+`ifndef PROJECT_ROOT
+`define PROJECT_ROOT ../../../
 `endif
 
-`ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 "../../../sw/tests/data/default/states_out_2"
+`ifdef TARGET_VCS
+  // For VCS, use absolute paths constructed from PROJECT_ROOT
+  `ifndef STATE_OUT_FILE_1
+  `define STATE_OUT_FILE_1 {`PROJECT_ROOT, "sw/tests/data/default/states_out_1"}
+  `endif
+  `ifndef STATE_OUT_FILE_2
+  `define STATE_OUT_FILE_2 {`PROJECT_ROOT, "sw/tests/data/default/states_out_2"}
+  `endif
+`else
+  // For VSIM and others, use relative paths
+  `ifndef STATE_OUT_FILE_1
+  `define STATE_OUT_FILE_1 "../../../sw/tests/data/default/states_out_1"
+  `endif
+  `ifndef STATE_OUT_FILE_2
+  `define STATE_OUT_FILE_2 "../../../sw/tests/data/default/states_out_2"
+  `endif
 `endif
 
 import galena_pkg::*;
