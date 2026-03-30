@@ -88,6 +88,7 @@ run_ut_test "./ci/ut-run.sh --test=flip_manager --tool=vcs |& tee $LOG_DIR/flip_
 run_ut_test "./ci/ut-run.sh --test=energy_monitor --tool=vsim |& tee $LOG_DIR/energy_monitor_sim_vsim.log" "energy_monitor (vsim)"
 run_ut_test "./ci/ut-run.sh --test=digital_macro --tool=vsim |& tee $LOG_DIR/digital_macro_sim_vsim.log" "digital_macro (vsim)"
 run_ut_test "./ci/ut-run.sh --test=analog_macro_wrap --tool=vsim |& tee $LOG_DIR/analog_macro_wrap_sim_vsim.log" "analog_macro_wrap (vsim)"
+run_ut_test "./ci/ut-run.sh --test=ising_core_wrap --tool=vsim |& tee $LOG_DIR/ising_core_wrap_sim_vsim.log" "ising_core_wrap (vsim)"
 
 echo "========================================"
 echo "Running System Tests (sys-run.sh)"
