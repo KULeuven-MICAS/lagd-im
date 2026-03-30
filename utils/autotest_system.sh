@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Enable pipefail to catch errors in tee pipelines
+set -o pipefail
+
 # Wrapper to run this script in pixi environment
 if [ -z "$PIXI_ENVIRONMENT_NAME" ]; then
     exec pixi run bash "$0" "$@"
@@ -18,6 +21,7 @@ passed=0
 LOG_DIR="utils/logs"
 
 # Create logs directory if it doesn't exist
+rm -rf "$LOG_DIR"
 mkdir -p "$LOG_DIR"
 
 # Function to run sys-run.sh commands
@@ -35,6 +39,7 @@ run_sys_test() {
         local end_time=$(date +%s)
         local elapsed=$((end_time - start_time))
         echo -e "${RED}FAILED${NC} (${elapsed}s)"
+        exit 1
     fi
     ((total++))
     echo ""
@@ -55,6 +60,7 @@ run_ut_test() {
         local end_time=$(date +%s)
         local elapsed=$((end_time - start_time))
         echo -e "${RED}FAILED${NC} (${elapsed}s)"
+        exit 1
     fi
     ((total++))
     echo ""
