@@ -217,6 +217,7 @@ module master_spi_vip (
     reg [3:0] miso_data;  // Data received from SPI (slave out)
     integer file;
     integer file_size;
+    integer fseek_status;
 
     // Start to load binaries from file
     // Wait for a clock edge to align
@@ -259,9 +260,9 @@ module master_spi_vip (
       $display("Error: Could not open file %s", path);
       return;
     end
-    $fseek(file, 0, `SEEK_END);
+    fseek_status = $fseek(file, 0, `SEEK_END);
     file_size = $ftell(file);
-    $fseek(file, 0, `SEEK_SET);
+    fseek_status = $fseek(file, 0, `SEEK_SET);
 
     // Read the file in chunks of 4 bytes
     for (i = 0; i < file_size; i = i + 4) begin

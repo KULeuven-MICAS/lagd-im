@@ -10,6 +10,12 @@ SIM_TOOL ?= vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# Automatically remove simulator-generated DB artifacts under hw/tb after runs.
+# Set CLEAN_SIM_DB=0 to retain them for debug.
+CLEAN_SIM_DB ?= 0
+SIM_DB_DIRS ?= $(TEST_PATH)/AN.DB $(TEST_PATH)/NOVAS.DB
+SIM_DB_FILE_GLOBS ?= -name "*.db" -o -name "*.DB"
+
 # Paths
 PROJECT_ROOT ?= $(abspath $(CURDIR)/../..)
 include $(PROJECT_ROOT)/common.mk
@@ -40,13 +46,15 @@ endif
 
 # Memory island hdl_file_list.tcl generation
 SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
-CHS_ROOT := $(shell $(BENDER) path cheshire)
+# Keep bender list Tcl-compatible because hdl_file_list.tcl sources it.
+# VCS compilation consumes parsed HDL files from hdl_file_list.tcl, not bender's bash script backend.
+BENDER_FLIST_TOOL ?= vsim
 CXX_PATH := $(shell which g++)
 
 flist: $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl
 
 $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
-	$(BENDER) script $(SIM_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
+	$(BENDER) script $(BENDER_FLIST_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
 	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
 		-cpppath "$(CXX_PATH)"' >> $@
 
@@ -106,7 +114,29 @@ ifneq ($(RUN_ID),)
 else
 	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)
 endif
-HDL_FILES ?=
+UTIL_PATH ?= $(PROJECT_ROOT)/tools/utils
+HDL_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t HDL_FILES)
+INCLUDE_FILES ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_DIRS)
+
+ifeq ($(SIM_TOOL),vcs)
+VCS_BENDER_HDL_FILES ?= $(shell [ -f $(TEST_PATH)/bender_list.tcl ] && python3 $(UTIL_PATH)/parse_bender_vlog_tcl.py -f $(TEST_PATH)/bender_list.tcl -t HDL_FILES || true)
+VCS_BENDER_INCLUDE_DIRS ?= $(shell [ -f $(TEST_PATH)/bender_list.tcl ] && python3 $(UTIL_PATH)/parse_bender_vlog_tcl.py -f $(TEST_PATH)/bender_list.tcl -t INCLUDE_DIRS --raw || true)
+VCS_EXCLUDE_HDL := %/src/apb_uart_wrap.sv %/src/reg_uart_wrap.sv
+VCS_EXCLUDE_HDL += %/src/deprecated/sram.sv %/test/tb_tc_sram.sv %/hw/cheshire_soc.sv
+VCS_OVERRIDE_HDL := $(PROJECT_ROOT)/hw/tb/vcs_overrides/cheshire_soc.sv
+VCS_OVERRIDE_HDL += $(PROJECT_ROOT)/hw/tb/vcs_overrides/apb_uart_wrap.sv
+VCS_OVERRIDE_HDL += $(PROJECT_ROOT)/hw/tb/vcs_overrides/reg_uart_wrap.sv
+
+VCS_BENDER_HDL_FILES := $(filter-out $(VCS_EXCLUDE_HDL),$(VCS_BENDER_HDL_FILES))
+
+HDL_FILES += $(VCS_BENDER_HDL_FILES)
+HDL_FILES := $(filter-out $(VCS_EXCLUDE_HDL),$(HDL_FILES))
+# get_hdl_flist.py does not evaluate Tcl `source`/`lappend`; add TB top explicitly for VCS elaboration.
+HDL_FILES += $(TEST_PATH)/src/tb_$(SIM_NAME).sv
+HDL_FILES += $(VCS_OVERRIDE_HDL)
+INCLUDE_DIRS ?= $(shell python3 $(UTIL_PATH)/get_hdl_flist.py -f $(HDL_FILES_LIST) -t INCLUDE_DIRS --raw)
+INCLUDE_DIRS += $(VCS_BENDER_INCLUDE_DIRS)
+endif
 DBG ?= 0
 CXX_PATH ?= $(shell which g++)
 
@@ -152,6 +182,10 @@ DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
 
 RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
+
+clean-sim-db:
+	rm -rf $(SIM_DB_DIRS)
+	find $(TEST_PATH) -maxdepth 3 -type f \( $(SIM_DB_FILE_GLOBS) \) -delete
 
 clean: $(SIM_TOOL)-clean
 	rm -f $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl

@@ -7,7 +7,11 @@
 export PROJECT_ROOT := $(shell realpath ./)
 include $(PROJECT_ROOT)/common.mk
 
-# Hierarchical targets -------------------------------------------------
+# Essential simulation variables
+SIM_TOOL ?= vsim
+NO_GUI ?= 1
+DBG ?= 0
+RUN_ID ?=
 
 hw:
 	$(MAKE) -C hw all

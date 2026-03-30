@@ -45,7 +45,7 @@ set VSIM_OPTS [list \
 ]
 
 if { ${DBG} > 0 } {
-    lappend VSIM_OPTS -novopt -suppress 12110
+    lappend VSIM_OPTS -suppress 12110
     #   -voptargs=-debugdb \
     #   -voptargs=+acc # this was the old way but still questa rises a warning?
 }

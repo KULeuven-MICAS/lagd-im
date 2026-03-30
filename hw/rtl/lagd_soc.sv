@@ -47,8 +47,10 @@ module lagd_soc import lagd_pkg::*; (
     inout wire [`NUM_ISING_CORES-1:0] galena_vread_i
 );
 
+    localparam cheshire_pkg::cheshire_cfg_t CheshireCfgLocal = CheshireCfg;
+
     // defines axi and register interface types
-    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, CheshireCfg)
+    `LAGD_TYPEDEF_ALL(lagd_, `IC_L1_J_MEM_DATA_WIDTH, `IC_L1_FLIP_MEM_DATA_WIDTH, CheshireCfgLocal)
 
     //////////////////////////////////////////////////////////
     // Wire declarations /////////////////////////////////////
@@ -66,7 +68,18 @@ module lagd_soc import lagd_pkg::*; (
     // Cheshire instantiation  ///////////////////////////////
     //////////////////////////////////////////////////////////
     cheshire_soc #(
-        .Cfg                (CheshireCfg),
+        .Cfg                (CheshireCfgLocal),
+`ifdef TARGET_VCS
+        .AxiExtNumMstCfg    (CheshireCfgLocal.AxiExtNumMst),
+        .AxiExtNumSlvCfg    (CheshireCfgLocal.AxiExtNumSlv),
+        .RegExtNumSlvCfg    (CheshireCfgLocal.RegExtNumSlv),
+        .NumExtInIntrsCfg   (CheshireCfgLocal.NumExtInIntrs),
+        .NumExtOutIntrTgtsCfg(CheshireCfgLocal.NumExtOutIntrTgts),
+        .NumExtOutIntrsCfg  (CheshireCfgLocal.NumExtOutIntrs),
+        .NumExtClicIntrsCfg (CheshireCfgLocal.NumExtClicIntrs),
+        .NumExtIrqHartsCfg  (CheshireCfgLocal.NumExtIrqHarts),
+        .NumExtDbgHartsCfg  (CheshireCfgLocal.NumExtDbgHarts),
+`endif
         .axi_ext_mst_req_t  (lagd_axi_mst_req_t),
         .axi_ext_mst_rsp_t  (lagd_axi_mst_rsp_t),
         .axi_ext_slv_req_t  (lagd_axi_slv_req_t),

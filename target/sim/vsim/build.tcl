@@ -47,7 +47,7 @@ if { ${SKIP_VOPT} == 0 } {
     # Optimization and object preparation
     if { ${DBG} == 1 } {
         set PREFIX "dbg_"
-        set VOPT_FLAGS [list -debugdb]
+        set VOPT_FLAGS [list -debugdb +acc]
     } else {
         set PREFIX "nodbg_"
         set VOPT_FLAGS ""

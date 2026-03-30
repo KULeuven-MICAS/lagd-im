@@ -18,6 +18,8 @@ Command:
 CORE_TESTED=0 ./ci/sys-run.sh --binary=sw/tests/helloworld.spm.elf
 ```
 
+To explicitly choose the simulator, add the argument `--tool=[vsim | vcs]`. The default simulator is vsim.
+
 ## Register access test
 
 File [lagd_reg.spm.c](./lagd_reg.spm.c) tests if all LAGD CSR can be accessed. It sweeps across entire CSR address region with continuous write and read operations.

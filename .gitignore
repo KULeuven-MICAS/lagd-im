@@ -231,6 +231,7 @@ runs/
 # vcs generated files
 csrc/
 ucli.key
+hw/tb/vc_hdrs.h
 
 # Autotest results
 results/
