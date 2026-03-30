@@ -9,19 +9,15 @@
 `timescale 1ns / 1ps
 
 `ifndef PROJECT_ROOT
-`define PROJECT_ROOT ../../
+`define PROJECT_ROOT "../../"
 `endif
 
-// Convert macro tokens to a quoted string literal.
-`define _STR(x) `"x`"
-`define STR(x) `_STR(x)
-
 `ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 {`STR(`PROJECT_ROOT), "sw/tests/data/default/states_out_1"} // relative to hw/tb/
+`define STATE_OUT_FILE_1 {`PROJECT_ROOT, "sw/tests/data/default/states_out_1"} // relative to hw/tb/
 `endif
 
 `ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 {`STR(`PROJECT_ROOT), "sw/tests/data/default/states_out_2"} // relative to hw/tb/
+`define STATE_OUT_FILE_2 {`PROJECT_ROOT, "sw/tests/data/default/states_out_2"} // relative to hw/tb/
 `endif
 
 `ifndef VERBOSE

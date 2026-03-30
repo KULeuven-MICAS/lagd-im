@@ -3,6 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 PROJECT_ROOT ?= $(abspath $(CURDIR)/../../../)
-DEFINES += PROJECT_ROOT=$(PROJECT_ROOT)/ # for galena behavior model
+DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)/\" # for galena behavior model
 
 include ../common.mk

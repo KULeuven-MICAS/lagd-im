@@ -82,6 +82,11 @@ VCS_BASE_FLAGS += $(VLOG_FLAGS)
 # and emit each token as a +define argument for VCS.
 # Extract PROJECT_ROOT separately so it can be properly formatted
 VCS_PROJECT_ROOT := $(filter PROJECT_ROOT=%,$(DEFINES))
+VCS_PROJECT_ROOT_VALUE := $(patsubst PROJECT_ROOT=%,%,$(VCS_PROJECT_ROOT))
+# Accept both PROJECT_ROOT=/path and PROJECT_ROOT=\"/path\" forms.
+ifeq ($(findstring ",$(VCS_PROJECT_ROOT_VALUE)),)
+VCS_PROJECT_ROOT := PROJECT_ROOT=\"$(VCS_PROJECT_ROOT_VALUE)\"
+endif
 VCS_RTL_DEFINES := $(filter-out PROJECT_ROOT=%,$(DEFINES))
 VCS_RTL_DEFINES += TARGET_VCS
 ifeq ($(DBG), 1)
