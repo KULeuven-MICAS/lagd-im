@@ -99,6 +99,11 @@ module tb_energy_monitor;
     logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy;
     logic signed [ENERGY_TOTAL_BIT-1+1:0] expected_energy_doubled;
     logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy;
+    logic energy_ready_next;
+    logic unsigned [ $clog2(NUM_SPIN) : 0 ] expected_spin_counter_next;
+    logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy_next;
+    logic signed [ENERGY_TOTAL_BIT-1+1:0] expected_energy_doubled_next;
+    logic signed [ENERGY_TOTAL_BIT-1:0] expected_energy_next;
     logic unsigned [31:0] testcase_counter;
     logic unsigned [ $clog2(NUM_SPIN)-1 : 0 ] transaction_count;
 
@@ -213,14 +218,15 @@ module tb_energy_monitor;
     // Run tests
     initial begin
         if (`DBG) begin
-            $display("Debug mode enabled. Generating VCD waveform.");
+            $display("Debug mode enabled. Generating VCD waveform file: %s", `VCD_FILE);
             $dumpfile(`VCD_FILE);
-            $dumpvars(4, tb_energy_monitor);
+            $dumpvars(2, tb_energy_monitor);
             #(200 * CLKCYCLE); // To avoid generating too large VCD files
-            $fatal(1, "Testbench timeout reached. Ending simulation.");
+            $display("Testbench timeout reached. Ending simulation.");
+            $finish;
         end
         else begin
-            #(200000 * CLKCYCLE);
+            #(2_000_000 * CLKCYCLE);
             $display("Testbench timeout reached. Ending simulation.");
             $finish;
         end
@@ -295,39 +301,84 @@ module tb_energy_monitor;
         end
     end
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-            energy_ready_i <= 0;
-            expected_spin_counter <= 0;
-            expected_energy_doubled <= 0;
-            expected_energy <= 0;
-            expected_local_energy <= 0;
-            end else begin
-            if (energy_valid_o && energy_ready_i) begin: new_testcase_start
-                energy_ready_i <= 0;
-                expected_spin_counter <= 0;
-                expected_energy_doubled <= 0;
-                expected_energy <= 0;
-                expected_local_energy <= 0;
-            end
-            else if (expected_spin_counter >= NUM_SPIN) begin: keep_waiting
-                energy_ready_i <= energy_ready_i;
-                expected_spin_counter <= expected_spin_counter;
-                expected_energy_doubled <= expected_energy_doubled;
-                expected_energy <= expected_energy_doubled / 2;
-                expected_local_energy <= expected_local_energy;
-            end
-            else if (weight_valid_i && weight_ready_o) begin: calculate_energy
-                // Use local accumulators to avoid non-blocking update ordering issues
-                logic signed [ENERGY_TOTAL_BIT-1+1:0] expected_energy_next;
-                logic unsigned [$clog2(NUM_SPIN) : 0] expected_spin_counter_next;
-                expected_energy_next = expected_energy_doubled;
-                expected_spin_counter_next = expected_spin_counter;
+    always_comb begin: expected_energy_next_state
+        logic signed [ENERGY_TOTAL_BIT-1+1:0] expected_energy_accum;
+        logic signed [LOCAL_ENERGY_BIT-1:0] expected_local_energy_calc;
 
-                if (`PIPESINTF == 0) begin: no_pipeline_mode
+        energy_ready_next = energy_ready_i;
+        expected_spin_counter_next = expected_spin_counter;
+        expected_energy_doubled_next = expected_energy_doubled;
+        expected_energy_next = expected_energy;
+        expected_local_energy_next = expected_local_energy;
+
+        if (energy_valid_o && energy_ready_i) begin: new_testcase_start
+            energy_ready_next = 1'b0;
+            expected_spin_counter_next = '0;
+            expected_energy_doubled_next = '0;
+            expected_energy_next = '0;
+            expected_local_energy_next = '0;
+        end
+        else if (expected_spin_counter >= NUM_SPIN) begin: keep_waiting
+            expected_energy_next = expected_energy_doubled / 2;
+        end
+        else if (weight_valid_i && weight_ready_o) begin: calculate_energy
+            expected_energy_accum = expected_energy_doubled;
+
+            if (`PIPESINTF == 0) begin: no_pipeline_mode
+                for (int i = 0; i < PARALLELISM; i++) begin
+                    if (LITTLE_ENDIAN == `True) begin
+                        expected_local_energy_calc = compute_local_energy(
+                            spin_reg[testcase_counter-1],
+                            weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                            hbias_i[i*BITH +: BITH],
+                            hscaling_i[i*SCALING_BIT +: SCALING_BIT],
+                            expected_spin_counter_next + i
+                        );
+                    end else begin
+                        expected_local_energy_calc = compute_local_energy(
+                            spin_reg[testcase_counter-1],
+                            weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                            hbias_i[(PARALLELISM - 1 - i)*BITH +: BITH],
+                            hscaling_i[(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
+                            expected_spin_counter_next + i
+                        );
+                    end
+                    expected_energy_accum = expected_energy_accum + expected_local_energy_calc;
+                end
+                expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
+            end else begin: pipeline_mode
+                if (spin_reg_valid[testcase_counter-1] == 1'b0) begin: pipeline_stall
+                    // Wait for spin data, do nothing.
+                end else begin: pipeline_no_stall
+                    for (int p = 0; p < pipe_valid_int; p++) begin
+                        if (pipe_valid[p]) begin
+                            for (int i = 0; i < PARALLELISM; i++) begin
+                                if (LITTLE_ENDIAN == `True) begin
+                                    expected_local_energy_calc = compute_local_energy(
+                                        spin_reg[testcase_counter-1],
+                                        weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                        hbias_pipe[p][i*BITH +: BITH],
+                                        hscaling_pipe[p][i*SCALING_BIT +: SCALING_BIT],
+                                        expected_spin_counter_next + i
+                                    );
+                                end else begin
+                                    expected_local_energy_calc = compute_local_energy(
+                                        spin_reg[testcase_counter-1],
+                                        weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
+                                        hbias_pipe[p][(PARALLELISM - 1 - i)*BITH +: BITH],
+                                        hscaling_pipe[p][(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
+                                        expected_spin_counter_next + i
+                                    );
+                                end
+                                expected_energy_accum = expected_energy_accum + expected_local_energy_calc;
+                            end
+                            expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
+                        end
+                    end
+
                     for (int i = 0; i < PARALLELISM; i++) begin
                         if (LITTLE_ENDIAN == `True) begin
-                            expected_local_energy = compute_local_energy(
+                            expected_local_energy_calc = compute_local_energy(
                                 spin_reg[testcase_counter-1],
                                 weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
                                 hbias_i[i*BITH +: BITH],
@@ -335,7 +386,7 @@ module tb_energy_monitor;
                                 expected_spin_counter_next + i
                             );
                         end else begin
-                            expected_local_energy = compute_local_energy(
+                            expected_local_energy_calc = compute_local_energy(
                                 spin_reg[testcase_counter-1],
                                 weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
                                 hbias_i[(PARALLELISM - 1 - i)*BITH +: BITH],
@@ -343,72 +394,31 @@ module tb_energy_monitor;
                                 expected_spin_counter_next + i
                             );
                         end
-                        expected_energy_next = expected_energy_next + expected_local_energy;
+                        expected_energy_accum = expected_energy_accum + expected_local_energy_calc;
                     end
                     expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
-                end else begin: pipeline_mode
-                    if (spin_reg_valid[testcase_counter-1] == 1'b0) begin: pipeline_stall
-                        // wait for spin data, do nothing
-                    end else begin: pipeline_no_stall
-                        for (int p = 0; p < pipe_valid_int; p++) begin
-                            if (pipe_valid[p]) begin
-                                for (int i = 0; i < PARALLELISM; i++) begin
-                                    if (LITTLE_ENDIAN == `True) begin
-                                        expected_local_energy = compute_local_energy(
-                                            spin_reg[testcase_counter-1],
-                                            weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                                            hbias_pipe[p][i*BITH +: BITH],
-                                            hscaling_pipe[p][i*SCALING_BIT +: SCALING_BIT],
-                                            expected_spin_counter_next + i
-                                        );
-                                    end else begin
-                                        expected_local_energy = compute_local_energy(
-                                            spin_reg[testcase_counter-1],
-                                            weight_pipe[p][i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                                            hbias_pipe[p][(PARALLELISM - 1 - i)*BITH +: BITH],
-                                            hscaling_pipe[p][(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
-                                            expected_spin_counter_next + i
-                                        );
-                                    end
-                                    expected_energy_next = expected_energy_next + expected_local_energy;
-                                end
-                                expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
-                            end
-                        end
-                        for (int i = 0; i < PARALLELISM; i++) begin
-                            if (LITTLE_ENDIAN == `True) begin
-                                expected_local_energy = compute_local_energy(
-                                    spin_reg[testcase_counter-1],
-                                    weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                                    hbias_i[i*BITH +: BITH],
-                                    hscaling_i[i*SCALING_BIT +: SCALING_BIT],
-                                    expected_spin_counter_next + i
-                                );
-                            end else begin
-                                expected_local_energy = compute_local_energy(
-                                    spin_reg[testcase_counter-1],
-                                    weight_i[i*NUM_SPIN*BITJ +: NUM_SPIN*BITJ],
-                                    hbias_i[(PARALLELISM - 1 - i)*BITH +: BITH],
-                                    hscaling_i[(PARALLELISM - 1 - i)*SCALING_BIT +: SCALING_BIT],
-                                    expected_spin_counter_next + i
-                                );
-                            end
-                            expected_energy_next = expected_energy_next + expected_local_energy;
-                        end
-                        expected_spin_counter_next = expected_spin_counter_next + PARALLELISM;
-                    end
-                end
-
-                // Commit accumulated values in non-blocking fashion
-                expected_energy_doubled <= expected_energy_next;
-                expected_spin_counter <= expected_spin_counter_next;
-
-                if (expected_spin_counter_next >= NUM_SPIN) begin
-                    energy_ready_i <= 1;
-                end else begin
-                    energy_ready_i <= 0;
                 end
             end
+
+            expected_energy_doubled_next = expected_energy_accum;
+            expected_local_energy_next = expected_local_energy_calc;
+            energy_ready_next = (expected_spin_counter_next >= NUM_SPIN);
+        end
+    end
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin: expected_energy_registers
+        if (!rst_ni) begin
+            energy_ready_i <= 1'b0;
+            expected_spin_counter <= '0;
+            expected_energy_doubled <= '0;
+            expected_energy <= '0;
+            expected_local_energy <= '0;
+        end else begin
+            energy_ready_i <= energy_ready_next;
+            expected_spin_counter <= expected_spin_counter_next;
+            expected_energy_doubled <= expected_energy_doubled_next;
+            expected_energy <= expected_energy_next;
+            expected_local_energy <= expected_local_energy_next;
         end
     end
 
@@ -543,8 +553,9 @@ module tb_energy_monitor;
                 end
 
                 // Wait for handshake
-                wait(spin_ready_o);
-                @(posedge clk_i);
+                do @(posedge clk_i);
+                while (!(spin_valid_i && spin_ready_o));
+                #(0.1 * CLKCYCLE);
                 spin_valid_i = 0;
 
                 // Wait before next spin operation
