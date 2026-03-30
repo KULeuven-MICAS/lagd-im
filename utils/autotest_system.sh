@@ -39,7 +39,7 @@ run_sys_test() {
     if eval "$cmd" > /dev/null 2>&1; then
         local end_time=$(date +%s)
         local elapsed=$((end_time - start_time))
-        echo "SUCCESS (${elapsed}s)"
+        echo -e "${GREEN}PASSED${NC} (${elapsed}s)"
         ((passed++))
     else
         local end_time=$(date +%s)
