@@ -181,8 +181,7 @@ module tb_flip_manager;
         else begin
             $timeformat(-9, 1, " ns", 9);
             #(50_000 * CLKCYCLE);
-            $display("Testbench timeout reached. Ending simulation.");
-            $finish;
+            $fatal(1, "Testbench timeout reached. Ending simulation.");
         end
     end
 
