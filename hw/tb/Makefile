@@ -138,7 +138,7 @@ VSIM_FLAGS += +notimingchecks
 endif
 # Add else here to list all tcheck_set OFF
 ifneq ($(SDF_FILE),)
-VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE) -t 1ps
+VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE) -t 1ps +sdf_verbose
 VSIM_FLAGS += -sdfreport=$(WORK_DIR)/sdf_report.log -sdfnoerror +permissive-off
 endif
 # VSIM_FLAGS += -sv_lib libelfloader
