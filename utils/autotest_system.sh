@@ -72,12 +72,13 @@ run_ut_test() {
     echo ""
 }
 
+OVERALL_START=$(date +%s)
+
 echo "========================================"
 echo "Running Unit Tests (ut-run.sh)"
 echo "========================================"
 echo ""
 
-OVERALL_START=$(date +%s)
 run_ut_test "./ci/ut-run.sh --test=adder --tool=vsim |& tee $LOG_DIR/adder_sim_vsim.log" "adder (vsim)"
 run_ut_test "./ci/ut-run.sh --test=adder --tool=vcs |& tee $LOG_DIR/adder_sim_vcs.log" "adder (vcs)"
 run_ut_test "./ci/ut-run.sh --test=analog_model --tool=vsim |& tee $LOG_DIR/analog_model_sim_vsim.log" "analog_model (vsim)"
@@ -86,7 +87,6 @@ run_ut_test "./ci/ut-run.sh --test=flip_manager --tool=vsim |& tee $LOG_DIR/flip
 run_ut_test "./ci/ut-run.sh --test=flip_manager --tool=vcs |& tee $LOG_DIR/flip_manager_sim_vcs.log" "flip_manager (vcs)"
 run_ut_test "./ci/ut-run.sh --test=energy_monitor --tool=vsim |& tee $LOG_DIR/energy_monitor_sim_vsim.log" "energy_monitor (vsim)"
 run_ut_test "./ci/ut-run.sh --test=digital_macro --tool=vsim |& tee $LOG_DIR/digital_macro_sim_vsim.log" "digital_macro (vsim)"
-# run_ut_test "./ci/ut-run.sh --test=ising_core_wrap --tool=vsim |& tee $LOG_DIR/ising_core_wrap_sim_vsim.log" "ising_core_wrap (vsim)"
 run_ut_test "./ci/ut-run.sh --test=analog_macro_wrap --tool=vsim |& tee $LOG_DIR/analog_macro_wrap_sim_vsim.log" "analog_macro_wrap (vsim)"
 
 echo "========================================"
