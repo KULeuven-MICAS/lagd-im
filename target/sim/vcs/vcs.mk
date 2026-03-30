@@ -161,10 +161,6 @@ vcs-run: $(BUILD_TARGET) $(TEST_FILES)
 	@if [ -f "$(TEST_PATH)/novas.rc" ]; then \
 		mv "$(TEST_PATH)/novas.rc" "$(dir $(FSDB_FILE))/"; \
 	fi
-	@if [ "$(CLEAN_SIM_DB)" = "1" ]; then \
-		rm -rf $(SIM_DB_DIRS); \
-		find $(TEST_PATH) -maxdepth 3 -type f \( $(SIM_DB_FILE_GLOBS) \) -delete; \
-	fi
 
 vcs-build: $(BUILD_TARGET)
 

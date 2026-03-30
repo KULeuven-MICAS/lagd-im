@@ -10,12 +10,6 @@ SIM_TOOL ?= vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# Automatically remove simulator-generated DB artifacts under hw/tb after runs.
-# Set CLEAN_SIM_DB=0 to retain them for debug.
-CLEAN_SIM_DB ?= 0
-SIM_DB_DIRS ?= $(TEST_PATH)/AN.DB $(TEST_PATH)/NOVAS.DB
-SIM_DB_FILE_GLOBS ?= -name "*.db" -o -name "*.DB"
-
 # Paths
 PROJECT_ROOT ?= $(abspath $(CURDIR)/../..)
 include $(PROJECT_ROOT)/common.mk
@@ -182,10 +176,6 @@ DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
 
 RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
-
-clean-sim-db:
-	rm -rf $(SIM_DB_DIRS)
-	find $(TEST_PATH) -maxdepth 3 -type f \( $(SIM_DB_FILE_GLOBS) \) -delete
 
 clean: $(SIM_TOOL)-clean
 	rm -f $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl
