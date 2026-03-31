@@ -261,8 +261,18 @@ module master_spi_vip (
       return;
     end
     fseek_status = $fseek(file, 0, `SEEK_END);
+    if (fseek_status != 0) begin
+      $display("Error: Could not seek to end of file %s", path);
+      $fclose(file);
+      return;
+    end
     file_size = $ftell(file);
     fseek_status = $fseek(file, 0, `SEEK_SET);
+    if (fseek_status != 0) begin
+      $display("Error: Could not seek to beginning of file %s", path);
+      $fclose(file);
+      return;
+    end
 
     // Read the file in chunks of 4 bytes
     for (i = 0; i < file_size; i = i + 4) begin

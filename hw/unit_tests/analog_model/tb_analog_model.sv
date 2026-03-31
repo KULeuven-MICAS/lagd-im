@@ -18,7 +18,7 @@
 `endif
 
 `ifndef PROJECT_ROOT
-`define PROJECT_ROOT ../../../
+`define PROJECT_ROOT "../../../"
 `endif
 
 `ifdef TARGET_VCS

@@ -14,7 +14,7 @@
 `endif
 
 `ifndef PROJECT_ROOT
-`define PROJECT_ROOT ../../../
+`define PROJECT_ROOT "../../../"
 `endif
 
 `ifndef MODEL_FILE

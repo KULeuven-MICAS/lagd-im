@@ -30,22 +30,30 @@
 `ifdef TARGET_VCS
 `define ASSERT(cond, msg) \
     /* VCS compatibility: disable this macro form for module-scope usage */
+`define SYNC_RUNTIME_ASSERT(cond, msg, clk, rst_n) \
+    always @(posedge clk) begin   \
+        if (rst_n) begin         \
+            assert (cond) else $error("Time %0t: %s", $time, msg); \
+        end                       \
+    end
+`define RUNTIME_ASSERT(cond, msg) \
+    always_comb begin           \
+        assert (cond) else $error("Time %0t: %s", $time, msg); \
+    end
 `else
 `define ASSERT(cond, msg) \
     assert (cond) else $error("Time %0t: %s", $time, msg)
-`endif
-
 `define SYNC_RUNTIME_ASSERT(cond, msg, clk, rst_n) \
     always @(posedge clk) begin   \
         if (rst_n) begin         \
             `ASSERT(cond, msg);   \
         end                       \
     end
-
 `define RUNTIME_ASSERT(cond, msg) \
     always_comb begin           \
         `ASSERT(cond, msg);   \
     end
+`endif
 
 `else // TARGET_SYN
 

@@ -137,7 +137,7 @@ endif
 # Build target: VCS compile + elaborate -> simv binary
 # ============================================================
 
-$(info: BUILD_TARGET=$(BUILD_TARGET))
+$(info BUILD_TARGET=$(BUILD_TARGET))
 
 $(BUILD_TARGET): $(VCS_HDL_FILES) $(INCLUDE_FILES) $(VCS_FLIST)
 	@mkdir -p $(dir $@) $(CSRC_DIR)
@@ -157,7 +157,7 @@ $(BUILD_TARGET): $(VCS_HDL_FILES) $(INCLUDE_FILES) $(VCS_FLIST)
 # Run target: execute the simv binary
 # ============================================================
 
-vcs-run: $(BUILD_TARGET) $(TEST_FILES)
+vcs-run: $(BUILD_TARGET) $(TEST_FILES) $(RUN_DEPS)
 	@mkdir -p $(dir $(FSDB_FILE))
 	env LM_LICENSE_FILE="$(LM_LICENSE_FILE)" \
 	    SNPSLMD_LICENSE_FILE="$(SNPSLMD_LICENSE_FILE)" \
