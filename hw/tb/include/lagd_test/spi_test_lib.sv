@@ -192,6 +192,7 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
   reg [3:0] miso_data;  // Data received from SPI (slave out)
   integer file;
   integer file_size;
+  integer fseek_status;
 
   // Start to load binaries from file
   // Wait for a clock edge to align
@@ -234,9 +235,19 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
     $display("Error: Could not open file %s", path);
     return;
   end
-  $fseek(file, 0, `SEEK_END);
+  fseek_status = $fseek(file, 0, `SEEK_END);
+  if (fseek_status != 0) begin
+    $display("Error: Could not seek to end of file %s", path);
+    $fclose(file);
+    return;
+  end
   file_size = $ftell(file);
-  $fseek(file, 0, `SEEK_SET);
+  fseek_status = $fseek(file, 0, `SEEK_SET);
+  if (fseek_status != 0) begin
+    $display("Error: Could not seek to beginning of file %s", path);
+    $fclose(file);
+    return;
+  end
 
   // Read the file in chunks of 4 bytes
   for (i = 0; i < file_size; i = i + 4) begin

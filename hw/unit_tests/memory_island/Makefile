@@ -4,7 +4,7 @@
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
-SIM_TOOL := vsim
+SIM_TOOL ?= vsim
 VLOG_ARGS   ?= -suppress 2583 -suppress 13314 -timescale 1ns/1ps
 MI_TEST_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 

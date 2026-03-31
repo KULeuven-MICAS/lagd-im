@@ -44,6 +44,7 @@ jobs:
                         hw/rtl/lagd_core_reg_pkg.sv
                         hw/rtl/lagd_core_reg/*
                         sw/tests/helloworld.spm.c
+                        hw/tb/vcs_overrides/*
 
     ################
     # Verible Lint #

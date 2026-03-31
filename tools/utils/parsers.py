@@ -43,6 +43,10 @@ class ParserClass(ScriptsParserClass):
             help='target extraction type',
             default='HDL_FILES'
         )
+        self.parser.add_argument(
+            '--raw', action='store_true', default=False,
+            help='Return raw values without walking include directories'
+        )
 
     def set_defaults(self):
         pass

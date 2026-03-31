@@ -25,9 +25,12 @@ module synchronizer #(
     // Internal signals
     logic [DATAW-1:0] data_to_be_synchronized;
     logic [SYNCHRONIZER_PIPEDEPTH:0][DATAW-1:0] data_shift_reg;
+    logic [SYNCHRONIZER_PIPEDEPTH-1:0][DATAW-1:0] sel_data;
     logic [SYNCHRONIZER_PIPEDEPTH:0] synchronization_en_reg;
-    logic [SYNCHRONIZER_PIPEDEPTH:0] synchronizer_shift_cond;
-    genvar i, j;
+    logic [SYNCHRONIZER_PIPEDEPTH-1:0] sync_en_reg_shifted;
+    logic max_sel;
+
+    genvar i;
 
     // analog isolation cells (AND2 gates)
     generate
@@ -47,19 +50,14 @@ module synchronizer #(
     generate
         for (i = 0; i < SYNCHRONIZER_PIPEDEPTH; i = i + 1) begin : gen_data_shift_reg
             `FFL(synchronization_en_reg[i+1], synchronization_en_reg[i], en_i, '0, clk_i, rst_ni)
-            assign synchronizer_shift_cond[i] = en_i & (synchronization_en_reg[i]);
-            `FFL(data_shift_reg[i+1], data_shift_reg[i], synchronizer_shift_cond[i], '0, clk_i, rst_ni)
+            assign sync_en_reg_shifted[i] = synchronization_en_reg[i+1];
+            `FFL(data_shift_reg[i+1], data_shift_reg[i], 1'b1, '0, clk_i, rst_ni)
+            assign sel_data[i] = data_shift_reg[i+1];
         end
     endgenerate
 
-    always_comb begin
-        if (synchronizer_pipe_num_i <= SYNCHRONIZER_PIPEDEPTH) begin
-            data_out_valid_o = synchronization_en_reg[synchronizer_pipe_num_i];
-            data_out_o = data_shift_reg[synchronizer_pipe_num_i];
-        end else begin
-            data_out_valid_o = synchronization_en_reg[0];
-            data_out_o = data_shift_reg[0];
-        end
-    end
+    assign max_sel = (synchronizer_pipe_num_i < SYNCHRONIZER_PIPEDEPTH);
+    assign data_out_valid_o = max_sel ? sync_en_reg_shifted[synchronizer_pipe_num_i] : sync_en_reg_shifted[SYNCHRONIZER_PIPEDEPTH-1];
+    assign data_out_o = max_sel ? sel_data[synchronizer_pipe_num_i] : sel_data[SYNCHRONIZER_PIPEDEPTH-1];
 
 endmodule

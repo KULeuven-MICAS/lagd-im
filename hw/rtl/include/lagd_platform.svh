@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+//         Jiacong Sun    <jiacong.sun@kuleuven.be>
 
 // System-wide platform definitions and macros for LAGD system
 
@@ -10,10 +11,14 @@
 `define LAGD_PLATFORM_SVH
 
 `ifndef TARGET_SYN
+`ifdef TARGET_VCS
+`define PACKAGE_ASSERT(cond)
+`else
 `define PACKAGE_ASSERT(cond) \
     /* verilator lint_on UNUSED */ \
-    typedef bit [((cond) ? 0 : -1) : 0] static_assertion_at_line_`__LINE__; \
+    localparam int static_assertion_at_line_`__LINE__ = 1 / ((cond) ? 1 : 0); \
     /* verilator lint_off UNUSED */
+`endif
 
 `define STATIC_ASSERT(cond, msg) \
     /* verilator lint_off GENUNNAMED */ \
@@ -22,20 +27,33 @@
     end \
     /* verilator lint_on GENUNNAMED */
 
+`ifdef TARGET_VCS
+`define ASSERT(cond, msg) \
+    /* VCS compatibility: disable this macro form for module-scope usage */
+`define SYNC_RUNTIME_ASSERT(cond, msg, clk, rst_n) \
+    always @(posedge clk) begin   \
+        if (rst_n) begin         \
+            assert (cond) else $error("Time %0t: %s", $time, msg); \
+        end                       \
+    end
+`define RUNTIME_ASSERT(cond, msg) \
+    always_comb begin           \
+        assert (cond) else $error("Time %0t: %s", $time, msg); \
+    end
+`else
 `define ASSERT(cond, msg) \
     assert (cond) else $error("Time %0t: %s", $time, msg)
-
 `define SYNC_RUNTIME_ASSERT(cond, msg, clk, rst_n) \
     always @(posedge clk) begin   \
         if (rst_n) begin         \
             `ASSERT(cond, msg);   \
         end                       \
     end
-
 `define RUNTIME_ASSERT(cond, msg) \
     always_comb begin           \
         `ASSERT(cond, msg);   \
     end
+`endif
 
 `else // TARGET_SYN
 

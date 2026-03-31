@@ -57,7 +57,7 @@ NO_GUI=1
 DBG=0
 DEFINES=""
 PARAMS=""
-CLEAN=""
+CLEAN=0
 CLEAN_ONLY=0
 
 for i in "$@"; do
@@ -95,7 +95,7 @@ for i in "$@"; do
             shift
             ;;
         --clean)
-            CLEAN=${SIM_TOOL}-clean
+            CLEAN=1
             shift
             ;;
         --clean-only)
@@ -114,6 +114,13 @@ for i in "$@"; do
     esac
 done
 
+CLEAN_TARGET="${SIM_TOOL}-clean"
+if [ "${CLEAN}" -eq 1 ]; then
+    CLEAN="${CLEAN_TARGET}"
+else
+    CLEAN=""
+fi
+
 TEST_PATH="${ROOT_DIR}/hw/unit_tests/${TEST_NAME}"
 if [ ! -d "${TEST_PATH}" ]; then
     echo "Error: Test path '${TEST_PATH}' does not exist."
@@ -131,7 +138,7 @@ fi
 
 if [ "${CLEAN_ONLY}" -eq 1 ]; then
     SIM_TOOL=${SIM_TOOL} LEAF=${LEAF} HDL_FILES_LIST=${HDL_FILES_LIST} \
-        make -C "${TEST_PATH}" ${SIM_TOOL}-clean
+        make -C "${TEST_PATH}" ${CLEAN_TARGET}
 else
     if [ -n "${HDL_FILES_LIST}" ]; then # HDL_FILES_LIST is not empty
         if [ -n "${LEAF}" ]; then

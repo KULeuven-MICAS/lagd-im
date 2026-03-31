@@ -56,12 +56,12 @@ def fetch_scoreboard_in_log(log_file: str) -> tuple[int, int, int]:
             error_case = False
         return tests_passed, total_tests, tests_failed, error_case
     else:
-        raise ValueError("Scoreboard information not found in log.")
+        raise ValueError(f"Scoreboard information not found in logfile {log_file}.")
 
 
 if __name__ == "__main__":
     tb_file_path = "hw/unit_tests/energy_monitor/tb_energy_monitor.sv"
-    log_folder = "results"
+    log_folder = "utils/logs/energy_monitor_autotest"
     show_terminal_output = False
     Path(log_folder).mkdir(parents=True, exist_ok=True)
 

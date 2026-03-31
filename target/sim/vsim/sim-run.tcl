@@ -40,22 +40,21 @@ vmap
 # vopt_flag is redundant here because vopt is already applied in build.tcl
 
 # Run simulation
+set VSIM_OPTS [list \
+    -wlf ${WORK_DIR}/${SIM_NAME}/work/tb_${SIM_NAME}.wlf \
+]
+
 if { ${DBG} > 0 } {
-    set VSIM_OPTS [list \
-        -wlf ${WORK_DIR}/work/${SIM_NAME}.wlf \
-        -novopt -suppress 12110 \
-    ]
+    lappend VSIM_OPTS -suppress 12110
     #   -voptargs=-debugdb \
     #   -voptargs=+acc # this was the old way but still questa rises a warning?
-} else {
-    set VSIM_OPTS [list]
 }
 
 vsim -quiet \
     {*}${VSIM_OPTS} \
     -msgmode both -displaymsgmode both \
     -work ${WLIB} \
-    -ini ${WORK_DIR}/modelsim.ini \
+    -ini ${WORK_DIR}/${SIM_NAME}/modelsim.ini \
     {*}${VSIM_FLAGS} \
     ${OBJ}
 #    -L work_lib \

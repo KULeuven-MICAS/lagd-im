@@ -1,0 +1,199 @@
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+# VCS simulation backend - mirrors the structure of vsim/vsim.mk
+
+SIM_DIR ?= $(shell basename $(CURDIR))/..
+
+# BUILD_TARGET: the compiled+elaborated simv binary in work directory
+BUILD_TARGET ?= $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work/simv_$(s))
+RUN_DEPS     ?=
+
+VCS ?= vcs
+
+# Keep VCS generated csrc and dpi headers under vcs-runs instead of test root.
+CSRC_DIR ?= $(WORK_DIR)/$(SIM_NAME)/csrc
+# Backward-compatibility cleanup path for legacy flows that generated test-local csrc.
+LEGACY_CSRC_DIR ?= $(TEST_PATH)/csrc
+
+# Additional source files for DPI
+VCS_DPI_SRCS ?= $(if $(CHS_ROOT),$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp,)
+
+# ============================================================
+# License configuration
+# ============================================================
+
+# Capture license variables from environment and re-export to subprocesses
+LM_LICENSE_FILE ?= $(shell echo $$LM_LICENSE_FILE)
+SNPSLMD_LICENSE_FILE ?= $(shell echo $$SNPSLMD_LICENSE_FILE)
+MGLS_LICENSE_FILE ?= $(shell echo $$MGLS_LICENSE_FILE)
+SALT_LICENSE_SERVER ?= $(shell echo $$SALT_LICENSE_SERVER)
+MICAS_LICENSE_FILE ?= $(shell echo $$MICAS_LICENSE_FILE)
+VERDI_HOME ?= $(shell echo $$VERDI_HOME)
+
+export LM_LICENSE_FILE
+export SNPSLMD_LICENSE_FILE
+export MGLS_LICENSE_FILE
+export SALT_LICENSE_SERVER
+export MICAS_LICENSE_FILE
+export VERDI_HOME
+
+# ============================================================
+# Compile / elaborate flags
+# ============================================================
+
+VCS_BASE_FLAGS := -sverilog -timescale=1ns/1ps -Mupdate -assert svaext -xlrm
+VCS_BASE_FLAGS += -Mdir=$(CSRC_DIR)
+
+# Set 64-bit mode (default ON, disable with XLEN32=1)
+ifndef XLEN32
+  VCS_BASE_FLAGS += -full64
+endif
+
+# Debug / waveform visibility
+ifeq ($(DBG), 1)
+  VCS_BASE_FLAGS += -debug_access+all+dmptf -kdb
+else
+  VCS_BASE_FLAGS += -debug_access+r
+endif
+
+# Verdi GUI requires -kdb flag for database generation (even without debug mode)
+ifneq ($(NO_GUI), 1)
+  VCS_BASE_FLAGS += -kdb
+endif
+
+VCD_FILE ?= ${WORK_DIR}/${SIM_NAME}/tb_${SIM_NAME}.vcd
+
+# FSDB file for Verdi GUI (when using -gui=verdi)
+FSDB_FILE ?= ${WORK_DIR}/${SIM_NAME}/tb_${SIM_NAME}.fsdb
+
+# SDF annotation (caller sets SDF_SCOPE and SDF_FILE)
+POST_PNR ?= 0
+ifeq ($(POST_PNR), 0)
+  VCS_BASE_FLAGS += +notimingchecks
+endif
+ifneq ($(SDF_FILE),)
+  VCS_BASE_FLAGS += -sdf max:$(SDF_SCOPE):$(SDF_FILE)
+endif
+
+# Pass through additional compile-time flags from caller (keep same name as vsim flow)
+VCS_BASE_FLAGS += $(VLOG_FLAGS)
+
+# Defines: preserve escaping from caller (for example PRELOAD_ELF=\"path\")
+# and emit each token as a +define argument for VCS.
+# Extract PROJECT_ROOT separately so it can be properly formatted
+VCS_PROJECT_ROOT := $(filter PROJECT_ROOT=%,$(DEFINES))
+VCS_PROJECT_ROOT_VALUE := $(patsubst PROJECT_ROOT=%,%,$(VCS_PROJECT_ROOT))
+# Accept both PROJECT_ROOT=/path and PROJECT_ROOT=\"/path\" forms.
+ifeq ($(findstring ",$(VCS_PROJECT_ROOT_VALUE)),)
+VCS_PROJECT_ROOT := PROJECT_ROOT=\"$(VCS_PROJECT_ROOT_VALUE)\"
+endif
+VCS_RTL_DEFINES := $(filter-out PROJECT_ROOT=%,$(DEFINES))
+VCS_RTL_DEFINES += TARGET_VCS
+ifeq ($(DBG), 1)
+	VCS_RTL_DEFINES += DBG=1
+	VCS_RTL_DEFINES += VCD_FILE="$(VCD_FILE)"
+endif
+# Add PROJECT_ROOT with proper path escaping for VCS
+ifdef VCS_PROJECT_ROOT
+	VCS_DEFINES := +define+$(VCS_PROJECT_ROOT) $(foreach d,$(VCS_RTL_DEFINES),+define+$(d))
+else
+	VCS_DEFINES  := $(foreach d,$(VCS_RTL_DEFINES),+define+$(d))
+endif
+
+# Include dirs : "dir1 dir2" -> "+incdir+dir1 +incdir+dir2"
+# Caller must populate INCLUDE_DIRS with a space-separated list of directory paths.
+VCS_INCDIRS  := $(foreach d,$(INCLUDE_DIRS),+incdir+$(d))
+
+# Parameters: "A=1 B=2" -> "-pvalue+tb_SIM_NAME.A=1 -pvalue+tb_SIM_NAME.B=2"
+VCS_PARAMS   := $(foreach p,$(PARAMS),-pvalue+tb_$(SIM_NAME).$(p))
+
+# Optional bender-generated filelist (passed as -f <file> to vcs).
+# When VCS_FLIST is set, HDL_FILES can contain just the top-level tb file(s).
+VCS_FLIST ?=
+VCS_FLIST_FLAG := $(if $(VCS_FLIST),-f $(VCS_FLIST),)
+
+# Final source sanitation for VCS to avoid duplicate modules from deprecated/test files.
+VCS_HDL_FILES := $(filter-out %/src/deprecated/sram.sv %/test/tb_tc_sram.sv,$(HDL_FILES))
+
+VCS_TOP      := tb_$(SIM_NAME)
+
+# ============================================================
+# Simulation (simv) flags
+# ============================================================
+
+VCS_RUN_FLAGS ?=
+
+# Enable GUI mode independently of debug mode
+ifneq ($(NO_GUI), 1)
+  VCS_RUN_FLAGS += -gui=verdi
+  VCS_RUN_FLAGS += +fsdbfile+$(FSDB_FILE)
+endif
+
+# ============================================================
+# Build target: VCS compile + elaborate -> simv binary
+# ============================================================
+
+$(info BUILD_TARGET=$(BUILD_TARGET))
+
+$(BUILD_TARGET): $(VCS_HDL_FILES) $(INCLUDE_FILES) $(VCS_FLIST)
+	@mkdir -p $(dir $@) $(CSRC_DIR)
+	bash -o pipefail -c '$(VCS) $(VCS_BASE_FLAGS) \
+	    $(VCS_DEFINES) \
+	    $(VCS_INCDIRS) \
+	    $(VCS_SV_LIBS) \
+	    $(VCS_DPI_SRCS) \
+	    $(VCS_FLIST_FLAG) \
+	    $(VCS_HDL_FILES) \
+	    -top $(VCS_TOP) \
+	    $(VCS_PARAMS) \
+	    -o $@ \
+	    2>&1 | tee $(dir $@)/compile.log'
+
+# ============================================================
+# Run target: execute the simv binary
+# ============================================================
+
+vcs-run: $(BUILD_TARGET) $(TEST_FILES) $(RUN_DEPS)
+	@mkdir -p $(dir $(FSDB_FILE))
+	env LM_LICENSE_FILE="$(LM_LICENSE_FILE)" \
+	    SNPSLMD_LICENSE_FILE="$(SNPSLMD_LICENSE_FILE)" \
+	    MGLS_LICENSE_FILE="$(MGLS_LICENSE_FILE)" \
+	    SALT_LICENSE_SERVER="$(SALT_LICENSE_SERVER)" \
+	    MICAS_LICENSE_FILE="$(MICAS_LICENSE_FILE)" \
+	    VERDI_HOME="$(VERDI_HOME)" \
+	    bash -c 'cd $(TEST_PATH) && $(abspath $(BUILD_TARGET)) \
+	    $(VCS_RUN_FLAGS) \
+	    -l sim.log'
+	@if [ -d "$(TEST_PATH)/verdiLog" ]; then \
+		mv "$(TEST_PATH)/verdiLog" "$(dir $(FSDB_FILE))/"; \
+	fi
+	@if [ -f "$(TEST_PATH)/novas.conf" ]; then \
+		mv "$(TEST_PATH)/novas.conf" "$(dir $(FSDB_FILE))/"; \
+	fi
+	@if [ -f "$(TEST_PATH)/novas.rc" ]; then \
+		mv "$(TEST_PATH)/novas.rc" "$(dir $(FSDB_FILE))/"; \
+	fi
+
+vcs-build: $(BUILD_TARGET)
+
+vcs-clean-sim:
+	@chmod -R u+w $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work) 2>/dev/null || true
+	@rm -rf $(foreach s,$(SIM_NAME),$(WORK_DIR)/$(s)/work) || true
+	@rm -f $(TEST_PATH)/vc_hdrs.h || true
+
+vcs-clean:
+	@chmod -R u+w $(WORK_DIR) $(CSRC_DIR) $(LEGACY_CSRC_DIR) 2>/dev/null || true
+	@rm -rf $(WORK_DIR) $(CSRC_DIR) $(LEGACY_CSRC_DIR) || true
+	@rm -f $(TEST_PATH)/vc_hdrs.h $(WORK_DIR)/$(SIM_NAME)/vc_hdrs.h || true
+
+# Aliases (keeps the same interface as vsim.mk so callers can use build/run/clean-all)
+build: vcs-build
+run: vcs-run
+clean-all: vcs-clean
+
+# Mark vcs-run and run as .PHONY to force execution every time (no sentinel file)
+.PHONY: run vcs-run

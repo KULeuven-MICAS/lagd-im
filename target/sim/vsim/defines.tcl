@@ -47,7 +47,7 @@ if { [info exists ::env(DEFINES)] } {
 if { [info exists ::env(VCD_FILE)] } {
     set VCD_FILE $::env(VCD_FILE)
 } else {
-    set VCD_FILE "${WORK_DIR}/tb_${SIM_NAME}.vcd"
+    set VCD_FILE "${WORK_DIR}/${SIM_NAME}/tb_${SIM_NAME}.vcd"
 }
 
 if { [info exists ::env(DBG)] } {
@@ -91,7 +91,7 @@ if { [info exists ::env(SKIP_VOPT)] && $::env(SKIP_VOPT) == 1 } {
     set SKIP_VOPT 0
 }
 
-set WLIB "${WORK_DIR}/work/work_${SIM_NAME}"
+set WLIB "${WORK_DIR}/${SIM_NAME}/work/work_${SIM_NAME}"
 
 puts "--------------------------------------------------------------------------------"
 puts "Defines loaded"
