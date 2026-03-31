@@ -24,7 +24,7 @@ total=0
 passed=0
 
 # Log directory
-LOG_DIR="utils/logs"
+LOG_DIR="utils/logs/system_autotest"
 
 # Create logs directory if it doesn't exist
 rm -rf "$LOG_DIR"

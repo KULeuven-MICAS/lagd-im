@@ -61,7 +61,7 @@ def fetch_scoreboard_in_log(log_file: str) -> tuple[int, int, int]:
 
 if __name__ == "__main__":
     tb_file_path = "hw/unit_tests/energy_monitor/tb_energy_monitor.sv"
-    log_folder = "results"
+    log_folder = "utils/logs/energy_monitor_autotest"
     show_terminal_output = False
     Path(log_folder).mkdir(parents=True, exist_ok=True)
 
