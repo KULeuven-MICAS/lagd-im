@@ -138,6 +138,8 @@ CXX_PATH ?= $(shell which g++)
 VOPT_ARGS ?=
 ifeq ($(DBG),1)
 VOPT_ARGS += +acc=pr+tb_lagd_chip. +noacc=p+p+tb_lagd_chip.fix. -O5
+else ifeq ($(DBG),2)
+VOPT_ARGS += +acc 
 else ifeq ($(VCD_DUMP),1)
 VOPT_ARGS += +acc
 DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\" VCD_DUMP=1 END_SIM_AT_VCD_STOP=1
@@ -160,7 +162,7 @@ VSIM_FLAGS += +notimingchecks
 endif
 # Add else here to list all tcheck_set OFF
 ifneq ($(SDF_FILE),)
-VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE) -t 1ps
+VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE) -t 1ps +sdf_verbose
 VSIM_FLAGS += -sdfreport=$(WORK_DIR)/sdf_report.log -sdfnoerror +permissive-off
 endif
 # VSIM_FLAGS += -sv_lib libelfloader
