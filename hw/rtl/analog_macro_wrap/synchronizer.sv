@@ -60,11 +60,4 @@ module synchronizer #(
     assign data_out_valid_o = max_sel ? sync_en_reg_shifted[synchronizer_pipe_num_i] : sync_en_reg_shifted[SYNCHRONIZER_PIPEDEPTH-1];
     assign data_out_o = max_sel ? sel_data[synchronizer_pipe_num_i] : sel_data[SYNCHRONIZER_PIPEDEPTH-1];
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (!rst_ni) begin
-        end else if (data_out_valid_o) begin
-            $info("[Time: %0t] Synchronizer pipe num: %d, max_sel: %b, output data: %h", $time, synchronizer_pipe_num_i, max_sel, data_out_o);
-        end
-    end
-
 endmodule
