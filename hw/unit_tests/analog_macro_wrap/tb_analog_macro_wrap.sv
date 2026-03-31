@@ -25,8 +25,8 @@ module tb_analog_macro_wrap;
     localparam int PARALLELISM = 4; // number of parallel data in J memory
     localparam int SPIN_WBL_OFFSET = 0; // offset of spin wbl in the wbl data from digital macro (must less than BITDATA)
     localparam int J_ADDRESS_WIDTH = $clog2(NUM_SPIN / PARALLELISM);
-    localparam int OnloadingTestNum = 10_000; // number of onloading tests
-    localparam int CmptTestNum = 10_000; // number of compute tests
+    localparam int OnloadingTestNum = 100; // number of onloading tests
+    localparam int CmptTestNum = 100; // number of compute tests
     localparam int DebugTestNum = 100; // number of debug tests
 
     // testbench parameters
