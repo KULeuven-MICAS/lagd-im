@@ -29,6 +29,8 @@ deps: chs-sim-all .patch
 # Flist generation for system verification
 # ============================================================
 
+POST_PNR ?= 0
+
 ifeq ($(USE_TECH_MODELS),1)
 $(info "USE_TECH_MODELS is set to $(USE_TECH_MODELS), including tech cells in the flist")
 TECH_ARGS := -t tech_cells_generic_exclude_tc_sram
@@ -134,7 +136,6 @@ VOPT_ARGS += -permissive
 
 # VSIM_FLAGS definition =======================================
 VSIM_FLAGS ?=
-POST_PNR ?= 0
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} 
 ifeq ($(POST_PNR),0)
 VSIM_FLAGS += +notimingchecks
