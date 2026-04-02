@@ -83,7 +83,7 @@ module pomelo_pll (
         end
     `endif
 
-`ifndef POMELO_PLL_NO_CHECKS
+`ifndef TARGET_POMELO_PLL_NO_CHECKS
     always_comb begin
         if (sim_rst_n) begin
             assert (!$isunknown(PLL_IN)) else $warning("PLL_IN is unknown (X or Z)");

@@ -140,7 +140,7 @@ module galena #(
     // ========================================================================
     // CHECKS
     // ========================================================================
-`ifndef GALENA_NO_CHECKS
+`ifndef TARGET_GALENA_NO_CHECKS
     `RUNTIME_ASSERT($time == 0 || $onehot0(wwl_i), $sformatf("wwl_i is not one-hot: 'h%h", wwl_i));
 
     // all-zero/one check on wbl_floating_i, wwl_vdd_i, wwl_vread_i, write_spin_i, feedback_i

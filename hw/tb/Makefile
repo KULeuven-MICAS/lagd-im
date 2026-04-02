@@ -38,14 +38,14 @@ TECH_MODELS_DEFINES = TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1
 TECH_MODELS_DEFINES += TSMC_INITIALIZE_MEM_USING_DEFAULT_TASKS=1 TSMC_MEM_LOAD_RANDOM=1
 ifeq ($(POST_PNR),1)
 TECH_MODELS_DEFINES += TSMC_DISABLE_WARNING_MESSAGE=1 TSMC_NO_XADDR_WARNING=1
-TECH_MODELS_DEFINES += GALENA_NO_CHECKS=1 POMELO_PLL_NO_CHECKS=1
+SIM_ARGS := -t pomelo_pll_no_checks -t galena_no_checks
 endif
 else
 TECH_ARGS :=
 endif
 
 # Memory island hdl_file_list.tcl generation
-SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
+SIM_ARGS += -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CXX_PATH := $(shell which g++)
 
