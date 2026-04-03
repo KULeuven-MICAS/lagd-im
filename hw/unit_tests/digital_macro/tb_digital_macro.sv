@@ -1146,7 +1146,7 @@ module tb_digital_macro;
         forever begin
             @(posedge clk_i);
             if (cycle_per_iter_recount_en_o) begin
-                $display("[Time: %t] cycle_per_iteration: %d", $time, cycle_per_iteration_o);
+                $display("[Time: %t] cycle_per_iteration: %d", $time, cycle_per_iteration_o + 1'b1);
             end
         end
     endtask
