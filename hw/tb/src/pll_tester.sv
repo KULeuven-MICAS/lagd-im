@@ -43,7 +43,7 @@ module pll_tester (
         data_o = 0;
         cfg_vld_strb_o = 1; 
 
-        repeat (2) @(posedge clk_i);
+        repeat (10) @(posedge clk_i);
 
         // Deassert strobes to release reset on config registers
         data_strb_o <= #1 0;
