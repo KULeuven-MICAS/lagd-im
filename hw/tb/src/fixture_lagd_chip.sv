@@ -190,10 +190,8 @@ module fixture_lagd_chip #(
       .spi_oen_o(spi_oen_o),
       .spi_sdi_i(spi_sdi_i),
       .spi_sdo_o(spi_sdo_o),
-      .galena_j_iref_i(galena_j_iref_i),
       .galena_j_vup_i(galena_j_vup_i),
       .galena_j_vdn_i(galena_j_vdn_i),
-      .galena_h_iref_i(galena_h_iref_i),
       .galena_h_vup_i(galena_h_vup_i),
       .galena_h_vdn_i(galena_h_vdn_i),
       .galena_vread_i(galena_vread_i)
@@ -217,7 +215,10 @@ module fixture_lagd_chip #(
     .axi_ext_mst_req_t(lagd_axi_mst_req_t),
     .axi_ext_mst_rsp_t(lagd_axi_mst_rsp_t),
     .axi_ext_llc_req_t(lagd_axi_slv_req_t),
-    .axi_ext_llc_rsp_t(lagd_axi_slv_rsp_t)
+    .axi_ext_llc_rsp_t(lagd_axi_slv_rsp_t),
+    .ClkPeriodSys(2ns),
+    .ClkPeriodJtag(5ns),
+    .RstCycles(150)
   ) vip (
     .clk(clk),
     .rst_n(rst_n),
@@ -260,14 +261,17 @@ module fixture_lagd_chip #(
   // Assign bidirectional behavior to spis_sd_io
   assign spis_sd_io = spis_drive_enable ? spis_sd_i : 4'bz; 
   `include "lagd_test/spi_test_lib.sv"
+  logic spi_test_done;
   initial begin
-    #10ns;
+    spi_test_done <= 0;
+    #400ns;
     spi_init();
     #100ns;
     // Switch the clocks on
     spi_write_u32(32'h0000001f, 32'h8000_0000);
-    #1us;
-    spi_read_u32(32'h8000_0000); 
+    #1.5us;
+    spi_read_u32(32'h8000_0000);
+    spi_test_done <= 1;
   end
   // Connect the CHIP SPI signals using the tc io cell
   assign spi_sck_i = spis_sck_i;

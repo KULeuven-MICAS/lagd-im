@@ -43,7 +43,9 @@ module tb_lagd_chip ();
     
     // Wait for reset
     fix.vip.wait_for_reset();
+    repeat (100) @(posedge fix.vip.clk); 
     wait(fix.pll_test_done == 1);
+    wait(fix.spi_test_done == 1);
 
     if (boot_mode == 0) begin
       case (preload_mode)
@@ -76,7 +78,7 @@ module tb_lagd_chip ();
   // Add vcd dumping and debug setup
   //==============================================
   if (ChipTest == 1) begin : gen_debug_setup
-    `EN_SETUP_DEBUG(`DBG, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut, enable_vcd_dumping)
+    `VCD_GEN_ST_SP(`VCD_DUMP, `VCD_FILE, tb_lagd_chip.fix.gen_dut_lagd_chip.dut, `VCD_START, `VCD_STOP, `END_SIM_AT_VCD_STOP)
   end
 
 endmodule

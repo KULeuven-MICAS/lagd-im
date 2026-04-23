@@ -12,7 +12,6 @@
     end
 
 module pomelo_pll (
-    input wire VDDA,
     input wire IN50U_REF,
     inout wire VCO_CTRL_EXT,
 
@@ -84,6 +83,7 @@ module pomelo_pll (
         end
     `endif
 
+`ifndef TARGET_POMELO_PLL_NO_CHECKS
     always_comb begin
         if (sim_rst_n) begin
             assert (!$isunknown(PLL_IN)) else $warning("PLL_IN is unknown (X or Z)");
@@ -103,5 +103,6 @@ module pomelo_pll (
             assert (!$isunknown(set_fb_mux)) else $warning("set_fb_mux is unknown (X or Z)");
         end
     end
+`endif
 
 endmodule : pomelo_pll

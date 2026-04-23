@@ -41,10 +41,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
     output reg_rsp_t reg_s_rsp_o,
 
     // Galena wires
-    inout wire galena_j_iref_i,
     inout wire galena_j_vup_i,
     inout wire galena_j_vdn_i,
-    inout wire galena_h_iref_i,
     inout wire galena_h_vup_i,
     inout wire galena_h_vdn_i,
     inout wire galena_vread_i
@@ -440,10 +438,8 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .wblb_read_o             (wblb_out_analog       ),
         .bct_read_o              (spin_out_analog       ),
         // Galena wires
-        .j_iref_aio              (galena_j_iref_i       ),
         .j_vup_aio               (galena_j_vup_i        ),
         .j_vdn_aio               (galena_j_vdn_i        ),
-        .h_iref_aio              (galena_h_iref_i       ),
         .h_vup_aio               (galena_h_vup_i        ),
         .h_vdn_aio               (galena_h_vdn_i        ),
         .vread_aio               (galena_vread_i        )

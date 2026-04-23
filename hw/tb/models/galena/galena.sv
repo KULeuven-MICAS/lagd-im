@@ -140,6 +140,7 @@ module galena #(
     // ========================================================================
     // CHECKS
     // ========================================================================
+`ifndef TARGET_GALENA_NO_CHECKS
     `RUNTIME_ASSERT($time == 0 || $onehot0(wwl_i), $sformatf("wwl_i is not one-hot: 'h%h", wwl_i));
 
     // all-zero/one check on wbl_floating_i, wwl_vdd_i, wwl_vread_i, write_spin_i, feedback_i
@@ -154,5 +155,6 @@ module galena #(
 
     // check: wwl_i and write_spin_i cannot be both 1
     `RUNTIME_ASSERT($time == 0 || ($countones(wwl_i) == 0) || ($countones(write_spin_i) == 0), $sformatf("wwl_i and write_spin_i cannot be both 1: wwl_i: 'h%h, write_spin_i: 'h%h", wwl_i, write_spin_i));
+`endif
 
 endmodule

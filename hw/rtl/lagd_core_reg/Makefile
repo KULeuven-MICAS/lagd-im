@@ -7,6 +7,7 @@
 #	Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
 PROJECT_ROOT := $(shell realpath ../../../)
+BENDER ?= ~/.cargo/bin/bender
 
 CHS_REG_DIR := $(shell $(BENDER) path register_interface)
 REGTOOL ?= $(CHS_REG_DIR)/vendor/lowrisc_opentitan/util/regtool.py

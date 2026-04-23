@@ -29,17 +29,23 @@ deps: chs-sim-all .patch
 # Flist generation for system verification
 # ============================================================
 
+POST_PNR ?= 0
+
 ifeq ($(USE_TECH_MODELS),1)
 $(info "USE_TECH_MODELS is set to $(USE_TECH_MODELS), including tech cells in the flist")
 TECH_ARGS := -t tech_cells_generic_exclude_tc_sram
 TECH_MODELS_DEFINES = TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1
 TECH_MODELS_DEFINES += TSMC_INITIALIZE_MEM_USING_DEFAULT_TASKS=1 TSMC_MEM_LOAD_RANDOM=1
+ifeq ($(POST_PNR),1)
+TECH_MODELS_DEFINES += TSMC_DISABLE_WARNING_MESSAGE=1 TSMC_NO_XADDR_WARNING=1
+SIM_ARGS := -t pomelo_pll_no_checks -t galena_no_checks
+endif
 else
 TECH_ARGS :=
 endif
 
 # Memory island hdl_file_list.tcl generation
-SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
+SIM_ARGS += -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CXX_PATH := $(shell which g++)
 
@@ -54,7 +60,7 @@ TMP_FILE := ./tmp.bender_list.tcl
 .INTERMEDIATE: $(TMP_FILE)
 # Remove non-package files from the bender list to create a package-only list
 $(TMP_FILE): $(TEST_PATH)/bender_list.tcl
-	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc|jtag_test|\/serial_link|serial_link_data_link|fifo_v3|\/stream_fifo|serial_link_network|intf|clk_rst_gen|axi_id_serialize|stream_register|axi_mux|axi_demux|axi_sim_mem|axi_serializer|serial_link_physical|reg_cdc|serial_link_single_channel_reg_top|axi_demux_simple|spill_register|axi_id_prepend|rr_arb_tree|prim_subreg_ext|prim_subreg|cdc_2phase|spill_register_flushable|\/counter|prim_subreg_arb|lzc|delta_counter|cdc_fifo_gray|binary_to_gray|gray_to_binary|\/sync|master_spi_vip)\.sv" \\$$/' $< > $@
+	awk '!/\.sv" \\$$/ || /(_pkg|fixture_lagd_chip|rand_id_queue|axi_test|spinal_usb_ohci|galena|pomelo_pll|vip_cheshire_soc|jtag_test|\/serial_link|serial_link_data_link|fifo_v3|\/stream_fifo|serial_link_network|intf|clk_rst_gen|axi_id_serialize|stream_register|axi_mux|axi_demux|axi_sim_mem|axi_serializer|serial_link_physical|reg_cdc|serial_link_single_channel_reg_top|axi_demux_simple|spill_register|axi_id_prepend|rr_arb_tree|prim_subreg_ext|prim_subreg|cdc_2phase|spill_register_flushable|\/counter|prim_subreg_arb|lzc|delta_counter|cdc_fifo_gray|binary_to_gray|gray_to_binary|\/sync|master_spi_vip|pll_tester|pomelo_pll_wrap)\.sv" \\$$/' $< > $@
 
 # Clean up the temporary file after generating the package-only list
 $(TEST_PATH)/pkg_bender_list.tcl: $(TMP_FILE)
@@ -99,6 +105,7 @@ libelfloader: $(DPI_LIB)
 TEST_PATH ?= $(CURDIR)
 HDL_FILES_LIST ?= $(TEST_PATH)/hdl_file_list.tcl
 SIM_NAME ?= lagd_chip
+# TODO: move RUN_ID support in the backend script
 RUN_ID ?= 
 ifneq ($(RUN_ID),)
 	WORK_DIR ?= $(TEST_PATH)/${SIM_TOOL}-runs/$(SIM_NAME)-$(RUN_ID)
@@ -109,14 +116,35 @@ HDL_FILES ?=
 DBG ?= 0
 CXX_PATH ?= $(shell which g++)
 
-ifneq ($(and $(filter 1,$(DBG)),$(wildcard $(NETLIST_PATH))),)
-$(info "Allowing netlist simulation with debug info")
-VOPT_ARGS += +acc -permissive
+# VOPT_ARGS definition =======================================
+VOPT_ARGS ?=
+ifeq ($(DBG),1)
+VOPT_ARGS += +acc=pr+tb_lagd_chip. +noacc=p+p+tb_lagd_chip.fix. -O5
+else ifeq ($(DBG),2)
+VOPT_ARGS += +acc
+else ifeq ($(VCD_DUMP),1)
+VOPT_ARGS += +acc
+DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\" VCD_DUMP=1 END_SIM_AT_VCD_STOP=1
+DEFINES += VCD_START=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.cmpt_en_i==1
+DEFINES += VCD_STOP=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10
+else ifneq ($(SDF_FILE),)
+VOPT_ARGS += +acc
 else
-VOPT_ARGS += -O5 +acc=pr+tb_lagd_chip. +noacc=p+lagd_soc. -permissive
+VOPT_ARGS += -O5
 endif
+VOPT_ARGS += -permissive
 
-VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} +notimingchecks
+# VSIM_FLAGS definition =======================================
+VSIM_FLAGS ?=
+VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} 
+ifeq ($(POST_PNR),0)
+VSIM_FLAGS += +notimingchecks
+endif
+# Add else here to list all tcheck_set OFF
+ifneq ($(SDF_FILE),)
+VSIM_FLAGS += -sdfmax tb_lagd_chip.fix.gen_dut_lagd_chip.dut=$(SDF_FILE) -t 1ps +sdf_verbose
+VSIM_FLAGS += -sdfreport=$(WORK_DIR)/sdf_report.log -sdfnoerror +permissive-off
+endif
 # VSIM_FLAGS += -sv_lib libelfloader
 
 # Simulation defines

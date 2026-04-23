@@ -5,6 +5,7 @@
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
 
 PROJECT_ROOT := $(shell realpath ../)
+BENDER ?= ~/.cargo/bin/bender
 include $(PROJECT_ROOT)/common.mk
 
 RTL_ROOT := $(PROJECT_ROOT)/hw/rtl
@@ -45,7 +46,7 @@ include/lagd_define.h: $(RTL_ROOT)/include/lagd_define.svh $(SVH2H)
 	python3 $(SVH2H) $< $@
 
 include/lagd_core_reg.h: $(RTL_ROOT)/lagd_core_reg/lagd_core_regs.hjson
-	$(MAKE) -C $(RTL_ROOT)/lagd_core_reg
+	$(MAKE) -C $(RTL_ROOT)/lagd_core_reg BENDER=$(BENDER)
 
 # Auto-generate data header from model file
 include/model_j_data.h: tests/data/$(DATA_FOLDER)/model $(GEN_MODEL_PY)

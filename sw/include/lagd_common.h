@@ -311,6 +311,18 @@ static void lagd_print_energy_fifo_data(unsigned core) {
     printf("Energy FIFO data 1 for core %u: 0x%08x\r\n", core, energy_fifo_data_1);
 }
 
+// Check default energy_fifo_data register (only for verification on default data)
+static int lagd_check_energy_fifo_data(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
+    uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
+    int fail = 0;
+    if ((energy_fifo_data_0 != 0xfffff33e) || (energy_fifo_data_1 != 0xfffff35a)) {
+        fail = 1;
+    }
+    return fail;
+}
+
 // Read out spin_fifo_data register and print the value
 static void lagd_print_spin_fifo_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -539,6 +551,21 @@ static void lagd_print_debug_wbl_read_data(unsigned core) {
     printf("\r\n");
 }
 
+// Check debug_wbl_read_data register (only for verification)
+static int lagd_check_debug_wbl_read_data(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    int fail = 0;
+    uint32_t debug_wbl_read_data[NUM_SPIN * BIT_H / 32];
+    for (int i = 0; i < NUM_SPIN * BIT_H / 32; i++) {
+        debug_wbl_read_data[i] = *reg32(base, LAGD_CORE_DEBUG_WBL_READ_DATA_0_REG_OFFSET + 4 * i);
+        if (debug_wbl_read_data[i] != debug_wbl_config[i]) {
+            fail = 1;
+            break;
+        }
+    }
+    return fail;
+}
+
 // Read out debug_wblb_read_data register and print the value
 static void lagd_print_debug_wblb_read_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -551,6 +578,21 @@ static void lagd_print_debug_wblb_read_data(unsigned core) {
     printf("debug_wblb_read_data[%u]: ", core);
     for (int i = NUM_SPIN * BIT_H / 32 - 1; i >= 0; i--) printf("%08x", debug_wblb_read_data[i]);
     printf("\r\n");
+}
+
+// Check debug_wblb_read_data register (only for verification)
+static int lagd_check_debug_wblb_read_data(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    uint32_t debug_wblb_read_data[NUM_SPIN * BIT_H / 32];
+    int fail = 0;
+    for (int i = 0; i < NUM_SPIN * BIT_H / 32; i++) {
+        debug_wblb_read_data[i] = *reg32(base, LAGD_CORE_DEBUG_WBLB_READ_DATA_0_REG_OFFSET + 4 * i);
+        if (debug_wblb_read_data[i] != ~debug_wbl_config[i]) {
+            fail = 1;
+            break;
+        }
+    }
+    return fail;
 }
 
 // Read out core's l1_j_mem and print the value
@@ -587,4 +629,30 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
         for (int j = IC_L1_FLIP_MEM_DATA_WIDTH / 64 - 1; j >= 0; j--) printf("%016llx", data[j]);
         printf("\r\n");
     }
+}
+
+// Check core's l1_f_mem and print the value (only for verification on default data)
+static int lagd_check_l1_f_mem(unsigned core, unsigned length) {
+    int fail = 0;
+    static const uint64_t expected_f_mem_words[IC_L1_FLIP_MEM_DATA_WIDTH / 64] = {
+        0x0e337ef6f536f70aULL, // bits [ 63:  0]
+        0xa2ba022578b94b05ULL, // bits [127: 64]
+        0xd38a96512fb3daa2ULL, // bits [191:128]
+        0x797a68f1635d4c26ULL  // bits [255:192]
+    };
+    volatile uint64_t *base =
+        (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
+                              (uintptr_t)core *
+                                  ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+    for (unsigned i = 0; i < length; i++) {
+        uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64]; // 4 x 64-bit words
+        for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
+            data[j] = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
+            if (data[j] != expected_f_mem_words[j]) {
+                fail = 1;
+                break;
+            }
+        }
+    }
+    return fail;
 }
