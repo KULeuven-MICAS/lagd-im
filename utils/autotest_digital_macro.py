@@ -84,7 +84,7 @@ def fetch_scoreboard_in_log(log_file: str) -> tuple[int, int, int]:
 
 if __name__ == "__main__":
     tb_file_path = "hw/unit_tests/digital_macro/tb_digital_macro.sv"
-    log_folder = "results"
+    log_folder = "utils/logs/digital_macro_autotest"
     show_terminal_output = False
     msg_verbose = False
     Path(log_folder).mkdir(parents=True, exist_ok=True)

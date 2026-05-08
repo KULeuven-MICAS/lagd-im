@@ -36,28 +36,28 @@ endif
 
 # Questasim build target
 $(BUILD_TARGET): $(HDL_FILES) $(INCLUDE_FILES) $(VSIM_BUILD_SCRIPT)
-	@mkdir -p $(WORK_DIR)/work
+	@mkdir -p $(dir $@)
 	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR) SIM_NAME=$(SIM_NAME) DBG=$(DBG) \
 	BUILD_ONLY=1 DEFINES="$(DEFINES)" HDL_FILE_LIST=$(HDL_FILES_LIST) PARAMS="$(PARAMS)" \
 	VLOG_FLAGS="$(VLOG_FLAGS)" VOPT_ARGS="$(VOPT_ARGS)" SKIP_VOPT=$(SKIP_VOPT) \
 	vsim $(XLEN_FLAG) -c -do "source $(VSIM_BUILD_SCRIPT)" \
-	&& mv ./transcript $(WORK_DIR)/transcript.build
+	&& mv ./transcript $(WORK_DIR)/$(SIM_NAME)/transcript.build
 
 # Questasim run target
 $(RUN_TARGET): $(BUILD_TARGET) $(TEST_FILES) $(VSIM_SCRIPT) $(HDL_FILES) $(INCLUDE_FILES)
-	@mkdir -p $(WORK_DIR)/work
+	@mkdir -p $(dir $@)
 	TEST_PATH=$(TEST_PATH) WORK_DIR=$(WORK_DIR) SIM_NAME=$(SIM_NAME) DEFINES="$(DEFINES)" \
 	HDL_FILE_LIST=$(HDL_FILES_LIST) PARAMS="$(PARAMS)" OBJ=$(VSIM_OBJ_PREFIX)$(SIM_NAME) \
-	DBG=$(DBG) FORCE_BUILD=0  VSIM_FLAGS="$(VSIM_FLAGS)" SKIP_VOPT=$(SKIP_VOPT) \
+	DBG=$(DBG) FORCE_BUILD=0 VSIM_FLAGS="$(VSIM_FLAGS)" SKIP_VOPT=$(SKIP_VOPT) \
 	vsim $(XLEN_FLAG) $(RUN_FLAGS) -do "source $(VSIM_SCRIPT)" \
-	&& mv ./transcript $(WORK_DIR)/transcript.run
+	&& mv ./transcript $(WORK_DIR)/$(SIM_NAME)/transcript.run
 
 vsim-run: $(RUN_TARGET) $(RUN_DEPS)
 
 vsim-build: $(BUILD_TARGET)
 
 vsim-clean-sim: 
-	rm -rf $(WORK_DIR)/work/*.wlf $(WORK_DIR)/transcript.run ${WORK_DIR}/*.vcd
+	rm -rf $(WORK_DIR)/$(SIM_NAME)/work/*.wlf $(WORK_DIR)/$(SIM_NAME)/transcript.run ${WORK_DIR}/$(SIM_NAME)/*.vcd
 
 vsim-clean:
 	rm -rf $(WORK_DIR)

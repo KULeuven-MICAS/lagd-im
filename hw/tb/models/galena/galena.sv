@@ -32,10 +32,8 @@ module galena #(
 ) (
 
     // --- Analog pins ----
-    inout j_iref_aio ,  // not used in the behavior model, but included for completeness
     inout j_vup_aio  ,  // not used in the behavior model, but included for completeness
     inout j_vdn_aio  ,  // not used in the behavior model, but included for completeness
-    inout h_iref_aio ,  // not used in the behavior model, but included for completeness
     inout h_vup_aio  ,  // not used in the behavior model, but included for completeness
     inout h_vdn_aio  ,  // not used in the behavior model, but included for completeness
     inout vread_aio  ,  // not used in the behavior model, but included for completeness
@@ -102,7 +100,7 @@ module galena #(
             initial begin
                 state_out = load_state_out_ref(`STATE_OUT_FILE_1, `STATE_OUT_FILE_2);
             end
-            always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
+            always @(posedge &write_spin_i) begin // behavioral model: use always to avoid always_ff initializer-driver restriction in VCS
                 spin_cache <= state_out[j];
                 if (`VERBOSE) begin
                     $info("[Time: %0t] Spin initial cache is updated from state_out[%0d]: 'h%h", $time, j, state_out[j]);

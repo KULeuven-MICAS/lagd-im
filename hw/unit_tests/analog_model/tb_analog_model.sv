@@ -17,12 +17,26 @@
 `define DATA_FROM_FILE 0
 `endif
 
-`ifndef STATE_OUT_FILE_1
-`define STATE_OUT_FILE_1 "../../unit_tests/digital_macro/data/states_out_1"
+`ifndef PROJECT_ROOT
+`define PROJECT_ROOT "../../../"
 `endif
 
-`ifndef STATE_OUT_FILE_2
-`define STATE_OUT_FILE_2 "../../unit_tests/digital_macro/data/states_out_2"
+`ifdef TARGET_VCS
+  // For VCS, use absolute paths constructed from PROJECT_ROOT
+  `ifndef STATE_OUT_FILE_1
+  `define STATE_OUT_FILE_1 {`PROJECT_ROOT, "sw/tests/data/default/states_out_1"}
+  `endif
+  `ifndef STATE_OUT_FILE_2
+  `define STATE_OUT_FILE_2 {`PROJECT_ROOT, "sw/tests/data/default/states_out_2"}
+  `endif
+`else
+  // For VSIM and others, use relative paths
+  `ifndef STATE_OUT_FILE_1
+  `define STATE_OUT_FILE_1 "../../../sw/tests/data/default/states_out_1"
+  `endif
+  `ifndef STATE_OUT_FILE_2
+  `define STATE_OUT_FILE_2 "../../../sw/tests/data/default/states_out_2"
+  `endif
 `endif
 
 import galena_pkg::*;
@@ -33,10 +47,8 @@ module tb_analog_model;
     parameter CLKCYCLE = 2;
 
     // testbench internal signals
-    wire j_iref_aio;
     wire j_vup_aio;
     wire j_vdn_aio;
-    wire h_iref_aio;
     wire h_vup_aio;
     wire h_vdn_aio;
     wire vread_aio;
@@ -60,10 +72,8 @@ module tb_analog_model;
     // Module instantiation
     galena #(
     ) dut (
-        .j_iref_aio     (j_iref_aio     ),
         .j_vup_aio      (j_vup_aio      ),
         .j_vdn_aio      (j_vdn_aio      ),
-        .h_iref_aio     (h_iref_aio     ),
         .h_vup_aio      (h_vup_aio      ),
         .h_vdn_aio      (h_vdn_aio      ),
         .vread_aio      (vread_aio      ),

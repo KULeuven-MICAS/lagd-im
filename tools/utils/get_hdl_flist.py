@@ -43,14 +43,16 @@ with open(parser.args.file, 'r') as file:
             else:
                 file_list.append(line.strip().split()[0].strip('"'))
 
+# When --raw is set, skip directory walking and return paths directly
+
 # Substitute variables ${VARS} in file_list with values from vars_dict
 exp_file_list = []
 for file in file_list:
     for var in vars_dict.keys():
         if '${' + var + '}' in file:
             file = file.replace('${' + var + '}', vars_dict[var])
-    if parser.args.target == 'INCLUDE_DIRS':
-        # fetch every file in the include directory
+    if parser.args.target == 'INCLUDE_DIRS' and not parser.args.raw:
+        # Walk the directory and collect individual header files (for dependency tracking)
         include_dir = file
         if os.path.isdir(include_dir):
             for root, dirs, files in os.walk(include_dir):
@@ -58,6 +60,7 @@ for file in file_list:
                     if f.endswith('.vh') or f.endswith('.svh'):
                         exp_file_list.append(os.path.join(root, f))
     else:
+        # --raw mode (or non-INCLUDE_DIRS target): return the path as-is
         exp_file_list.append(file)
 
 file_list_str = ' '.join(exp_file_list)

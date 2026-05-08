@@ -20,6 +20,7 @@ Usage: ./ci/sys-run.sh [[
     --binary=#binary_path
     --dbg=#dbg_lvl
     --gui
+    --tool=#sim_tool
     --use_tech_models
     --netlist=#netlist_path
     --post-syn
@@ -41,6 +42,7 @@ show_help()
     echo "  --binary=#binary_path: Path to the binary to load into memory (default: helloworld.rom.elf)"
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --gui: Run simulation in GUI mode"
+    echo "  --tool=#sim_tool: Simulation tool to use (default: vsim). Options: vsim, vcs"
     echo "  --use_tech_models: Use technology models for the simulation"
     echo "  --netlist=#netlist_path: Path to the netlist to use for the simulation (default: no netlist, i.e., use RTL)"
     echo "  --run_id=#run_id: Optional identifier for the simulation run (used to create a unique work directory)"
@@ -67,6 +69,7 @@ SKIP_SW_BUILD=0
 VCD_DUMP=0
 SDF_FILE=""
 SDF_ANNOTATE=0
+SIM_TOOL="vsim"
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -146,6 +149,15 @@ for i in "$@"; do
             SDF_ANNOTATE=1
             shift
             ;;
+        --tool=*)
+            SIM_TOOL="${i#*=}"
+            # Validate tool choice
+            if [ "${SIM_TOOL}" != "vsim" ] && [ "${SIM_TOOL}" != "vcs" ]; then
+                echo "[ERROR] ./ci/sys-run.sh: Invalid simulator tool '${SIM_TOOL}'. Supported tools: vsim, vcs"
+                exit 1
+            fi
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -218,15 +230,16 @@ echo "  PRELOAD_MODE: $PRELOAD_MODE"
 echo "  PRELOAD_ELF: $PRELOAD_ELF"
 echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
+echo "  SIM_TOOL: $SIM_TOOL"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 echo "  NETLIST_PATH: $NETLIST_PATH"
 echo "  RUN_ID: $RUN_ID"
 
 # Force clean
-USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ clean
+USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} SIM_TOOL=${SIM_TOOL} make -C ${ROOT_DIR}/hw/tb/ clean
 
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD_DUMP=${VCD_DUMP} SDF_FILE=${SDF_FILE} \
-    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} make run-soc
+    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} SIM_TOOL=${SIM_TOOL} make run-soc
 echo "[$(date +%T)] Simulation done."

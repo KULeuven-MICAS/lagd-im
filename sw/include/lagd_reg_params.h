@@ -33,7 +33,7 @@
 #define GCFG1_WWL_VDD_CFG_256 1
 #define GCFG1_WWL_VREAD_CFG_256 0
 #define GCFG1_CONFIG_COUNTER 0xFF           // max: 0xFF (255)
-#define GCFG1_SYNCHRONIZER_WBL_PIPE_NUM 0x3 // max: 0x3 (3)
+#define GCFG1_SYNCHRONIZER_WBL_PIPE_NUM 0x2 // max: 0x3 (3)
 
 // Global configuration signals 2
 #define GCFG2_CMPT_EN 0
@@ -41,7 +41,7 @@
 #define GCFG2_CONFIG_VALID_EM 1
 #define GCFG2_CONFIG_VALID_FM 1
 #define GCFG2_DT_CFG_ENABLE 0
-#define GCFG2_SYNCHRONIZER_PIPE_NUM 0x3 // max: 0x3 (3)
+#define GCFG2_SYNCHRONIZER_PIPE_NUM 0x2 // max: 0x3 (3)
 #define GCFG2_DEBUG_H_WWL 0
 #define GCFG2_DGT_ADDR_UPPER_BOUND 0x3F // max: 0x3F (63)
 #define GCFG2_CTNUS_FIFO_READ 0

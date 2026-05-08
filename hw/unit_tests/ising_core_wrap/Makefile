@@ -7,6 +7,4 @@
 
 DEFINES += PROJECT_ROOT=\"../../../\"
 
-HDL_FILES := 
-
 include ../common.mk

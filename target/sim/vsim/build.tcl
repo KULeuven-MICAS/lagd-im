@@ -47,7 +47,7 @@ if { ${SKIP_VOPT} == 0 } {
     # Optimization and object preparation
     if { ${DBG} == 1 } {
         set PREFIX "dbg_"
-        set VOPT_FLAGS [list -debugdb]
+        set VOPT_FLAGS [list -debugdb +acc]
     } else {
         set PREFIX "nodbg_"
         set VOPT_FLAGS ""
@@ -65,7 +65,7 @@ if { ${SKIP_VOPT} == 0 } {
     puts "Skipping vopt."
 }
 
-file rename -force ./modelsim.ini ${WORK_DIR}/modelsim.ini
+file rename -force ./modelsim.ini ${WORK_DIR}/${SIM_NAME}/modelsim.ini
 
 if { $BUILD_ONLY == 1 } {
     quit

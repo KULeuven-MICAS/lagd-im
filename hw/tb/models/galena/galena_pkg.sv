@@ -66,6 +66,7 @@ package galena_pkg;
         string file_name;
         int line_num;
         int state_idx;
+        logic [NUM_SPIN*BIT_DATA-1:0] parsed_line;
         logic [1:0] [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] states_out_in_txt;
         logic [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] states_out_ref;
 
@@ -106,7 +107,8 @@ package galena_pkg;
                     if (state_idx >= SPIN_ICON_DEPTH/2+1) begin
                         break;
                     end
-                    states_out_in_txt[i][state_idx] = parse_bit_string(line)[NUM_SPIN*BIT_DATA-1 -: NUM_SPIN];
+                    parsed_line = parse_bit_string(line);
+                    states_out_in_txt[i][state_idx] = parsed_line[NUM_SPIN*BIT_DATA-1 -: NUM_SPIN];
                     state_idx = state_idx + 1;
                 end
             end

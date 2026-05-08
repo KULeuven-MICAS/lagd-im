@@ -34,7 +34,7 @@ package lagd_pkg;
     typedef cheshire_pkg::byte_bt [2**(cheshire_pkg::MaxExtAxiSlvWidth)-1:0] lagd_slv_idx_map_t;
 
     function automatic lagd_slv_idx_map_t gen_lagd_slv_idx_map(lagd_slv_idx_e IdxMap);
-        lagd_slv_idx_map_t idx_map;
+        lagd_slv_idx_map_t idx_map = '0;
         int unsigned idx;
         // Map slave IDs to cores
         // Slave ID 0 is reserved for L2 memory
@@ -58,7 +58,7 @@ package lagd_pkg;
     typedef cheshire_pkg::doub_bt [2**(cheshire_pkg::MaxExtAxiSlvWidth)-1:0] lagd_slv_addr_map_t;
 
     function automatic lagd_slv_addr_map_t gen_lagd_slv_start_addr(lagd_slv_idx_e Idx);
-        lagd_slv_addr_map_t addr_map;
+        lagd_slv_addr_map_t addr_map = '0;
         int unsigned idx;
         // L2 memory
         addr_map[Idx.L2_MEM] = `L2_MEM_BASE_ADDR;
@@ -75,7 +75,7 @@ package lagd_pkg;
     endfunction : gen_lagd_slv_start_addr
 
     function automatic lagd_slv_addr_map_t gen_lagd_slv_end_addr(lagd_slv_idx_e Idx);
-        lagd_slv_addr_map_t addr_map;
+        lagd_slv_addr_map_t addr_map = '0;
         int unsigned idx;
 
         // L2 memory
@@ -109,7 +109,7 @@ package lagd_pkg;
     typedef cheshire_pkg::byte_bt [2**(cheshire_pkg::MaxExtRegSlvWidth)-1:0] lagd_reg_idx_map_t;
 
     function automatic lagd_reg_idx_map_t gen_lagd_reg_idx_map(lagd_reg_idx_e IdxMap);
-        lagd_reg_idx_map_t idx_map;
+        lagd_reg_idx_map_t idx_map = '0;
         // Map reg IDs to cores
         int unsigned idx;
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
@@ -127,7 +127,7 @@ package lagd_pkg;
     typedef cheshire_pkg::doub_bt [2**(cheshire_pkg::MaxExtRegSlvWidth)-1:0] lagd_reg_addr_map_t;
 
     function automatic lagd_reg_addr_map_t gen_lagd_reg_start_addr(lagd_reg_idx_e Idx);
-        lagd_reg_addr_map_t addr_map;
+        lagd_reg_addr_map_t addr_map = '0;
         // Ising cores registers
         int unsigned idx;
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
@@ -138,7 +138,7 @@ package lagd_pkg;
     endfunction : gen_lagd_reg_start_addr
 
     function automatic lagd_reg_addr_map_t gen_lagd_reg_end_addr(lagd_reg_idx_e Idx);
-        lagd_reg_addr_map_t addr_map;
+        lagd_reg_addr_map_t addr_map = '0;
         // Ising cores registers
         for (int unsigned i = 0; i < `NUM_ISING_CORES; i++) begin
             addr_map[i] = $unsigned(`IC_REGS_BASE_ADDR + (i+1)*`IC_NUM_REGS - 1);
@@ -168,7 +168,14 @@ package lagd_pkg;
         cfg.CoreMaxTxnsPerId = 2;   // Max 2 transactions per ID
         cfg.CoreUserAmoOffs = 0;    // No user AMO bits
         // Interrupts
-        cfg.NumExtInIntrs = 0;  // No of external interruptible harts (e.g., CPU cores)
+        cfg.NumExtInIntrs = 0;
+        cfg.NumExtOutIntrTgts = 0;
+        cfg.NumExtOutIntrs = 0;
+        cfg.NumExtIntrSyncs = 2;
+        cfg.NumExtClicIntrs = 0;
+        cfg.ClicIntCtlBits = 0;
+        cfg.NumExtIrqHarts = 0;
+        cfg.NumExtDbgHarts = 0;
         // TODO check the meaning of other parameters
         // Interconnect // TODO check how the User fields are used
         cfg.AddrWidth = `CVA6_ADDR_WIDTH;
