@@ -15,6 +15,7 @@ task automatic spi_init();
 
   // Wait for a clock edge to align
   @(posedge spis_sck_i);
+  #1;
   spis_csb_i = 0;
 
   // Switch SPI to Quad SPI mode
@@ -23,14 +24,17 @@ task automatic spi_init();
   spis_drive_enable = 1;
   for (i = 7; i >= 0; i--) begin
     @(negedge spis_sck_i);
+    #1;
     spis_sd_i[0] = cmd[i];  // Send 1 bit at a time on MOSI
   end
   // Enable Quad SPI mode by writing 0x01 to the status register
   for (i = 7; i >= 0; i--) begin
     @(negedge spis_sck_i);
+    #1;
     spis_sd_i[0] = cmd[i];  // Send 1 bit at a time on MOSI
   end
   @(posedge spis_sck_i);
+  #1;
   spis_csb_i = 1;  // Bring CSB high to end the transaction
   spis_drive_enable = 0;
 
@@ -50,6 +54,7 @@ task automatic spi_read(input integer length, input logic [31:0] addr);
 
   // Wait for a clock edge to align
   @(posedge spis_sck_i);
+  #1;
   spis_csb_i = 0;  // Bring CSB high to end the transaction
 
   // Set the SPI Read MEM code
@@ -59,6 +64,7 @@ task automatic spi_read(input integer length, input logic [31:0] addr);
   spis_drive_enable = 1;  // Enable driving spis_sd_io
   for (i = 7; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     if (i >= 3) begin
       mosi_data = cmd[i-:4];
     end else begin
@@ -72,6 +78,7 @@ task automatic spi_read(input integer length, input logic [31:0] addr);
   // Send the 32-bit address over 4 data lines (8 clock cycles)
   for (i = 31; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     if (i >= 3) begin
       mosi_data = addr[i-:4];
     end else begin
@@ -83,6 +90,7 @@ task automatic spi_read(input integer length, input logic [31:0] addr);
   end
 
   @(negedge spis_sck_i);  // Wait for last data to be sent
+  #1;
   spis_drive_enable = 0;
 
   // Insert dummy cycles if required (e.g., 32 cycles)
@@ -101,6 +109,7 @@ task automatic spi_read(input integer length, input logic [31:0] addr);
     for (j = 3; j >= 0; j -= 1) begin
       for (k = 7; k >= 0; k -= 4) begin
         @(posedge spis_sck_i);
+        #1;
         miso_data = spis_sd_o;  // Read 4 bits from slave
         if (k >= 3) begin
           byte_data[j][k-:4] = miso_data;
@@ -117,6 +126,7 @@ task automatic spi_read(input integer length, input logic [31:0] addr);
 
   // Bring CSB high to end the transaction
   @(negedge spis_sck_i);
+  #1;
   spis_csb_i = 1;
 endtask
 
@@ -135,6 +145,7 @@ task automatic spi_write_u32(input logic [31:0] data, input logic [31:0] addr);
 
   // Wait for a clock edge to align
   @(posedge spis_sck_i);
+  #1;
   spis_csb_i = 0;  // Bring CSB high to end the transaction
 
   // Set the SPI Write MEM code
@@ -143,6 +154,7 @@ task automatic spi_write_u32(input logic [31:0] data, input logic [31:0] addr);
   // Send the command code (8 bits) over 4 data lines (2 clock cycles)
   for (i = 7; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     if (i >= 3) begin
       mosi_data = cmd[i-:4];
     end else begin
@@ -156,6 +168,7 @@ task automatic spi_write_u32(input logic [31:0] data, input logic [31:0] addr);
   // Send the 32-bit address over 4 data lines (8 clock cycles)
   for (i = 31; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     if (i >= 3) begin
       mosi_data = addr[i-:4];
     end else begin
@@ -169,12 +182,14 @@ task automatic spi_write_u32(input logic [31:0] data, input logic [31:0] addr);
   // Send the 32-bit data over 4 data lines (8 clock cycles)
   for (i = 31; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     mosi_data = data[i-:4];
     spis_sd_i = mosi_data;  // Drive data lines
 
   end
   $display("Wrote %h to address %h finished", data, addr);
   @(negedge spis_sck_i);
+  #1;
 
   // Bring CSB high to end the transaction
   spis_csb_i = 1;
@@ -197,6 +212,7 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
   // Start to load binaries from file
   // Wait for a clock edge to align
   @(posedge spis_sck_i);
+  #1;
   spis_csb_i = 0;  // Bring CSB high to end the transaction
 
   // Set the SPI Write MEM code
@@ -205,6 +221,7 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
   // Send the command code (8 bits) over 4 data lines (2 clock cycles)
   for (i = 7; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     if (i >= 3) begin
       mosi_data = cmd[i-:4];
     end else begin
@@ -218,6 +235,7 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
   // Send the 32-bit address over 4 data lines (8 clock cycles)
   for (i = 31; i >= 0; i -= 4) begin
     @(negedge spis_sck_i);
+    #1;
     if (i >= 3) begin
       mosi_data = addr[i-:4];
     end else begin
@@ -260,6 +278,7 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
     for (j = 3; j >= 0; j -= 1) begin
       for (k = 7; k >= 0; k -= 4) begin
         @(posedge spis_sck_i);
+        #1;
         if (k >= 3) begin
           mosi_data = byte_data[j][k-:4];
         end else begin
@@ -276,6 +295,7 @@ task automatic spi_write_image(input string path, input logic [31:0] addr);
   $fclose(file);
   $display("Wrote to address %h finished", addr);
   @(negedge spis_sck_i);
+  #1;
 
   // Bring CSB high to end the transaction
   spis_csb_i = 1;

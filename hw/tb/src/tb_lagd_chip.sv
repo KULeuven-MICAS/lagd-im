@@ -43,6 +43,7 @@ module tb_lagd_chip ();
     
     // Wait for reset
     fix.vip.wait_for_reset();
+    repeat (100) @(posedge fix.vip.clk); 
     wait(fix.pll_test_done == 1);
     wait(fix.spi_test_done == 1);
 

@@ -29,17 +29,23 @@ deps: chs-sim-all .patch
 # Flist generation for system verification
 # ============================================================
 
+POST_PNR ?= 0
+
 ifeq ($(USE_TECH_MODELS),1)
 $(info "USE_TECH_MODELS is set to $(USE_TECH_MODELS), including tech cells in the flist")
 TECH_ARGS := -t tech_cells_generic_exclude_tc_sram
 TECH_MODELS_DEFINES = TSMC_CM_UNIT_DELAY=1 TSMC_DISABLE_INFO_MESSAGE=1
 TECH_MODELS_DEFINES += TSMC_INITIALIZE_MEM_USING_DEFAULT_TASKS=1 TSMC_MEM_LOAD_RANDOM=1
+ifeq ($(POST_PNR),1)
+TECH_MODELS_DEFINES += TSMC_DISABLE_WARNING_MESSAGE=1 TSMC_NO_XADDR_WARNING=1
+SIM_ARGS := -t pomelo_pll_no_checks -t galena_no_checks
+endif
 else
 TECH_ARGS :=
 endif
 
 # Memory island hdl_file_list.tcl generation
-SIM_ARGS := -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
+SIM_ARGS += -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg="$(VLOG_ARGS)"
 # Keep bender list Tcl-compatible because hdl_file_list.tcl sources it.
 # VCS compilation consumes parsed HDL files from hdl_file_list.tcl, not bender's bash script backend.
 BENDER_FLIST_TOOL ?= vsim
@@ -139,7 +145,7 @@ VOPT_ARGS ?=
 ifeq ($(DBG),1)
 VOPT_ARGS += +acc=pr+tb_lagd_chip. +noacc=p+p+tb_lagd_chip.fix. -O5
 else ifeq ($(DBG),2)
-VOPT_ARGS += +acc 
+VOPT_ARGS += +acc
 else ifeq ($(VCD_DUMP),1)
 VOPT_ARGS += +acc
 DEFINES += VCD_FILE=\"$(WORK_DIR)/tb_$(SIM_NAME).vcd\" VCD_DUMP=1 END_SIM_AT_VCD_STOP=1
@@ -147,7 +153,6 @@ DEFINES += VCD_START=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores
 DEFINES += VCD_STOP=tb_lagd_chip.fix.gen_dut_lagd_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10
 else ifneq ($(SDF_FILE),)
 VOPT_ARGS += +acc
-DEFINES += TETRAMAX=1
 else
 VOPT_ARGS += -O5
 endif
@@ -155,7 +160,6 @@ VOPT_ARGS += -permissive
 
 # VSIM_FLAGS definition =======================================
 VSIM_FLAGS ?=
-POST_PNR ?= 0
 VSIM_FLAGS += -suppress 3009 -suppress 8386 -error 7 -cpppath ${CXX_PATH} 
 ifeq ($(POST_PNR),0)
 VSIM_FLAGS += +notimingchecks
