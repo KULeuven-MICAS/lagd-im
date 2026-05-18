@@ -1,3 +1,6 @@
 [submodule "target/syn"]
 	path = target/syn
 	url = git@github.com:KULeuven-MICAS/lagd-syn.git
+[submodule "tools/openising/openising"]
+	path = tools/openising/openising
+	url = https://github.com/KULeuven-MICAS/openising.git
