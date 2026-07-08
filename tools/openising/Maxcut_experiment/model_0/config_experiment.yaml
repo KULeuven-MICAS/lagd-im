@@ -3,3 +3,5 @@ dummy_size: 256
 initialization_seed: 42
 seed: 100
 dummy_seed: 42
+dummy_precision: 4
+nb_runs: 10

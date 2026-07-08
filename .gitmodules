@@ -4,3 +4,6 @@
 [submodule "tools/openising/openising"]
 	path = tools/openising/openising
 	url = https://github.com/KULeuven-MICAS/openising.git
+[submodule "tools/zedboard_python/zedboard_python"]
+	path = tools/zedboard_python/zedboard_python
+	url = git@gitlab.esat.kuleuven.be:micas/measurement-setups/zedboard/zedboard_python.git

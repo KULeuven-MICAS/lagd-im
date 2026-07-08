@@ -1,0 +1,12 @@
+problem_type: MIMO
+dummy_qam: 4
+dummy_snr: 8
+dummy_spacing: 1.0
+dummy_user_num: 128
+dummy_ant_num: 256
+dummy_case_num: 10
+initialization_seed: 42
+seed: 100
+dummy_seed: 42
+nb_trials: 10
+nb_runs: 1

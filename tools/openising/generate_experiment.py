@@ -33,4 +33,8 @@ problem_type = experiment_config["problem_type"]
 ans,_ = get_hamiltonian_energy(problem_type, config_path, args.logging_level)
 
 # Store everything
-store_run(ans, save_folder)
+if "MIMO" in args.config_file:
+    is_MIMO = True
+else:
+    is_MIMO = False
+store_run(ans, save_folder, is_MIMO=is_MIMO)

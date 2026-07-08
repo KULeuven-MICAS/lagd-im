@@ -9,8 +9,6 @@ benchmark: ./ising/benchmarks/MIMO/user5_ant5_M16.txt
 solvers:
   - Multiplicative
 
-# Number of trials
-nb_runs: 1
 
 # Use gurobi or not
 use_gurobi: False
@@ -61,6 +59,7 @@ weight_constant: 0
 SNR: 10
 nb_trials: 100
 mimo_seed: 12
+use_ZF: False
 is_hamming_encoding: False
 
 #################################
@@ -70,7 +69,7 @@ is_hamming_encoding: False
 # Parameters for quantization stage
 quantization: True
 quantization_precision: 4
-h_scale_factor: 1.0
+scale_h: True
 scale_to_integer: True
 
 # Parameters for npmos stage
@@ -92,14 +91,3 @@ nodes_scaling: 2
 ## Dummy creator hyperparameters
 #################################
 dummy_creator: True
-
-# Parameters for dummy MIMO
-
-dummy_qam: 4
-dummy_snr: 8
-dummy_spacing: 1.0
-dummy_user_num: 16
-dummy_ant_num: 64
-dummy_case_num: 10
-
-# Parameters for dummy MaxCut/TSP/ATSP/Knapsack
