@@ -30,21 +30,33 @@ export_include_dirs:
   - hw/tb/include
 
 sources:
+  # Note: `bender script vivado` implicitly activates the `synthesis` target, so
+  # every ASIC/silicon-only group below is additionally gated on `not(fpga)` to
+  # keep pads, the analog PLL and tech-library cells out of the FPGA build.
   - files:
       - target/syn/tech/tsmc7ff/IPs/rtl/tc_sram.sv
-    target: all(tech_cells_generic_exclude_tc_sram, synthesis)
+    target: all(tech_cells_generic_exclude_tc_sram, synthesis, not(fpga))
   - files:
       - target/syn/tech/tsmc7ff/rtl/pomelo_pll_wrap.sv
-    target: any(synthesis, test)
+    target: all(any(synthesis, test), not(fpga))
   - files:
       - target/syn/tech/tsmc7ff/rtl/synchronizer.sv
       - target/syn/tech/tsmc7ff/rtl/lagd_clk_gen.sv
-    target: all(synthesis)
+    target: all(synthesis, not(fpga))
   - files:
       - hw/rtl/analog_macro_wrap/synchronizer.sv
     target: all(not(mixed_signal_exclude_generic_synchronizer))
+  # Behavioural galena_pkg (parameters + non-synthesizable helper functions):
+  # simulation only. The FPGA build uses a parameters-only twin instead (below),
+  # because Vivado's front-end rejects the helper functions.
   - files:
       - hw/tb/models/galena/galena_pkg.sv
+    target: any(test)
+  - files:
+      - hw/rtl/fpga/galena_pkg_fpga.sv
+    target: any(fpga)
+  # Behavioural analog models: simulation only (not synthesizable).
+  - files:
       - hw/tb/models/galena/galena.sv
       - hw/tb/models/pomelo_pll/pomelo_pll.sv
     target: any(test)
@@ -109,11 +121,21 @@ sources:
   - files:
       - target/syn/tech/tsmc7ff/rtl/lagd_chip.sv
       - target/syn/tech/tsmc7ff/rtl/ut/memory_island/memory_island_tle.sv
-    target: any(synthesis, test)
+    target: all(any(synthesis, test), not(fpga))
 
-#  - target: any(simulation, test)
-#    files:
-#      - hw/tb/lagd_tb.sv
-#  - target: all(fpga, xilinx)
-#    files:
-#      - hw/rtl/lagd_fpga.sv
+  # ===================================================================
+  # FPGA-only sources (ZCU102 / Xilinx). Built with `-t fpga -t xilinx`.
+  # On FPGA:
+  #   * `galena` is replaced by a synthesizable constant stub (ising cores
+  #     present but inert; AXI/reg address map stays identical to silicon).
+  #   * the analog PLL and IO pads are replaced by clk_wiz / IO(B)UF in
+  #     lagd_fpga (which instantiates lagd_soc instead of lagd_chip).
+  #   * SRAMs map to BRAM via tech_cells_generic's tc_sram_xilinx, so do NOT
+  #     pass `tech_cells_generic_exclude_tc_sram` for FPGA builds.
+  # ===================================================================
+  - files:
+      - hw/rtl/fpga/galena_fpga_stub.sv
+    target: any(fpga)
+  - files:
+      - hw/rtl/fpga/lagd_fpga.sv
+    target: all(fpga, xilinx)

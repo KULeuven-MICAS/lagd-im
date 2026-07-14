@@ -235,4 +235,14 @@ bender_list.tcl
 # Digital macro testbench generated files
 **/output/**
 
+# Xilinx FPGA flow (target/xilinx) generated artifacts
+target/xilinx/build/
+target/xilinx/out/
+target/xilinx/scripts/add_sources.*.tcl
+target/xilinx/*.jou
+target/xilinx/*.log
+.Xil/
+*.bit
+*.ltx
+
 .nfs*
