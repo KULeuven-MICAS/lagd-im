@@ -58,7 +58,7 @@ ADD_SOURCES := $(XILINX_DIR)/scripts/add_sources.$(BOARD).tcl
 BIT         := $(XILINX_DIR)/out/$(PROJ).$(BOARD).bit
 
 .PHONY: all sources ips synth impl bitstream program clean
----
+
 all: bitstream
 
 #######################
