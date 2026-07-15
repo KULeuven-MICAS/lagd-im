@@ -10,8 +10,11 @@
 #   make ips                  # build the Xilinx IPs (clk_wiz)
 #   make synth                # synthesis only (no pins) -> utilization/timing
 #   make bitstream            # full synth + impl -> out/lagd.zcu102.bit
+#   make impl                 # re-impl only, reusing the synth checkpoint (fast)
 #   make program              # program the board over the HW server (JTAG)
 #   make clean
+#
+# Set LAGD_CLOCKS_RPT=1 to also generate clocks.rpt (adds a ~4 min elaboration).
 #
 # Override tools on the command line, e.g.:
 #   make bitstream VIVADO="vitis-2025.2 vivado"
@@ -37,14 +40,25 @@ IPS        := $(IPS_$(BOARD))
 IP_XCIS    := $(foreach ip,$(IPS),$(XILINX_DIR)/build/$(BOARD).$(ip)/out.xci)
 
 # HW server parameters for programming (defaults: single local board).
+#
+# common.tcl globs `${HWS_URL}/${HWS_PATH}` against the hw target name, which has
+# the shape `<host>:<port>/xilinx_tcf/<vendor>/<serial>`. So HWS_PATH must NOT be
+# prefixed with `*/` (that would expect an extra path segment and match nothing),
+# and the vendor is `Digilent`: the ZCU102's onboard USB-JTAG is a Digilent
+# FT232H module (`lsusb` 0403:6014), not a Xilinx-branded cable.
+#
+# Verified 2026-07-15: localhost:3121/xilinx_tcf/Digilent/210308AE6C4B -> xczu9_0.
+# With several boards on one server, pin the serial instead of globbing (the glob
+# silently takes the LAST match), e.g.:
+#   make program HWS_PATH=xilinx_tcf/Digilent/210308AE6C4B
 HWS_URL  ?= localhost:3121
-HWS_PATH ?= */xilinx_tcf/Xilinx/*
+HWS_PATH ?= xilinx_tcf/Digilent/*
 
 ADD_SOURCES := $(XILINX_DIR)/scripts/add_sources.$(BOARD).tcl
 BIT         := $(XILINX_DIR)/out/$(PROJ).$(BOARD).bit
 
-.PHONY: all sources ips synth bitstream program clean
-
+.PHONY: all sources ips synth impl bitstream program clean
+---
 all: bitstream
 
 #######################
@@ -84,6 +98,17 @@ synth: $(XILINX_DIR)/scripts/impl_sys.tcl $(ADD_SOURCES) $(IP_XCIS)
 	mkdir -p $(XILINX_DIR)/build/$(BOARD).$(PROJ)
 	cd $(XILINX_DIR)/build/$(BOARD).$(PROJ) && \
 		LAGD_STOP_AFTER_SYNTH=1 $(VIVADO) -mode batch -source $< -tclargs $(BOARD) $(PROJ) $(IP_XCIS)
+
+# Fast re-implementation: reuse the synthesis checkpoint from a previous
+# `make bitstream` / `make synth` and run only opt/place/route/bitstream.
+# Skips synthesis (~26 min) + the RTL elaboration (~4 min).
+#
+# ONLY valid when implementation-affecting inputs changed (pins, *_impl.xdc,
+# strategy). If the RTL or the bender source list changed, run `make bitstream`:
+# this target would implement the STALE netlist without warning.
+impl: $(XILINX_DIR)/scripts/impl_only.tcl
+	cd $(XILINX_DIR)/build/$(BOARD).$(PROJ) && \
+		$(VIVADO) -mode batch -source $< -tclargs $(BOARD) $(PROJ)
 
 #######################
 # Program             #

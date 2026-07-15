@@ -45,6 +45,10 @@ set_property IOSTANDARD LVCMOS18 [get_ports uart_tx_o]
 set_property PACKAGE_PIN E13 [get_ports uart_rx_i]
 set_property IOSTANDARD LVCMOS18 [get_ports uart_rx_i]
 
+# NOTE: the CLOCK_DEDICATED_ROUTE overrides for spi_sck_i / jtag_tck_i live in
+# constraints/zcu102_impl.xdc - they reference post-synthesis net names and so
+# apply to implementation only.
+
 #########################
 # Cross-clock domain mgmt
 #########################

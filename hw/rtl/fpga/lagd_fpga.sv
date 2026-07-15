@@ -4,7 +4,7 @@
 //
 // Author: Jiacong Sun <jiacong.sun@esat.kuleuven.be>
 //
-// FPGA top-level for LAGD (target: VCU128).
+// FPGA top-level for LAGD.
 //
 // This wrapper replaces the chip-level `lagd_chip` (pads + analog PLL + analog
 // macro) and instantiates only the synthesizable digital SoC `lagd_soc`. Its
@@ -25,7 +25,7 @@
 `include "lagd_config.svh"
 
 module lagd_fpga (
-  // Board clock (VCU128: differential system clock on a clock-capable pin pair)
+  // Board clock (differential system clock on a clock-capable pin pair)
   input  logic        sys_clk_p,
   input  logic        sys_clk_n,
 
@@ -156,6 +156,22 @@ module lagd_fpga (
   wire [`NUM_ISING_CORES-1:0] galena_vread;
 
   //////////////////
+  //  JTAG clock   //
+  //////////////////
+
+  // jtag_tck_i is pinned to an on-board DIP switch, which sits in a High-Density
+  // (HDIO) I/O bank. TCK is a clock and drives a BUFGCTRL clock-mux inside the
+  // debug module; HDIO pins may only drive a BUFGCE directly, so a bare
+  // HDIO -> BUFGCTRL path fails DRC (PLHDIO-3). Route TCK through a global buffer
+  // first: HDIO -> BUFG (mapped to BUFGCE) -> BUFGCTRL is legal. The create_clock
+  // on the jtag_tck_i port (see constraints/lagd.xdc) propagates through it.
+  logic jtag_tck;
+  BUFG i_jtag_tck_bufg (
+    .I ( jtag_tck_i ),
+    .O ( jtag_tck   )
+  );
+
+  //////////////////
   //  LAGD SoC     //
   //////////////////
 
@@ -166,7 +182,7 @@ module lagd_fpga (
     .test_mode_i  ( test_mode    ),
     .boot_mode_i  ( boot_mode_i  ),
     // JTAG
-    .jtag_tck_i   ( jtag_tck_i   ),
+    .jtag_tck_i   ( jtag_tck     ),
     .jtag_trst_ni ( jtag_trst_ni ),
     .jtag_tms_i   ( jtag_tms_i   ),
     .jtag_tdi_i   ( jtag_tdi_i   ),
