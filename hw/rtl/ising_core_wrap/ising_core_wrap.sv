@@ -587,17 +587,6 @@ module ising_core_wrap import axi_pkg::*; import memory_island_pkg::*; import is
         .cycle_all_cmpt_o                (cycle_all_cmpt                   )
     );
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (~rst_ni) begin
-        end
-        else begin
-            if (cycle_per_iter_recount_en) begin
-                $display("fm_upstream_handshake_counter: %d, cycle_per_iteration: %d, cycle_per_cmpt: %d, energy_fifo_data[0]: %h, energy_fifo_data[1]: %h", fm_upstream_handshake_counter, cycle_per_iteration, cycle_per_cmpt, energy_fifo_data[0], energy_fifo_data[1]);
-            end
-        end
-    end
-
-
     //////////////////////////////////////////////////////////
     // Memory MUX ////////////////////////////////////////////
     //////////////////////////////////////////////////////////
