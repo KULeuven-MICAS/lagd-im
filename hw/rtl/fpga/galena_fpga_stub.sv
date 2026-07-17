@@ -21,6 +21,19 @@
 // combinational pass-through from the *_i buses was deliberately avoided, as it
 // could form a combinational loop through `digital_macro`.
 //
+// --- Why the spin write/readback path is NOT modelled here --------------------
+// A functional stub (spin_cache clocked off write_spin_i, gated bct_read_o) was
+// tried on 2026-07-16 to exercise the spin path on the board. It elaborated and
+// synthesized cleanly (+17k LUTs, timing met), but making bct_read_o functional
+// un-prunes the two ising cores' spin datapath (1024-bit wbl muxes, 256-bit
+// feedback/readout x2 cores). place_design then reported [Place 46-14] "highly
+// congested" (64x64-tile region) and route_design failed after 3-4.7h with
+// ~18-19k node overlaps ([Route 35-2]) - even with AltSpreadLogic_high placement.
+// Routing it would require either editing the shared compute RTL
+// (digital_macro.sv, gating the analog-loop leg for FPGA) or NUM_ISING_CORES=1,
+// both out of scope for now. The functional version is preserved in git history
+// if the spin path needs to be revisited. Until then, bct_read_o stays constant.
+//
 // Port list is identical to hw/tb/models/galena/galena.sv.
 
 module galena import galena_pkg::*; (

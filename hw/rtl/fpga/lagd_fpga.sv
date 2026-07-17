@@ -8,16 +8,19 @@
 //
 // This wrapper replaces the chip-level `lagd_chip` (pads + analog PLL + analog
 // macro) and instantiates only the synthesizable digital SoC `lagd_soc`. Its
-// purpose is to bring up and verify the SPI-slave, JTAG and UART interfaces
-// against an external driver board.
+// purpose is to bring up and verify the SPI-slave and UART interfaces against an
+// external driver board. (RISC-V debug JTAG is present but deliberately held in
+// reset on this board - see the lagd_soc instantiation below.)
 //
 // What is *not* deployed here (and why):
 //   * IO pads          -> replaced by FPGA primitives (IBUFDS / IOBUF).
-//   * Analog PLL        -> replaced by a Xilinx clk_wiz (MMCM/PLL) + RTC divider.
-//   * `galena` macro    -> analog; its inout wires are terminated here. The
-//                          `galena` instances *inside* the ising cores still
-//                          need an FPGA black-box/stub at build time (the
-//                          behavioural model is not synthesizable). See TODO.
+//   * Analog PLL       -> replaced by a Xilinx clk_wiz (MMCM/PLL). The RTC is
+//                         NOT generated here: it arrives on rtc_i from the
+//                         driver board, exactly as on the chip.
+//   * `galena` macro   -> analog; its inout wires are terminated here. The
+//                         `galena` instances *inside* the ising cores are built
+//                         from hw/rtl/fpga/galena_fpga_stub.sv, selected by the
+//                         bender `fpga` target (see Bender.yml).
 //
 // The signal set (which interfaces are real FPGA pins vs tied off) mirrors the
 // chip top-level `lagd_chip` so the bring-up matches silicon behaviour.
@@ -29,30 +32,44 @@ module lagd_fpga (
   input  logic        sys_clk_p,
   input  logic        sys_clk_n,
 
-  // Board reset. On VCU128 the CPU reset button (pin BM29) is active-high.
+  // Board reset, active high: the ZCU102's CPU_RESET push button (AM13, see
+  // constraints/zcu102.xdc). Resets the SoC only - it does not disturb the FPGA
+  // configuration, so it is also how you restart the bootrom to load a second
+  // program (passive boot is one-shot; see the Cheshire bootrom's _exit).
   input  logic        sys_reset,
 
   // Real-time clock reference, driven by the external driver board (a slow
-  // clock <= 32.768 kHz). Mirrors the chip's pad_rtc_i input.
+  // clock <= 32.768 kHz). Mirrors the chip's pad_rtc_i input. NOTE: the bootrom
+  // measures the core frequency against this in clint_get_core_freq() before it
+  // does anything else, so with rtc_i static the SoC never leaves that loop.
   input  logic        rtc_i,
 
-  // Boot strap inputs (DIP switches). Default to passive boot (boot_mode = 0)
-  // so the SoC is preloaded over JTAG or SPI. Mirrors the chip boot_mode pads.
+  // Boot strap inputs. Driven by the external driver board over the FMC
+  // (HPC0_LA09_P/N), mirroring the chip's boot_mode pads - these are NOT
+  // on-board switches. They carry no pull, so they float if the cable is absent;
+  // the driver ties them to 00 = passive boot (preload over SPI).
   input  logic [1:0]  boot_mode_i,
 
-  // JTAG (debug access into Cheshire)
+  // JTAG (RISC-V debug). Parked on on-board DIP switches and held in reset on
+  // this board - see the lagd_soc instantiation below for why.
   input  logic        jtag_tck_i,
   input  logic        jtag_trst_ni,
   input  logic        jtag_tms_i,
   input  logic        jtag_tdi_i,
   output logic        jtag_tdo_o,
 
-  // UART (Cheshire console). RTS/CTS exposed like the chip; the remaining
-  // modem-status lines are tied off internally (see below), as on the chip.
+  // UART (Cheshire console). TX/RX only: they land on the ZCU102's on-board PL
+  // USB-UART (F13/E13), which is the console used for bring-up.
+  //
+  // Unlike the chip, RTS/CTS are NOT exposed. The PL USB-UART (uart2_pl) brings
+  // out only TX/RX, so on this board RTS/CTS had nowhere on-board to go and were
+  // previously pinned to the FMC (HPC0_LA06_P/N) purely to satisfy the
+  // "every port needs a LOC" rule. That spent two FMC pins and made the console
+  // depend on the driver-board cable for no reason. They are now terminated
+  // internally instead (see the lagd_soc instantiation below), which frees
+  // LA06_P/N and drops the dependency. The console needs no flow control.
   output logic        uart_tx_o,
   input  logic        uart_rx_i,
-  output logic        uart_rts_no,
-  input  logic        uart_cts_ni,
 
   // SPI slave (device under test) - driven by the external master board.
   // 4 bidirectional data lines (quad-capable), clock and chip-select in.
@@ -146,9 +163,12 @@ module lagd_fpga (
   // these inout buses route to analog pads; on FPGA there is nothing to drive
   // them, so they are left floating here.
   //
-  // TODO(build): the `galena` module itself is not synthesizable (behavioural
-  // model uses file I/O). Provide an FPGA black-box/stub for `galena` via a
-  // dedicated Bender target before synthesis.
+  // The `galena` module itself is not synthesizable (the behavioural model uses
+  // file I/O, real-valued delays and $urandom, and clocks off data buses), so
+  // the bender `fpga` target swaps it for hw/rtl/fpga/galena_fpga_stub.sv. That
+  // stub drives constant outputs (the ising compute is not modelled on FPGA);
+  // it is enough for SPI/UART bring-up. See its header for why the spin path is
+  // not modelled (it un-prunes the cores and the design fails to route).
   wire [`NUM_ISING_CORES-1:0] galena_j_vup;
   wire [`NUM_ISING_CORES-1:0] galena_j_vdn;
   wire [`NUM_ISING_CORES-1:0] galena_h_vup;
@@ -181,9 +201,24 @@ module lagd_fpga (
     .rst_ni       ( rst_n        ),
     .test_mode_i  ( test_mode    ),
     .boot_mode_i  ( boot_mode_i  ),
-    // JTAG
+    // JTAG - DISABLED on this board, deliberately and reversibly.
+    //
+    // The RISC-V debug JTAG is not routed here: the driver board does not carry
+    // it and the FMC has no spare pins, so the jtag_* ports are parked on
+    // on-board DIP switches (see constraints/zcu102.xdc). Bring-up preloads over
+    // SPI (or the UART debug protocol) instead, so an idle TAP driven by hand
+    // switches is only a source of noise.
+    //
+    // Holding trst_ni asserted keeps the TAP in Test-Logic-Reset, so dmactive
+    // stays 0 and no debug access is possible regardless of what the DIP
+    // switches do. tck/tms/tdi are deliberately left CONNECTED: tying tck to a
+    // constant would let Vivado prune its IBUF/BUFG, and
+    // constraints/zcu102_impl.xdc references that net by name
+    // (jtag_tck_i_IBUF_inst/O) - set_property on an empty object list is an
+    // error, so the build would fail. Leaving them wired also keeps every JTAG
+    // constraint valid, so re-enabling is a one-line revert here.
     .jtag_tck_i   ( jtag_tck     ),
-    .jtag_trst_ni ( jtag_trst_ni ),
+    .jtag_trst_ni ( 1'b0         ),
     .jtag_tms_i   ( jtag_tms_i   ),
     .jtag_tdi_i   ( jtag_tdi_i   ),
     .jtag_tdo_o   ( jtag_tdo_o   ),
@@ -194,8 +229,12 @@ module lagd_fpga (
     // UART
     .uart_tx_o    ( uart_tx_o    ),
     .uart_rx_i    ( uart_rx_i    ),
-    .uart_rts_no  ( uart_rts_no  ),
-    .uart_cts_ni  ( uart_cts_ni  ),
+    // RTS/CTS are terminated here rather than pinned out (see the port list).
+    // cts_ni is ACTIVE LOW, so 0 means "clear to send": the UART is permanently
+    // allowed to transmit, which is what a console with no flow control wants.
+    // Tying it high would wedge the transmitter. rts_no has no consumer.
+    .uart_rts_no  (              ),
+    .uart_cts_ni  ( 1'b0         ),
     // Remaining modem-status lines: tied off exactly as in lagd_chip.
     .uart_dtr_no  (              ),
     .uart_dsr_ni  ( 1'b1         ),

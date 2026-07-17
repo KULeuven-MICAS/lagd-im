@@ -159,14 +159,16 @@ set_property IOSTANDARD LVCMOS33 \
 # instead, route LA25_P (HPC0 ball M11) and invert it (arst_no is active-low,
 # sys_reset is active-high) - easiest done in the wrapper.
 
-# --- UART HW flow control ---
-# The ZCU102 PL USB-UART (uart2_pl) exposes only TX/RX - no RTS/CTS. The console
-# does not need flow control, so terminate these here: cts_ni tied deasserted
-# (pulled high = "not clear to send" is wrong; active-low CTS asserted = 0).
-# uart_cts_ni active-low: pull LOW so the UART is always "clear to send".
-set_property PACKAGE_PIN AC2 [get_ports uart_rts_no]      ;# HPC0_LA06_P (unused sink)
-set_property PACKAGE_PIN AC1 [get_ports uart_cts_ni]      ;# HPC0_LA06_N
-set_property IOSTANDARD LVCMOS18 [get_ports {uart_rts_no uart_cts_ni}]
-set_property PULLDOWN true [get_ports uart_cts_ni]
-# Cleaner alternative: tie uart_cts_ni=1'b0 and leave uart_rts_no open in the
-# wrapper, dropping both from the pinout entirely.
+# --- UART HW flow control: NOT PINNED (intentionally) ---
+# The ZCU102 PL USB-UART (uart2_pl) exposes only TX/RX - no RTS/CTS. These used
+# to be pinned to HPC0_LA06_P/N (AC2/AC1) purely because every port needs a LOC,
+# which spent two FMC pins and made the console depend on the driver-board cable
+# for no reason. lagd_fpga.sv now terminates them internally (uart_cts_ni = 1'b0
+# = "clear to send"; uart_rts_no left open) and does not expose the ports, so
+# there is nothing to constrain here and LA06_P/N are free.
+#
+# If you ever re-expose them in the wrapper, this block is what you need back:
+#   set_property PACKAGE_PIN AC2 [get_ports uart_rts_no]      ;# HPC0_LA06_P
+#   set_property PACKAGE_PIN AC1 [get_ports uart_cts_ni]      ;# HPC0_LA06_N
+#   set_property IOSTANDARD LVCMOS18 [get_ports {uart_rts_no uart_cts_ni}]
+#   set_property PULLDOWN true [get_ports uart_cts_ni]

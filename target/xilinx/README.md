@@ -79,11 +79,17 @@ utilization reports land in `build/zcu102.lagd/reports.impl/` (and
 cd target/xilinx
 make sources     # bender -> add_sources.zcu102.tcl
 make ips         # build the clk_wiz IP
-make synth       # synthesis only (no FMC pins needed) - utilization/timing check
-make bitstream   # clk_wiz IP + synth + impl -> out/lagd.zcu102.bit  (~85 min)
-make impl        # re-implement only, reusing the synthesis checkpoint (~55 min)
+make synth 2>&1 | tee synth.log # synthesis only (no FMC pins needed) - utilization/timing check
+make impl 2>&1 | tee impl.log # implement and generate bitstream, reusing the synthesis checkpoint
 make program     # configure the FPGA over the HW server (JTAG)
 ```
+
+Or simply run:
+
+```bash
+make bitstream   # clk_wiz IP + synth + impl -> out/lagd.zcu102.bit  (~85 min)
+```
+
 `make synth` stops after synthesis (set via `LAGD_STOP_AFTER_SYNTH`), so it runs
 before the FMC pin assignments are known. `make bitstream` needs every port
 pinned. Override the tool or HW-server via `make` variables (`VIVADO=`,
