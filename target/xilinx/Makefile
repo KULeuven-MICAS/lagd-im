@@ -1,6 +1,8 @@
 # Copyright 2025 KU Leuven.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
+
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 #
 # LAGD Xilinx FPGA build flow (board: ZCU102).
 # Adapted from cheshire/target/xilinx.
@@ -12,9 +14,18 @@
 #   make bitstream            # full synth + impl -> out/lagd.zcu102.bit
 #   make impl                 # re-impl only, reusing the synth checkpoint (fast)
 #   make program              # program the board over the HW server (JTAG)
+#   make list-hw              # diagnostic: list JTAG targets/devices (read-only)
 #   make clean
 #
 # Set LAGD_CLOCKS_RPT=1 to also generate clocks.rpt (adds a ~4 min elaboration).
+#
+# Set LAGD_STANDALONE=1 to build a self-contained bitstream: the RTC is generated
+# on-FPGA and boot_mode is forced to 00, so the ZCU102 runs with NO driver board
+# on the FMC (program over JTAG, preload over its own USB-UART). Default (unset)
+# takes RTC/boot_mode from the driver, matching silicon. This is a synthesis-time
+# generic, so it only takes effect via `make bitstream` (or `make synth`), NOT
+# `make impl`. E.g.:
+#   make bitstream LAGD_STANDALONE=1
 #
 # Override tools on the command line, e.g.:
 #   make bitstream VIVADO="vitis-2025.2 vivado"
@@ -57,7 +68,7 @@ HWS_PATH ?= xilinx_tcf/Digilent/*
 ADD_SOURCES := $(XILINX_DIR)/scripts/add_sources.$(BOARD).tcl
 BIT         := $(XILINX_DIR)/out/$(PROJ).$(BOARD).bit
 
-.PHONY: all sources ips synth impl bitstream program clean
+.PHONY: all sources ips synth impl bitstream program list-hw clean
 
 all: bitstream
 
@@ -117,6 +128,13 @@ impl: $(XILINX_DIR)/scripts/impl_only.tcl
 program: $(XILINX_DIR)/scripts/util/program.tcl
 	cd $(XILINX_DIR) && $(VIVADO) -mode batch -source $< \
 		-tclargs $(HWS_URL) "$(HWS_PATH)" $(BOARD) $(BIT)
+
+# Diagnostic: list the JTAG targets/devices the hw_server sees (read-only; does
+# not program). Use when `make program` finds no target, to pin a serial when
+# several boards share a server, or to confirm `xczu9_0` enumerates. Standalone.
+list-hw: $(XILINX_DIR)/scripts/util/list_hw.tcl
+	cd $(XILINX_DIR) && $(VIVADO) -mode batch -nolog -nojournal -source $< \
+		-tclargs $(HWS_URL)
 
 #######################
 # Clean               #

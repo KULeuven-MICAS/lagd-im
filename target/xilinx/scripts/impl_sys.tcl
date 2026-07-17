@@ -1,6 +1,8 @@
 # Copyright 2025 KU Leuven.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
+
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 #
 # Adapted from cheshire/target/xilinx (ETH Zurich / University of Bologna).
 #
@@ -40,6 +42,16 @@ update_compile_order -fileset sources_1
 # Synthesis properties
 set_property XPM_LIBRARIES XPM_MEMORY [current_project]
 set_property strategy Flow_PerfOptimized_high [get_runs synth_1]
+
+# STANDALONE build: override the lagd_fpga `Standalone` generic so the RTC is
+# generated on-FPGA and boot_mode is forced to 00 - no driver board needed. This
+# is baked at SYNTHESIS, so switching modes requires `make bitstream` (not
+# `make impl`, which reuses the existing synth checkpoint). See the parameter
+# doc in hw/rtl/fpga/lagd_fpga.sv. Default (unset) leaves Standalone=0 (external).
+if { [info exists ::env(LAGD_STANDALONE)] && $::env(LAGD_STANDALONE) } {
+    puts "LAGD: STANDALONE build - on-FPGA RTC + boot_mode=00 (no driver board)."
+    set_property generic {Standalone=1'b1} [current_fileset]
+}
 
 # Elaborate to explore all clocks -> clocks.rpt. This is a FULL RTL elaboration
 # (~4 min on this design) whose only product is the report, so it is opt-in.

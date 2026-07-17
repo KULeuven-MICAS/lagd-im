@@ -1,6 +1,8 @@
 # Copyright 2025 KU Leuven.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
+
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 #
 # Fast implementation-only run: reuse the EXISTING synthesis checkpoint from a
 # previous `make bitstream` / `make synth` and run opt/place/route/bitstream.
@@ -9,6 +11,8 @@
 # Use when only implementation-affecting inputs changed (pins, impl-only XDC,
 # strategy). If the RTL or the bender source list changed, you MUST re-run
 # `make bitstream` - this script would silently implement the stale netlist.
+# NOTE: LAGD_STANDALONE is a synthesis-time generic baked into the checkpoint, so
+# this script cannot switch RTC/boot-mode source - use `make bitstream` for that.
 #
 # FIDELITY CAVEAT: IPs are linked from their out-of-context .dcp, not their .xci.
 # Vivado warns about this ([Vivado 12-5469]/[Project 1-840]) because an IP's own

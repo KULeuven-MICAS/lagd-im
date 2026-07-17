@@ -27,7 +27,20 @@
 
 `include "lagd_config.svh"
 
-module lagd_fpga (
+module lagd_fpga #(
+  // STANDALONE mode: run the SoC with NO driver board attached.
+  //   0 (default) = rtc_i and boot_mode_i come from the external driver over the
+  //                 FMC, exactly like the chip. This is the silicon-matching build.
+  //   1           = the RTC is generated on-FPGA (soc_clk / ~763 -> ~32.768 kHz)
+  //                 and boot_mode is forced to 00 (passive boot). Nothing on the
+  //                 FMC is needed, so the ZCU102 can be brought up on its own
+  //                 (program over JTAG, preload over its own USB-UART).
+  // Set at synthesis time via a Vivado generic - see `make bitstream
+  // LAGD_STANDALONE=1` (scripts/impl_sys.tcl). The rtc_i/boot_mode_i PORTS and
+  // their pin constraints exist in both modes; in standalone they are simply
+  // ignored (harmless unused inputs), so no XDC change is needed to switch.
+  parameter bit Standalone = 1'b0
+) (
   // Board clock (differential system clock on a clock-capable pin pair)
   input  logic        sys_clk_p,
   input  logic        sys_clk_n,
@@ -42,12 +55,14 @@ module lagd_fpga (
   // clock <= 32.768 kHz). Mirrors the chip's pad_rtc_i input. NOTE: the bootrom
   // measures the core frequency against this in clint_get_core_freq() before it
   // does anything else, so with rtc_i static the SoC never leaves that loop.
+  // IGNORED when Standalone=1 (the RTC is then generated on-FPGA).
   input  logic        rtc_i,
 
   // Boot strap inputs. Driven by the external driver board over the FMC
   // (HPC0_LA09_P/N), mirroring the chip's boot_mode pads - these are NOT
   // on-board switches. They carry no pull, so they float if the cable is absent;
   // the driver ties them to 00 = passive boot (preload over SPI).
+  // IGNORED when Standalone=1 (boot_mode is then forced to 00 internally).
   input  logic [1:0]  boot_mode_i,
 
   // JTAG (RISC-V debug). Parked on on-board DIP switches and held in reset on
@@ -94,6 +109,12 @@ module lagd_fpga (
   // test_mode is unused on the chip (left at 0 by lagd_chip); do the same here.
   logic test_mode;
   assign test_mode = 1'b0;
+
+  // soc_clk rate in Hz. MUST match the clk_wiz clk_out1 rate
+  // (CLKOUT1_REQUESTED_OUT_FREQ in scripts/impl_ip.tcl, currently 50 MHz).
+  // Used by both the heartbeat LED divider and the standalone RTC divider below;
+  // update this if the wizard frequency changes.
+  localparam int unsigned SocClkHz = 50_000_000;
 
   ////////////////////////
   //  Clock generation  //
@@ -143,6 +164,51 @@ module lagd_fpga (
     .init_no      (                          )
   );
 
+  ///////////////////////////////////////
+  //  RTC + boot-mode source select     //
+  ///////////////////////////////////////
+
+  // What actually feeds the SoC's rtc_i / boot_mode_i, chosen by the Standalone
+  // parameter (see the module header). rtc_soc is NOT a clock: cheshire's CLINT
+  // puts rtc through a 2-FF synchronizer + edge detector in the soc_clk domain
+  // (clint.sv) and ticks mtime on each rising edge. So the standalone RTC can be
+  // an ordinary soc_clk-domain divider - no BUFG, no generated clock, no CDC and
+  // no XDC change; it is timed as plain soc_clk logic.
+  logic       rtc_soc;
+  logic [1:0] boot_mode_soc;
+
+  if (Standalone) begin : gen_rtc_internal
+    // Divide soc_clk down to ~32.768 kHz (RtcFreq in hw/rtl/lagd_pkg.sv). Half
+    // period = round(SocClkHz / (2*RtcHz)); at 50 MHz that is 763 soc_clk cycles
+    // -> 50e6/(2*763) = 32.765 kHz, ~0.01% low (far inside the UART's tolerance,
+    // since the bootrom derives the baud divider from the measured core freq).
+    localparam int unsigned RtcHz    = 32_768;
+    localparam int unsigned RtcHalf  = (SocClkHz + RtcHz) / (2 * RtcHz);
+    localparam int unsigned RtcCntW  = $clog2(RtcHalf);
+
+    logic [RtcCntW-1:0] rtc_cnt;
+    logic               rtc_div;
+
+    always_ff @(posedge soc_clk) begin
+      if (!rst_n) begin
+        rtc_cnt <= '0;
+        rtc_div <= 1'b0;
+      end else if (rtc_cnt == RtcHalf - 1) begin
+        rtc_cnt <= '0;
+        rtc_div <= ~rtc_div;
+      end else begin
+        rtc_cnt <= rtc_cnt + 1'b1;
+      end
+    end
+
+    assign rtc_soc       = rtc_div;
+    assign boot_mode_soc = 2'b00;   // passive boot (preload over SPI/UART)
+  end else begin : gen_rtc_external
+    // Silicon-matching: take both straight from the FMC-driven input pins.
+    assign rtc_soc       = rtc_i;
+    assign boot_mode_soc = boot_mode_i;
+  end
+
   //////////////////////////////
   //  Bring-up status LEDs     //
   //////////////////////////////
@@ -154,10 +220,8 @@ module lagd_fpga (
   // heartbeat only blinks once locked AND CPU_RESET is released); clk_locked's
   // own LED stays lit whenever the clock is present, independent of that button.
   //
-  // SocClkHz must match the clk_wiz clk_out1 rate (CLKOUT1_REQUESTED_OUT_FREQ in
-  // scripts/impl_ip.tcl, currently 50 MHz). Toggling every half period yields a
-  // 1 s full period (1 Hz). Update SocClkHz if the wizard frequency changes.
-  localparam int unsigned SocClkHz = 50_000_000;   // soc_clk rate (impl_ip.tcl)
+  // Toggling every half period (SocClkHz/2 soc_clk cycles) yields a 1 s full
+  // period (1 Hz blink). SocClkHz is the shared board-rate localparam above.
   localparam int unsigned HbHalf   = SocClkHz / 2;  // toggle every 0.5 s -> 1 s period
   localparam int unsigned HbCntW   = $clog2(HbHalf);
 
@@ -245,11 +309,13 @@ module lagd_fpga (
   //////////////////
 
   lagd_soc i_lagd_soc (
-    .clk_i        ( soc_clk      ),
-    .rtc_i        ( rtc_i        ),
-    .rst_ni       ( rst_n        ),
-    .test_mode_i  ( test_mode    ),
-    .boot_mode_i  ( boot_mode_i  ),
+    .clk_i        ( soc_clk       ),
+    // rtc / boot_mode come from the FMC pins or from fabric, per Standalone
+    // (see "RTC + boot-mode source select" above).
+    .rtc_i        ( rtc_soc       ),
+    .rst_ni       ( rst_n         ),
+    .test_mode_i  ( test_mode     ),
+    .boot_mode_i  ( boot_mode_soc ),
     // JTAG - DISABLED on this board, deliberately and reversibly.
     //
     // The RISC-V debug JTAG is not routed here: the driver board does not carry
