@@ -31,7 +31,7 @@ if { $argc < 2 } {
     return -code error
 }
 set board [lindex $argv 0]
-set proj  [lindex $argv 1]
+set proj [lindex $argv 1]
 
 set num_threads 8
 set num_jobs 8

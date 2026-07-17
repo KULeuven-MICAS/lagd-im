@@ -133,21 +133,21 @@ set_clock_groups -asynchronous \
 #   spi_sck_i  <- chip_sck_o  FMC LA02_P    spi_sd_io[0] <- chip_sd_io[0] LA04_P
 #   spi_cs_i   <- chip_csb_o  FMC LA02_N    spi_sd_io[1] <- chip_sd_io[1] LA04_N
 #   spi_sd_io[2] <- chip_sd_io[2] LA07_P    spi_sd_io[3] <- chip_sd_io[3] LA07_N
-set_property PACKAGE_PIN V2  [get_ports spi_sck_i]        ;# HPC0_LA02_P
-set_property PACKAGE_PIN V1  [get_ports spi_cs_i]         ;# HPC0_LA02_N
+set_property PACKAGE_PIN V2 [get_ports spi_sck_i]         ;# HPC0_LA02_P
+set_property PACKAGE_PIN V1 [get_ports spi_cs_i]          ;# HPC0_LA02_N
 set_property PACKAGE_PIN AA2 [get_ports {spi_sd_io[0]}]   ;# HPC0_LA04_P
 set_property PACKAGE_PIN AA1 [get_ports {spi_sd_io[1]}]   ;# HPC0_LA04_N
-set_property PACKAGE_PIN U5  [get_ports {spi_sd_io[2]}]   ;# HPC0_LA07_P
-set_property PACKAGE_PIN U4  [get_ports {spi_sd_io[3]}]   ;# HPC0_LA07_N
+set_property PACKAGE_PIN U5 [get_ports {spi_sd_io[2]}]    ;# HPC0_LA07_P
+set_property PACKAGE_PIN U4 [get_ports {spi_sd_io[3]}]    ;# HPC0_LA07_N
 set_property IOSTANDARD LVCMOS18 [get_ports {spi_sck_i spi_cs_i spi_sd_io[*]}]
 
 # --- RTC reference: driver chip_rtc_o (slow clock) over FMC LA10_P ---
-set_property PACKAGE_PIN W5  [get_ports rtc_i]            ;# HPC0_LA10_P
+set_property PACKAGE_PIN W5 [get_ports rtc_i]             ;# HPC0_LA10_P
 set_property IOSTANDARD LVCMOS18 [get_ports rtc_i]
 
 # --- Boot straps: driver chip_bootmode_o[1:0] over FMC LA09_P/N ---
-set_property PACKAGE_PIN W2  [get_ports {boot_mode_i[0]}] ;# HPC0_LA09_P
-set_property PACKAGE_PIN W1  [get_ports {boot_mode_i[1]}] ;# HPC0_LA09_N
+set_property PACKAGE_PIN W2 [get_ports {boot_mode_i[0]}]  ;# HPC0_LA09_P
+set_property PACKAGE_PIN W1 [get_ports {boot_mode_i[1]}]  ;# HPC0_LA09_N
 set_property IOSTANDARD LVCMOS18 [get_ports {boot_mode_i[*]}]
 
 # --- JTAG: the driver does NOT route JTAG, and the FMC is fully consumed by the
@@ -160,7 +160,7 @@ set_property IOSTANDARD LVCMOS18 [get_ports {boot_mode_i[*]}]
 set_property PACKAGE_PIN AN14 [get_ports jtag_tck_i]      ;# GPIO_DIP_SW0
 set_property PACKAGE_PIN AP14 [get_ports jtag_tms_i]      ;# GPIO_DIP_SW1
 set_property PACKAGE_PIN AM14 [get_ports jtag_tdi_i]      ;# GPIO_DIP_SW2
-set_property PACKAGE_PIN AN13 [get_ports jtag_trst_ni]    ;# GPIO_DIP_SW3 (set =1: debug out of reset)
+set_property PACKAGE_PIN AN13 [get_ports jtag_trst_ni]    ;# GPIO_DIP_SW3 (=1: debug out of reset)
 set_property PACKAGE_PIN AG14 [get_ports jtag_tdo_o]      ;# GPIO_LED_0_LS
 set_property IOSTANDARD LVCMOS33 \
     [get_ports {jtag_tck_i jtag_tms_i jtag_tdi_i jtag_tdo_o jtag_trst_ni}]

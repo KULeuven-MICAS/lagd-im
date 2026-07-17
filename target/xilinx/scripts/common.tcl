@@ -75,13 +75,14 @@ proc no_cfg_exit {proj board} {
 proc gen_reports {rptdir} {
     file delete -force $rptdir
     file mkdir ${rptdir}
-    check_timing             -file ${rptdir}/check_timing.rpt       -verbose
-    report_timing            -file ${rptdir}/timing_worst_100.rpt   -max_paths 100 -nworst 100 -delay_type max -sort_by slack
-    report_timing            -file ${rptdir}/timing_worst.rpt       -nworst 1 -delay_type max -sort_by group
-    report_utilization       -file ${rptdir}/utilization.rpt        -hierarchical
-    report_cdc               -file ${rptdir}/cdc.rpt
+    check_timing -file ${rptdir}/check_timing.rpt -verbose
+    report_timing -file ${rptdir}/timing_worst_100.rpt \
+        -max_paths 100 -nworst 100 -delay_type max -sort_by slack
+    report_timing -file ${rptdir}/timing_worst.rpt -nworst 1 -delay_type max -sort_by group
+    report_utilization -file ${rptdir}/utilization.rpt -hierarchical
+    report_cdc -file ${rptdir}/cdc.rpt
     report_clock_interaction -file ${rptdir}/clock_interaction.rpt
-    report_timing_summary    -file ${rptdir}/timing_summary.rpt
+    report_timing_summary -file ${rptdir}/timing_summary.rpt
 }
 
 # Insert debug core and ILAs for any nets marked MARK_DEBUG (none by default)

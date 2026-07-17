@@ -31,14 +31,14 @@
 #
 # tclargs: [<hw_server_url>]  (default: localhost:3121)
 
-set url [expr {$argc >= 1 ? [lindex $argv 0] : "localhost:3121"}]
+set url [expr { $argc >= 1 ? [lindex $argv 0] : "localhost:3121" }]
 
 open_hw_manager
 connect_hw_server -url $url
 
 set tgts [get_hw_targets]
 puts "TARGETS: $tgts"
-if {[llength $tgts] == 0} {
+if { [llength $tgts] == 0 } {
     puts "NO TARGETS -- hw_server sees no cable. Check: board powered, USB-JTAG"
     puts "  cabled, cable drivers/udev installed, and hw_server running."
     close_hw_manager
