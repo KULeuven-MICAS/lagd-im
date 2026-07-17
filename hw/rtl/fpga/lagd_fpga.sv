@@ -75,7 +75,20 @@ module lagd_fpga (
   // 4 bidirectional data lines (quad-capable), clock and chip-select in.
   input  logic        spi_sck_i,
   input  logic        spi_cs_i,
-  inout  wire  [3:0]  spi_sd_io
+  inout  wire  [3:0]  spi_sd_io,
+
+  // Bring-up status LEDs (ZCU102 on-board user GPIO LEDs, active high). These
+  // make the clock chain observable at a glance without a probe or debug core:
+  //   led_clk_locked_o : solid ON once the clk_wiz MMCM locks onto the on-board
+  //                      300 MHz sys clock (i.e. soc_clk exists and is stable).
+  //   led_heartbeat_o  : ~1 Hz blink from a counter off soc_clk, so a visible
+  //                      blink proves soc_clk is actually toggling in fabric
+  //                      (lock alone does not prove the MMCM output propagates)
+  //                      and that the SoC is out of reset.
+  // Pins are GPIO_LED_1/2 (AF13/AE13) in constraints/zcu102.xdc; GPIO_LED_0
+  // (AG14) is already used by jtag_tdo_o.
+  output logic        led_clk_locked_o,
+  output logic        led_heartbeat_o
 );
 
   // test_mode is unused on the chip (left at 0 by lagd_chip); do the same here.
@@ -129,6 +142,42 @@ module lagd_fpga (
     .rst_no       ( rst_n                    ),
     .init_no      (                          )
   );
+
+  //////////////////////////////
+  //  Bring-up status LEDs     //
+  //////////////////////////////
+
+  // clk_locked drives an LED directly (solid = MMCM locked). The heartbeat
+  // divides soc_clk down to a ~1 Hz square wave so a blinking LED confirms
+  // soc_clk is really toggling in the fabric. The counter runs on soc_clk and is
+  // cleared while the SoC is in reset (rst_n already folds in clk_locked, so the
+  // heartbeat only blinks once locked AND CPU_RESET is released); clk_locked's
+  // own LED stays lit whenever the clock is present, independent of that button.
+  //
+  // SocClkHz must match the clk_wiz clk_out1 rate (CLKOUT1_REQUESTED_OUT_FREQ in
+  // scripts/impl_ip.tcl, currently 50 MHz). Toggling every half period yields a
+  // 1 s full period (1 Hz). Update SocClkHz if the wizard frequency changes.
+  localparam int unsigned SocClkHz = 50_000_000;   // soc_clk rate (impl_ip.tcl)
+  localparam int unsigned HbHalf   = SocClkHz / 2;  // toggle every 0.5 s -> 1 s period
+  localparam int unsigned HbCntW   = $clog2(HbHalf);
+
+  logic [HbCntW-1:0] hb_cnt;
+  logic              hb_led;
+
+  always_ff @(posedge soc_clk) begin
+    if (!rst_n) begin
+      hb_cnt <= '0;
+      hb_led <= 1'b0;
+    end else if (hb_cnt == HbHalf - 1) begin
+      hb_cnt <= '0;
+      hb_led <= ~hb_led;
+    end else begin
+      hb_cnt <= hb_cnt + 1'b1;
+    end
+  end
+
+  assign led_clk_locked_o = clk_locked;
+  assign led_heartbeat_o  = hb_led;
 
   ////////////////////////
   //  SPI slave  IOBUFs //

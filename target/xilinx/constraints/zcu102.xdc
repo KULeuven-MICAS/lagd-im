@@ -33,6 +33,18 @@ set_property PACKAGE_PIN AM13 [get_ports sys_reset]
 set_property IOSTANDARD LVCMOS33 [get_ports sys_reset]
 
 ########
+# LEDs #
+########
+
+# On-board user GPIO LEDs (bank 47, LVCMOS33, active high). Bring-up status:
+#   GPIO_LED_1 (AF13) = clk_locked : solid ON once the MMCM locks the sys clock.
+#   GPIO_LED_2 (AE13) = heartbeat  : ~1 Hz blink => soc_clk alive & out of reset.
+# GPIO_LED_0 (AG14) is already used by jtag_tdo_o (see JTAG block below).
+set_property PACKAGE_PIN AF13 [get_ports led_clk_locked_o] ;# GPIO_LED_1_LS
+set_property PACKAGE_PIN AE13 [get_ports led_heartbeat_o]  ;# GPIO_LED_2_LS
+set_property IOSTANDARD LVCMOS33 [get_ports {led_clk_locked_o led_heartbeat_o}]
+
+########
 # UART #
 ########
 
