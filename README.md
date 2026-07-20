@@ -5,21 +5,25 @@
 
 This repository is for the hardware implementation of the Ising LAGD chip.
 
+**Warning**: this repository takes around 8.0 GB of disk size
+
 ## Getting the sources
 
 To download, run the following code:
 
-   $ git clone --recurse-submodules `git@github.com:KULeuven-MICAS/lagd-im.git`
+```bash
+$ git clone --recurse-submodules `git@github.com:KULeuven-MICAS/lagd-im.git`
+$ ./ci/install.sh
+$ cd lagd-im/.bender/git/checkouts/cheshire-4912d4aca2fac633
+$ mkdir -p target/sim/models
+$ cd target/sim/models
+$ wget --no-check-certificate https://freemodelfoundry.com/fmf_vlog_models/flash/s25fs512s.v -O s25fs512s.v
+$ wget https://ww1.microchip.com/downloads/en/DeviceDoc/24xx1025_Verilog_Model.zip -O 24xx1025_Verilog_Model.zip
+$ unzip -o 24xx1025_Verilog_Model.zip -d .
+$ rm -f 24xx1025_Verilog_Model.zip 24AA1025.v 24LC1025.v
+```
 
-**Warning**: git clone takes around 1.2 GB of disk and download size
-
-## Installation
-
-To install the required tools, run the following code:
-
-   $ ./ci/install.sh
-
-This will install the following tools:
+These commands will install the following tools:
 
 1. Pixi (for dependency management)
    Warning: after installing Pixi, please restart your terminal and run the script again
@@ -28,6 +32,7 @@ This will install the following tools:
 3. Bender (for hardware dependency management)
 4. Hardware dependencies (see Bender.yml)
 5. RISC-V GNU Toolchain (for software compilation)
+6. Simulation behavior model required by Cheshire for SPI (s25fs512s.v) and I2C (24FC1025.v)
 
 ## Third-party libraries
 
