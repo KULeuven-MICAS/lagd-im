@@ -1,6 +1,6 @@
 # LAGD FPGA flow (Xilinx / ZCU102)
 
-Author: Jiacong Sun
+Author: Jiacong Sun \<jiacong.sun@kuleuven.be\>
 
 Date: 2026/07/18
 
@@ -8,6 +8,10 @@ Deploys the **digital** LAGD SoC on a Xilinx **ZCU102** to bring up and test the
 **SPI-slave, JTAG and UART** interfaces against an external driver board (a
 Zedboard, over FMC). It is **not** the chip: pads, the analog PLL, and the
 `galena` analog macro are replaced by FPGA-friendly equivalents.
+
+The user guide of ZCU102 can be found online at [here](https://docs.amd.com/v/u/en-US/ug1182-zcu102-eval-bd).
+
+Since the Cheshire's BootROM will not return to the idle state after finishing a program, we need to reload the bitstream on the PL (programming logic) everytime. To do this earsier, it is suggested to use a SD Card (with Petalinux) to boot the ZCU102, so that you can reload the bitstream on the PL in a Jupyter notebook. If you have no experience on how to do it, we also support to directly program the PL via JTAG cable (Use `make program`. See the description below)
 
 ## Board
 
@@ -103,8 +107,10 @@ specific board with `make list-hw HWS_URL=<host>:3121`, then
 Or simply run:
 
 ```bash
-make bitstream   # clk_wiz IP + synth + impl -> out/lagd.zcu102.bit  (~85 min)
+make bitstream LAGD_STANDALONE=1   # clk_wiz IP + synth + impl -> out/lagd.zcu102.bit  (~85 min)
 ```
+
+`LAGD_STANDALONE=1` is used for FPGA verification, which disables the RTS/CTS of UART interface.
 
 `make synth` stops after synthesis (set via `LAGD_STOP_AFTER_SYNTH`), so it runs
 before the FMC pin assignments are known. `make bitstream` needs every port
