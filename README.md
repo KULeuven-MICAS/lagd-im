@@ -1,8 +1,6 @@
 
 # LAGD Ising RTL
 
-=============================
-
 This repository is for the hardware implementation of the Ising LAGD chip.
 
 **Warning**: this repository takes around 8.0 GB of disk size
