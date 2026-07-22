@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 # sys-run.sh - Run system tests
 
 set -e
@@ -27,6 +28,7 @@ Usage: ./ci/sys-run.sh [[
     --skip-sw-build
     --vcd
     --sdf-annotate
+    --fpga-cache-ram
     --help]]"
 EOF
     echo "Example: $0"
@@ -49,6 +51,7 @@ show_help()
     echo "  --skip-sw-build: Skip the software build step"
     echo "  --vcd: Generate VCD waveform file (default: off)"
     echo "  --sdf-annotate: Enable SDF annotation for post-synthesis simulation (implies --post-syn or --netlist)"
+    echo "  --fpga-cache-ram: Swap the CVA6 cache RAM in the RTL sim for the Xilinx FPGA model (SyncSpRamBeNx64) (default: off)"
     echo "  --help: Show this help message"
 }
 
@@ -67,6 +70,7 @@ SKIP_SW_BUILD=0
 VCD_DUMP=0
 SDF_FILE=""
 SDF_ANNOTATE=0
+FPGA_CACHE_RAM=0
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -146,6 +150,10 @@ for i in "$@"; do
             SDF_ANNOTATE=1
             shift
             ;;
+        --fpga-cache-ram)
+            FPGA_CACHE_RAM=1
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -159,6 +167,16 @@ if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
     echo "[$(date +%T)] Starting SW build..."
     make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}"
     echo "[$(date +%T)] SW build done."
+
+    # Build and install the LAGD boot ROM, overwriting the stock cheshire_bootrom.sv
+    # in the bender checkout. This is REQUIRED for UART/passive boot (--preload=1):
+    # the upstream boot ROM assumes a 64 KiB SPM and sets its stack pointer to
+    # 0x1000FFF8, which lies outside LAGD's 16 KiB stack RAM (0x10000000-0x10003FFF).
+    # The LAGD boot ROM links against sw/link/common.ldh and sets SP to 0x10003FF8.
+    # JTAG boot bypasses the boot ROM, so this only manifests for UART preload.
+    echo "[$(date +%T)] Building LAGD boot ROM..."
+    make -C "${ROOT_DIR}/hw/bootrom" all BENDER="${BENDER}"
+    echo "[$(date +%T)] Boot ROM build done."
 else
     echo "[$(date +%T)] Skipping SW build."
 fi
@@ -221,6 +239,7 @@ echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 echo "  NETLIST_PATH: $NETLIST_PATH"
 echo "  RUN_ID: $RUN_ID"
+echo "  FPGA_CACHE_RAM: $FPGA_CACHE_RAM"
 
 # Force clean
 USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ clean
@@ -228,5 +247,5 @@ USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ c
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD_DUMP=${VCD_DUMP} SDF_FILE=${SDF_FILE} \
-    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} make run-soc
+    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} FPGA_CACHE_RAM=${FPGA_CACHE_RAM} make run-soc
 echo "[$(date +%T)] Simulation done."

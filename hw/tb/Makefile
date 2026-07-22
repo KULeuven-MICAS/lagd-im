@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 
 # TODO: fix dep graph to avoid re-building RTL everytime
 
@@ -49,12 +50,19 @@ SIM_ARGS += -t rtl -t sim -t test -t cva6 -t cv64a6_imafdcsclic_sv39 --vlog-arg=
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CXX_PATH := $(shell which g++)
 
+# FPGA_CACHE_RAM=1 swaps the CVA6 cache RAM in this RTL sim from the behavioral
+# tc_sram to the FPGA model (SyncSpRamBeNx64 via tc_sram_fpga_wrapper) - the exact
+# cache RAM the ZCU102 bitstream uses. The purpose is to verify that the FPGA
+# memory behaviour is also correct
+FPGA_CACHE_RAM ?= 0
+
 flist: $(TEST_PATH)/bender_list.tcl $(TEST_PATH)/pkg_bender_list.tcl
 
 $(TEST_PATH)/bender_list.tcl: $(PROJECT_ROOT)/Bender.yml
 	$(BENDER) script $(SIM_TOOL) $(SIM_ARGS) $(TECH_ARGS) > $@
 	echo 'vlog "$(realpath $(CHS_ROOT))/target/sim/src/elfloader.cpp" -ccflags "-std=c++11" \
 		-cpppath "$(CXX_PATH)"' >> $@
+	@if [ "$(FPGA_CACHE_RAM)" = "1" ]; then echo "[FPGA_CACHE_RAM=1] flist: swapping CVA6 cache RAM behavioral tc_sram -> FPGA SyncSpRamBeNx64"; sed -i -E 's#^(.*cva6-[^/]*/)common/local/util/tc_sram_wrapper\.sv(".*)$$#\1vendor/pulp-platform/fpga-support/rtl/SyncSpRamBeNx64.sv\2\n\1common/local/util/tc_sram_fpga_wrapper.sv\2#' $@; fi
 
 TMP_FILE := ./tmp.bender_list.tcl
 .INTERMEDIATE: $(TMP_FILE)
@@ -156,7 +164,7 @@ DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
 DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST) $(TECH_MODELS_DEFINES)
 DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
 
-RUN_DEPS := flist
+RUN_DEPS := flist .patch
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
 
 clean: vsim-clean
