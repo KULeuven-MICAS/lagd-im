@@ -279,8 +279,9 @@ module lagd_fpga #(
   // The `galena` module itself is not synthesizable (the behavioural model uses
   // file I/O, real-valued delays and $urandom, and clocks off data buses), so
   // the bender `fpga` target swaps it for hw/rtl/fpga/galena_fpga_stub.sv. That
-  // stub drives constant outputs (the ising compute is not modelled on FPGA);
-  // it is enough for SPI/UART bring-up. See its header for why the spin path is
+  // stub drives mostly-constant outputs (the ising compute is not modelled on
+  // FPGA), with bct_read_o tapped from wbl_i as a write-bit-line readback; it is
+  // enough for SPI/UART bring-up. See its header for why the full spin path is
   // not modelled (it un-prunes the cores and the design fails to route).
   wire [`NUM_ISING_CORES-1:0] galena_j_vup;
   wire [`NUM_ISING_CORES-1:0] galena_j_vdn;

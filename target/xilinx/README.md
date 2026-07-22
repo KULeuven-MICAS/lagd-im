@@ -33,7 +33,7 @@ The top is [`lagd_fpga`](../../hw/rtl/fpga/lagd_fpga.sv) (instead of the silicon
 |---|---|
 | IO pads | `IBUFDS` (clock) + `IOBUF` (SPI data) |
 | Analog PLL (`lagd_clk_gen`) | Xilinx `clk_wiz` (RTC comes in on `rtc_i`) |
-| `galena` analog macro | [`galena_fpga_stub`](../../hw/rtl/fpga/galena_fpga_stub.sv) (constant tie-off; ising cores present but inert) |
+| `galena` analog macro | [`galena_fpga_stub`](../../hw/rtl/fpga/galena_fpga_stub.sv) (mostly tie-off, `bct_read_o` tapped from `wbl_i`; ising cores present but inert) |
 | tsmc `tc_sram` | `tech_cells_generic` `tc_sram_xilinx` (BRAM) |
 
 The AXI/register address map is identical to silicon, so driver software hits

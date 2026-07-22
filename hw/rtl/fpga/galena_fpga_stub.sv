@@ -17,9 +17,10 @@
 // silicon) but inert. That is sufficient for SPI-slave / JTAG / UART bring-up,
 // where the ising cores are never triggered.
 //
-// The outputs are driven to deterministic constants (loop-free, X-free). A
-// combinational pass-through from the *_i buses was deliberately avoided, as it
-// could form a combinational loop through `digital_macro`.
+// wbl_read_o / wblb_read_o are driven to deterministic constants (loop-free,
+// X-free); a combinational pass-through was deliberately avoided on these, as it
+// could form a combinational loop through `digital_macro`. bct_read_o, however,
+// is tapped combinationally from wbl_i (see the spin-path note below).
 //
 // --- Why the spin write/readback path is NOT modelled here --------------------
 // A functional stub (spin_cache clocked off write_spin_i, gated bct_read_o) was
@@ -32,7 +33,10 @@
 // Routing it would require either editing the shared compute RTL
 // (digital_macro.sv, gating the analog-loop leg for FPGA) or NUM_ISING_CORES=1,
 // both out of scope for now. The functional version is preserved in git history
-// if the spin path needs to be revisited. Until then, bct_read_o stays constant.
+// if the spin path needs to be revisited. bct_read_o is no longer constant: it
+// is now tapped combinationally from wbl_i (bct_read_o[i] = wbl_i[BIT_DATA*i +
+// SPIN_WBL_OFFSET]) as a lightweight write-bit-line readback. The full
+// spin_cache / write_spin path is still not modelled.
 //
 // Port list is identical to hw/tb/models/galena/galena.sv.
 
@@ -67,12 +71,9 @@ module galena import galena_pkg::*; (
     // wblb_read_o = ~wbl_read_o mirrors the behavioural model (galena.sv:69).
     assign wbl_read_o  = '0;
     assign wblb_read_o = '1;
-    assign bct_read_o  = '0;
 
-    // Inputs are intentionally unused on FPGA.
-    // verilog_lint: waive-start unused
-    // verilator lint_off UNUSEDSIGNAL
-    // verilator lint_on UNUSEDSIGNAL
-    // verilog_lint: waive-stop unused
+    for (genvar i = 0; i < NUM_SPIN; i++) begin : g_bct_read
+        assign bct_read_o[i] = wbl_i[BIT_DATA*i + SPIN_WBL_OFFSET];
+    end
 
 endmodule
