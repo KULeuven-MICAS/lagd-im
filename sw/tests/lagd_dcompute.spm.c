@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+// Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 
 #ifndef VERIFICATION_TEST
 #define VERIFICATION_TEST 0
@@ -106,7 +107,7 @@ int main(void) {
         // print performance counter log
         lagd_print_cycle_per_iteration(1, log_cnt[1], log_buf2);
     }
-    for (i = 0; i < NUM_ISING_CORES; i++){        
+    for (i = 0; i < NUM_ISING_CORES; i++) {        
         lagd_print_spin_fifo_data(i);
     }
     

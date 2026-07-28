@@ -3,6 +3,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 # Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+# Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 #
 # Converts sw/tests/data/default/model into a C header for bare-metal use.
 #

@@ -3,6 +3,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 # Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+# Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 #
 # Converts sw/tests/data//default/states_in_1 and states_in_2 into a C header for bare-metal use.
 #
@@ -21,8 +22,6 @@ import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SW_DIR = os.path.join(SCRIPT_DIR, "..")
-
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(

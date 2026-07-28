@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+// Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 //
 // Header-only LAGD register configuration.
 
@@ -378,7 +379,8 @@ static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uin
         uint32_t energy_fifo_data_sel =
             (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
             LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
-        if (energy_fifo_data_sel & ((LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK + 1) >> 1)) {
+        if (energy_fifo_data_sel & 
+            ((LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK + 1) >> 1)) {
             energy_fifo_data_sel |= ~(uint32_t)LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
         }
         printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u 0x%08x\r\n",
@@ -448,8 +450,7 @@ static unsigned lagd_monitor_energy_fifo_dbg_0(unsigned core, unsigned max_sampl
 // has reported cmpt_idle or filled its buffer. log_cnt[c] receives the sample count of core c.
 // Caller is responsible for waiting on computation completion.
 static void lagd_monitor_energy_fifo_dbg_0_multi(unsigned num_cores, unsigned max_samples,
-                                                 uint32_t *const *e0_log_bufs,
-                                                 unsigned *log_cnt) {
+                                                 uint32_t *const *e0_log_bufs, unsigned *log_cnt) {
     uint16_t prev_fm_rx_cnt[NUM_ISING_CORES];
     uint8_t done[NUM_ISING_CORES];
     unsigned num_done = 0;

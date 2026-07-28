@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+// Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 
 #ifndef CORE_TESTED
 #define CORE_TESTED 0
