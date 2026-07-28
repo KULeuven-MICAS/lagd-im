@@ -107,7 +107,7 @@ int main(void) {
         // print performance counter log
         lagd_print_cycle_per_iteration(1, log_cnt[1], log_buf2);
     }
-    for (i = 0; i < NUM_ISING_CORES; i++) {        
+    for (i = 0; i < NUM_ISING_CORES; i++) {
         lagd_print_spin_fifo_data(i);
     }
     
