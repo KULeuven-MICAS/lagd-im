@@ -110,7 +110,7 @@ int main(void) {
     for (i = 0; i < NUM_ISING_CORES; i++) {
         lagd_print_spin_fifo_data(i);
     }
-    
+
     // check final output
     if (VERIFICATION_TEST) {
         for (i = 0; i < NUM_ISING_CORES; i++) {
