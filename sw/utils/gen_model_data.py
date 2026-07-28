@@ -19,6 +19,7 @@ import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SW_DIR = os.path.join(SCRIPT_DIR, "..")
+print(SCRIPT_DIR)
 
 # Data layout in model:
 #   Line 1        : "# J matrix"
@@ -62,8 +63,12 @@ def parse_args() -> argparse.Namespace:
 
 
 args = parse_args()
+print(f"suffix: {args.suffix}, core: {args.core_onload}")
 core_onload = args.core_onload
-INPUT_FILE = os.path.join(SW_DIR, "tests/data", args.folder, "model")
+if core_onload == 1:
+    INPUT_FILE = os.path.join(SW_DIR, "tests/data", args.folder, "model_1")
+else:
+    INPUT_FILE = os.path.join(SW_DIR, "tests/data", args.folder, "model_2")
 OUTPUT_FILE = os.path.join(SW_DIR, "include", f"model_j_data{args.suffix}.h")
 
 # --- Derived constants ---

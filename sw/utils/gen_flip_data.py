@@ -47,8 +47,12 @@ def parse_args() -> argparse.Namespace:
 
 args = parse_args()
 core_onload = args.core_onload
-INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_1")
-INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_2")
+if core_onload == 1:
+    INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_1")
+    INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_2")
+else:
+    INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_3")
+    INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "clusters_4")
 OUTPUT_FILE = os.path.join(SW_DIR, "include", f"model_f_data{args.suffix}.h")
 
 # --- Constants ---

@@ -21,7 +21,7 @@ import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SW_DIR = os.path.join(SCRIPT_DIR, "..")
-OUTPUT_FILE = os.path.join(SW_DIR, "include", "spin_data.h")
+
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,18 +30,34 @@ def parse_args() -> argparse.Namespace:
         "states_in_1 and states_in_2."
     )
     parser.add_argument(
+        "--core-onload",
+        type=int,
+        default=0,
+        help="Core index for the J data section (default: 0).",
+    )
+    parser.add_argument(
         "--folder",
         type=str,
         default="default",
         help="Folder name under sw/tests/data/ containing states_in_1 and states_in_2",
     )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help="Output name suffix (default: "").",
+    )
     return parser.parse_args()
 
 
 args = parse_args()
-INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_1")
-INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_2")
-
+OUTPUT_FILE = os.path.join(SW_DIR, "include", f"spin_data{args.suffix}.h")
+if args.core_onload == 1:
+    INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_1")
+    INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_2")
+else:
+    INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_3")
+    INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, "states_in_4")
 VEC_BITS = 256
 WORDS_PER_VEC = VEC_BITS // 32  # 8 x uint32_t per vector
 
@@ -94,16 +110,16 @@ with open(OUTPUT_FILE, 'w') as f:
     f.write("// word[7] holds bits 255:224 (first 32 chars of source line) -> _7_REG_OFFSET\n")
     f.write("\n")
     f.write("// Initial spin set 0 (states_in_1 line 1) -> CONFIG_SPIN_INITIAL_0_*\n")
-    f.write(fmt_array("spin_initial_0", initial_0))
+    f.write(fmt_array(f"spin_initial_0{args.suffix}", initial_0))
     f.write("\n")
     f.write("// Initial spin set 1 (states_in_2 line 1) -> CONFIG_SPIN_INITIAL_1_*\n")
-    f.write(fmt_array("spin_initial_1", initial_1))
+    f.write(fmt_array(f"spin_initial_1{args.suffix}", initial_1))
     f.write("\n")
     f.write("// Reference result 0 (states_in_1 last line, reserved for later comparison)\n")
-    f.write(fmt_array("spin_ref_0", ref_0))
+    f.write(fmt_array(f"spin_ref_0{args.suffix}", ref_0))
     f.write("\n")
     f.write("// Reference result 1 (states_in_2 last line, reserved for later comparison)\n")
-    f.write(fmt_array("spin_ref_1", ref_1))
+    f.write(fmt_array(f"spin_ref_1{args.suffix}", ref_1))
 
 print(f"Generated {OUTPUT_FILE}")
 print(f"  spin_initial_0 : {['0x%08x' % w for w in initial_0]}")

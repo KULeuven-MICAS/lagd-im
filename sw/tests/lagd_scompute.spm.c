@@ -77,6 +77,7 @@ int main(void) {
         // print performance counter log
         lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
     }
+    lagd_print_spin_fifo_data(CORE_TESTED);
 
     printf("=== DONE ===\r\n");
     uart_write_flush(&__base_uart);

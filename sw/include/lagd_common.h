@@ -373,12 +373,19 @@ static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uin
     uint32_t energy_fifo_dbg_status;
     for (unsigned i = 0; i < sample_count; i++) {
         energy_fifo_dbg_status = e_log_buf[i];
-        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u %x\r\n", core, i,
-               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
+        // Sign-extend the 16-bit energy_fifo_data_sel field to 32 bit so negative values print as
+        // 0xffffxxxx instead of 0x0000xxxx
+        uint32_t energy_fifo_data_sel =
+            (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
+            LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
+        if (energy_fifo_data_sel & ((LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK + 1) >> 1)) {
+            energy_fifo_data_sel |= ~(uint32_t)LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
+        }
+        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u 0x%08x\r\n",
+               core, i, (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
                (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
                    LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK,
-               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
-                   LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK);
+               energy_fifo_data_sel);
     }
 }
 
@@ -436,7 +443,71 @@ static unsigned lagd_monitor_energy_fifo_dbg_0(unsigned core, unsigned max_sampl
     }
     return log_idx;
 }
+// Log energy_fifo_dbg_0 for several cores at once, interleaving the polls in a single loop so
+// that no core is left unobserved while another one is being monitored. Stops when every core
+// has reported cmpt_idle or filled its buffer. log_cnt[c] receives the sample count of core c.
+// Caller is responsible for waiting on computation completion.
+static void lagd_monitor_energy_fifo_dbg_0_multi(unsigned num_cores, unsigned max_samples,
+                                                 uint32_t *const *e0_log_bufs,
+                                                 unsigned *log_cnt) {
+    uint16_t prev_fm_rx_cnt[NUM_ISING_CORES];
+    uint8_t done[NUM_ISING_CORES];
+    unsigned num_done = 0;
+    for (unsigned c = 0; c < num_cores; c++) {
+        prev_fm_rx_cnt[c] = 0;
+        done[c] = 0;
+        log_cnt[c] = 0;
+    }
+    while (num_done < num_cores) {
+        for (unsigned c = 0; c < num_cores; c++) {
+            if (done[c]) continue;
+            void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)c * IC_NUM_REGS);
+            uint32_t val = *reg32(base, LAGD_CORE_ENERGY_FIFO_DBG_0_REG_OFFSET);
+            uint8_t cmpt_idle = (val >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1;
+            uint16_t fm_rx_cnt = (val >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
+                                 LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK;
+            if (fm_rx_cnt != prev_fm_rx_cnt[c]) {
+                prev_fm_rx_cnt[c] = fm_rx_cnt;
+                e0_log_bufs[c][log_cnt[c]++] = val;
+            }
+            if (cmpt_idle || log_cnt[c] >= max_samples) {
+                done[c] = 1;
+                num_done++;
+            }
+        }
+    }
+}
 
+// Same as lagd_monitor_cycle_per_iteration, but interleaved over several cores.
+static void lagd_monitor_cycle_per_iteration_multi(unsigned num_cores, unsigned max_samples,
+                                                   uint32_t *const *log_bufs, unsigned *log_cnt) {
+    uint16_t prev_fm_rx_cnt_l7b[NUM_ISING_CORES];
+    uint8_t done[NUM_ISING_CORES];
+    unsigned num_done = 0;
+    for (unsigned c = 0; c < num_cores; c++) {
+        prev_fm_rx_cnt_l7b[c] = 0;
+        done[c] = 0;
+        log_cnt[c] = 0;
+    }
+    while (num_done < num_cores) {
+        for (unsigned c = 0; c < num_cores; c++) {
+            if (done[c]) continue;
+            void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)c * IC_NUM_REGS);
+            uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
+            uint8_t cmpt_idle = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1;
+            uint16_t fm_rx_cnt = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+                                 LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
+            if (fm_rx_cnt != prev_fm_rx_cnt_l7b[c]) {
+                prev_fm_rx_cnt_l7b[c] = fm_rx_cnt;
+                log_bufs[c][log_cnt[c]++] = val;
+            }
+            if (cmpt_idle || log_cnt[c] >= max_samples) {
+                done[c] = 1;
+                num_done++;
+            }
+        }
+    }
+}
 // Log energy_fifo_dbg_1 on each iteration until buffer full or computation done
 // Caller is responsible for waiting on computation completion.
 static unsigned lagd_monitor_energy_fifo_dbg_1(unsigned core, unsigned max_samples,
