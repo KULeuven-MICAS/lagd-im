@@ -379,7 +379,7 @@ static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uin
         uint32_t energy_fifo_data_sel =
             (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
             LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
-        if (energy_fifo_data_sel & 
+        if (energy_fifo_data_sel &
             ((LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK + 1) >> 1)) {
             energy_fifo_data_sel |= ~(uint32_t)LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
         }
