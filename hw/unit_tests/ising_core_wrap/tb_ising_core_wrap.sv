@@ -14,23 +14,23 @@
 `endif
 
 `ifndef MODEL_FILE
-`define MODEL_FILE "../digital_macro/data/model_1"
+`define MODEL_FILE "../../../sw/tests/data/default/model_1"
 `endif
 
 `ifndef FLIP_ICON_FILE_1
-`define FLIP_ICON_FILE_1 "../digital_macro/data/clusters_1"
+`define FLIP_ICON_FILE_1 "../../../sw/tests/data/default/clusters_1"
 `endif
 
 `ifndef FLIP_ICON_FILE_2
-`define FLIP_ICON_FILE_2 "../digital_macro/data/clusters_2"
+`define FLIP_ICON_FILE_2 "../../../sw/tests/data/default/clusters_2"
 `endif
 
 `ifndef STATE_IN_FILE_1
-`define STATE_IN_FILE_1 "../digital_macro/data/states_in_1"
+`define STATE_IN_FILE_1 "../../../sw/tests/data/default/states_in_1"
 `endif
 
 `ifndef STATE_IN_FILE_2
-`define STATE_IN_FILE_2 "../digital_macro/data/states_in_2"
+`define STATE_IN_FILE_2 "../../../sw/tests/data/default/states_in_2"
 `endif
 
 // Project-wide includes
@@ -194,10 +194,10 @@ module tb_ising_core_wrap;
         .reg_s_req_i       (reg_ext_req                             ),
         .reg_s_rsp_o       (reg_ext_rsp                             ),
         // Galena wires
-        .galena_j_iref_i   (galena_j_iref_i                         ),
+        // .galena_j_iref_i   (galena_j_iref_i                         ),
         .galena_j_vup_i    (galena_j_vup_i                          ),
         .galena_j_vdn_i    (galena_j_vdn_i                          ),
-        .galena_h_iref_i   (galena_h_iref_i                         ),
+        // .galena_h_iref_i   (galena_h_iref_i                         ),
         .galena_h_vup_i    (galena_h_vup_i                          ),
         .galena_h_vdn_i    (galena_h_vdn_i                          ),
         .galena_vread_i    (galena_vread_i                          )
