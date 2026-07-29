@@ -11,6 +11,10 @@ Zedboard, over FMC). It is **not** the chip: pads, the analog PLL, and the
 
 The user guide of ZCU102 can be found online at [here](https://docs.amd.com/v/u/en-US/ug1182-zcu102-eval-bd).
 
+To control the PS of ZCU102 on a Windows computer via UART cable, please download first its UART driver (CP210x Universal Windows Driver) at [here](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads). Then, software (e.g., MobaXterm) can open its interface with baudrate 115200.
+
+To set the ZCU102's pins/FMC voltage, please use the Windows OS, download its SCUI (only works under a Windows OS) at [here](https://account.amd.com/en/forms/downloads/license-form-tip.html?cid=ef381bff-c447-4222-9049-49b8ea9a6e8b&filename=xtp428-zcu102-bit-c-2019-1_cluster.zip&license=eula-design-license), and install Vivado (needed by SCUI).
+
 Since the Cheshire's BootROM will not return to the idle state after finishing a program, we need to reload the bitstream on the PL (programming logic) everytime. To do this earsier, it is suggested to use a SD Card (with Petalinux) to boot the ZCU102, so that you can reload the bitstream on the PL in a Jupyter notebook. If you have no experience on how to do it, we also support to directly program the PL via JTAG cable (Use `make program`. See the description below)
 
 ## Board
