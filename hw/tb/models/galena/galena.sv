@@ -32,10 +32,8 @@ module galena #(
 ) (
 
     // --- Analog pins ----
-    inout j_iref_aio ,  // not used in the behavior model, but included for completeness
     inout j_vup_aio  ,  // not used in the behavior model, but included for completeness
     inout j_vdn_aio  ,  // not used in the behavior model, but included for completeness
-    inout h_iref_aio ,  // not used in the behavior model, but included for completeness
     inout h_vup_aio  ,  // not used in the behavior model, but included for completeness
     inout h_vdn_aio  ,  // not used in the behavior model, but included for completeness
     inout vread_aio  ,  // not used in the behavior model, but included for completeness
