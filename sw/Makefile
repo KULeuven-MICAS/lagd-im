@@ -23,11 +23,15 @@ CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 # headers below have a fixed meaning, so this never changes what is generated.
 CORE_TESTED ?= 0
 
+# Optional switch used by tests that guard checks with #ifndef VERIFICATION_TEST.
+VERIFICATION_TEST ?= 1
+
 # Data folder name
 DATA_FOLDER ?= default
 
 # Define CORE_TESTED for C code
 CHS_SW_INCLUDES += -DCORE_TESTED=$(CORE_TESTED)
+CHS_SW_INCLUDES += -DVERIFICATION_TEST=$(VERIFICATION_TEST)
 
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
