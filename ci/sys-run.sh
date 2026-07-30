@@ -27,6 +27,8 @@ Usage: ./ci/sys-run.sh [[
     --skip-sw-build
     --vcd
     --sdf-annotate
+    --data-folder=#data_folder
+    --core-tested=#core_index
     --help]]"
 EOF
     echo "Example: $0"
@@ -49,6 +51,8 @@ show_help()
     echo "  --skip-sw-build: Skip the software build step"
     echo "  --vcd: Generate VCD waveform file (default: off)"
     echo "  --sdf-annotate: Enable SDF annotation for post-synthesis simulation (implies --post-syn or --netlist)"
+    echo "  --data-folder=#data_folder: Specify the data folder under sw/tests/data/ to use for the simulation (default: default)"
+    echo "  --core-tested=#core_index: Core driven by the single-core tests (default: 0). Ignored by the multi-core tests"
     echo "  --help: Show this help message"
 }
 
@@ -67,6 +71,8 @@ SKIP_SW_BUILD=0
 VCD_DUMP=0
 SDF_FILE=""
 SDF_ANNOTATE=0
+DATA_FOLDER="default"
+CORE_TESTED="${CORE_TESTED:-0}"
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -146,6 +152,14 @@ for i in "$@"; do
             SDF_ANNOTATE=1
             shift
             ;;
+        --data-folder=*)
+            DATA_FOLDER="${i#*=}"
+            shift
+            ;;
+        --core-tested=*)
+            CORE_TESTED="${i#*=}"
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -157,7 +171,8 @@ done
 # Build SW before simulation
 if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
     echo "[$(date +%T)] Starting SW build..."
-    make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}"
+    make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}" DATA_FOLDER="${DATA_FOLDER}" \
+        CORE_TESTED="${CORE_TESTED}"
     echo "[$(date +%T)] SW build done."
 else
     echo "[$(date +%T)] Skipping SW build."
@@ -220,6 +235,8 @@ echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 echo "  NETLIST_PATH: $NETLIST_PATH"
+echo "  DATA_FOLDER: $DATA_FOLDER"
+echo "  CORE_TESTED (for single-core tests): $CORE_TESTED"
 echo "  RUN_ID: $RUN_ID"
 
 # Force clean
@@ -228,5 +245,5 @@ USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ c
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD_DUMP=${VCD_DUMP} SDF_FILE=${SDF_FILE} \
-    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} make run-soc
+    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} DATA_FOLDER=${DATA_FOLDER} make run-soc
 echo "[$(date +%T)] Simulation done."
