@@ -21,9 +21,9 @@
 #include "spin_data.h"
 #define SC_SPIN_INITIAL_0 spin_initial_0
 #define SC_SPIN_INITIAL_1 spin_initial_1
-#define SC_MODEL_H_DATA   model_h_data
-#define SC_SPIN_REF_0     spin_ref_0
-#define SC_SPIN_REF_1     spin_ref_1
+#define SC_MODEL_H_DATA model_h_data
+#define SC_SPIN_REF_0 spin_ref_0
+#define SC_SPIN_REF_1 spin_ref_1
 #define SC_SCALING_FACTOR model_scaling_factor
 #else
 #include "model_j_data_sec.h"
@@ -31,9 +31,9 @@
 #include "spin_data_sec.h"
 #define SC_SPIN_INITIAL_0 spin_initial_0_sec
 #define SC_SPIN_INITIAL_1 spin_initial_1_sec
-#define SC_MODEL_H_DATA   model_h_data_sec
-#define SC_SPIN_REF_0     spin_ref_0_sec
-#define SC_SPIN_REF_1     spin_ref_1_sec
+#define SC_MODEL_H_DATA model_h_data_sec
+#define SC_SPIN_REF_0 spin_ref_0_sec
+#define SC_SPIN_REF_1 spin_ref_1_sec
 #define SC_SCALING_FACTOR model_scaling_factor_sec
 #endif
 
