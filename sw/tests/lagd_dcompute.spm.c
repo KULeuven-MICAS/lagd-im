@@ -5,7 +5,7 @@
 // Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 
 #ifndef VERIFICATION_TEST
-#define VERIFICATION_TEST 0
+#define VERIFICATION_TEST 1
 #endif
 
 #ifndef ENERGY_MONITOR
