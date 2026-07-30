@@ -154,7 +154,18 @@ PRELOAD_ELF ?= ""
 CHIP_LEVEL_TEST ?= 0
 DEFINES += BOOT_MODE=$(BOOT_MODE) PRELOAD_MODE=$(PRELOAD_MODE)
 DEFINES += PRELOAD_ELF=\"$(PRELOAD_ELF)\" CHIP_LEVEL_TEST=$(CHIP_LEVEL_TEST) $(TECH_MODELS_DEFINES)
-DEFINES += PROJECT_ROOT=\"$(PROJECT_ROOT)\/\" # for galena behavior model
+# Filenames needed by the galena behavior model, one pair of state files per ising core
+DATA_FOLDER ?= default
+STATE_OUT_DIR := $(PROJECT_ROOT)/sw/tests/data/$(DATA_FOLDER)
+state_out_file = $(if $(wildcard $(STATE_OUT_DIR)/states_out_$(1)),$(STATE_OUT_DIR)/states_out_$(1),$(STATE_OUT_DIR)/states_out_$(2))
+CORE0_STATE_OUT_FILE_1 ?= $(call state_out_file,1,1)
+CORE0_STATE_OUT_FILE_2 ?= $(call state_out_file,2,2)
+CORE1_STATE_OUT_FILE_1 ?= $(call state_out_file,3,1)
+CORE1_STATE_OUT_FILE_2 ?= $(call state_out_file,4,2)
+VSIM_FLAGS += +CORE0_STATE_OUT_FILE_1=$(CORE0_STATE_OUT_FILE_1)
+VSIM_FLAGS += +CORE0_STATE_OUT_FILE_2=$(CORE0_STATE_OUT_FILE_2)
+VSIM_FLAGS += +CORE1_STATE_OUT_FILE_1=$(CORE1_STATE_OUT_FILE_1)
+VSIM_FLAGS += +CORE1_STATE_OUT_FILE_2=$(CORE1_STATE_OUT_FILE_2)
 
 RUN_DEPS := flist
 include $(SIM_DIR)/${SIM_TOOL}/$(SIM_TOOL).mk
