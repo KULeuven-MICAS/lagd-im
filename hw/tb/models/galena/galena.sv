@@ -97,8 +97,25 @@ module galena #(
     // Spin intenal cache behavior
     generate
         if (DATA_FROM_FILE) begin
+            // The state files are selected at run time, per core: this instance derives its core
+            // index from its own hierarchical path (the gen_cores loop index in lagd_soc), so the
+            // RTL instantiation stays identical to the real macro.
+            // Priority: +CORE<n>_STATE_OUT_FILE_x, then +STATE_OUT_FILE_x, then `STATE_OUT_FILE_x.
+            int core_id;
+            string state_out_file_1;
+            string state_out_file_2;
             initial begin
-                state_out = load_state_out_ref(`STATE_OUT_FILE_1, `STATE_OUT_FILE_2);
+                core_id = hier_loop_index($sformatf("%m"));
+                state_out_file_1 = `STATE_OUT_FILE_1;
+                state_out_file_2 = `STATE_OUT_FILE_2;
+                void'($value$plusargs("STATE_OUT_FILE_1=%s", state_out_file_1));
+                void'($value$plusargs("STATE_OUT_FILE_2=%s", state_out_file_2));
+                void'($value$plusargs($sformatf("CORE%0d_STATE_OUT_FILE_1=%%s", core_id),
+                                      state_out_file_1));
+                void'($value$plusargs($sformatf("CORE%0d_STATE_OUT_FILE_2=%%s", core_id),
+                                      state_out_file_2));
+                $display("[Time: %0t] %m is the analog macro of core %0d", $time, core_id);
+                state_out = load_state_out_ref(state_out_file_1, state_out_file_2);
             end
             always_ff @(posedge &write_spin_i) begin // the behavior model assumes write_spin_i is all-one or all-zero
                 spin_cache <= state_out[j];
