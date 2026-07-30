@@ -312,27 +312,6 @@ static void lagd_print_energy_fifo_data(unsigned core) {
     printf("Energy FIFO data 1 for core %u: 0x%08x\r\n", core, energy_fifo_data_1);
 }
 
-// Check default energy_fifo_data register (only for verification on default data)
-static int lagd_check_energy_fifo_data(unsigned core) {
-    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
-    uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
-    int fail = 0;
-    if (core == 0) {
-        if ((energy_fifo_data_0 != 0xfffff960) || (energy_fifo_data_1 != 0xfffff838)) {
-            fail = 1;
-        }
-    } else if (core == 1) {
-        if ((energy_fifo_data_0 != 0xfffff960) || (energy_fifo_data_1 != 0xfffff838)) {
-            fail = 1;
-        }
-    } else {
-        printf("Error: Invalid core number %u for energy_fifo_data check\r\n", core);
-        fail = 1;
-    }
-    return fail;
-}
-
 // Read out spin_fifo_data register and print the value
 static void lagd_print_spin_fifo_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
