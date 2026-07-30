@@ -162,7 +162,7 @@ static void lagd_configure_global_cfg_2(unsigned core) {
           << LAGD_CORE_GLOBAL_CFG_2_CONFIG_SPIN_INITIAL_SKIP_0_BIT) |
          ((GCFG2_CONFIG_SPIN_INITIAL_SKIP_1 & 0x1)
           << LAGD_CORE_GLOBAL_CFG_2_CONFIG_SPIN_INITIAL_SKIP_1_BIT) |
-         ((GCFG2_DGT_HSCALING & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
+         ((GCFG2_DGT_HSCALING(core) & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
           << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET) |
          ((GCFG2_ENERGY_FIFO_SEL & 0x1) << LAGD_CORE_GLOBAL_CFG_2_ENERGY_FIFO_SEL_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
@@ -318,7 +318,16 @@ static int lagd_check_energy_fifo_data(unsigned core) {
     uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
     uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
     int fail = 0;
-    if ((energy_fifo_data_0 != 0xfffff33e) || (energy_fifo_data_1 != 0xfffff35a)) {
+    if (core == 0) {
+        if ((energy_fifo_data_0 != 0xfffff960) || (energy_fifo_data_1 != 0xfffff838)) {
+            fail = 1;
+        }
+    } else if (core == 1) {
+        if ((energy_fifo_data_0 != 0xfffff960) || (energy_fifo_data_1 != 0xfffff838)) {
+            fail = 1;
+        }
+    } else {
+        printf("Error: Invalid core number %u for energy_fifo_data check\r\n", core);
         fail = 1;
     }
     return fail;
@@ -342,6 +351,56 @@ static void lagd_print_spin_fifo_data(unsigned core) {
     printf("spin_fifo_data_1[%u]: ", core);
     for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_1[i]);
     printf("\r\n");
+}
+
+// Compare the values in spin_fifo_data registers against the model of CORE_TESTED and print the
+// mismatch if any. Returns 0 when both sets match.
+static int lagd_check_spin_fifo_data_ref(unsigned core, const uint32_t *ref_0,
+                                         const uint32_t *ref_1) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+
+    uint32_t spin_fifo_data_0[NUM_SPIN / 32], spin_fifo_data_1[NUM_SPIN / 32];
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
+        spin_fifo_data_0[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_0_0_REG_OFFSET + 4 * i);
+        spin_fifo_data_1[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_1_0_REG_OFFSET + 4 * i);
+    }
+
+    int pass0 = 1, pass1 = 1;
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
+        if (spin_fifo_data_0[i] != ref_0[i]) {
+            pass0 = 0;
+            break; // stop at the first mismatch
+        }
+    }
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
+        if (spin_fifo_data_1[i] != ref_1[i]) {
+            pass1 = 0;
+            break; // stop at the first mismatch
+        }
+    }
+
+    // Print MSB-first (word[7]=bits255:224 ... word[0]=bits31:0)
+    printf("spin_fifo_data_0[%u]: ", core);
+    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_0[i]);
+    if (pass0) {
+        printf(" [PASS]\r\n");
+    } else {
+        printf(" [FAIL] expected ");
+        for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", ref_0[i]);
+        printf("\r\n");
+    }
+
+    printf("spin_fifo_data_1[%u]: ", core);
+    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_1[i]);
+    if (pass1) {
+        printf(" [PASS]\r\n");
+    } else {
+        printf(" [FAIL] expected ");
+        for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", ref_1[i]);
+        printf("\r\n");
+    }
+
+    return (pass0 && pass1) ? 0 : 1;
 }
 
 // Read out cmpt_idx performance counter and print the value

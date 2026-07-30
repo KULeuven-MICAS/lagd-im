@@ -5,7 +5,7 @@
 // Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 
 #ifndef VERIFICATION_TEST
-#define VERIFICATION_TEST 0
+#define VERIFICATION_TEST 1
 #endif
 
 #ifndef ENERGY_MONITOR
@@ -25,18 +25,11 @@
 #include "util.h"
 #include "printf.h"
 // lagd headers
-#include "model_j_data.h"
 #include "model_f_data.h"
-#include "model_j_data_sec.h"
 #include "model_f_data_sec.h"
-#include "spin_data.h"
-#include "spin_data_sec.h"
-#include "lagd_reg_params.h"
+// lagd_dcompute.h must come before lagd_common.h
+#include "lagd_dcompute.h"
 #include "lagd_common.h"
-
-// Forward declarations (definitions follow main())
-static void lagd_configure_initial_spins_dual(unsigned core);
-static void lagd_configure_h_rdata_dual(unsigned core);
 
 int main(void) {
     unsigned i;
@@ -92,29 +85,10 @@ int main(void) {
         lagd_wait_for_computation_done(i);
     }
 
-    // print out energies
-    if (ENERGY_MONITOR) {
-        // print energy monitor fifo debug register log
-        lagd_print_energy_fifo_dbg(0, log_cnt[0], log_buf1);
-    } else {
-        // print performance counter log
-        lagd_print_cycle_per_iteration(0, log_cnt[0], log_buf1);
-    }
-    if (ENERGY_MONITOR) {
-        // print energy monitor fifo debug register log
-        lagd_print_energy_fifo_dbg(1, log_cnt[1], log_buf2);
-    } else {
-        // print performance counter log
-        lagd_print_cycle_per_iteration(1, log_cnt[1], log_buf2);
-    }
-    for (i = 0; i < NUM_ISING_CORES; i++) {
-        lagd_print_spin_fifo_data(i);
-    }
-
     // check final output
     if (VERIFICATION_TEST) {
         for (i = 0; i < NUM_ISING_CORES; i++) {
-            fail |= lagd_check_energy_fifo_data(i);
+            fail |= lagd_check_spin_fifo_data_dual(i);
         }
         if (fail == 0) {
             printf("PASS\r\n");
@@ -124,34 +98,23 @@ int main(void) {
         uart_write_flush(&__base_uart);
         return fail;
     } else {
+        if (ENERGY_MONITOR) {
+            // print energy monitor fifo debug register log
+            lagd_print_energy_fifo_dbg(0, log_cnt[0], log_buf1);
+            lagd_print_energy_fifo_dbg(1, log_cnt[1], log_buf2);
+        } else {
+            // print performance counter log
+            lagd_print_cycle_per_iteration(0, log_cnt[0], log_buf1);
+            lagd_print_cycle_per_iteration(1, log_cnt[1], log_buf2);
+        }
+        // print out final spins and energies
+        for (i = 0; i < NUM_ISING_CORES; i++) {
+            lagd_print_spin_fifo_data(i);
+        }
         for (i = 0; i < NUM_ISING_CORES; i++) {
             lagd_print_energy_fifo_data(i);
         }
         uart_write_flush(&__base_uart);
         return 0;
-    }
-}
-
-static void lagd_configure_initial_spins_dual(unsigned core) {
-    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    const uint32_t *spin_0 = (core == 0) ? spin_initial_0 : spin_initial_0_sec;
-    const uint32_t *spin_1 = (core == 0) ? spin_initial_1 : spin_initial_1_sec;
-    // Write initial spin set 0
-    for (int i = 0; i < NUM_SPIN / 32; i++) {
-        *reg32(base, LAGD_CORE_CONFIG_SPIN_INITIAL_0_0_REG_OFFSET + 4 * i) = spin_0[i];
-    }
-    // Write initial spin set 1
-    for (int i = 0; i < NUM_SPIN / 32; i++) {
-        *reg32(base, LAGD_CORE_CONFIG_SPIN_INITIAL_1_0_REG_OFFSET + 4 * i) = spin_1[i];
-    }
-}
-
-// Configure h_rdata registers
-static void lagd_configure_h_rdata_dual(unsigned core) {
-    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    const uint32_t *h_data = (core == 0) ? model_h_data : model_h_data_sec;
-
-    for (int i = 0; i < NUM_SPIN * BIT_H / 32; i++) {
-        *reg32(base, LAGD_CORE_H_RDATA_0_REG_OFFSET + 4 * i) = h_data[i];
     }
 }
