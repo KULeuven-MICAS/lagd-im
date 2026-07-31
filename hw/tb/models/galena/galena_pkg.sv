@@ -56,6 +56,31 @@ package galena_pkg;
         return result;
     endfunction
 
+    // Function to parse the core index "[<index>]" from the hierarchical module name
+    // e.g., gen_cores[0].i_core.u_galena.genblk2
+    function automatic int hier_loop_index(string path);
+        int hi, lo;
+        byte prev_c, next_c;
+        hi = path.len() - 1;
+        while (hi >= 0) begin
+            if (path[hi] >= "0" && path[hi] <= "9") begin
+                lo = hi;
+                while (lo > 0 && path[lo-1] >= "0" && path[lo-1] <= "9") begin
+                    lo = lo - 1;
+                end
+                prev_c = (lo > 0)            ? path[lo-1] : " ";
+                next_c = (hi < path.len()-1) ? path[hi+1] : " ";
+                if ((prev_c == "[" && next_c == "]") || (prev_c == "_" && next_c == "_")) begin
+                    return path.substr(lo, hi).atoi();
+                end
+                hi = lo - 1;
+            end else begin
+                hi = hi - 1;
+            end
+        end
+        return 0;
+    endfunction
+
     // Function to load state out of the analog macro from files
     function automatic logic [SPIN_ICON_DEPTH-1:0] [NUM_SPIN-1:0] load_state_out_ref(
         string state_out_file_1,

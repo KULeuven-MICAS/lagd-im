@@ -2,9 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+// Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 
 #ifndef CORE_TESTED
 #define CORE_TESTED 0
+#endif
+
+#ifndef VERIFICATION_TEST
+#define VERIFICATION_TEST 1
 #endif
 
 #ifndef MAX_SAMPLES
@@ -24,11 +29,9 @@
 #include "util.h"
 #include "printf.h"
 // lagd headers
-#include "model_j_data.h"
-#include "model_f_data.h"
-#include "lagd_reg_params.h"
-#include "lagd_common.h"
+// lagd_scompute.h must come before lagd_common.h
 #include "lagd_scompute.h"
+#include "lagd_common.h"
 
 int main(void) {
     static uint32_t log_buf[MAX_SAMPLES];
@@ -67,18 +70,32 @@ int main(void) {
     }
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
-    // print final output
-    lagd_print_energy_fifo_data(CORE_TESTED);
 
-    if (ENERGY_MONITOR) {
-        // print energy monitor fifo debug register log
-        lagd_print_energy_fifo_dbg(CORE_TESTED, log_cnt, log_buf);
+    // check final output
+    if (VERIFICATION_TEST) {
+        int fail = lagd_check_spin_fifo_data(CORE_TESTED);
+        if (fail == 0) {
+            printf("PASS\r\n");
+        } else {
+            printf("FAIL\r\n");
+        }
+        uart_write_flush(&__base_uart);
+        return fail;
     } else {
-        // print performance counter log
-        lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
-    }
+        // print final output
+        lagd_print_energy_fifo_data(CORE_TESTED);
 
-    printf("=== DONE ===\r\n");
-    uart_write_flush(&__base_uart);
-    return 0;
+        if (ENERGY_MONITOR) {
+            // print energy monitor fifo debug register log
+            lagd_print_energy_fifo_dbg(CORE_TESTED, log_cnt, log_buf);
+        } else {
+            // print performance counter log
+            lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
+        }
+        lagd_print_spin_fifo_data(CORE_TESTED);
+
+        printf("=== DONE ===\r\n");
+        uart_write_flush(&__base_uart);
+        return 0;
+    }
 }

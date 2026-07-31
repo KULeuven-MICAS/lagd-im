@@ -50,7 +50,9 @@
 #define GCFG2_MULTI_CMPT_MODE_EN 0
 #define GCFG2_CONFIG_SPIN_INITIAL_SKIP_0 0
 #define GCFG2_CONFIG_SPIN_INITIAL_SKIP_1 0
-#define GCFG2_DGT_HSCALING model_scaling_factor // max: 0x3F (63)
+#ifndef GCFG2_DGT_HSCALING
+#define GCFG2_DGT_HSCALING(core) model_scaling_factor // Max: 0x3F (63)
+#endif
 #define GCFG2_ENERGY_FIFO_SEL 0 // 0: low 16 bits of energy, 1: high 16 bits of energy
 
 // Computation max number configuration under multi_cmpt_mode

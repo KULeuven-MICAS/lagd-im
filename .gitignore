@@ -246,3 +246,6 @@ target/xilinx/*.log
 *.ltx
 
 .nfs*
+
+# Regression run logs
+ci/regression-logs/
