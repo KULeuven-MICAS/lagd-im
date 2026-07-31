@@ -30,16 +30,16 @@
 
 #define LAST_REG_OFFSET LAGD_CORE_ENERGY_FIFO_DBG_1_REG_OFFSET
 
-#define FIELD_MASK(reg, field)                                                                     \
+#define FIELD_MASK(reg, field) \
     ((uint32_t)LAGD_CORE_##reg##_##field##_MASK << LAGD_CORE_##reg##_##field##_OFFSET)
 
 // Value-only fields of the control registers: every enable, config_valid and debug bit is left
 // out, so sweeping these two registers cannot start the core.
-#define GCFG1_SAFE_MASK (FIELD_MASK(GLOBAL_CFG_1, CONFIG_COUNTER) |                                \
-                         FIELD_MASK(GLOBAL_CFG_1, SYNCHRONIZER_WBL_PIPE_NUM))
-#define GCFG2_SAFE_MASK (FIELD_MASK(GLOBAL_CFG_2, SYNCHRONIZER_PIPE_NUM) |                         \
-                         FIELD_MASK(GLOBAL_CFG_2, DGT_ADDR_UPPER_BOUND) |                          \
-                         FIELD_MASK(GLOBAL_CFG_2, DGT_HSCALING))
+#define GCFG1_SAFE_MASK \
+    (FIELD_MASK(GLOBAL_CFG_1, CONFIG_COUNTER) | FIELD_MASK(GLOBAL_CFG_1, SYNCHRONIZER_WBL_PIPE_NUM))
+#define GCFG2_SAFE_MASK \
+    (FIELD_MASK(GLOBAL_CFG_2, SYNCHRONIZER_PIPE_NUM) | \
+     FIELD_MASK(GLOBAL_CFG_2, DGT_ADDR_UPPER_BOUND) | FIELD_MASK(GLOBAL_CFG_2, DGT_HSCALING))
 
 // Bits of the given register that software may write during the sweep
 static uint32_t writable_bits(uint32_t off) {
@@ -132,8 +132,8 @@ int main(void) {
         for (uint32_t off = 0; off <= LAST_REG_OFFSET; off += 4) *reg32(base, off) = 0;
     }
 
-    printf("=== DONE: %d/%d PASS, %d MISMATCH, %d HW-OWNED ===\r\n",
-           total - failed - hw_owned_cnt, total, failed, hw_owned_cnt);
+    printf("=== DONE: %d/%d PASS, %d MISMATCH, %d HW-OWNED ===\r\n", total - failed - hw_owned_cnt,
+           total, failed, hw_owned_cnt);
     uart_write_flush(&__base_uart);
     return failed;
 }
