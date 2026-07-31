@@ -83,6 +83,18 @@ static void load_row_data(unsigned core, unsigned row) {
     }
 }
 
+static unsigned mismatches_found = 0;
+static unsigned mismatches_printed = 0;
+
+static void report_mismatch(unsigned row, int word, const char *line, uint32_t got, uint32_t exp) {
+    mismatches_found++;
+    if (mismatches_printed < MAX_MISMATCH_PRINTS) {
+        printf("  wwl %3u word %2d: %-4s 0x%08x [MISMATCH] expected 0x%08x\r\n", row, word, line,
+               got, exp);
+        mismatches_printed++;
+    }
+}
+
 // Read the selected row into the debug CSRs and compare both polarities against what was written.
 // Returns 0 when the whole row matches.
 static int read_and_check_row(unsigned core, unsigned row) {
@@ -96,13 +108,11 @@ static int read_and_check_row(unsigned core, unsigned row) {
         uint32_t wbl = *reg32(base, LAGD_CORE_DEBUG_WBL_READ_DATA_0_REG_OFFSET + 4 * i);
         uint32_t wblb = *reg32(base, LAGD_CORE_DEBUG_WBLB_READ_DATA_0_REG_OFFSET + 4 * i);
         if (wbl != expected) {
-            printf("  wwl %3u word %2d: wbl  0x%08x [MISMATCH] expected 0x%08x\r\n", row, i, wbl,
-                   expected);
+            report_mismatch(row, i, "wbl", wbl, expected);
             fail = 1;
         }
         if (wblb != ~expected) {
-            printf("  wwl %3u word %2d: wblb 0x%08x [MISMATCH] expected 0x%08x\r\n", row, i, wblb,
-                   ~expected);
+            report_mismatch(row, i, "wblb", wblb, ~expected);
             fail = 1;
         }
     }
@@ -153,6 +163,10 @@ int main(void) {
         failed += (unsigned)test_row(CORE_TESTED, H_ROW);
         tested++;
 
+        if (mismatches_found > mismatches_printed) {
+            printf("  %u more mismatching words not printed\r\n",
+                   mismatches_found - mismatches_printed);
+        }
         printf("%u/%u wordlines PASS, %u FAIL\r\n", tested - failed, tested, failed);
         if (failed == 0) {
             printf("PASS\r\n");

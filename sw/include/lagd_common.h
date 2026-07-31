@@ -15,6 +15,10 @@
 #include "util.h"
 #include "printf.h"
 
+#ifndef MAX_MISMATCH_PRINTS
+#define MAX_MISMATCH_PRINTS 2
+#endif
+
 // Configure counter registers
 static void lagd_configure_counters(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -745,7 +749,7 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
 // Compare the first entries of core's l1_f_mem against one expected spin vector and print the
 // mismatch if any
 static int lagd_check_l1_f_mem(unsigned core, unsigned length, const uint64_t *expected) {
-    int fail = 0;
+    unsigned mismatches = 0, printed = 0;
     volatile uint64_t *base =
         (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
                               (uintptr_t)core *
@@ -754,11 +758,18 @@ static int lagd_check_l1_f_mem(unsigned core, unsigned length, const uint64_t *e
         for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
             uint64_t data = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
             if (data != expected[j]) {
-                printf("l1_f_mem[%u][%u] word %d: %016llx [MISMATCH] expected %016llx\r\n", core, i,
-                       j, data, expected[j]);
-                fail = 1;
+                mismatches++;
+                if (printed < MAX_MISMATCH_PRINTS) {
+                    printf("l1_f_mem[%u][%u] word %d: %016llx [MISMATCH] expected %016llx\r\n",
+                           core, i, j, data, expected[j]);
+                    printed++;
+                }
             }
         }
     }
-    return fail;
+    if (mismatches > printed) {
+        printf("l1_f_mem[%u]: %u more mismatching words not printed\r\n", core,
+               mismatches - printed);
+    }
+    return mismatches == 0 ? 0 : 1;
 }

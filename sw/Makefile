@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 
 PROJECT_ROOT := $(shell realpath ../)
 BENDER ?= ~/.cargo/bin/bender
@@ -26,12 +27,17 @@ CORE_TESTED ?= 0
 # Optional switch used by tests that guard checks with #ifndef VERIFICATION_TEST.
 VERIFICATION_TEST ?= 1
 
+# Word line stride of lagd_debug_dt: 1 covers the whole array, a larger value shortens the
+# simulation. The h word line is always covered.
+ROW_STRIDE ?= 1
+
 # Data folder name
 DATA_FOLDER ?= default
 
 # Define CORE_TESTED for C code
 CHS_SW_INCLUDES += -DCORE_TESTED=$(CORE_TESTED)
 CHS_SW_INCLUDES += -DVERIFICATION_TEST=$(VERIFICATION_TEST)
+CHS_SW_INCLUDES += -DROW_STRIDE=$(ROW_STRIDE)
 
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
@@ -39,6 +45,7 @@ MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 GEN_MODEL_PY := utils/gen_model_data.py
 GEN_FLIP_PY := utils/gen_flip_data.py
 GEN_SPIN_PY := utils/gen_spin_data.py
+GEN_STATE_OUT_PY := utils/gen_state_out_ref.py
 
 # Auto-generate C headers from SVH hardware definitions (single source of truth)
 SVH2H := utils/svh2h.py
@@ -77,17 +84,27 @@ include/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOL
 include/spin_data_sec.h: tests/data/$(DATA_FOLDER)/states_in_3 tests/data/$(DATA_FOLDER)/states_in_4 $(GEN_SPIN_PY)
 	python3 $(GEN_SPIN_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
 
+# Auto-generate the spin vectors the analog macro hands out from the state output files
+# (required by lagd_check_l1_f_mem in lagd_debug_spin.spm.c)
+include/state_out_ref.h: tests/data/$(DATA_FOLDER)/states_out_1 tests/data/$(DATA_FOLDER)/states_out_2 $(GEN_STATE_OUT_PY)
+	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --core-onload 0
+
+include/state_out_ref_sec.h: tests/data/$(DATA_FOLDER)/states_out_3 tests/data/$(DATA_FOLDER)/states_out_4 $(GEN_STATE_OUT_PY)
+	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
+
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/lagd_core_reg.h \
 	include/model_j_data.h include/model_f_data.h include/spin_data.h \
-	include/model_j_data_sec.h include/model_f_data_sec.h include/spin_data_sec.h
+	include/model_j_data_sec.h include/model_f_data_sec.h include/spin_data_sec.h \
+	include/state_out_ref.h include/state_out_ref_sec.h
 
 all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 
 clean:
 	rm -f tests/*.elf tests/*.dump \
 	      include/lagd_config.h include/lagd_define.h \
-	      include/model_j_data*.h include/model_f_data*.h include/spin_data*.h
+	      include/model_j_data*.h include/model_f_data*.h include/spin_data*.h \
+	      include/state_out_ref*.h
 
 build-chs: chs-sw-all
 
