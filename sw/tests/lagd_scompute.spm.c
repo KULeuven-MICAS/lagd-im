@@ -8,8 +8,6 @@
 #define CORE_TESTED 0
 #endif
 
-// 1: compare the final spins against the reference and report PASS/FAIL, which is what the
-// regression script checks. 0: print the energy and spin logs instead, for manual inspection.
 #ifndef VERIFICATION_TEST
 #define VERIFICATION_TEST 1
 #endif
