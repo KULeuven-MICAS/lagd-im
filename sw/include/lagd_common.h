@@ -742,25 +742,21 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
 }
 
 // Check core's l1_f_mem and print the value (only for verification on default data)
-static int lagd_check_l1_f_mem(unsigned core, unsigned length) {
+// Compare the first entries of core's l1_f_mem against one expected spin vector and print the
+// mismatch if any
+static int lagd_check_l1_f_mem(unsigned core, unsigned length, const uint64_t *expected) {
     int fail = 0;
-    static const uint64_t expected_f_mem_words[IC_L1_FLIP_MEM_DATA_WIDTH / 64] = {
-        0x0e337ef6f536f70aULL, // bits [ 63:  0]
-        0xa2ba022578b94b05ULL, // bits [127: 64]
-        0xd38a96512fb3daa2ULL, // bits [191:128]
-        0x797a68f1635d4c26ULL  // bits [255:192]
-    };
     volatile uint64_t *base =
         (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
                               (uintptr_t)core *
                                   ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
     for (unsigned i = 0; i < length; i++) {
-        uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64]; // 4 x 64-bit words
         for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
-            data[j] = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
-            if (data[j] != expected_f_mem_words[j]) {
+            uint64_t data = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
+            if (data != expected[j]) {
+                printf("l1_f_mem[%u][%u] word %d: %016llx [MISMATCH] expected %016llx\r\n", core, i,
+                       j, data, expected[j]);
                 fail = 1;
-                break;
             }
         }
     }
