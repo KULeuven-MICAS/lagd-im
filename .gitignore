@@ -236,3 +236,6 @@ bender_list.tcl
 **/output/**
 
 .nfs*
+
+# Regression run logs
+ci/regression-logs/
