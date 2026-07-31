@@ -50,10 +50,10 @@ static uint32_t row_pattern(unsigned row, int i) {
 }
 
 // wbl_floating: all-ones (default when reboot) for writing and all-zeros for reading.
-static void set_wbl_floating(unsigned core, uint32_t value) {
+static void dt_configure(unsigned core, uint32_t wbl_floating_value) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     for (int i = 0; i < WBL_WORDS; i++) {
-        *reg32(base, LAGD_CORE_WBL_FLOATING_0_REG_OFFSET + 4 * i) = value;
+        *reg32(base, LAGD_CORE_WBL_FLOATING_0_REG_OFFSET + 4 * i) = wbl_floating_value;
     }
     lagd_enable_debug_dt_configure_enable(core);
     lagd_disable_all_debug_enable(core);
@@ -75,14 +75,12 @@ static void select_wwl(unsigned core, unsigned row) {
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
 }
 
-// Write the pattern of the given row into the array through the debug write path
-static void write_row(unsigned core, unsigned row) {
+// Put the pattern of the given row into the debug data registers
+static void load_row_data(unsigned core, unsigned row) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     for (int i = 0; i < WBL_WORDS; i++) {
         *reg32(base, LAGD_CORE_DEBUG_WBL_CONFIG_0_REG_OFFSET + 4 * i) = row_pattern(row, i);
     }
-    lagd_enable_debug_j_write_en(core);
-    lagd_disable_all_debug_enable(core);
 }
 
 // Read the selected row into the debug CSRs and compare both polarities against what was written.
@@ -113,10 +111,12 @@ static int read_and_check_row(unsigned core, unsigned row) {
 
 // Write one word line and read it back. Returns 0 when the row matches.
 static int test_row(unsigned core, unsigned row) {
-    set_wbl_floating(core, 0xFFFFFFFFU); // the array latches the write bit lines
     select_wwl(core, row);
-    write_row(core, row);
-    set_wbl_floating(core, 0x00000000U); // the array drives the read bit lines
+    load_row_data(core, row);
+    dt_configure(core, 0xFFFFFFFFU); // latch the data, the array latches the write bit lines
+    lagd_enable_debug_j_write_en(core);
+    lagd_disable_all_debug_enable(core);
+    dt_configure(core, 0x00000000U); // the array drives the read bit lines
     return read_and_check_row(core, row);
 }
 
@@ -144,7 +144,7 @@ int main(void) {
     /////////////////////// WORD LINE SWEEP /////////////////////////
     /////////////////////////////////////////////////////////////////
     if (VERIFICATION_TEST) {
-        printf("=== Galena Data W/R Test on core %u ===\r\n", (unsigned)CORE_TESTED);
+        printf("Galena J/h Test, core %u\r\n", (unsigned)CORE_TESTED);
         for (unsigned row = 0; row < NUM_SPIN; row += ROW_STRIDE) {
             failed += (unsigned)test_row(CORE_TESTED, row);
             tested++;
@@ -153,7 +153,7 @@ int main(void) {
         failed += (unsigned)test_row(CORE_TESTED, H_ROW);
         tested++;
 
-        printf("=== DONE: %u/%u word lines PASS, %u FAIL ===\r\n", tested - failed, tested, failed);
+        printf("%u/%u wordlines PASS, %u FAIL\r\n", tested - failed, tested, failed);
         if (failed == 0) {
             printf("PASS\r\n");
         } else {
