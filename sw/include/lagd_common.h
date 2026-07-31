@@ -361,28 +361,6 @@ static int lagd_check_spin_fifo_data_ref(unsigned core, const uint32_t *ref_0,
             break; // stop at the first mismatch
         }
     }
-
-    // Print MSB-first (word[7]=bits255:224 ... word[0]=bits31:0)
-    printf("spin_fifo_data_0[%u]: ", core);
-    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_0[i]);
-    if (pass0) {
-        printf(" [PASS]\r\n");
-    } else {
-        printf(" [FAIL] expected ");
-        for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", ref_0[i]);
-        printf("\r\n");
-    }
-
-    printf("spin_fifo_data_1[%u]: ", core);
-    for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_1[i]);
-    if (pass1) {
-        printf(" [PASS]\r\n");
-    } else {
-        printf(" [FAIL] expected ");
-        for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", ref_1[i]);
-        printf("\r\n");
-    }
-
     return (pass0 && pass1) ? 0 : 1;
 }
 
