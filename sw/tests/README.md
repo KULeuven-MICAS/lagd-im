@@ -70,16 +70,6 @@ To test the extreme case (with maximal toggle rate) for power analysis, run:
 
 Additionally, to start and stop at the compute phase, add:
 
-```[bash]
---defines="VCD_START=fix.gen_dut_soc.dut.gen_cores[1].i_core.cmpt_en==1 VCD_STOP=fix.gen_dut_soc.dut.gen_cores[1].i_core.dgt_weight_raddr==10 END_SIM_AT_VCD_STOP=1"
-```
-
-Post-syn (26-03-02 netlist):
-
-```[bash]
---defines="VCD_START=fix.gen_dut_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.cmpt_en_i==1 VCD_STOP=fix.gen_dut_chip.dut.i_lagd_soc.gen_cores_1__i_core.u_digital_macro.dgt_weight_raddr_o==10 END_SIM_AT_VCD_STOP=1"
-```
-
 ## Galena Data W/R test (for debugging)
 
 File [lagd_debug_dt.spm.c](./lagd_debug_dt.spm.c) tests the data writing and data read operation of a single Galena macro.
