@@ -13,7 +13,9 @@
 
 #include <stdint.h>
 
-static const uint8_t model_scaling_factor = 4;
+// No computation runs in this test, so the h scaling factor only has to complete the global_cfg_2
+// write. Defined before lagd_reg_params.h
+#define GCFG2_DGT_HSCALING(core) 4
 
 // cheshire headers
 #include "regs/cheshire.h"
@@ -26,6 +28,16 @@ static const uint8_t model_scaling_factor = 4;
 // lagd headers
 #include "lagd_reg_params.h"
 #include "lagd_common.h"
+// The spins that come back are not the pattern written below: the behaviour model of the analog
+// macro loads its spin cache from the states_out files of the data folder and hands out one vector
+// per spin write
+#if CORE_TESTED == 0
+#include "state_out_ref.h"
+#define SPIN_REF state_out_ref
+#else
+#include "state_out_ref_sec.h"
+#define SPIN_REF state_out_ref_sec
+#endif
 
 int main(void) {
     int fail = 0;
@@ -66,7 +78,8 @@ int main(void) {
     lagd_disable_all_debug_enable(CORE_TESTED);
     // read back debug data from l1_f_mem and print
     if (VERIFICATION_TEST) {
-        fail |= lagd_check_l1_f_mem(CORE_TESTED, DEBUG_SPIN_READ_NUM + 1);
+        // One spin write happened, so every readout holds the first vector of the sequence
+        fail |= lagd_check_l1_f_mem(CORE_TESTED, DEBUG_SPIN_READ_NUM + 1, SPIN_REF[0]);
         if (fail == 0) {
             printf("PASS\r\n");
         } else {

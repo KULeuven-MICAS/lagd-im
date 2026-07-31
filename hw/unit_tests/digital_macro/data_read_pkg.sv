@@ -6,7 +6,7 @@
 
 // Package for data loading from algorithm input files, used in digital macro testbench
 
-`define MODEL_FILE "../../../sw/tests/data/default/model"
+`define MODEL_FILE "../../../sw/tests/data/default/model_1"
 `define FLIP_ICON_FILE_1 "../../../sw/tests/data/default/clusters_1"
 `define ENERGY_REF_FILE_1 "../../../sw/tests/data/default/energy_1"
 `define STATE_IN_FILE_1 "../../../sw/tests/data/default/states_in_1"

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Author: Jiacong Sun <jiacong.sun@kuleuven.be>
+// Author: Sofie De Weer <sofie.deweer@kuleuven.be>
 //
 // Header-only LAGD register configuration.
 
@@ -13,6 +14,10 @@
 #include "lagd_reg_params.h"
 #include "util.h"
 #include "printf.h"
+
+#ifndef MAX_MISMATCH_PRINTS
+#define MAX_MISMATCH_PRINTS 2
+#endif
 
 // Configure counter registers
 static void lagd_configure_counters(unsigned core) {
@@ -161,7 +166,7 @@ static void lagd_configure_global_cfg_2(unsigned core) {
           << LAGD_CORE_GLOBAL_CFG_2_CONFIG_SPIN_INITIAL_SKIP_0_BIT) |
          ((GCFG2_CONFIG_SPIN_INITIAL_SKIP_1 & 0x1)
           << LAGD_CORE_GLOBAL_CFG_2_CONFIG_SPIN_INITIAL_SKIP_1_BIT) |
-         ((GCFG2_DGT_HSCALING & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
+         ((GCFG2_DGT_HSCALING(core) & LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_MASK)
           << LAGD_CORE_GLOBAL_CFG_2_DGT_HSCALING_OFFSET) |
          ((GCFG2_ENERGY_FIFO_SEL & 0x1) << LAGD_CORE_GLOBAL_CFG_2_ENERGY_FIFO_SEL_BIT));
     *reg32(base, LAGD_CORE_GLOBAL_CFG_2_REG_OFFSET) = cfg2;
@@ -311,18 +316,6 @@ static void lagd_print_energy_fifo_data(unsigned core) {
     printf("Energy FIFO data 1 for core %u: 0x%08x\r\n", core, energy_fifo_data_1);
 }
 
-// Check default energy_fifo_data register (only for verification on default data)
-static int lagd_check_energy_fifo_data(unsigned core) {
-    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
-    uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
-    int fail = 0;
-    if ((energy_fifo_data_0 != 0xfffff33e) || (energy_fifo_data_1 != 0xfffff35a)) {
-        fail = 1;
-    }
-    return fail;
-}
-
 // Read out spin_fifo_data register and print the value
 static void lagd_print_spin_fifo_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
@@ -341,6 +334,34 @@ static void lagd_print_spin_fifo_data(unsigned core) {
     printf("spin_fifo_data_1[%u]: ", core);
     for (int i = NUM_SPIN / 32 - 1; i >= 0; i--) printf("%08x", spin_fifo_data_1[i]);
     printf("\r\n");
+}
+
+// Compare the values in spin_fifo_data registers against the model of CORE_TESTED and print the
+// mismatch if any. Returns 0 when both sets match.
+static int lagd_check_spin_fifo_data_ref(unsigned core, const uint32_t *ref_0,
+                                         const uint32_t *ref_1) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+
+    uint32_t spin_fifo_data_0[NUM_SPIN / 32], spin_fifo_data_1[NUM_SPIN / 32];
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
+        spin_fifo_data_0[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_0_0_REG_OFFSET + 4 * i);
+        spin_fifo_data_1[i] = *reg32(base, LAGD_CORE_SPIN_FIFO_DATA_1_0_REG_OFFSET + 4 * i);
+    }
+
+    int pass0 = 1, pass1 = 1;
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
+        if (spin_fifo_data_0[i] != ref_0[i]) {
+            pass0 = 0;
+            break; // stop at the first mismatch
+        }
+    }
+    for (int i = 0; i < NUM_SPIN / 32; i++) {
+        if (spin_fifo_data_1[i] != ref_1[i]) {
+            pass1 = 0;
+            break; // stop at the first mismatch
+        }
+    }
+    return (pass0 && pass1) ? 0 : 1;
 }
 
 // Read out cmpt_idx performance counter and print the value
@@ -373,12 +394,20 @@ static void lagd_print_energy_fifo_dbg(unsigned core, unsigned sample_count, uin
     uint32_t energy_fifo_dbg_status;
     for (unsigned i = 0; i < sample_count; i++) {
         energy_fifo_dbg_status = e_log_buf[i];
-        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u %x\r\n", core, i,
-               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
+        // Sign-extend the 16-bit energy_fifo_data_sel field to 32 bit so negative values print as
+        // 0xffffxxxx instead of 0x0000xxxx
+        uint32_t energy_fifo_data_sel =
+            (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
+            LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
+        if (energy_fifo_data_sel &
+            ((LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK + 1) >> 1)) {
+            energy_fifo_data_sel |= ~(uint32_t)LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK;
+        }
+        printf("idx/cmpt_idle/fm_rx_cnt/energy_fifo_data_sel for core %u: %u %u %u 0x%08x\r\n",
+               core, i, (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1,
                (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
                    LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK,
-               (energy_fifo_dbg_status >> LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_OFFSET) &
-                   LAGD_CORE_ENERGY_FIFO_DBG_0_ENERGY_FIFO_0_SEL_MASK);
+               energy_fifo_data_sel);
     }
 }
 
@@ -436,7 +465,70 @@ static unsigned lagd_monitor_energy_fifo_dbg_0(unsigned core, unsigned max_sampl
     }
     return log_idx;
 }
+// Log energy_fifo_dbg_0 for several cores at once, interleaving the polls in a single loop so
+// that no core is left unobserved while another one is being monitored. Stops when every core
+// has reported cmpt_idle or filled its buffer. log_cnt[c] receives the sample count of core c.
+// Caller is responsible for waiting on computation completion.
+static void lagd_monitor_energy_fifo_dbg_0_multi(unsigned num_cores, unsigned max_samples,
+                                                 uint32_t *const *e0_log_bufs, unsigned *log_cnt) {
+    uint16_t prev_fm_rx_cnt[NUM_ISING_CORES];
+    uint8_t done[NUM_ISING_CORES];
+    unsigned num_done = 0;
+    for (unsigned c = 0; c < num_cores; c++) {
+        prev_fm_rx_cnt[c] = 0;
+        done[c] = 0;
+        log_cnt[c] = 0;
+    }
+    while (num_done < num_cores) {
+        for (unsigned c = 0; c < num_cores; c++) {
+            if (done[c]) continue;
+            void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)c * IC_NUM_REGS);
+            uint32_t val = *reg32(base, LAGD_CORE_ENERGY_FIFO_DBG_0_REG_OFFSET);
+            uint8_t cmpt_idle = (val >> LAGD_CORE_ENERGY_FIFO_DBG_0_CMPT_IDLE_BIT) & 0x1;
+            uint16_t fm_rx_cnt = (val >> LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_OFFSET) &
+                                 LAGD_CORE_ENERGY_FIFO_DBG_0_FM_RX_CNT_MASK;
+            if (fm_rx_cnt != prev_fm_rx_cnt[c]) {
+                prev_fm_rx_cnt[c] = fm_rx_cnt;
+                e0_log_bufs[c][log_cnt[c]++] = val;
+            }
+            if (cmpt_idle || log_cnt[c] >= max_samples) {
+                done[c] = 1;
+                num_done++;
+            }
+        }
+    }
+}
 
+// Same as lagd_monitor_cycle_per_iteration, but interleaved over several cores.
+static void lagd_monitor_cycle_per_iteration_multi(unsigned num_cores, unsigned max_samples,
+                                                   uint32_t *const *log_bufs, unsigned *log_cnt) {
+    uint16_t prev_fm_rx_cnt_l7b[NUM_ISING_CORES];
+    uint8_t done[NUM_ISING_CORES];
+    unsigned num_done = 0;
+    for (unsigned c = 0; c < num_cores; c++) {
+        prev_fm_rx_cnt_l7b[c] = 0;
+        done[c] = 0;
+        log_cnt[c] = 0;
+    }
+    while (num_done < num_cores) {
+        for (unsigned c = 0; c < num_cores; c++) {
+            if (done[c]) continue;
+            void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)c * IC_NUM_REGS);
+            uint32_t val = *reg32(base, LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_REG_OFFSET);
+            uint8_t cmpt_idle = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_CMPT_IDLE_BIT) & 0x1;
+            uint16_t fm_rx_cnt = (val >> LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_OFFSET) &
+                                 LAGD_CORE_CYCLE_PER_CMPT_AND_ITER_FM_RX_CNT_L7B_MASK;
+            if (fm_rx_cnt != prev_fm_rx_cnt_l7b[c]) {
+                prev_fm_rx_cnt_l7b[c] = fm_rx_cnt;
+                log_bufs[c][log_cnt[c]++] = val;
+            }
+            if (cmpt_idle || log_cnt[c] >= max_samples) {
+                done[c] = 1;
+                num_done++;
+            }
+        }
+    }
+}
 // Log energy_fifo_dbg_1 on each iteration until buffer full or computation done
 // Caller is responsible for waiting on computation completion.
 static unsigned lagd_monitor_energy_fifo_dbg_1(unsigned core, unsigned max_samples,
@@ -632,27 +724,30 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
 }
 
 // Check core's l1_f_mem and print the value (only for verification on default data)
-static int lagd_check_l1_f_mem(unsigned core, unsigned length) {
-    int fail = 0;
-    static const uint64_t expected_f_mem_words[IC_L1_FLIP_MEM_DATA_WIDTH / 64] = {
-        0x0e337ef6f536f70aULL, // bits [ 63:  0]
-        0xa2ba022578b94b05ULL, // bits [127: 64]
-        0xd38a96512fb3daa2ULL, // bits [191:128]
-        0x797a68f1635d4c26ULL  // bits [255:192]
-    };
+// Compare the first entries of core's l1_f_mem against one expected spin vector and print the
+// mismatch if any
+static int lagd_check_l1_f_mem(unsigned core, unsigned length, const uint64_t *expected) {
+    unsigned mismatches = 0, printed = 0;
     volatile uint64_t *base =
         (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
                               (uintptr_t)core *
                                   ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
     for (unsigned i = 0; i < length; i++) {
-        uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64]; // 4 x 64-bit words
         for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
-            data[j] = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
-            if (data[j] != expected_f_mem_words[j]) {
-                fail = 1;
-                break;
+            uint64_t data = base[i * (IC_L1_FLIP_MEM_DATA_WIDTH / 64) + j];
+            if (data != expected[j]) {
+                mismatches++;
+                if (printed < MAX_MISMATCH_PRINTS) {
+                    printf("l1_f_mem[%u][%u] word %d: %016llx [MISMATCH] expected %016llx\r\n",
+                           core, i, j, data, expected[j]);
+                    printed++;
+                }
             }
         }
     }
-    return fail;
+    if (mismatches > printed) {
+        printf("l1_f_mem[%u]: %u more mismatching words not printed\r\n", core,
+               mismatches - printed);
+    }
+    return mismatches == 0 ? 0 : 1;
 }
