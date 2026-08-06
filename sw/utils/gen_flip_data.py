@@ -8,7 +8,7 @@
 # Converts the cluster files of core n (clusters_<2n+1> and clusters_<2n+2>) into a C header
 # for bare-metal use.
 #
-# Output: sw/include/model_f_data.h
+# Output: sw/include/gen/model_f_data.h
 #   - model_f_data[4096]  : 1024 256-bit flip candidate vectors, interleaved from
 #                            clusters_<2n+1> (even indices) and clusters_<2n+2> (odd indices),
 #                            each packed as 4 x uint64_t.
@@ -54,7 +54,8 @@ INPUT_NAME_1 = f"clusters_{2 * core_onload + 1}"
 INPUT_NAME_2 = f"clusters_{2 * core_onload + 2}"
 INPUT_FILE_1 = os.path.join(SW_DIR, "tests/data", args.folder, INPUT_NAME_1)
 INPUT_FILE_2 = os.path.join(SW_DIR, "tests/data", args.folder, INPUT_NAME_2)
-OUTPUT_FILE = os.path.join(SW_DIR, "include", f"model_f_data{args.suffix}.h")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", "gen", f"model_f_data{args.suffix}.h")
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 
 # --- Constants ---
 NUM_CLUSTERS = 512          # usable vectors per file (line 1 is skipped)

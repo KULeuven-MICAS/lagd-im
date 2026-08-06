@@ -12,7 +12,7 @@
 # into one spin cache memory, taking states_out_<2n+1> for the even entries and states_out_<2n+2>
 # for the odd ones, and hands out one entry per spin write. This script reproduces that order.
 #
-# Output: sw/include/state_out_ref.h
+# Output: sw/include/gen/state_out_ref.h
 #   - state_out_ref[STATE_OUT_REF_NUM][4] : spin vectors as 4 x uint64_t, entry i being the vector
 #                                           returned after the (i+1)-th spin write
 #
@@ -63,7 +63,8 @@ def parse_args() -> argparse.Namespace:
 
 
 args = parse_args()
-OUTPUT_FILE = os.path.join(SW_DIR, "include", f"state_out_ref{args.suffix}.h")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", "gen", f"state_out_ref{args.suffix}.h")
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 # Core n is loaded with states_out_(2n+1) and states_out_(2n+2): core 0 -> 1/2, core 1 -> 3/4.
 INPUT_NAME_1 = f"states_out_{2 * args.core_onload + 1}"
 INPUT_NAME_2 = f"states_out_{2 * args.core_onload + 2}"

@@ -8,7 +8,7 @@
 # Converts sw/tests/data/default/model_<n+1> (the model of core n) into a C header for
 # bare-metal use.
 #
-# Output: sw/include/model_j_data{args.suffix}.h
+# Output: sw/include/gen/model_j_data{args.suffix}.h
 #   - model_j_data{args.suffix}[4096]    : J coupling matrix, 256x256 J_BITS-bit signed integers
 #                             packed MSB-first into uint64_t, groups in reversed column order
 #   - model_h_data{args.suffix}[32]      : h bias vector, 256 H_BITS-bit signed integers,
@@ -71,7 +71,8 @@ core_onload = args.core_onload
 # Core n is loaded with model_(n+1): core 0 -> model_1, core 1 -> model_2.
 INPUT_NAME = f"model_{core_onload + 1}"
 INPUT_FILE = os.path.join(SW_DIR, "tests/data", args.folder, INPUT_NAME)
-OUTPUT_FILE = os.path.join(SW_DIR, "include", f"model_j_data{args.suffix}.h")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", "gen", f"model_j_data{args.suffix}.h")
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 
 # --- Derived constants ---
 J_ROWS = 256

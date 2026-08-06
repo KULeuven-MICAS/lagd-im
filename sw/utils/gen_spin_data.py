@@ -8,7 +8,7 @@
 # Converts the state files of core n (states_in_<2n+1> and states_in_<2n+2>) into a C header
 # for bare-metal use.
 #
-# Output: sw/include/spin_data.h
+# Output: sw/include/gen/spin_data.h
 #   - spin_initial_0[8] : initial spin state from states_in_<2n+1> (line 1), 8 x uint32_t
 #   - spin_initial_1[8] : initial spin state from states_in_<2n+2> (line 1), 8 x uint32_t
 #   - spin_ref_0[8]     : reference result from states_in_<2n+1> (last line), for comparison
@@ -52,7 +52,8 @@ def parse_args() -> argparse.Namespace:
 
 
 args = parse_args()
-OUTPUT_FILE = os.path.join(SW_DIR, "include", f"spin_data{args.suffix}.h")
+OUTPUT_FILE = os.path.join(SW_DIR, "include", "gen", f"spin_data{args.suffix}.h")
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 # Core n is loaded with states_in_(2n+1) and states_in_(2n+2): core 0 -> 1/2, core 1 -> 3/4.
 INPUT_NAME_1 = f"states_in_{2 * args.core_onload + 1}"
 INPUT_NAME_2 = f"states_in_{2 * args.core_onload + 2}"
