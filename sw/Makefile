@@ -11,24 +11,29 @@ include $(CHS_ROOT)/cheshire.mk
 # Build configuration -------------------------------------------------------
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include/gen
-# tests/ref/*.spm.c's own #include "lagd_reg_params.h" etc. only resolve via the including
-# header's own directory (sw/include/ref/), not the test file's -- this makes them resolve from
-# sw/tests/ref/*.spm.c too. Safe to add globally: no filename collides with sw/include's own.
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include/ref
 
 # Space-separated NAME=VALUE pairs to forward as -D onto the compile line.
-# E.g: make COMPILE_ARGS="CORE_TESTED=1" all.
 CHS_SW_INCLUDES += $(addprefix -D,$(COMPILE_ARGS))
 
+# Data folder under tests/ref/data/ used by the tests/ref/ generated data headers below.
+DATA_FOLDER ?= default
+
 # Test sources ---------------------------------------------------------------
-MY_TEST_SRCS_ORIG_EXCLUDE = tests/ref/lagd_dcompute.spm.c tests/ref/lagd_debug_spin.spm.c tests/ref/lagd_scompute.spm.c
-MY_TEST_SRCS = $(filter-out $(MY_TEST_SRCS_ORIG_EXCLUDE),$(shell find tests -name '*.spm.c'))
+MY_TEST_SRCS = $(shell find tests -name '*.spm.c')
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
+
+# Only the tests/ref/ legacy tests need the generated data headers below.
+REF_TEST_SRCS = $(wildcard tests/ref/*.spm.c)
 
 # Generated headers -----------------------------------------------------------
 # All generated headers live under include/gen/
 RTL_ROOT := $(PROJECT_ROOT)/hw/rtl
 SVH2H := utils/svh2h.py
+GEN_MODEL_PY := utils/gen_model_data.py
+GEN_FLIP_PY := utils/gen_flip_data.py
+GEN_SPIN_PY := utils/gen_spin_data.py
+GEN_STATE_OUT_PY := utils/gen_state_out_ref.py
 
 include/gen:
 	mkdir -p $@
@@ -41,15 +46,40 @@ include/gen/lagd_config.h: $(RTL_ROOT)/include/lagd_config.svh $(SVH2H) | includ
 include/gen/lagd_define.h: $(RTL_ROOT)/include/lagd_define.svh $(SVH2H) include/gen/lagd_config.h | include/gen
 	python3 $(SVH2H) $< $@
 
-# LAGD core register- & bit-offsets. hw/rtl/lagd_core_reg/Makefile is left untouched, but its
-# SW_INCLUDE_DIR is a plain (":=") variable, so a command-line override redirects its header
-# straight into include/gen/ -- no flat intermediate file shared across concurrent `make`
-# invocations (e.g. this Makefile vs. ci/sys-run.sh, which also builds sw/) to race on.
+# LAGD core register- & bit-offsets.
 include/gen/lagd_core_reg.h: $(RTL_ROOT)/lagd_core_reg/lagd_core_regs.hjson | include/gen
 	$(MAKE) -C $(RTL_ROOT)/lagd_core_reg BENDER=$(BENDER) SW_INCLUDE_DIR=$(PROJECT_ROOT)/sw/include/gen all
 
+# tests/ref/ data headers
+include/gen/model_j_data.h: tests/ref/data/$(DATA_FOLDER)/model_1 $(GEN_MODEL_PY) | include/gen
+	python3 $(GEN_MODEL_PY) --core-onload 0 --folder $(DATA_FOLDER)
+
+include/gen/model_j_data_sec.h: tests/ref/data/$(DATA_FOLDER)/model_2 $(GEN_MODEL_PY) | include/gen
+	python3 $(GEN_MODEL_PY) --core-onload 1 --folder $(DATA_FOLDER) --suffix _sec
+
+include/gen/model_f_data.h: tests/ref/data/$(DATA_FOLDER)/clusters_1 tests/ref/data/$(DATA_FOLDER)/clusters_2 $(GEN_FLIP_PY) | include/gen
+	python3 $(GEN_FLIP_PY) --core-onload 0 --folder $(DATA_FOLDER)
+
+include/gen/model_f_data_sec.h: tests/ref/data/$(DATA_FOLDER)/clusters_3 tests/ref/data/$(DATA_FOLDER)/clusters_4 $(GEN_FLIP_PY) | include/gen
+	python3 $(GEN_FLIP_PY) --core-onload 1 --folder $(DATA_FOLDER) --suffix _sec
+
+include/gen/spin_data.h: tests/ref/data/$(DATA_FOLDER)/states_in_1 tests/ref/data/$(DATA_FOLDER)/states_in_2 $(GEN_SPIN_PY) | include/gen
+	python3 $(GEN_SPIN_PY) --folder $(DATA_FOLDER) --core-onload 0
+
+include/gen/spin_data_sec.h: tests/ref/data/$(DATA_FOLDER)/states_in_3 tests/ref/data/$(DATA_FOLDER)/states_in_4 $(GEN_SPIN_PY) | include/gen
+	python3 $(GEN_SPIN_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
+
+include/gen/state_out_ref.h: tests/ref/data/$(DATA_FOLDER)/states_out_1 tests/ref/data/$(DATA_FOLDER)/states_out_2 $(GEN_STATE_OUT_PY) | include/gen
+	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --core-onload 0
+
+include/gen/state_out_ref_sec.h: tests/ref/data/$(DATA_FOLDER)/states_out_3 tests/ref/data/$(DATA_FOLDER)/states_out_4 $(GEN_STATE_OUT_PY) | include/gen
+	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
+
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/gen/lagd_config.h include/gen/lagd_define.h include/gen/lagd_core_reg.h
+$(REF_TEST_SRCS:.c=.o): include/gen/model_j_data.h include/gen/model_f_data.h include/gen/spin_data.h \
+	include/gen/model_j_data_sec.h include/gen/model_f_data_sec.h include/gen/spin_data_sec.h \
+	include/gen/state_out_ref.h include/gen/state_out_ref_sec.h
 
 # Targets ---------------------------------------------------------------------
 all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
