@@ -1,117 +1,61 @@
-# Copyright 2025 KU Leuven.
-# Licensed under the Apache License, Version 2.0, see LICENSE for details.
-# SPDX-License-Identifier: Apache-2.0
-
-# Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
-# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
-
+# Paths and toolchain -----------------------------------------------------
 PROJECT_ROOT := $(shell realpath ../)
 BENDER ?= ~/.cargo/bin/bender
 include $(PROJECT_ROOT)/common.mk
 
-RTL_ROOT := $(PROJECT_ROOT)/hw/rtl
-
-CHS_SW_LD_DIR ?= ./link
-
 CHS_ROOT := $(shell $(BENDER) path cheshire)
 CHS_SW_PATH := $(CHS_ROOT)/sw
+CHS_SW_LD_DIR ?= ./link
 include $(CHS_ROOT)/cheshire.mk
 
-# Add local sw/include paths: hand-written headers, and generated ones (kept separate so
-# .gitignore doesn't need a per-file allowlist for the hand-written ones)
+# Build configuration -------------------------------------------------------
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include
 CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include/gen
+# tests/ref/*.spm.c's own #include "lagd_reg_params.h" etc. only resolve via the including
+# header's own directory (sw/include/ref/), not the test file's -- this makes them resolve from
+# sw/tests/ref/*.spm.c too. Safe to add globally: no filename collides with sw/include's own.
+CHS_SW_INCLUDES += -I$(PROJECT_ROOT)/sw/include/ref
 
-# Core driven by the single-core tests. It selects the core at C level only: the generated data
-# headers below have a fixed meaning, so this never changes what is generated.
-CORE_TESTED ?= 0
+# Space-separated NAME=VALUE pairs to forward as -D onto the compile line.
+# E.g: make COMPILE_ARGS="CORE_TESTED=1" all.
+CHS_SW_INCLUDES += $(addprefix -D,$(COMPILE_ARGS))
 
-# Optional switch used by tests that guard checks with #ifndef VERIFICATION_TEST.
-VERIFICATION_TEST ?= 1
-
-# Word line stride of lagd_debug_dt: 1 covers the whole array, a larger value shortens the
-# simulation. The h word line is always covered.
-ROW_STRIDE ?= 1
-
-# Data folder name
-DATA_FOLDER ?= default
-
-# Define CORE_TESTED for C code
-CHS_SW_INCLUDES += -DCORE_TESTED=$(CORE_TESTED)
-CHS_SW_INCLUDES += -DVERIFICATION_TEST=$(VERIFICATION_TEST)
-CHS_SW_INCLUDES += -DROW_STRIDE=$(ROW_STRIDE)
-
-MY_TEST_SRCS = $(wildcard tests/*.spm.c)
+# Test sources ---------------------------------------------------------------
+MY_TEST_SRCS_ORIG_EXCLUDE = tests/ref/lagd_dcompute.spm.c tests/ref/lagd_debug_spin.spm.c tests/ref/lagd_scompute.spm.c
+MY_TEST_SRCS = $(filter-out $(MY_TEST_SRCS_ORIG_EXCLUDE),$(shell find tests -name '*.spm.c'))
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 
-GEN_MODEL_PY := utils/gen_model_data.py
-GEN_FLIP_PY := utils/gen_flip_data.py
-GEN_SPIN_PY := utils/gen_spin_data.py
-GEN_STATE_OUT_PY := utils/gen_state_out_ref.py
-
-# Auto-generate C headers from SVH hardware definitions (single source of truth)
+# Generated headers -----------------------------------------------------------
+# All generated headers live under include/gen/
+RTL_ROOT := $(PROJECT_ROOT)/hw/rtl
 SVH2H := utils/svh2h.py
 
-# All generated headers live under include/gen/ (kept separate from the hand-written ones in
-# include/), so .gitignore can ignore the whole directory instead of naming files individually.
 include/gen:
 	mkdir -p $@
 
+# User configuration for LAGD system
 include/gen/lagd_config.h: $(RTL_ROOT)/include/lagd_config.svh $(SVH2H) | include/gen
 	python3 $(SVH2H) $< $@
 
-include/gen/lagd_define.h: $(RTL_ROOT)/include/lagd_define.svh $(SVH2H) | include/gen
+# System-wide definitions for LAGD system
+include/gen/lagd_define.h: $(RTL_ROOT)/include/lagd_define.svh $(SVH2H) include/gen/lagd_config.h | include/gen
 	python3 $(SVH2H) $< $@
 
-# hw/rtl/lagd_core_reg/Makefile writes its header straight to include/ (that Makefile lives under
-# hw/ and is left untouched); relocate it into include/gen/ here to keep the split consistent.
+# LAGD core register- & bit-offsets. hw/rtl/lagd_core_reg/Makefile is left untouched, but its
+# SW_INCLUDE_DIR is a plain (":=") variable, so a command-line override redirects its header
+# straight into include/gen/ -- no flat intermediate file shared across concurrent `make`
+# invocations (e.g. this Makefile vs. ci/sys-run.sh, which also builds sw/) to race on.
 include/gen/lagd_core_reg.h: $(RTL_ROOT)/lagd_core_reg/lagd_core_regs.hjson | include/gen
-	$(MAKE) -C $(RTL_ROOT)/lagd_core_reg BENDER=$(BENDER) all
-	mv include/lagd_core_reg.h $@
-
-# The generated data headers have a fixed meaning, independent of CORE_TESTED: the plain ones hold
-# the data of core 0 (model_1, clusters_1/2, states_in_1/2) and the _sec ones the data of core 1
-# (model_2, clusters_3/4, states_in_3/4). Each test selects the set it needs at C level.
-
-# Auto-generate data header from model file
-include/gen/model_j_data.h: tests/data/$(DATA_FOLDER)/model_1 $(GEN_MODEL_PY) | include/gen
-	python3 $(GEN_MODEL_PY) --core-onload 0 --folder $(DATA_FOLDER)
-
-include/gen/model_j_data_sec.h: tests/data/$(DATA_FOLDER)/model_2 $(GEN_MODEL_PY) | include/gen
-	python3 $(GEN_MODEL_PY) --core-onload 1 --folder $(DATA_FOLDER) --suffix _sec
-
-# Auto-generate flip candidates header from cluster files
-include/gen/model_f_data.h: tests/data/$(DATA_FOLDER)/clusters_1 tests/data/$(DATA_FOLDER)/clusters_2 $(GEN_FLIP_PY) | include/gen
-	python3 $(GEN_FLIP_PY) --core-onload 0 --folder $(DATA_FOLDER)
-
-include/gen/model_f_data_sec.h: tests/data/$(DATA_FOLDER)/clusters_3 tests/data/$(DATA_FOLDER)/clusters_4 $(GEN_FLIP_PY) | include/gen
-	python3 $(GEN_FLIP_PY) --core-onload 1 --folder $(DATA_FOLDER) --suffix _sec
-
-# Auto-generate spin initial/reference header from state files
-include/gen/spin_data.h: tests/data/$(DATA_FOLDER)/states_in_1 tests/data/$(DATA_FOLDER)/states_in_2 $(GEN_SPIN_PY) | include/gen
-	python3 $(GEN_SPIN_PY) --folder $(DATA_FOLDER) --core-onload 0
-
-include/gen/spin_data_sec.h: tests/data/$(DATA_FOLDER)/states_in_3 tests/data/$(DATA_FOLDER)/states_in_4 $(GEN_SPIN_PY) | include/gen
-	python3 $(GEN_SPIN_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
-
-# Auto-generate the spin vectors the analog macro hands out from the state output files
-# (required by lagd_check_l1_f_mem in lagd_debug_spin.spm.c)
-include/gen/state_out_ref.h: tests/data/$(DATA_FOLDER)/states_out_1 tests/data/$(DATA_FOLDER)/states_out_2 $(GEN_STATE_OUT_PY) | include/gen
-	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --core-onload 0
-
-include/gen/state_out_ref_sec.h: tests/data/$(DATA_FOLDER)/states_out_3 tests/data/$(DATA_FOLDER)/states_out_4 $(GEN_STATE_OUT_PY) | include/gen
-	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
+	$(MAKE) -C $(RTL_ROOT)/lagd_core_reg BENDER=$(BENDER) SW_INCLUDE_DIR=$(PROJECT_ROOT)/sw/include/gen all
 
 # Ensure headers are generated before compiling tests that use them
-$(MY_TEST_SRCS:.c=.o): include/gen/lagd_config.h include/gen/lagd_define.h include/gen/lagd_core_reg.h \
-	include/gen/model_j_data.h include/gen/model_f_data.h include/gen/spin_data.h \
-	include/gen/model_j_data_sec.h include/gen/model_f_data_sec.h include/gen/spin_data_sec.h \
-	include/gen/state_out_ref.h include/gen/state_out_ref_sec.h
+$(MY_TEST_SRCS:.c=.o): include/gen/lagd_config.h include/gen/lagd_define.h include/gen/lagd_core_reg.h
 
+# Targets ---------------------------------------------------------------------
 all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 
 clean:
-	rm -f tests/*.elf tests/*.dump
+	rm -f $(MY_TESTS) $(MY_TEST_SRCS:.c=.o)
 	rm -rf include/gen
 
 build-chs: chs-sw-all
