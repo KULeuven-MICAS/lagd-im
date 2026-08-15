@@ -210,6 +210,12 @@ by the debug path during *both* debug write and debug read.
   a further `cycle_per_wwl_low` cycles. Both counters come from
   `counter_cfg_1`/`counter_cfg_2`.
 
+⚠️ Despite its register name (`debug_j_one_hot_wwl`), `wwl` is **not** restricted
+to one-hot: multiple rows can genuinely be asserted simultaneously on the analog
+macro side, writing/reading several rows to the same value in one commit. In
+practice a single row is by far the most common case, but the name is a legacy
+artifact, not a hardware constraint.
+
 ⚠️ The "+1 bit" is **not** in the same place as for `wwl_vdd`/`wwl_vread` — those
 put bit 256 in `global_cfg_1`, `wwl` puts it in `global_cfg_2`. Do not assume a
 uniform layout across the three 257-bit vectors.
@@ -372,7 +378,8 @@ line 327-328). This is the path `lagd_print_spin_fifo_data()` and
 1. wwl_vdd_cfg[0..7] + global_cfg_1.wwl_vdd_cfg_256   = pattern   (or wwl_vread_*)
 2. counter_cfg_1.cycle_per_wwl_high / counter_cfg_2.cycle_per_wwl_low = timing
 3. debug_wbl_config[0..31]      = WBL data
-   debug_j_one_hot_wwl[0..7]    = row select (one-hot)
+   debug_j_one_hot_wwl[0..7]    = row select (typically one bit, but not restricted to one-hot --
+                                   see note below)
    global_cfg_2.debug_h_wwl     = 1 to address the h row instead
 4. global_cfg_1.debug_dt_configure_enable = 1     // level: stage + latch wwl_vdd/vread
    global_cfg_1.debug_dt_configure_enable = 0

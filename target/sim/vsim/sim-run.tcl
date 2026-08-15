@@ -61,9 +61,28 @@ vsim -quiet \
 #    -L work_lib \
 
 if { ${DBG} > 0 } {
-    # Save all signals in vcd
-    log -r /*
+    set wave_log 1
+    if { [info exists ::env(WAVE_LOG)] } {
+        set wave_log $::env(WAVE_LOG)
+    }
+    set wave_scope "-r /*"
+    if { [info exists ::env(WAVE_SCOPE)] } {
+        set wave_scope $::env(WAVE_SCOPE)
+    }
+    if { ${wave_log} != 0 } {
+        log {*}${wave_scope}
+    }
+    # else: nothing pre-logged; log your own scopes once the simulation is running (log -r <path>)
+}
+
+if { [info exists ::env(DISABLE_ASSERTIONS)] && $::env(DISABLE_ASSERTIONS) != 0 } {
+    assertion enable -off /*
 }
 
 run -all
-quit
+
+# Leave the GUI open for post-run inspection instead of closing the whole tool. NO_GUI comes
+# straight from ./ci/sys-run.sh's environment (default: quit, matching batch-mode expectations).
+if { ![info exists ::env(NO_GUI)] || $::env(NO_GUI) != 0 } {
+    quit
+}
