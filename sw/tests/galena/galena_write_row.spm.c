@@ -6,17 +6,13 @@
 #define CORE_TESTED 0
 #endif
 #ifndef TARGET_ROW
-#define TARGET_ROW 1 // 0 <-> 256
+#define TARGET_ROW 1
 #endif
 #ifndef WWL_CYCLES
-#define WWL_CYCLES 5 // matches LAGD_BASE_CONFIG's default, and tests/ref/lagd_debug_dt.spm.c's,
-                      // for an apples-to-apples comparison while debugging
+#define WWL_CYCLES 5
 #endif
 #ifndef VERBOSE
-#define VERBOSE 0 // 1: also print which row/pattern failed, not just the summary count. Off by
-                   // default -- a routine "is everything still working" run doesn't need it, and
-                   // printf itself costs real simulated time (each character is a busy-wait UART
-                   // write).
+#define VERBOSE 0
 #endif
 
 #include <stdint.h>

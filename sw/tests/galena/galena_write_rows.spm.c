@@ -5,10 +5,7 @@
 #define CORE_TESTED 0
 #endif
 #ifndef VERBOSE
-#define VERBOSE 0 // 1: also print which row/pattern failed, not just the summary count. Off by
-                   // default -- a routine "is everything still working" run doesn't need it, and
-                   // printf itself costs real simulated time (each character is a busy-wait UART
-                   // write), and this runs up to 257*3 times.
+#define VERBOSE 0
 #endif
 
 #include <stdint.h>
