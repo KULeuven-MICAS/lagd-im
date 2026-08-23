@@ -24,7 +24,8 @@
 #define WWL_CYCLES_SAFE 100
 #endif
 #ifndef WWL_CYCLES_STOP
-#define WWL_CYCLES_STOP 1 // sweep continues all the way down to this cycle count regardless of failures
+#define WWL_CYCLES_STOP \
+    1 // sweep continues all the way down to this cycle count regardless of failures
 #endif
 
 #include <stdint.h>
@@ -60,7 +61,7 @@ int main(void) {
     }
 
     int write_min = -1;
-    for (unsigned cycles = WWL_CYCLES_START; ; cycles--) {
+    for (unsigned cycles = WWL_CYCLES_START;; cycles--) {
         const uint32_t *pattern = (cycles % 2) ? checkerboard : anti_checkerboard;
         int pass = 1;
         for (unsigned i = 0; i < NUM_TEST_ROWS; i++) {

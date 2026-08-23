@@ -30,7 +30,8 @@ static void lagd_clear_bit(volatile uint32_t *reg, unsigned bit) {
 // leaving every bit outside the field untouched. mask/offset match the *_MASK/*_OFFSET pair the
 // reggen headers emit for each field (value is masked, not the field position -- an out-of-range
 // value is silently truncated rather than corrupting neighboring fields).
-static void lagd_write_field(volatile uint32_t *reg, uint32_t mask, unsigned offset, uint32_t value) {
+static void lagd_write_field(volatile uint32_t *reg, uint32_t mask, unsigned offset,
+                             uint32_t value) {
     *reg = (*reg & ~(mask << offset)) | ((value & mask) << offset);
 }
 

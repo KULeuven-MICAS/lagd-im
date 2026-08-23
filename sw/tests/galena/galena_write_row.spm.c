@@ -25,7 +25,8 @@
 // whole row against pattern (WBL) and its bitwise complement (WBLB). Returns 0 on full match.
 // Prints per-row/per-pattern detail only when VERBOSE -- the caller's summary count covers the
 // routine case.
-static int galena_write_and_check_row(unsigned core, unsigned row, const char *name, const uint32_t pattern[LAGD_WBL_NUM_WORDS]) {
+static int galena_write_and_check_row(unsigned core, unsigned row, const char *name,
+                                      const uint32_t pattern[LAGD_WBL_NUM_WORDS]) {
     galena_write_row(core, row, pattern);
 
     uint32_t wbl[LAGD_WBL_NUM_WORDS], wblb[LAGD_WBL_NUM_WORDS];
@@ -55,9 +56,12 @@ int main(void) {
     }
 
     unsigned failed = 0, tested = 0;
-    failed += galena_write_and_check_row(CORE_TESTED, TARGET_ROW, "all-one", all_one);      tested++;
-    failed += galena_write_and_check_row(CORE_TESTED, TARGET_ROW, "all-zero", all_zero);    tested++;
-    failed += galena_write_and_check_row(CORE_TESTED, TARGET_ROW, "checkerboard", checkerboard); tested++;
+    failed += galena_write_and_check_row(CORE_TESTED, TARGET_ROW, "all-one", all_one);
+    tested++;
+    failed += galena_write_and_check_row(CORE_TESTED, TARGET_ROW, "all-zero", all_zero);
+    tested++;
+    failed += galena_write_and_check_row(CORE_TESTED, TARGET_ROW, "checkerboard", checkerboard);
+    tested++;
     printf("%u/%u patterns PASS, %u FAIL\r\n", tested - failed, tested, failed);
     printf(failed ? "FAIL\r\n" : "PASS\r\n");
 

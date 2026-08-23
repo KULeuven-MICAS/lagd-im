@@ -18,7 +18,8 @@
 // whole row against pattern (WBL) and its bitwise complement (WBLB). Returns 0 on full match.
 // Prints per-row/per-pattern detail only when VERBOSE -- main()'s summary count covers the
 // routine case.
-static int galena_write_and_check_row(unsigned core, unsigned row, const char *name, const uint32_t pattern[LAGD_WBL_NUM_WORDS]) {
+static int galena_write_and_check_row(unsigned core, unsigned row, const char *name,
+                                      const uint32_t pattern[LAGD_WBL_NUM_WORDS]) {
     galena_write_row(core, row, pattern);
 
     uint32_t wbl[LAGD_WBL_NUM_WORDS], wblb[LAGD_WBL_NUM_WORDS];

@@ -16,7 +16,8 @@
 #define SPIN_WRITE_CYCLES_START 100
 #endif
 #ifndef SPIN_WRITE_CYCLES_STOP
-#define SPIN_WRITE_CYCLES_STOP 1 // sweep continues all the way down to this cycle count regardless of failures
+#define SPIN_WRITE_CYCLES_STOP \
+    1 // sweep continues all the way down to this cycle count regardless of failures
 #endif
 
 #include <stdint.h>
@@ -55,7 +56,7 @@ int main(void) {
     }
 
     int write_min = -1;
-    for (unsigned cycles = SPIN_WRITE_CYCLES_START; ; cycles--) {
+    for (unsigned cycles = SPIN_WRITE_CYCLES_START;; cycles--) {
         const uint32_t *pattern = (cycles % 2) ? checkerboard : anti_checkerboard;
         galena_stage_spin_write_timing(CORE_TESTED, cycles);
         int pass = !check_spins(CORE_TESTED, pattern);

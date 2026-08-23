@@ -16,12 +16,14 @@ static volatile uint32_t *lagd_core_reg(unsigned core, uint32_t offset) {
 }
 
 // Write num_words consecutive 32-bit registers of the given core, starting at offset.
-static void lagd_core_write_vector(unsigned core, uint32_t offset, const uint32_t *pattern, unsigned num_words) {
+static void lagd_core_write_vector(unsigned core, uint32_t offset, const uint32_t *pattern,
+                                   unsigned num_words) {
     lagd_write_vector(lagd_core_reg(core, offset), pattern, num_words);
 }
 
 // Read num_words consecutive 32-bit registers of the given core, starting at offset.
-static void lagd_core_read_vector(unsigned core, uint32_t offset, uint32_t *out, unsigned num_words) {
+static void lagd_core_read_vector(unsigned core, uint32_t offset, uint32_t *out,
+                                  unsigned num_words) {
     lagd_read_vector(lagd_core_reg(core, offset), out, num_words);
 }
 
@@ -37,7 +39,8 @@ static void lagd_core_clear_bit(unsigned core, uint32_t offset, unsigned bit) {
 
 // Write value into a multi-bit field of a register of the given core, given its byte offset and
 // the field's *_MASK/*_OFFSET pair, through read-modify-write.
-static void lagd_core_write_field(unsigned core, uint32_t offset, uint32_t mask, unsigned field_offset, uint32_t value) {
+static void lagd_core_write_field(unsigned core, uint32_t offset, uint32_t mask,
+                                  unsigned field_offset, uint32_t value) {
     lagd_write_field(lagd_core_reg(core, offset), mask, field_offset, value);
 }
 

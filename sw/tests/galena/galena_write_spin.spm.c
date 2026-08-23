@@ -17,7 +17,8 @@
 #include "lagd_galena_recipes.h"
 
 // Write spins, read them back and compare. Returns 0 on a full match.
-static int galena_write_and_check_spins(unsigned core, const char *name, const uint32_t spins[LAGD_SPIN_NUM_WORDS]) {
+static int galena_write_and_check_spins(unsigned core, const char *name,
+                                        const uint32_t spins[LAGD_SPIN_NUM_WORDS]) {
     galena_write_spins(core, spins);
 
     uint32_t out[LAGD_SPIN_NUM_WORDS];
@@ -53,10 +54,14 @@ int main(void) {
     }
 
     unsigned failed = 0, tested = 0;
-    failed += galena_write_and_check_spins(CORE_TESTED, "all-one", all_one);                   tested++;
-    failed += galena_write_and_check_spins(CORE_TESTED, "all-zero", all_zero);                 tested++;
-    failed += galena_write_and_check_spins(CORE_TESTED, "checker", checkerboard);              tested++;
-    failed += galena_write_and_check_spins(CORE_TESTED, "anti-checker", anti_checkerboard);    tested++;
+    failed += galena_write_and_check_spins(CORE_TESTED, "all-one", all_one);
+    tested++;
+    failed += galena_write_and_check_spins(CORE_TESTED, "all-zero", all_zero);
+    tested++;
+    failed += galena_write_and_check_spins(CORE_TESTED, "checker", checkerboard);
+    tested++;
+    failed += galena_write_and_check_spins(CORE_TESTED, "anti-checker", anti_checkerboard);
+    tested++;
     printf("%u/%u patterns PASS, %u FAIL\r\n", tested - failed, tested, failed);
     printf(failed ? "FAIL\r\n" : "PASS\r\n");
 
