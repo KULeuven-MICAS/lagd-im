@@ -20,6 +20,7 @@ show_usage()
     cat <<'EOF'
 Usage: ./ci/regression-run.sh [[
     --tests=#list
+    --preload=#preload_mode
     --data-folder=#data_folder
     --core-tested=#core_index
     --row-stride=#stride
@@ -34,6 +35,7 @@ show_help()
 {
     show_usage
     echo "  --tests=#list: Comma separated tests to run (default: all of them)"
+    echo "  --preload=#preload_mode: How the binary reaches memory. Options: 0-JTAG 1-UART 2-SPI (default: JTAG)"
     echo "  --data-folder=#data_folder: Data folder under sw/tests/data/ (default: default)"
     echo "  --core-tested=#core_index: Core driven by the single-core tests (default: 0)"
     echo "  --row-stride=#stride: Word line stride of lagd_debug_dt (default: 256, one J row)"
@@ -51,6 +53,7 @@ ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 ALL_TESTS="helloworld lagd_debug_spin lagd_debug_dt lagd_scompute lagd_dcompute lagd_reg"
 
 TESTS="${ALL_TESTS}"
+PRELOAD_MODE=0
 DATA_FOLDER="default"
 CORE_TESTED=0
 ROW_STRIDE=256
@@ -61,6 +64,10 @@ for i in "$@"; do
     case $i in
         --tests=*)
             TESTS=$(echo "${i#*=}" | tr ',' ' ')
+            shift
+            ;;
+        --preload=*)
+            PRELOAD_MODE="${i#*=}"
             shift
             ;;
         --data-folder=*)
@@ -117,6 +124,7 @@ marker_of()
 
 echo "Running the system test regression with the following parameters:"
 echo "  TESTS: ${TESTS}"
+echo "  PRELOAD_MODE: ${PRELOAD_MODE} (0-JTAG 1-UART 2-SPI)"
 echo "  DATA_FOLDER: ${DATA_FOLDER}"
 echo "  CORE_TESTED (for single-core tests): ${CORE_TESTED}"
 echo "  ROW_STRIDE (for lagd_debug_dt): ${ROW_STRIDE}"
@@ -154,6 +162,7 @@ for t in ${TESTS}; do
     printf "[%s] %-18s running ...\n" "$(date +%T)" "${t}"
 
     "${ROOT_DIR}/ci/sys-run.sh" --binary="${ROOT_DIR}/sw/tests/${t}.spm.elf" \
+        --preload="${PRELOAD_MODE}" \
         --data-folder="${DATA_FOLDER}" --core-tested="${CORE_TESTED}" --skip-sw-build \
         > "${LOG}" 2>&1
     RUN_STATUS=$?
