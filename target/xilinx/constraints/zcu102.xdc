@@ -90,42 +90,11 @@ set_clock_groups -asynchronous \
 # the interconnect is PIN-PRESERVING (LA<n> -> LA<n>); if it permutes pairs,
 # permute the balls to match.
 #
-# ##### STOP (VADJ): MEASURE VADJ_FMC BEFORE MATING THE FMC CABLE #####
-#
-# HPC0 sits on the ZCU102 VADJ_FMC rail, and LVCMOS18 (below) requires VADJ =
-# 1.8 V. The Zedboard FMC is 1.8 V (confirmed 2026-07-15 by scoping its RTC
-# output swing).
-#
-# MEASURED 2026-07-15 on our ZCU102: VADJ_FMC = 1.2 V out of the box - NOT
-# 1.8 V. Do not assume the default is correct; it is not.
-#
-# WHY: an MSP430 system controller sets VADJ by reading the IPMI EEPROM of the
-# attached MEZZANINE. Here there is no mezzanine - Zedboard and ZCU102 are both
-# carriers (see HARDWARE above) - so nothing presents an EEPROM and the system
-# controller falls back to the LOWEST supported VADJ (1.2 V), not the highest.
-# Carrier-to-carrier means VADJ is never auto-negotiated: you must force it.
-#
-# WHY IT IS DANGEROUS (not merely broken): at VADJ = 1.2 V the banks ARE
-# powered, just at the wrong voltage - which is worse than unpowered, because it
-# looks like it works.
-#   * Zedboard -> ZCU102: 1.8 V into a 1.2 V HP bank exceeds the UltraScale+ HP
-#     input absolute max (~VCCO + 0.55 V = ~1.75 V; see DS925) before overshoot
-#     is even counted, so current flows through the ESD clamps into VADJ. Yet
-#     1.8 V is far above the 0.78 V VIH at 1.2 V VCCO, so the RTC clocks and the
-#     link "works" while the silicon is stressed.
-#   * ZCU102 -> Zedboard: outputs (uart_rts_no, spi_sd_io when driving) swing to
-#     1.2 V into a 1.8 V bank whose VIH is 0.65*1.8 = 1.17 V -> 30 mV of margin.
-#     Unusable regardless of damage.
-#
-# FIX: force VADJ_FMC = 1.8 V via the system controller (Xilinx SCUI; procedure
-# in UG1182), then RE-MEASURE with a meter before connecting the cable. 1.8 V is
-# both what this XDC declares and the HP banks' maximum, so it is the correct
-# target, not a compromise. (HP banks cannot exceed 1.8 V, so there is no path
-# by which the ZCU102 could put 3.3 V on the Zedboard.)
-#
-# If VADJ cannot be made to stick at 1.8 V, do not cable the boards: generate the
-# RTC on-FPGA instead (divide soc_clk by 763 -> 32.768 kHz) and preload over the
-# ZCU102's own USB-UART, which needs no FMC connection at all.
+# VADJ: HPC0 sits on the ZCU102 VADJ_FMC rail and LVCMOS18 (below) requires
+# VADJ_FMC = 1.8 V, which matches the Zedboard FMC. Measure it before mating the
+# cable - the default is not necessarily 1.8 V, and a wrong VADJ misbehaves
+# subtly rather than obviously. Force it with the Xilinx system controller (SCUI,
+# procedure in UG1182) and re-measure. Verified at 1.8 V on our boards.
 #
 # If you cable into HPC1 (J4), swap for the HPC1 balls.
 
@@ -172,6 +141,11 @@ set_property IOSTANDARD LVCMOS33 \
 # driver's chip_arst_no (FMC LA25_P, active-LOW). To drive reset from the driver
 # instead, route LA25_P (HPC0 ball M11) and invert it (arst_no is active-low,
 # sys_reset is active-high) - easiest done in the wrapper.
+#
+# VERIFY M11 against the ZCU102 v3.4 board files before relying on it: it has
+# never been built. The HPC0 balls actually proven by the SPI link are LA02_P=V2,
+# LA04_P=AA2, LA07_P=U5, LA09_P=W2, LA10_P=W5. A wrong LOC here would not fail
+# loudly - it would just hold the SoC in reset, or never reset it.
 
 # --- UART HW flow control: NOT PINNED (intentionally) ---
 # The ZCU102 PL USB-UART (uart2_pl) exposes only TX/RX - no RTS/CTS. These used
