@@ -41,7 +41,7 @@ show_help()
     show_usage
     echo "  --chip_level: Run chip-level system test (default: off, i.e., run soc-level test)"
     echo "  --bootmode=#boot_mode: Boot mode for the system test. Options: 0-ROM 1-SPI (default: ROM)"
-    echo "  --preload=#preload_mode: Preload mode for the system test. Options: 0-JTAG 1-UART (default: JTAG)"
+    echo "  --preload=#preload_mode: Preload mode for the system test. Options: 0-JTAG 1-UART 2-SPI (default: JTAG)"
     echo "  --binary=#binary_path: Path to the binary to load into memory (default: helloworld.rom.elf)"
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --gui: Run simulation in GUI mode"
@@ -184,11 +184,12 @@ if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
     echo "[$(date +%T)] SW build done."
 
     # Build and install the LAGD boot ROM, overwriting the stock cheshire_bootrom.sv
-    # in the bender checkout. This is REQUIRED for UART/passive boot (--preload=1):
-    # the upstream boot ROM assumes a 64 KiB SPM and sets its stack pointer to
-    # 0x1000FFF8, which lies outside LAGD's 16 KiB stack RAM (0x10000000-0x10003FFF).
-    # The LAGD boot ROM links against sw/link/common.ldh and sets SP to 0x10003FF8.
-    # JTAG boot bypasses the boot ROM, so this only manifests for UART preload.
+    # in the bender checkout. This is REQUIRED for every passive-boot preload
+    # (--preload=1 UART and --preload=2 SPI): the upstream boot ROM assumes a
+    # 64 KiB SPM and sets its stack pointer to 0x1000FFF8, which lies outside
+    # LAGD's 16 KiB stack RAM (0x10000000-0x10003FFF). The LAGD boot ROM links
+    # against sw/link/common.ldh and sets SP to 0x10003FF8. JTAG (--preload=0)
+    # bypasses the boot ROM, so this only manifests for the passive-boot modes.
     echo "[$(date +%T)] Building LAGD boot ROM..."
     make -C "${ROOT_DIR}/hw/bootrom" all BENDER="${BENDER}"
     echo "[$(date +%T)] Boot ROM build done."
