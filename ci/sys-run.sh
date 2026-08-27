@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Author: Giuseppe Sarda <giuseppe.sarda@esat.kuleuven.be>
+# Author: Jiacong Sun <jiacong.sun@kuleuven.be>
 # sys-run.sh - Run system tests
 
 set -e
@@ -29,6 +30,7 @@ Usage: ./ci/sys-run.sh [[
     --sdf-annotate
     --data-folder=#data_folder
     --core-tested=#core_index
+    --fpga-cache-ram
     --help]]"
 EOF
     echo "Example: $0"
@@ -39,7 +41,7 @@ show_help()
     show_usage
     echo "  --chip_level: Run chip-level system test (default: off, i.e., run soc-level test)"
     echo "  --bootmode=#boot_mode: Boot mode for the system test. Options: 0-ROM 1-SPI (default: ROM)"
-    echo "  --preload=#preload_mode: Preload mode for the system test. Options: 0-JTAG 1-UART (default: JTAG)"
+    echo "  --preload=#preload_mode: Preload mode for the system test. Options: 0-JTAG 1-UART 2-SPI (default: JTAG)"
     echo "  --binary=#binary_path: Path to the binary to load into memory (default: helloworld.rom.elf)"
     echo "  --dbg=#dbg_lvl: Debug level (0-3, default: 0)"
     echo "  --gui: Run simulation in GUI mode"
@@ -53,6 +55,7 @@ show_help()
     echo "  --sdf-annotate: Enable SDF annotation for post-synthesis simulation (implies --post-syn or --netlist)"
     echo "  --data-folder=#data_folder: Specify the data folder under sw/tests/data/ to use for the simulation (default: default)"
     echo "  --core-tested=#core_index: Core driven by the single-core tests (default: 0). Ignored by the multi-core tests"
+    echo "  --fpga-cache-ram: Swap the CVA6 cache RAM in the RTL sim for the Xilinx FPGA model (SyncSpRamBeNx64) (default: off)"
     echo "  --help: Show this help message"
 }
 
@@ -73,6 +76,7 @@ SDF_FILE=""
 SDF_ANNOTATE=0
 DATA_FOLDER="default"
 CORE_TESTED="${CORE_TESTED:-0}"
+FPGA_CACHE_RAM=0
 
 if bender --version > /dev/null 2>&1; then
     BENDER="bender"
@@ -160,6 +164,10 @@ for i in "$@"; do
             CORE_TESTED="${i#*=}"
             shift
             ;;
+        --fpga-cache-ram)
+            FPGA_CACHE_RAM=1
+            shift
+            ;;
         *)
             echo "Unknown option: $i"
             show_usage
@@ -174,6 +182,17 @@ if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
     make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}" DATA_FOLDER="${DATA_FOLDER}" \
         CORE_TESTED="${CORE_TESTED}"
     echo "[$(date +%T)] SW build done."
+
+    # Build and install the LAGD boot ROM, overwriting the stock cheshire_bootrom.sv
+    # in the bender checkout. This is REQUIRED for every passive-boot preload
+    # (--preload=1 UART and --preload=2 SPI): the upstream boot ROM assumes a
+    # 64 KiB SPM and sets its stack pointer to 0x1000FFF8, which lies outside
+    # LAGD's 16 KiB stack RAM (0x10000000-0x10003FFF). The LAGD boot ROM links
+    # against sw/link/common.ldh and sets SP to 0x10003FF8. JTAG (--preload=0)
+    # bypasses the boot ROM, so this only manifests for the passive-boot modes.
+    echo "[$(date +%T)] Building LAGD boot ROM..."
+    make -C "${ROOT_DIR}/hw/bootrom" all BENDER="${BENDER}"
+    echo "[$(date +%T)] Boot ROM build done."
 else
     echo "[$(date +%T)] Skipping SW build."
 fi
@@ -238,6 +257,7 @@ echo "  NETLIST_PATH: $NETLIST_PATH"
 echo "  DATA_FOLDER: $DATA_FOLDER"
 echo "  CORE_TESTED (for single-core tests): $CORE_TESTED"
 echo "  RUN_ID: $RUN_ID"
+echo "  FPGA_CACHE_RAM: $FPGA_CACHE_RAM"
 
 # Force clean
 USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ clean
@@ -245,5 +265,5 @@ USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ c
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD_DUMP=${VCD_DUMP} SDF_FILE=${SDF_FILE} \
-    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} DATA_FOLDER=${DATA_FOLDER} make run-soc
+    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} DATA_FOLDER=${DATA_FOLDER} FPGA_CACHE_RAM=${FPGA_CACHE_RAM} make run-soc
 echo "[$(date +%T)] Simulation done."
