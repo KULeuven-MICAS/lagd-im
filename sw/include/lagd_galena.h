@@ -116,6 +116,15 @@ static void galena_stage_spin_feedback(unsigned core, int active) {
                            LAGD_SPIN_NUM_WORDS);
 }
 
+// Stage the spin feedback lines with a caller-supplied per-spin bit vector, instead of the
+// all-on/all-off broadcast above -- e.g. to turn feedback on for a single spin only, leaving every
+// other spin's feedback line low.
+static void galena_stage_spin_feedback_pattern(unsigned core,
+                                               const uint32_t pattern[LAGD_SPIN_NUM_WORDS]) {
+    lagd_core_write_vector(core, LAGD_CORE_SPIN_FEEDBACK_CFG_0_REG_OFFSET, pattern,
+                           LAGD_SPIN_NUM_WORDS);
+}
+
 // --- Stage properties --------------------------------------------------------
 
 // Load the wwl-high/wwl-low phase counter targets (in clock cycles) that time a dt write/read pulse

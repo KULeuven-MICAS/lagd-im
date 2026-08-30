@@ -75,6 +75,16 @@ include/gen/state_out_ref.h: tests/ref/data/$(DATA_FOLDER)/states_out_1 tests/re
 include/gen/state_out_ref_sec.h: tests/ref/data/$(DATA_FOLDER)/states_out_3 tests/ref/data/$(DATA_FOLDER)/states_out_4 $(GEN_STATE_OUT_PY) | include/gen
 	python3 $(GEN_STATE_OUT_PY) --folder $(DATA_FOLDER) --suffix _sec --core-onload 1
 
+# Force every galena test .elf (and its .o) to always relink/recompile, even if the source hasn't
+# changed -- e.g. after a COMPILE_ARGS-only change, which make can't otherwise detect as a
+# dependency. Not needed for .dump: it always follows its .elf since that's now always rebuilt too.
+# NOTE: depend on a FORCE prerequisite rather than marking the real targets .PHONY themselves --
+# marking a target phony directly skips make's normal rule search, which for a target that has
+# never been built before (no .o/.elf on disk yet) makes it silently report "Nothing to be done"
+# instead of actually building it.
+$(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.o): FORCE
+.PHONY: FORCE
+
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/gen/lagd_config.h include/gen/lagd_define.h include/gen/lagd_core_reg.h
 $(REF_TEST_SRCS:.c=.o): include/gen/model_j_data.h include/gen/model_f_data.h include/gen/spin_data.h \

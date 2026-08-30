@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lagd_core.h"
+#include "lagd_galena.h"
 
 typedef struct {
     // global_cfg_1: subsystem enables
@@ -59,7 +60,7 @@ static const lagd_core_config_t LAGD_BASE_CONFIG = {
     .cycle_per_wwl_high = 0x0005,
     .cycle_per_wwl_low = 0x0005,
     .cycle_per_spin_write = 0x0005,
-    .cycle_per_spin_compute = 0x0005,
+    .cycle_per_spin_compute = 0x000f,
     .debug_cycle_per_spin_read = 0x0005,
     .debug_spin_read_num = 0x0005,
     .icon_last_raddr_plus_one = 0x0400,
@@ -73,6 +74,13 @@ static const lagd_core_config_t LAGD_BASE_CONFIG = {
 
 // The one place that knows the register/bit-position mapping for lagd_core_config_t.
 static void lagd_core_apply_config(unsigned core, const lagd_core_config_t *cfg) {
+    // Bring-up default: feedback off for every spin. spin_feedback_cfg is a host-domain CSR (unlike
+    // the analog spin storage, which is on Galena's own power domain and survives a host reset), so
+    // without this a host chip reset silently puts it back to its power-on default (ON) before every
+    // load -- which turns a supposedly-passive spin read into one that actively drives feedback and
+    // lets the array compute/converge instead of just reporting what's stored.
+    galena_stage_spin_feedback(core, 0);
+
     *lagd_core_reg(core, LAGD_CORE_CMPT_MAX_NUM_REG_OFFSET) = cfg->cmpt_max_num;
     lagd_core_write_vector(core, LAGD_CORE_WWL_VDD_CFG_0_REG_OFFSET, cfg->wwl_vdd_cfg, 8);
     lagd_core_write_vector(core, LAGD_CORE_WWL_VREAD_CFG_0_REG_OFFSET, cfg->wwl_vread_cfg, 8);
