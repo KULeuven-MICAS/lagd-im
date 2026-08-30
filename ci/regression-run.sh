@@ -134,7 +134,7 @@ if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
     fi
     echo "[$(date +%T)] Building the software ..."
     if ! make -C "${ROOT_DIR}/sw" clean all DATA_FOLDER="${DATA_FOLDER}" \
-        CORE_TESTED="${CORE_TESTED}" ROW_STRIDE="${ROW_STRIDE}" \
+        COMPILE_ARGS="CORE_TESTED=${CORE_TESTED} ROW_STRIDE=${ROW_STRIDE}" \
         > "${LOG_DIR}/sw-build.log" 2>&1; then
         echo "[ERROR] ./ci/regression-run.sh: software build failed, see ${LOG_DIR}/sw-build.log"
         exit 1

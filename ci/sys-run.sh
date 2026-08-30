@@ -27,6 +27,11 @@ Usage: ./ci/sys-run.sh [[
     --skip-sw-build
     --vcd
     --sdf-annotate
+    --wave-scope=#scope
+    --no-wave-log
+    --defines=#defines
+    --sim-args=#sim_args
+    --disable-assertions
     --data-folder=#data_folder
     --core-tested=#core_index
     --help]]"
@@ -51,6 +56,11 @@ show_help()
     echo "  --skip-sw-build: Skip the software build step"
     echo "  --vcd: Generate VCD waveform file (default: off)"
     echo "  --sdf-annotate: Enable SDF annotation for post-synthesis simulation (implies --post-syn or --netlist)"
+    echo "  --wave-scope=#scope: Passed verbatim as arguments to vsim's 'log' command (only for dbg>0, default: '-r /*' -- everything); named scopes need the 'sim:' prefix, e.g. '-r sim:/tb_lagd_chip/*'"
+    echo "  --no-wave-log: Don't log any waves up front (only for dbg>0); add your own 'log -r <scope>' from the vsim console instead, e.g. with --gui"
+    echo "  --defines=#defines: Space-separated NAME or NAME=VALUE tokens, forwarded as +define+NAME[=VALUE] onto the vlog compile line (default: none, only affects files not covered by the bender-generated flist, e.g. --defines=\"TARGET_GALENA_NO_CHECKS\" has no effect on hw/tb/models/**)"
+    echo "  --sim-args=#sim_args: Space-separated tokens appended to hw/tb/Makefile's SIM_ARGS, forwarded to 'bender script vsim' when generating the flist (default: none); use to add bender targets, e.g. --sim-args=\"-t galena_no_checks\" to compile hw/tb/models/galena/galena.sv with TARGET_GALENA_NO_CHECKS defined"
+    echo "  --disable-assertions: Disable all SystemVerilog assertions design-wide at simulation runtime (equivalent to 'assertion disable -r /*' in vsim, no recompile needed)"
     echo "  --data-folder=#data_folder: Specify the data folder under sw/tests/data/ to use for the simulation (default: default)"
     echo "  --core-tested=#core_index: Core driven by the single-core tests (default: 0). Ignored by the multi-core tests"
     echo "  --help: Show this help message"
@@ -71,6 +81,11 @@ SKIP_SW_BUILD=0
 VCD_DUMP=0
 SDF_FILE=""
 SDF_ANNOTATE=0
+WAVE_SCOPE="-r /*"
+WAVE_LOG=1
+DEFINES=""
+SIM_ARGS=""
+DISABLE_ASSERTIONS=0
 DATA_FOLDER="default"
 CORE_TESTED="${CORE_TESTED:-0}"
 
@@ -152,6 +167,26 @@ for i in "$@"; do
             SDF_ANNOTATE=1
             shift
             ;;
+        --wave-scope=*)
+            WAVE_SCOPE="${i#*=}"
+            shift
+            ;;
+        --no-wave-log)
+            WAVE_LOG=0
+            shift
+            ;;
+        --defines=*)
+            DEFINES="${i#*=}"
+            shift
+            ;;
+        --sim-args=*)
+            SIM_ARGS="${i#*=}"
+            shift
+            ;;
+        --disable-assertions)
+            DISABLE_ASSERTIONS=1
+            shift
+            ;;
         --data-folder=*)
             DATA_FOLDER="${i#*=}"
             shift
@@ -172,7 +207,7 @@ done
 if [ "${SKIP_SW_BUILD}" -eq 0 ]; then
     echo "[$(date +%T)] Starting SW build..."
     make -C "${ROOT_DIR}/sw" clean all BENDER="${BENDER}" DATA_FOLDER="${DATA_FOLDER}" \
-        CORE_TESTED="${CORE_TESTED}"
+        COMPILE_ARGS="CORE_TESTED=${CORE_TESTED}"
     echo "[$(date +%T)] SW build done."
 else
     echo "[$(date +%T)] Skipping SW build."
@@ -233,6 +268,11 @@ echo "  PRELOAD_MODE: $PRELOAD_MODE"
 echo "  PRELOAD_ELF: $PRELOAD_ELF"
 echo "  DBG: $DBG"
 echo "  NO_GUI: $NO_GUI"
+echo "  WAVE_SCOPE: $WAVE_SCOPE"
+echo "  WAVE_LOG: $WAVE_LOG"
+echo "  DEFINES: $DEFINES"
+echo "  SIM_ARGS: $SIM_ARGS"
+echo "  DISABLE_ASSERTIONS: $DISABLE_ASSERTIONS"
 echo "  USE_TECH_MODELS: $USE_TECH_MODELS"
 echo "  NETLIST_PATH: $NETLIST_PATH"
 echo "  DATA_FOLDER: $DATA_FOLDER"
@@ -245,5 +285,9 @@ USE_TECH_MODELS=${USE_TECH_MODELS} RUN_ID=${RUN_ID} make -C ${ROOT_DIR}/hw/tb/ c
 CHIP_LEVEL_TEST=${CHIP_LEVEL_TEST} BOOT_MODE=${BOOT_MODE} PRELOAD_MODE=${PRELOAD_MODE} \
     PRELOAD_ELF=${PRELOAD_ELF} DBG=${DBG} NO_GUI=${NO_GUI} USE_TECH_MODELS=${USE_TECH_MODELS} \
     NETLIST_PATH=${NETLIST_PATH} RUN_ID=${RUN_ID} VCD_DUMP=${VCD_DUMP} SDF_FILE=${SDF_FILE} \
-    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} DATA_FOLDER=${DATA_FOLDER} make run-soc
+    POST_PNR=${POST_PNR} POST_SYN=${POST_SYN} DATA_FOLDER=${DATA_FOLDER} WAVE_SCOPE="${WAVE_SCOPE}" \
+    WAVE_LOG=${WAVE_LOG} DEFINES="${DEFINES}" SIM_ARGS="${SIM_ARGS}" \
+    DISABLE_ASSERTIONS=${DISABLE_ASSERTIONS} \
+    DST_PROJECT_ROOT="${DST_PROJECT_ROOT:-unused}" \
+    make run-soc
 echo "[$(date +%T)] Simulation done."
