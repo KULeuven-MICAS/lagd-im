@@ -46,7 +46,8 @@ static int chip_encode_word(uint32_t raw, uint32_t *encoded) {
 static void debug_settle(void) {
     fence();
     uint64_t start = get_mcycle();
-    while (get_mcycle() - start < 32) {}
+    while (get_mcycle() - start < 32) {
+    }
 }
 
 static int debug_wait_idle(void *base, unsigned core, unsigned row, unsigned bit) {
@@ -113,26 +114,23 @@ static void debug_configure_write(void *base, unsigned core) {
 
 static int debug_load_jh(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
-    volatile uint32_t *j_mem = (volatile uint32_t *)
-        ((uintptr_t)IC_MEM_BASE_ADDR + (uintptr_t)core * IC_L1_MEM_SIZE_B);
+    volatile uint32_t *j_mem =
+        (volatile uint32_t *)((uintptr_t)IC_MEM_BASE_ADDR + (uintptr_t)core * IC_L1_MEM_SIZE_B);
     uint32_t row_data[WBL_WORDS];
     int fail = 0;
     lagd_disable_all_debug_enable(core);
-    if (debug_wait_idle(base, core, NO_ROW,
-                        LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT) ||
-        debug_wait_idle(base, core, NO_ROW,
-                        LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_R_IDLE_BIT)) return 1;
+    if (debug_wait_idle(base, core, NO_ROW, LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT) ||
+        debug_wait_idle(base, core, NO_ROW, LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_R_IDLE_BIT))
+        return 1;
 
     for (unsigned row = 0; row <= H_ROW; row++) {
         // Each wide J memory word holds four consecutive 128-byte rows.
         // h is read from the CSRs initialized by lagd_configure_h_rdata().
         for (unsigned i = 0; i < WBL_WORDS; i++) {
-            uint32_t raw = row == H_ROW
-                ? *reg32(base, LAGD_CORE_H_RDATA_0_REG_OFFSET + 4 * i)
-                : j_mem[row * WBL_WORDS + i];
+            uint32_t raw = row == H_ROW ? *reg32(base, LAGD_CORE_H_RDATA_0_REG_OFFSET + 4 * i)
+                                        : j_mem[row * WBL_WORDS + i];
             if (chip_encode_word(raw, &row_data[i])) {
-                printf("Core %u row %u word %u: unrepresentable -8 in %08x\r\n",
-                       core, row, i, raw);
+                printf("Core %u row %u word %u: unrepresentable -8 in %08x\r\n", core, row, i, raw);
                 fail = 1;
                 goto cleanup;
             }
@@ -145,8 +143,7 @@ static int debug_load_jh(unsigned core) {
         lagd_enable_debug_j_write_en(core);
         debug_settle();
         lagd_disable_all_debug_enable(core);
-        if (debug_wait_idle(base, core, row,
-                            LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT)) {
+        if (debug_wait_idle(base, core, row, LAGD_CORE_OUTPUT_STATUS_DEBUG_ANALOG_DT_W_IDLE_BIT)) {
             // A stuck operation must not be reconfigured; caller aborts computation.
             return 1;
         }
