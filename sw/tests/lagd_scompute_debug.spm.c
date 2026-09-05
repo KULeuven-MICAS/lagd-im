@@ -15,10 +15,6 @@
 #define MAX_SAMPLES 2048
 #endif
 
-#ifndef ENERGY_MONITOR
-#define ENERGY_MONITOR 1
-#endif
-
 // cheshire headers
 #include "regs/cheshire.h"
 #include "dif/clint.h"
@@ -34,7 +30,8 @@
 #include "lagd_debug_load.h"
 
 int main(void) {
-    static uint32_t log_buf[MAX_SAMPLES];
+    static uint32_t log_buf_energy[MAX_SAMPLES];
+    static uint32_t log_buf_cnt[MAX_SAMPLES];
     // UART init
     // uint64_t t0 = clint_get_mtime();
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
@@ -68,12 +65,10 @@ int main(void) {
     // start computation
     lagd_enable_energy_monitor_fifo(CORE_TESTED);
     lagd_enable_computation(CORE_TESTED);
-    unsigned log_cnt;
-    if (ENERGY_MONITOR) {
-        log_cnt = lagd_monitor_energy_fifo_dbg_0(CORE_TESTED, MAX_SAMPLES, log_buf);
-    } else {
-        log_cnt = lagd_monitor_cycle_per_iteration(CORE_TESTED, MAX_SAMPLES, log_buf);
-    }
+    unsigned log_cnt_energy;
+    unsigned log_cnt_cycle;
+    log_cnt_energy = lagd_monitor_energy_fifo_dbg_0(CORE_TESTED, MAX_SAMPLES, log_buf_energy);
+    log_cnt_cycle = lagd_monitor_cycle_per_iteration(CORE_TESTED, MAX_SAMPLES, log_buf_cnt);
     // wait for computation to finish
     lagd_wait_for_computation_done(CORE_TESTED);
 
@@ -91,13 +86,11 @@ int main(void) {
         // print final output
         lagd_print_energy_fifo_data(CORE_TESTED);
 
-        if (ENERGY_MONITOR) {
-            // print energy monitor fifo debug register log
-            lagd_print_energy_fifo_dbg(CORE_TESTED, log_cnt, log_buf);
-        } else {
-            // print performance counter log
-            lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt, log_buf);
-        }
+        // print energy monitor fifo debug register log
+        lagd_print_energy_fifo_dbg(CORE_TESTED, log_cnt_energy, log_buf_energy);
+        // print performance counter log
+        lagd_print_cycle_per_iteration(CORE_TESTED, log_cnt_cycle, log_buf_cnt);
+
         lagd_print_spin_fifo_data(CORE_TESTED);
 
         printf("=== DONE ===\r\n");
