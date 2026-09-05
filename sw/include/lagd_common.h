@@ -312,8 +312,10 @@ static void lagd_print_energy_fifo_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
     uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
-    printf("Energy FIFO data 0 for core %u: 0x%08x\r\n", core, energy_fifo_data_0);
-    printf("Energy FIFO data 1 for core %u: 0x%08x\r\n", core, energy_fifo_data_1);
+    printf("Energy FIFO data 0 for core %u: 0x%08x (%d)\r\n", core, energy_fifo_data_0,
+           (int)((int32_t)energy_fifo_data_0));
+    printf("Energy FIFO data 1 for core %u: 0x%08x (%d)\r\n", core, energy_fifo_data_1,
+           (int)((int32_t)energy_fifo_data_1));
 }
 
 // Read out spin_fifo_data register and print the value
