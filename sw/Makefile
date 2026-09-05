@@ -39,6 +39,11 @@ CHS_SW_INCLUDES += -DCORE_TESTED=$(CORE_TESTED)
 CHS_SW_INCLUDES += -DVERIFICATION_TEST=$(VERIFICATION_TEST)
 CHS_SW_INCLUDES += -DROW_STRIDE=$(ROW_STRIDE)
 
+# Real-chip debug loading defaults to printing energy/spins. An explicit
+# VERIFICATION_TEST=1 on the make command line still enables reference checking.
+tests/lagd_scompute_debug.spm.o tests/lagd_scompute_debug.spm.elf: VERIFICATION_TEST = 0
+tests/lagd_scompute_debug.spm.o: Makefile
+
 MY_TEST_SRCS = $(wildcard tests/*.spm.c)
 MY_TESTS = $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.dump)
 
@@ -95,8 +100,13 @@ include/state_out_ref_sec.h: tests/data/$(DATA_FOLDER)/states_out_3 tests/data/$
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/lagd_core_reg.h \
 	include/model_j_data.h include/model_f_data.h include/spin_data.h \
-	include/model_j_data_sec.h include/model_f_data_sec.h include/spin_data_sec.h \
-	include/state_out_ref.h include/state_out_ref_sec.h
+	include/model_j_data_sec.h include/model_f_data_sec.h include/spin_data_sec.h
+
+# Real-chip debug programs share the J/h loader and print measured spin results;
+# they do not consume the analog simulation model's state_out_ref headers.
+tests/lagd_debug_spin.spm.o tests/lagd_scompute_debug.spm.o: \
+	include/lagd_debug_load.h include/lagd_scompute.h include/lagd_common.h \
+	include/lagd_reg_params.h Makefile
 
 all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
 
