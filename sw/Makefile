@@ -102,8 +102,9 @@ $(MY_TEST_SRCS:.c=.o): include/lagd_config.h include/lagd_define.h include/lagd_
 	include/model_j_data.h include/model_f_data.h include/spin_data.h \
 	include/model_j_data_sec.h include/model_f_data_sec.h include/spin_data_sec.h
 
-# Real-chip debug programs share the J/h loader and print measured spin results;
-# they do not consume the analog simulation model's state_out_ref headers.
+# lagd_debug_spin consumes the analog simulation model's state_out_ref headers.
+tests/lagd_debug_spin.spm.o: include/state_out_ref.h include/state_out_ref_sec.h
+# Real-chip debug programs share the J/h loader and print measured spin results.
 tests/lagd_debug_spin.spm.o tests/lagd_scompute_debug.spm.o: \
 	include/lagd_debug_load.h include/lagd_scompute.h include/lagd_common.h \
 	include/lagd_reg_params.h Makefile
