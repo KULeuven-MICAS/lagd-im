@@ -57,10 +57,13 @@ module tb_lagd_chip ();
         end 1: begin  // UART
           fix.vip.uart_debug_elf_run_and_wait(preload_elf, exit_code);
         end 2: begin  // SPI
-        //  fix.spi_vip.spi_init();
-        //  fix.spi_vip.spi_write_u32(32'h0000001f, 32'h8000_0000);
-        //  fix.spi_vip.spi_read(32'h00000004, 32'h8000_0000);
-          repeat (1000) @(posedge fix.vip.clk);  // Wait for some time to let the SPI transaction complete
+          // The SPI slave is already in Quad mode: the fixture's spi_test_done
+          // handshake above runs spi_init(). Preload writes straight into
+          // memory while the bootrom spins in boot_passive() polling SCRATCH_2,
+          // exactly as the FPGA driver does on hardware.
+          fix.spi_elf_run(preload_elf);
+          enable_vcd_dumping = 1'b1;
+          fix.spi_wait_for_eoc(exit_code);
         end default: begin
           $fatal(1, "Unsupported preload mode %d (reserved)!", preload_mode);
         end

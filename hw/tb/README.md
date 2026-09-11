@@ -1,5 +1,33 @@
 # This folder is for the SoC verification.
 
+## Preload modes
+
+How the test binary reaches memory before it runs, selected with
+`./ci/sys-run.sh --preload=N` (also accepted by `./ci/regression-run.sh`):
+
+| N | mode | needs the boot ROM? | notes |
+|---|------|---------------------|-------|
+| 0 | JTAG | no  | default. Halts the core, writes memory over the debug module, resumes. Bypasses the boot ROM entirely. |
+| 1 | UART | yes | the boot ROM's UART debug protocol. |
+| 2 | SPI  | yes | passive boot: the SPI slave writes memory as an AXI master while the boot ROM spins on SCRATCH_2. |
+
+Modes 1 and 2 are *passive boot* — they need the LAGD boot ROM, which
+`sys-run.sh` builds automatically (the stock cheshire one sets a stack pointer
+outside LAGD's 16 KiB stack RAM).
+
+`--preload=2` mirrors what the FPGA driver does on real hardware
+(`lagd-meas/sw/tools/spi_program_loader.py`): preload the sections, write the
+entry point to SCRATCH_0/1, then set the go bit in SCRATCH_2. The tasks live in
+[`include/lagd_test/spi_test_lib.sv`](include/lagd_test/spi_test_lib.sv)
+(`spi_elf_run` / `spi_wait_for_eoc`) and are modelled on cheshire's
+`slink_elf_run`. Program output still arrives over UART — the VIP's monitor
+prints it as `[UART] ...` in every mode, no extra call needed.
+
+```
+./ci/sys-run.sh --preload=2 --binary=sw/tests/helloworld.spm.elf
+./ci/regression-run.sh --preload=2 --tests=helloworld
+```
+
 ## Performance analysis
 The cycles per iteration (CPI) is in this range:
 
