@@ -1,12 +1,21 @@
-// Calibrate J_UP vs J_DN:
-//    1) Choose starting spot (power/speed trade-off) using J_DN
-//    2) Turn J_UP until output varies
+// Copyright 2026 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+// Author: Toon Bettens <toon.bettens@kuleuven.be>
+
+// Calibrate H_UP vs J_UP & J_DN
 
 #ifndef CORE_TESTED
 #define CORE_TESTED 1
 #endif
 #ifndef TARGET_COLUMN
 #define TARGET_COLUMN 128
+#endif
+#ifndef SCALING_FACTOR
+#define SCALING_FACTOR 8
+#endif
+#ifndef SCALE_ROWS
+#define SCALE_ROWS 32
 #endif
 #ifndef WWL_CYCLES
 #define WWL_CYCLES 100
@@ -27,12 +36,18 @@
 #define PROBE_COUNT 1000
 #endif
 
+// The h row is encoded exactly like J. This die reads the sign bit opposite to the encoder's
+// intent, so h is negated before encoding -- the same convention every other scenario uses. This
+// used to happen inside galena_encode_cu_for_row(); it is explicit here now.
+#ifndef INVERT_H
+#define INVERT_H 1
+#endif
+
 #include <stdint.h>
 #include "printf.h"
 #include "lagd_chip.h"
 #include "lagd_bringup.h"
 #include "lagd_galena_recipes.h"
-#include "lagd_galena_patterns.h"
 
 int main(void) {
     lagd_chip_init();
@@ -47,11 +62,27 @@ int main(void) {
     uint32_t zero_spins[LAGD_SPIN_NUM_WORDS] = {0};
     galena_write_spins(CORE_TESTED, zero_spins);
 
-    int column[NUM_SPIN];
-    pattern_gen_alternate(column, 64, 4, TARGET_COLUMN);
-    galena_write_column(CORE_TESTED, TARGET_COLUMN, /*cu_values=*/column, /*hu_value=*/0);
+    unsigned full_passes = SCALING_FACTOR / SCALE_ROWS;
+    unsigned remainder = SCALING_FACTOR % SCALE_ROWS;
 
-    printf("array + spins zeroed, column %u loaded\r\n", TARGET_COLUMN);
+    int column[NUM_SPIN] = {0};
+    unsigned row = 1;
+    for (unsigned n = 0; n < SCALE_ROWS; n++) {
+        if (row == TARGET_COLUMN) row++;
+        unsigned magnitude = full_passes + (n < remainder ? 1 : 0);
+        if (magnitude > 7) magnitude = 7;
+        if (magnitude > 0) column[row] = -(int)magnitude;
+        row++;
+    }
+
+    galena_write_column(CORE_TESTED, TARGET_COLUMN, /*cu_values=*/column, /*hu_value=*/INVERT_H ? -1 : 1);
+
+    printf("array + spins zeroed, column %u loaded: SCALING_FACTOR=%d over %d rows, HU=+1\r\n",
+           TARGET_COLUMN, SCALING_FACTOR, SCALE_ROWS);
+    printf("pattern:");
+    for (unsigned i = 0; i < NUM_SPIN; i++)
+        if (column[i]) printf(" [%u]=%d", i, column[i]);
+    printf("\r\n");
 
     uint32_t rtc_freq = *reg32(&__base_regs, CHESHIRE_RTC_FREQ_REG_OFFSET);
     uint64_t ticks_per_probe = (uint64_t)rtc_freq * PROBE_INTERVAL_MS / 1000;

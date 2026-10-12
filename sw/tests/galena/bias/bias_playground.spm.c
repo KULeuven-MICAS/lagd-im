@@ -1,10 +1,15 @@
+// Copyright 2026 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+// Author: Toon Bettens <toon.bettens@kuleuven.be>
+
 // Play around with various column-patterns.
 //   1) zero the whole array (all J rows + h-row) AND every spin's stored value
 //   2) write a chosen pattern into TARGET_COLUMN's CU column
 //   3) every PROBE_INTERVAL_MS milliseconds, acc-probe TARGET_COLUMN's own spin, repeat for PROBE_COUNT times.
 
 #ifndef CORE_TESTED
-#define CORE_TESTED 1
+#define CORE_TESTED 0
 #endif
 #ifndef TARGET_COLUMN
 #define TARGET_COLUMN 128
@@ -26,6 +31,13 @@
 #endif
 #ifndef PROBE_COUNT
 #define PROBE_COUNT 100
+#endif
+
+// The h row is encoded exactly like J. This die reads the sign bit opposite to the encoder's
+// intent, so h is negated before encoding -- the same convention every other scenario uses. This
+// used to happen inside galena_encode_cu_for_row(); it is explicit here now.
+#ifndef INVERT_H
+#define INVERT_H 1
 #endif
 
 #include <stdint.h>
@@ -63,7 +75,7 @@ int main(void) {
     column[3] = -1;
     column[4] = -1;
     column[5] = 4;
-    galena_write_column(CORE_TESTED, TARGET_COLUMN, /*cu_values=*/column, /*hu_value=*/1);
+    galena_write_column(CORE_TESTED, TARGET_COLUMN, /*cu_values=*/column, /*hu_value=*/INVERT_H ? -1 : 1);
 
     printf("array + spins zeroed, column %u loaded\r\n", TARGET_COLUMN);
 

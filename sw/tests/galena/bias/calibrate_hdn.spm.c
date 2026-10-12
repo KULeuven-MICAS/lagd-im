@@ -1,4 +1,9 @@
-// Calibrate H_DN vs J_UP & J_DN:
+// Copyright 2026 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+// Author: Toon Bettens <toon.bettens@kuleuven.be>
+
+// Calibrate H_DN vs J_UP & J_DN
 
 #ifndef CORE_TESTED
 #define CORE_TESTED 1
@@ -6,8 +11,8 @@
 #ifndef TARGET_COLUMN
 #define TARGET_COLUMN 128
 #endif
-#ifndef SCALE_FACTOR
-#define SCALE_FACTOR 4
+#ifndef SCALING_FACTOR
+#define SCALING_FACTOR 8
 #endif
 #ifndef SCALE_ROWS
 #define SCALE_ROWS 32
@@ -31,6 +36,13 @@
 #define PROBE_COUNT 1000
 #endif
 
+// The h row is encoded exactly like J. This die reads the sign bit opposite to the encoder's
+// intent, so h is negated before encoding -- the same convention every other scenario uses. This
+// used to happen inside galena_encode_cu_for_row(); it is explicit here now.
+#ifndef INVERT_H
+#define INVERT_H 1
+#endif
+
 #include <stdint.h>
 #include "printf.h"
 #include "lagd_chip.h"
@@ -50,8 +62,8 @@ int main(void) {
     uint32_t zero_spins[LAGD_SPIN_NUM_WORDS] = {0};
     galena_write_spins(CORE_TESTED, zero_spins);
 
-    unsigned full_passes = SCALE_FACTOR / SCALE_ROWS;
-    unsigned remainder = SCALE_FACTOR % SCALE_ROWS;
+    unsigned full_passes = SCALING_FACTOR / SCALE_ROWS;
+    unsigned remainder = SCALING_FACTOR % SCALE_ROWS;
 
     int column[NUM_SPIN] = {0};
     unsigned row = 1;
@@ -63,10 +75,10 @@ int main(void) {
         row++;
     }
 
-    galena_write_column(CORE_TESTED, TARGET_COLUMN, /*cu_values=*/column, /*hu_value=*/-1);
+    galena_write_column(CORE_TESTED, TARGET_COLUMN, /*cu_values=*/column, /*hu_value=*/INVERT_H ? 1 : -1);
 
-    printf("array + spins zeroed, column %u loaded: SCALE_FACTOR=%d over %d rows, HU=-1\r\n",
-           TARGET_COLUMN, SCALE_FACTOR, SCALE_ROWS);
+    printf("array + spins zeroed, column %u loaded: SCALING_FACTOR=%d over %d rows, HU=-1\r\n",
+           TARGET_COLUMN, SCALING_FACTOR, SCALE_ROWS);
     printf("pattern:");
     for (unsigned i = 0; i < NUM_SPIN; i++)
         if (column[i]) printf(" [%u]=%d", i, column[i]);

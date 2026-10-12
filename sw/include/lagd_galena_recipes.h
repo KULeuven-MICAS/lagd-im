@@ -74,6 +74,30 @@ static void galena_write_single_spin(unsigned core, unsigned spin_index, int val
     galena_write_single_spin_raw(core, spin_index, wbl);
 }
 
+// Latch one spin from its accumulation line instead of from the WBL bus: same strobe as
+// galena_write_single_spin, but asserting bit 1 of the spin's WBL nibble rather than bit 0.
+// The caller must bias that accumulation line beforehand; this only does the capture pulse.
+static void galena_write_single_spin_from_acc(unsigned core, unsigned spin_index) {
+    uint32_t wbl[LAGD_WBL_NUM_WORDS] = {0};
+    unsigned bit = BIT_H * spin_index + SPIN_WBL_OFFSET + 1;
+    wbl[bit / 32] |= (1u << (bit % 32));
+    galena_write_single_spin_raw(core, spin_index, wbl);
+}
+
+// As galena_write_single_spin_from_acc, but with feedback held on for spin_index throughout the
+// pulse. Staging it beforehand suffices: both commits inside galena_write_single_spin_raw re-latch
+// the feedback register alongside the fields they change. Staged back off afterwards.
+static void galena_write_single_spin_from_acc_with_feedback(unsigned core, unsigned spin_index) {
+    uint32_t feedback[LAGD_SPIN_NUM_WORDS] = {0};
+    feedback[spin_index / 32] |= (1u << (spin_index % 32));
+    galena_stage_spin_feedback_pattern(core, feedback);
+
+    galena_write_single_spin_from_acc(core, spin_index);
+
+    galena_stage_spin_feedback(core, 0);
+    galena_commit_spin_configure(core);
+}
+
 // Snapshot the 256 spins.
 static void galena_read_spins(unsigned core, uint32_t out[LAGD_SPIN_NUM_WORDS]) {
     galena_stage_spin_feedback(core, 0);
@@ -140,19 +164,10 @@ static uint32_t galena_encode_cu(int value) {
     return (value > 0 ? 1u : 0u) | ((mag & 1u) << 1) | ((mag & 2u) << 1) | ((mag & 4u) << 1);
 }
 
-// HU (row == NUM_SPIN) has its sign wired up backwards relative to CU rows on this die: writing
-// -N onto the H-row yields an effective +N strength, and vice versa. Centralized here so every
-// H-bias write path (galena_write_cu when targeting the H-row, galena_write_row_broadcast,
-// galena_write_row_range) gets the correction automatically instead of every caller having to
-// remember to negate its own h_value.
-static uint32_t galena_encode_cu_for_row(unsigned row, int value) {
-    return galena_encode_cu(row == NUM_SPIN ? -value : value);
-}
-
 // Program a single CU (or HU) with a signed strength (-7..+7), leaving every other column on that row at 0.
 // NOTE: row == col is the column's own AU, not a CU; the write will not have any effect.
 static void galena_write_cu(unsigned core, unsigned row, unsigned col, int value) {
-    uint32_t code = galena_encode_cu_for_row(row, value);
+    uint32_t code = galena_encode_cu(value);
     uint32_t pattern[LAGD_WBL_NUM_WORDS] = {0};
     unsigned base_bit = BIT_J * col;
     for (unsigned b = 0; b < BIT_J; b++) {
@@ -170,7 +185,7 @@ static void galena_write_column(unsigned core, unsigned col, const int values[NU
 
 // Program the same CU/HU value onto every column of one row in parallel (one write, all columns).
 static void galena_write_row_broadcast(unsigned core, unsigned row, int value) {
-    uint32_t code = galena_encode_cu_for_row(row, value);
+    uint32_t code = galena_encode_cu(value);
     uint32_t pattern[LAGD_WBL_NUM_WORDS] = {0};
     for (unsigned col = 0; col < NUM_SPIN; col++) {
         unsigned base_bit = BIT_J * col;
@@ -194,10 +209,27 @@ static void galena_write_all_columns(unsigned core, const int values[NUM_SPIN], 
 // subset of spins (call once per row in the subset with the same col_start/col_count).
 static void galena_write_row_range(unsigned core, unsigned row, int value, unsigned col_start,
                                    unsigned col_count) {
-    uint32_t code = galena_encode_cu_for_row(row, value);
+    uint32_t code = galena_encode_cu(value);
     uint32_t pattern[LAGD_WBL_NUM_WORDS] = {0};
     for (unsigned col = col_start; col < col_start + col_count; col++) {
         unsigned base_bit = BIT_J * col;
+        for (unsigned b = 0; b < BIT_J; b++) {
+            unsigned bit = base_bit + b;
+            if ((code >> b) & 1u) pattern[bit / 32] |= (1u << (bit % 32));
+        }
+    }
+    galena_write_row(core, row, pattern);
+}
+
+// Program one row with a different value per column in a single write, where
+// galena_write_row_broadcast/_range put the same value on every column they touch. Columns outside
+// [col_start, col_start+col_count) are left at 0; row == col is the column's own AU, not a CU.
+static void galena_write_row_values(unsigned core, unsigned row, const int *values,
+                                    unsigned col_start, unsigned col_count) {
+    uint32_t pattern[LAGD_WBL_NUM_WORDS] = {0};
+    for (unsigned n = 0; n < col_count; n++) {
+        uint32_t code = galena_encode_cu(values[n]);
+        unsigned base_bit = BIT_J * (col_start + n);
         for (unsigned b = 0; b < BIT_J; b++) {
             unsigned bit = base_bit + b;
             if ((code >> b) & 1u) pattern[bit / 32] |= (1u << (bit % 32));
