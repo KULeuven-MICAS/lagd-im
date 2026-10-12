@@ -87,12 +87,40 @@ $(MY_TEST_SRCS:.c=.elf) $(MY_TEST_SRCS:.c=.o): FORCE
 
 # Ensure headers are generated before compiling tests that use them
 $(MY_TEST_SRCS:.c=.o): include/gen/lagd_config.h include/gen/lagd_define.h include/gen/lagd_core_reg.h
+# tests/galena/compute/ needs J and the initial spins from DATA_FOLDER; it configures its own
+# registers instead of including include/ref's parameter headers, and supplies its own flip icons.
+COMPUTE_TEST_SRCS = $(wildcard tests/galena/compute/*.spm.c)
+$(COMPUTE_TEST_SRCS:.c=.o): include/gen/model_j_data.h include/gen/spin_data.h \
+	include/gen/model_j_data_sec.h include/gen/spin_data_sec.h
+
+# tests/galena/perf/ reads the problem through include/lagd_l1_model.h, so it needs the J/h arrays
+# and the initial spins. List all four: without the spin headers a stale spin_data.h survives a
+# DATA_FOLDER change, pairing a fresh J with the previous run's starting state.
+PERF_TEST_SRCS = $(wildcard tests/galena/perf/*.spm.c)
+$(PERF_TEST_SRCS:.c=.o): include/gen/model_j_data.h include/gen/model_j_data_sec.h \
+	include/gen/spin_data.h include/gen/spin_data_sec.h
+
 $(REF_TEST_SRCS:.c=.o): include/gen/model_j_data.h include/gen/model_f_data.h include/gen/spin_data.h \
 	include/gen/model_j_data_sec.h include/gen/model_f_data_sec.h include/gen/spin_data_sec.h \
 	include/gen/state_out_ref.h include/gen/state_out_ref_sec.h
 
 # Targets ---------------------------------------------------------------------
 all: $(CHS_SW_LIBS) $(CHS_SW_GEN_HDRS) $(MY_TESTS)
+
+# The performance flow, built together so the loader and both measurement ELFs agree on the
+# problem. Regenerate the data first, then: make perf DATA_FOLDER=<folder>
+PERF_FLOW = tests/galena/perf/load_problem_l1.spm.elf \
+	tests/galena/perf/run_capture.spm.elf \
+	tests/galena/perf/monitor_capture.spm.elf
+.PHONY: perf
+perf: $(PERF_FLOW)
+	@echo "perf flow built from DATA_FOLDER=$(DATA_FOLDER):"
+	@for e in $(PERF_FLOW); do echo "  $$e"; done
+
+# Build every .elf under tests/galena/scenarios/ in one go.
+SCENARIO_SRCS = $(wildcard tests/galena/scenarios/*.spm.c)
+.PHONY: scenarios
+scenarios: $(SCENARIO_SRCS:.c=.elf)
 
 clean:
 	rm -f $(MY_TESTS) $(MY_TEST_SRCS:.c=.o)
