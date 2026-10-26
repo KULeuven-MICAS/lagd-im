@@ -44,8 +44,8 @@
 #define GCFG2_SYNCHRONIZER_PIPE_NUM 0x3 // max: 0x3 (3)
 #define GCFG2_DEBUG_H_WWL 0
 #define GCFG2_DGT_ADDR_UPPER_BOUND 0x3F // max: 0x3F (63)
-#define GCFG2_CTNUS_FIFO_READ 0
-#define GCFG2_CTNUS_DGT_DEBUG 0
+#define GCFG2_CTNUS_FIFO_READ 1
+#define GCFG2_CTNUS_DGT_DEBUG 1
 #define GCFG2_INFINITE_ICON_LOOP_EN 0
 #define GCFG2_MULTI_CMPT_MODE_EN 0
 #define GCFG2_CONFIG_SPIN_INITIAL_SKIP_0 0
@@ -64,15 +64,15 @@
 
 // Registers for counter configuration 2
 #define CYCLE_PER_WWL_LOW 0x0005    // max: 0xFFFF (1 means 2 cycles)
-#define CYCLE_PER_SPIN_WRITE 0x0005 // max: 0xFFFF (1 means 2 cycles)
+#define CYCLE_PER_SPIN_WRITE 0x0001 // max: 0xFFFF (1 means 2 cycles)
 
 // Registers for counter configuration 3
-#define CYCLE_PER_SPIN_COMPUTE 0x0005    // max: 0xFFFF (1 means 2 cycles)
+#define CYCLE_PER_SPIN_COMPUTE 0x0032    // max: 0xFFFF (1 means 2 cycles)
 #define DEBUG_CYCLE_PER_SPIN_READ 0x0005 // max: 0xFFFF (1 means 2 cycles)
 
 // Registers for counter configuration 4
-#define DEBUG_SPIN_READ_NUM 0x0005      // max: 0x03FF (1023)
-#define ICON_LAST_RADDR_PLUS_ONE 0x0400 // max: 0x0400 (1024)
+#define DEBUG_SPIN_READ_NUM 0x0010    // max: 0x03FF (1023)
+#define ICON_LAST_RADDR_PLUS_ONE 0x64 // max: 0x0400 (1024)
 
 // wwl_vdd_cfg values
 static const uint32_t wwl_vdd_cfg[8] = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU,
