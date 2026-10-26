@@ -67,15 +67,23 @@ int main(void) {
     /////////////////////// DEBUG CONFIGURATION /////////////////////
     /////////////////////////////////////////////////////////////////
     // start spin debugging write
-    lagd_enable_debug_spin_write_en(CORE_TESTED);
-    lagd_disable_all_debug_enable(CORE_TESTED);
+    // lagd_enable_debug_spin_write_en(CORE_TESTED);
+    // lagd_wait_for_debug_spin_write_start(CORE_TESTED);
+    // lagd_disable_all_debug_enable(CORE_TESTED);
+    // lagd_wait_for_debug_spin_write_done(CORE_TESTED);
+    // lagd_enable_debug_spin_write_en(CORE_TESTED);
+    // lagd_wait_for_debug_spin_write_start(CORE_TESTED);
+    // lagd_disable_all_debug_enable(CORE_TESTED);
+    // lagd_wait_for_debug_spin_write_done(CORE_TESTED);
 
     /////////////////////////////////////////////////////////////////
     /////////////////////// DEBUG CONFIGURATION /////////////////////
     /////////////////////////////////////////////////////////////////
     // start spin debugging read
     lagd_enable_debug_spin_read_en(CORE_TESTED);
+    lagd_wait_for_debug_spin_read_start(CORE_TESTED);
     lagd_disable_all_debug_enable(CORE_TESTED);
+    lagd_wait_for_debug_spin_read_done(CORE_TESTED);
     // read back debug data from l1_f_mem and print
     if (VERIFICATION_TEST) {
         // One spin write happened, so every readout holds the first vector of the sequence
