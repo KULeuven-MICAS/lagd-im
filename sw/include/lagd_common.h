@@ -256,6 +256,40 @@ static void lagd_wait_for_computation_done(unsigned core) {
         ;
 }
 
+// Wait until a debug spin write has started. This must be checked before waiting for completion,
+// because DEBUG_SPIN_W_IDLE is already high before the write is triggered.
+static void lagd_wait_for_debug_spin_write_start(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) &
+            (1 << LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_W_IDLE_BIT)) != 0)
+        ;
+}
+
+// Wait until a started debug spin write has completed.
+static void lagd_wait_for_debug_spin_write_done(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) &
+            (1 << LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_W_IDLE_BIT)) == 0)
+        ;
+}
+
+// Wait until a debug spin read has started. This must be checked before waiting for completion,
+// because DEBUG_SPIN_R_IDLE is already high before the read is triggered.
+static void lagd_wait_for_debug_spin_read_start(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) &
+            (1 << LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_R_IDLE_BIT)) != 0)
+        ;
+}
+
+// Wait until a started debug spin read has completed.
+static void lagd_wait_for_debug_spin_read_done(unsigned core) {
+    void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
+    while ((*reg32(base, LAGD_CORE_OUTPUT_STATUS_REG_OFFSET) &
+            (1 << LAGD_CORE_OUTPUT_STATUS_DEBUG_SPIN_R_IDLE_BIT)) == 0)
+        ;
+}
+
 // Check and wait until computation under multi_cmpt_mode is done by polling MULTI_CMPT_MODE_IDLE
 // bit in output_status register
 static void lagd_wait_for_computation_multi_cmpt_mode_done(unsigned core) {
@@ -312,10 +346,8 @@ static void lagd_print_energy_fifo_data(unsigned core) {
     void *base = (void *)((uintptr_t)IC_REGS_BASE_ADDR + (uintptr_t)core * IC_NUM_REGS);
     uint32_t energy_fifo_data_0 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_0_REG_OFFSET);
     uint32_t energy_fifo_data_1 = *reg32(base, LAGD_CORE_ENERGY_FIFO_DATA_1_REG_OFFSET);
-    printf("Energy FIFO data 0 for core %u: 0x%08x (%d)\r\n", core, energy_fifo_data_0,
-           (int)((int32_t)energy_fifo_data_0));
-    printf("Energy FIFO data 1 for core %u: 0x%08x (%d)\r\n", core, energy_fifo_data_1,
-           (int)((int32_t)energy_fifo_data_1));
+    printf("Energy FIFO data 0 for core %u: 0x%08x\r\n", core, energy_fifo_data_0);
+    printf("Energy FIFO data 1 for core %u: 0x%08x\r\n", core, energy_fifo_data_1);
 }
 
 // Read out spin_fifo_data register and print the value
@@ -714,6 +746,7 @@ static void lagd_print_l1_f_mem(unsigned core, unsigned length) {
         (volatile uint64_t *)((uintptr_t)IC_J_MEM_END_ADDR +
                               (uintptr_t)core *
                                   ((uintptr_t)L1_J_MEM_SIZE_B + (uintptr_t)L1_FLIP_MEM_SIZE_B));
+    printf("Starting to print l1_f_mem for core %u, length %u\r\n", core, length);
     for (unsigned i = 0; i < length; i++) {
         uint64_t data[IC_L1_FLIP_MEM_DATA_WIDTH / 64]; // 4 x 64-bit words
         for (int j = 0; j < IC_L1_FLIP_MEM_DATA_WIDTH / 64; j++) {
