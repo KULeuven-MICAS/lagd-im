@@ -71,7 +71,7 @@
 #define DEBUG_CYCLE_PER_SPIN_READ 0x0005 // max: 0xFFFF (1 means 2 cycles)
 
 // Registers for counter configuration 4
-#define DEBUG_SPIN_READ_NUM 0x0010 // max: 0x03FF (1023)
+#define DEBUG_SPIN_READ_NUM 0x0010    // max: 0x03FF (1023)
 #define ICON_LAST_RADDR_PLUS_ONE 0x64 // max: 0x0400 (1024)
 
 // wwl_vdd_cfg values
